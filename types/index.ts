@@ -7,7 +7,7 @@ export default interface Song {
     user_id: string;
     author: string;
     title: string;
-    song_path: any; // requireで読み込むローカルファイルに対応
+    song_path: any; 
     image_path: ImageSourcePropType;
     video_path?: string;
     genre?: string;
