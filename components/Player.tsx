@@ -130,12 +130,7 @@ export default function Player({
 
         <View style={styles.controls}>
           <TouchableOpacity >
-          <Ionicons 
-              name="repeat" 
-              size={25} 
-              color={isRepeat ? "#1DB954" : "#fff"} 
-            />
-         
+           <Ionicons name="shuffle" size={25} color="#fff" />
           </TouchableOpacity>
           
           <TouchableOpacity onPress={onPrev}>
@@ -155,7 +150,11 @@ export default function Player({
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setIsRepeat(!isRepeat)}>
-            <Ionicons name="shuffle" size={25} color="#fff" />
+          <Ionicons 
+              name="repeat" 
+              size={25} 
+              color={isRepeat ? "#1DB954" : "#fff"} 
+            />
           </TouchableOpacity>
         </View>
       </View>
