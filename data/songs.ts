@@ -1,0 +1,40 @@
+import  Song  from '../types';
+
+export const songs: Song[] = [
+  {
+    id: '1',
+    user_id: 'test-user-1',
+    author: 'Unknown Artist',
+    title: 'Alive',
+    song_path: require('../assets/music/Alive.mp3'),
+    image_path: require('../assets/images/test.png'),
+    genre: 'Pop',
+    count: '0',
+    like_count: '0',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    user_id: 'test-user-1',
+    author: 'Unknown Artist',
+    title: 'Keep You Mine',
+    song_path: require('../assets/music/Keep_You_Mine.mp3'),
+    image_path: require('../assets/images/test.png'),
+    genre: 'Pop',
+    count: '0',
+    like_count: '0',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    user_id: 'test-user-1',
+    author: 'Unknown Artist',
+    title: 'Taking Care of You',
+    song_path: require('../assets/music/Taking_Care_of_You.mp3'),
+    image_path: require('../assets/images/test.png'),
+    genre: 'Pop',
+    count: '0',
+    like_count: '0',
+    created_at: new Date().toISOString(),
+  },
+];
