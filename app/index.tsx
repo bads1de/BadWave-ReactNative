@@ -166,9 +166,7 @@ export default function Index() {
   const renderItem = useCallback(({ item }: any) => (
     <TouchableOpacity 
       style={styles.songItem}
-      onPress={async () => {
-        // まず再生状態を更新してから表示状態を変更
-        await togglePlayPause(item.song_path, item.id);
+      onPress={() => {
         handlePlayerVisibility(true);
       }}
     >
@@ -177,11 +175,18 @@ export default function Index() {
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.author}>{item.author}</Text>
       </View>
-      <Ionicons 
-        name={currentSongId === item.id && isPlaying ? "pause-circle" : "play-circle"} 
-        size={40} 
-        color="#fff" 
-      />
+      <TouchableOpacity
+        onPress={async (e) => {
+          e.stopPropagation();
+          await togglePlayPause(item.song_path, item.id);
+        }}
+      >
+        <Ionicons 
+          name={currentSongId === item.id && isPlaying ? "pause-circle" : "play-circle"} 
+          size={40} 
+          color="#fff" 
+        />
+      </TouchableOpacity>
     </TouchableOpacity>
   ), [currentSongId, isPlaying]);
 

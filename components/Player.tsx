@@ -59,9 +59,6 @@ export default function Player({
           if (status.isLoaded) {
             setPosition(status.positionMillis);
             setDuration(status.durationMillis || 0);
-            if (isPlaying && !status.isPlaying) {
-              await sound.playAsync();
-            }
           }
         } catch (err) {
           console.error('Failed to sync audio state:', err);
@@ -132,12 +129,13 @@ export default function Player({
         </View>
 
         <View style={styles.controls}>
-          <TouchableOpacity onPress={() => setIsRepeat(!isRepeat)}>
-            <Ionicons 
+          <TouchableOpacity >
+          <Ionicons 
               name="repeat" 
               size={25} 
               color={isRepeat ? "#1DB954" : "#fff"} 
             />
+         
           </TouchableOpacity>
           
           <TouchableOpacity onPress={onPrev}>
@@ -156,7 +154,7 @@ export default function Player({
             <Ionicons name="play-skip-forward" size={35} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setIsRepeat(!isRepeat)}>
             <Ionicons name="shuffle" size={25} color="#fff" />
           </TouchableOpacity>
         </View>
