@@ -4,12 +4,14 @@ import { Audio } from 'expo-av';
 import { Asset } from 'expo-asset';
 import { useCallback, useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import Player from '../components/Player';
 
 export default function Index() {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSongId, setCurrentSongId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPlayer, setShowPlayer] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -34,6 +36,19 @@ export default function Index() {
     };
   }, []);
 
+  useEffect(() => {
+    const audioStateHandler = async () => {
+      if (sound && isPlaying) {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded && !status.isPlaying) {
+          await sound.playAsync();
+        }
+      }
+    };
+
+    audioStateHandler();
+  }, [sound, isPlaying, showPlayer]);
+
   const playNextSong = useCallback(() => {
     const currentIndex = songs.findIndex(song => song.id === currentSongId);
     const nextIndex = currentIndex + 1;
@@ -44,6 +59,19 @@ export default function Index() {
       // プレイリストの最初に戻る
       const firstSong = songs[0];
       playSound(firstSong.song_path, firstSong.id);
+    }
+  }, [currentSongId]);
+
+  const playPrevSong = useCallback(() => {
+    const currentIndex = songs.findIndex(song => song.id === currentSongId);
+    const prevIndex = currentIndex - 1;
+    if (prevIndex >= 0) {
+      const prevSong = songs[prevIndex];
+      playSound(prevSong.song_path, prevSong.id);
+    } else {
+      // プレイリストの最後に移動
+      const lastSong = songs[songs.length - 1];
+      playSound(lastSong.song_path, lastSong.id);
     }
   }, [currentSongId]);
 
@@ -64,7 +92,10 @@ export default function Index() {
   const playSound = async (songPath: string, songId: string) => {
     try {
       if (sound) {
-        await sound.unloadAsync();
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          await sound.unloadAsync();
+        }
       }
 
       const asset = Asset.fromModule(songPath);
@@ -72,7 +103,7 @@ export default function Index() {
       
       const { sound: newSound } = await Audio.Sound.createAsync(
         asset,
-        { shouldPlay: true },
+        { shouldPlay: true, progressUpdateIntervalMillis: 100 },
         (status) => {
           if (!status.isLoaded) return;
           
@@ -80,7 +111,6 @@ export default function Index() {
           
           if (status.positionMillis && status.durationMillis && 
               status.positionMillis >= status.durationMillis) {
-            // 曲が終わったら次の曲を再生
             playNextSong();
           }
         }
@@ -103,8 +133,14 @@ export default function Index() {
           await sound.pauseAsync();
           setIsPlaying(false);
         } else {
-          await sound.playAsync();
-          setIsPlaying(true);
+          const status = await sound.getStatusAsync();
+          if (status.isLoaded) {
+            await sound.playAsync();
+            setIsPlaying(true);
+          } else {
+            // 音声が解放されている場合は再度読み込む
+            await playSound(songPath, songId);
+          }
         }
       } else {
         await playSound(songPath, songId);
@@ -115,10 +151,26 @@ export default function Index() {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
+
+  const handlePlayerVisibility = (visible: boolean) => {
+    setShowPlayer(visible);
+  };
+
   const renderItem = useCallback(({ item }: any) => (
     <TouchableOpacity 
       style={styles.songItem}
-      onPress={() => togglePlayPause(item.song_path, item.id)}
+      onPress={async () => {
+        // まず再生状態を更新してから表示状態を変更
+        await togglePlayPause(item.song_path, item.id);
+        handlePlayerVisibility(true);
+      }}
     >
       <Image source={item.image_path} style={styles.image} />
       <View style={styles.songInfo}>
@@ -146,6 +198,26 @@ export default function Index() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
       />
+      {showPlayer && currentSongId && (
+        <View style={styles.playerContainer}>
+          <Player
+            sound={sound}
+            isPlaying={isPlaying}
+            currentSong={songs.find(song => song.id === currentSongId)}
+            onPlayPause={() => {
+              if (currentSongId) {
+                const currentSong = songs.find(song => song.id === currentSongId);
+                if (currentSong) {
+                  togglePlayPause(currentSong.song_path, currentSong.id);
+                }
+              }
+            }}
+            onNext={playNextSong}
+            onPrev={playPrevSong}
+            onClose={() => handlePlayerVisibility(false)}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -193,5 +265,13 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#fff',
     textAlign: 'center',
-  }
+  },
+  playerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#000',
+  },
 });
