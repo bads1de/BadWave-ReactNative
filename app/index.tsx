@@ -2,6 +2,7 @@ import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react
 import { songs } from '../data/songs';
 import { Ionicons } from '@expo/vector-icons';
 import Player from '../components/Player';
+import MiniPlayer from '../components/MiniPlayer';
 import { useState, useCallback } from 'react';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
@@ -26,7 +27,9 @@ export default function Index() {
   const renderItem = useCallback(({ item }: any) => (
     <TouchableOpacity 
       style={styles.songItem}
-      onPress={() => setShowPlayer(true)}
+      onPress={async () => {
+        await togglePlayPause(item);
+      }}
     >
       <Image source={item.image_path} style={styles.image} />
       <View style={styles.songInfo}>
@@ -50,12 +53,14 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={songs}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-      />
+      <View style={[styles.listWrapper, currentSong && !showPlayer && { marginBottom: 70 }]}>
+        <FlatList
+          data={songs}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
       {showPlayer && currentSong && (
         <View style={styles.playerContainer}>
           <Player
@@ -76,6 +81,14 @@ export default function Index() {
           />
         </View>
       )}
+      {currentSong && !showPlayer && (
+        <MiniPlayer
+          currentSong={currentSong}
+          isPlaying={isPlaying}
+          onPlayPause={togglePlayPause}
+          onPress={() => setShowPlayer(true)}
+        />
+      )}
     </View>
   );
 }
@@ -84,6 +97,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  listWrapper: {
+    flex: 1,
   },
   listContainer: {
     padding: 16,

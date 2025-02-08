@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Audio, AVPlaybackStatus } from 'expo-av';
-import { Asset } from 'expo-asset';
 import Song from '../types';
+
 
 // Audioプレーヤーのカスタムフック
 export function useAudioPlayer(songs: Song[]) {
@@ -41,9 +41,30 @@ export function useAudioPlayer(songs: Song[]) {
   };
 
 
+  // コンポーネントのアンマウント時にクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync().catch(error => {
+          console.error('クリーンアップエラー:', error);
+        });
+      }
+    };
+  }, [sound]);
+
+
   // 再生状態の更新処理
   const onPlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
+    
+    // 新しい再生が開始される前に古い再生を停止
+    if (status.isPlaying && sound) {
+      const currentStatus = await sound.getStatusAsync();
+      if (currentStatus.isLoaded && currentStatus.isPlaying && currentStatus.positionMillis !== status.positionMillis) {
+        await sound.stopAsync();
+        return;
+      }
+    }
     
     setPosition(status.positionMillis);
     setDuration(status.durationMillis || 0);
@@ -54,7 +75,7 @@ export function useAudioPlayer(songs: Song[]) {
           await sound.setPositionAsync(0);
           await sound.playAsync();
         } catch (error) {
-          console.error('リピート再生エラー:', error);
+        // console.error('リピート再生エラー:', error);
           nextSongRef.current();
         }
       } else {
@@ -66,43 +87,73 @@ export function useAudioPlayer(songs: Song[]) {
 
   // 曲の再生処理
   const playSong = async (song: Song) => {
-    await unloadSound();
-    
     try {
-      const asset = Asset.fromModule(song.song_path);
-      await asset.downloadAsync();
+      // 既存の音声を確実に停止・解放
+      await unloadSound();
+      
+      // 新しい曲の設定（先にUIを更新）
+      setCurrentSong(song);
+      setIsPlaying(false);
       
       const { sound: newSound } = await Audio.Sound.createAsync(
-        asset,
-        { shouldPlay: true, progressUpdateIntervalMillis: 500 },
+        song.song_path,
+        { 
+          shouldPlay: true,  // 自動再生を有効に
+          progressUpdateIntervalMillis: 500 
+        },
         onPlaybackStatusUpdate
       );
       
       setSound(newSound);
-      setCurrentSong(song);
       setIsPlaying(true);
     } catch (error) {
       console.error('再生エラー:', error);
+      setIsPlaying(false);
+      setSound(null);
     }
   };
 
 
   // 再生/一時停止の切り替え
   const togglePlayPause = async (song?: Song) => {
-    if (song) {
-      await playSong(song);
-      return;
-    }
-
-    if (sound) {
-      const status = await sound.getStatusAsync();
-      if (status.isLoaded && status.isPlaying) {
-        await sound.pauseAsync();
-        setIsPlaying(false);
-      } else {
-        await sound.playAsync();
-        setIsPlaying(true);
+    try {
+      // 新しい曲が指定された場合
+      if (song) {
+        // 現在の曲と同じ場合は再生/一時停止を切り替え
+        if (currentSong?.id === song.id && sound) {
+          const status = await sound.getStatusAsync();
+          if (status.isLoaded) {
+            if (status.isPlaying) {
+              await sound.pauseAsync();
+              setIsPlaying(false);
+            } else {
+              await sound.playAsync();
+              setIsPlaying(true);
+            }
+          }
+          return;
+        }
+        // 新しい曲を再生
+        setCurrentSong(song);  // すぐにUIを更新するため、先にセット
+        await playSong(song);
+        return;
       }
+
+      // 曲が再生中の場合、再生/一時停止を切り替え
+      if (sound && currentSong) {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          if (status.isPlaying) {
+            await sound.pauseAsync();
+            setIsPlaying(false);
+          } else {
+            await sound.playAsync();
+            setIsPlaying(true);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('再生/一時停止エラー:', error);
     }
   };
 
