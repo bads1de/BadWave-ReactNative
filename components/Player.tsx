@@ -1,105 +1,48 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
-import { useEffect, useState, useCallback } from 'react';
-import { Audio } from 'expo-av';
-import { useRouter } from 'expo-router';
 
 interface PlayerProps {
-  sound: Audio.Sound | null;
+  sound: any;
   isPlaying: boolean;
   currentSong: any;
+  position: number;
+  duration: number;
   onPlayPause: () => void;
   onNext: () => void;
   onPrev: () => void;
+  onSeek: (millis: number) => void;
   onClose: () => void;
+  repeat: boolean;
+  setRepeat: (value: boolean) => void;
+  shuffle: boolean;
+  setShuffle: (value: boolean) => void;
 }
 
 export default function Player({ 
-  sound, 
   isPlaying, 
   currentSong, 
+  position, 
+  duration, 
   onPlayPause, 
   onNext,
   onPrev,
-  onClose
+  onSeek,
+  onClose,
+  repeat,
+  setRepeat,
+  shuffle,
+  setShuffle,
 }: PlayerProps) {
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isRepeat, setIsRepeat] = useState(false);
-  const router = useRouter();
-
-  const updateAudioState = useCallback(async () => {
-    if (sound) {
-      try {
-        const status = await sound.getStatusAsync();
-        if (status.isLoaded) {
-          setPosition(status.positionMillis);
-          setDuration(status.durationMillis || 0);
-        }
-      } catch (err) {
-        console.error('Failed to update audio state:', err);
-      }
-    }
-  }, [sound]);
-
-  useEffect(() => {
-    if (sound) {
-      const interval = setInterval(updateAudioState, 1000);
-      updateAudioState();
-      return () => clearInterval(interval);
-    }
-  }, [sound, updateAudioState]);
-
-  useEffect(() => {
-    const syncAudioState = async () => {
-      if (sound) {
-        try {
-          const status = await sound.getStatusAsync();
-          if (status.isLoaded) {
-            setPosition(status.positionMillis);
-            setDuration(status.durationMillis || 0);
-          }
-        } catch (err) {
-          console.error('Failed to sync audio state:', err);
-        }
-      }
-    };
-    
-    syncAudioState();
-  }, [sound, isPlaying]);
-
   const formatTime = (millis: number) => {
     const minutes = Math.floor(millis / 60000);
     const seconds = ((millis % 60000) / 1000).toFixed(0);
     return `${minutes}:${Number(seconds) < 10 ? '0' : ''}${seconds}`;
   };
 
-  const handleSeek = async (value: number) => {
-    if (sound) {
-      await sound.setPositionAsync(value);
-      setPosition(value);
-    }
-  };
-
-  const handleClose = useCallback(async () => {
-    if (sound) {
-      // 現在の再生状態を保存
-      const status = await sound.getStatusAsync();
-      if (status.isLoaded && status.isPlaying) {
-        // 再生中の場合は、その状態を維持したまま閉じる
-        onClose();
-      } else {
-        onClose();
-      }
-    } else {
-      onClose();
-    }
-  }, [sound, onClose]);
-
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Ionicons name="chevron-down" size={30} color="#fff" />
       </TouchableOpacity>
 
@@ -118,7 +61,7 @@ export default function Player({
           minimumValue={0}
           maximumValue={duration}
           value={position}
-          onSlidingComplete={handleSeek}
+          onSlidingComplete={onSeek}
           minimumTrackTintColor="#1DB954"
           maximumTrackTintColor="#777"
           thumbTintColor="#1DB954"
@@ -129,8 +72,8 @@ export default function Player({
         </View>
 
         <View style={styles.controls}>
-          <TouchableOpacity >
-           <Ionicons name="shuffle" size={25} color="#fff" />
+          <TouchableOpacity onPress={() => setShuffle(!shuffle)}>
+            <Ionicons name="shuffle" size={25} color={shuffle ? "#1DB954" : "#fff"} />
           </TouchableOpacity>
           
           <TouchableOpacity onPress={onPrev}>
@@ -149,11 +92,11 @@ export default function Player({
             <Ionicons name="play-skip-forward" size={35} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setIsRepeat(!isRepeat)}>
-          <Ionicons 
+          <TouchableOpacity onPress={() => setRepeat(!repeat)}>
+            <Ionicons 
               name="repeat" 
               size={25} 
-              color={isRepeat ? "#1DB954" : "#fff"} 
+              color={repeat ? "#1DB954" : "#fff"} 
             />
           </TouchableOpacity>
         </View>
