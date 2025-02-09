@@ -37,4 +37,16 @@ export const songs: Song[] = [
     like_count: '0',
     created_at: new Date().toISOString(),
   },
+  {
+    id: '4',
+    user_id: 'test-user-1',
+    author: 'Unknown Artist',
+    title: 'No More Drama',
+    song_path: require('../assets/music/No-More-Drama.mp3'),
+    image_path: require('../assets/images/no-more-drama.png'),
+    genre: 'Pop',
+    count: '0',
+    like_count: '0',
+    created_at: new Date().toISOString(),
+  },
 ];
