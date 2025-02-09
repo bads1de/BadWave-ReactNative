@@ -1,50 +1,57 @@
 import { Tabs } from "expo-router";
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome } from "@expo/vector-icons";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarPosition: 'bottom',
+        tabBarPosition: "bottom",
         headerStyle: {
-          backgroundColor: '#000',
+          backgroundColor: "#000",
         },
-        headerTintColor: '#fff',
+        headerTintColor: "#fff",
         headerTitleStyle: {
-          color: '#fff',
+          color: "#fff",
         },
         tabBarStyle: {
-          backgroundColor: '#000',
-          borderTopColor: '#333',
+          backgroundColor: "#000",
+          borderTopColor: "#333",
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
-        tabBarActiveTintColor: '#fff',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: "#fff",
+        tabBarInactiveTintColor: "#666",
+        tabBarShowLabel: false,
+        tabBarItemStyle: {
+          borderRadius: 10,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'ホーム',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="home" size={size} color={color} />
+            <FontAwesome name="home" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: '検索',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="search" size={size} color={color} />
+            <FontAwesome name="search" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="library"
         options={{
-          title: 'ライブラリ',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="list" size={size} color={color} />
+            <FontAwesome name="list" size={24} color={color} />
           ),
         }}
       />
