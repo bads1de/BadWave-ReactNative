@@ -1,12 +1,12 @@
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { songs } from '../data/songs';
+import { songs } from '../../data/songs';
 import { Ionicons } from '@expo/vector-icons';
-import Player from '../components/Player';
-import MiniPlayer from '../components/MiniPlayer';
+import Player from '../../components/Player';
+import MiniPlayer from '../../components/MiniPlayer';
 import { useState, useCallback } from 'react';
-import { useAudioPlayer } from '../hooks/useAudioPlayer';
+import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 
-export default function Index() {
+export default function HomeScreen() {
   const [showPlayer, setShowPlayer] = useState(false);
   const {
     sound,
