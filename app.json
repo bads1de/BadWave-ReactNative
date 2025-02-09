@@ -29,9 +29,8 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/bad-music-app.jpg",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "resizeMode": "cover",
+          "backgroundColor": "#000000"
         }
       ]
     ],
