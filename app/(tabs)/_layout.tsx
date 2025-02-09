@@ -1,7 +1,9 @@
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { usePlayerStore } from "../../hooks/usePlayerStore";
 
 export default function TabLayout() {
+  const { showPlayer } = usePlayerStore();
   return (
     <Tabs
       screenOptions={{
@@ -13,13 +15,15 @@ export default function TabLayout() {
         headerTitleStyle: {
           color: "#fff",
         },
-        tabBarStyle: {
-          backgroundColor: "#000",
-          borderTopColor: "#333",
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
+        tabBarStyle: showPlayer
+          ? { display: "none" }
+          : {
+              backgroundColor: "#000",
+              borderTopColor: "#333",
+              height: 60,
+              paddingBottom: 8,
+              paddingTop: 8,
+            },
         tabBarActiveTintColor: "#fff",
         tabBarInactiveTintColor: "#666",
         tabBarShowLabel: false,
