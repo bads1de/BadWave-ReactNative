@@ -8,29 +8,13 @@ import {
 } from "react-native";
 import { songs } from "../../data/songs";
 import { Ionicons } from "@expo/vector-icons";
-import Player from "../../components/Player";
 import { useCallback } from "react";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 
 export default function HomeScreen() {
-  const { showPlayer, setShowPlayer } = usePlayerStore();
-
-  const {
-    sound,
-    isPlaying,
-    currentSong,
-    position,
-    duration,
-    togglePlayPause,
-    playNextSong,
-    playPrevSong,
-    seekTo,
-    repeat,
-    setRepeat,
-    shuffle,
-    setShuffle,
-  } = useAudioPlayer(songs);
+  const { currentSong, showPlayer } = usePlayerStore();
+  const { togglePlayPause, isPlaying } = useAudioPlayer(songs);
 
   const renderItem = useCallback(
     ({ item }: any) => (
@@ -81,26 +65,6 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContainer}
         />
       </View>
-      {showPlayer && currentSong ? (
-        <View style={styles.playerContainer}>
-          <Player
-            sound={sound}
-            isPlaying={isPlaying}
-            currentSong={currentSong}
-            position={position}
-            duration={duration}
-            onPlayPause={() => togglePlayPause()}
-            onNext={playNextSong}
-            onPrev={playPrevSong}
-            onSeek={seekTo}
-            onClose={() => setShowPlayer(false)}
-            repeat={repeat}
-            setRepeat={setRepeat}
-            shuffle={shuffle}
-            setShuffle={setShuffle}
-          />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -141,13 +105,5 @@ const styles = StyleSheet.create({
   author: {
     color: "#999",
     fontSize: 14,
-  },
-  playerContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#000",
   },
 });

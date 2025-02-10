@@ -2,15 +2,29 @@ import React from "react";
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { songs } from "@/data/songs";
 import MiniPlayer from "@/components/MiniPlayer";
+import Player from "@/components/Player";
 
 export default function TabLayout() {
-  const { showPlayer, currentSong, isPlaying } = usePlayerStore();
-  const { togglePlayPause } = useAudioPlayer(songs);
+  const { showPlayer, setShowPlayer, currentSong } = usePlayerStore();
+  const {
+    sound,
+    isPlaying,
+    position,
+    duration,
+    togglePlayPause,
+    playNextSong,
+    playPrevSong,
+    seekTo,
+    repeat,
+    setRepeat,
+    shuffle,
+    setShuffle,
+  } = useAudioPlayer(songs);
 
   return (
     <>
@@ -147,16 +161,59 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+
+      {/* フルスクリーンPlayerの表示（全画面オーバーレイ） */}
+      {showPlayer && currentSong && (
+        <View style={styles.fullPlayerContainer}>
+          <Player
+            sound={sound}
+            isPlaying={isPlaying}
+            currentSong={currentSong}
+            position={position}
+            duration={duration}
+            onPlayPause={() => togglePlayPause()}
+            onNext={playNextSong}
+            onPrev={playPrevSong}
+            onSeek={seekTo}
+            onClose={() => setShowPlayer(false)}
+            repeat={repeat}
+            setRepeat={setRepeat}
+            shuffle={shuffle}
+            setShuffle={setShuffle}
+          />
+        </View>
+      )}
+
+      {/* MiniPlayerはフルプレイヤーが表示されていない場合に下部に表示 */}
       {currentSong && !showPlayer && (
-        <View style={{ position: "absolute", bottom: 60, left: 0, right: 0 }}>
+        <View style={styles.miniPlayerContainer}>
           <MiniPlayer
             currentSong={currentSong}
             isPlaying={isPlaying}
             onPlayPause={togglePlayPause}
-            onPress={() => usePlayerStore.setState({ showPlayer: true })}
+            onPress={() => setShowPlayer(true)}
           />
         </View>
       )}
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  fullPlayerContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#000",
+    zIndex: 10,
+  },
+  miniPlayerContainer: {
+    position: "absolute",
+    bottom: 60,
+    left: 0,
+    right: 0,
+    zIndex: 5,
+  },
+});
