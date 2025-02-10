@@ -9,7 +9,6 @@ import {
 import { songs } from "../../data/songs";
 import { Ionicons } from "@expo/vector-icons";
 import Player from "../../components/Player";
-import MiniPlayer from "../../components/MiniPlayer";
 import { useCallback } from "react";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
@@ -101,14 +100,6 @@ export default function HomeScreen() {
             setShuffle={setShuffle}
           />
         </View>
-      ) : null}
-      {currentSong && !showPlayer ? (
-        <MiniPlayer
-          currentSong={currentSong}
-          isPlaying={isPlaying}
-          onPlayPause={togglePlayPause}
-          onPress={() => setShowPlayer(true)}
-        />
       ) : null}
     </View>
   );

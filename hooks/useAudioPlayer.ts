@@ -1,21 +1,29 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Audio, AVPlaybackStatus } from 'expo-av';
-import Song from '../types';
-
+import { useEffect, useCallback, useRef } from "react";
+import { Audio, AVPlaybackStatus } from "expo-av";
+import Song from "../types";
+import { usePlayerStore } from "./usePlayerStore";
 
 // Audioプレーヤーのカスタムフック
 export function useAudioPlayer(songs: Song[]) {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [repeat, setRepeat] = useState(false);
-  const [shuffle, setShuffle] = useState(false);
+  const {
+    sound,
+    currentSong,
+    isPlaying,
+    position,
+    duration,
+    repeat,
+    shuffle,
+    setSound,
+    setCurrentSong,
+    setIsPlaying,
+    setPosition,
+    setDuration,
+    setRepeat,
+    setShuffle,
+  } = usePlayerStore();
 
   // 次の曲を再生するための参照
   const nextSongRef = useRef<() => Promise<void>>(async () => {});
-
 
   // オーディオモードの初期設定
   useEffect(() => {
@@ -28,44 +36,46 @@ export function useAudioPlayer(songs: Song[]) {
     });
   }, []);
 
-
   // サウンドのクリーンアップ処理
   const unloadSound = async () => {
     if (sound) {
       try {
         await sound.unloadAsync();
+        setSound(null);
       } catch (error) {
-        console.error('サウンド解放エラー:', error);
+        console.error("サウンド解放エラー:", error);
       }
     }
   };
-
 
   // コンポーネントのアンマウント時にクリーンアップ
   useEffect(() => {
     return () => {
       if (sound) {
-        sound.unloadAsync().catch(error => {
-          console.error('クリーンアップエラー:', error);
+        sound.unloadAsync().catch((error: any) => {
+          console.error("クリーンアップエラー:", error);
         });
       }
     };
   }, [sound]);
 
-
   // 再生状態の更新処理
   const onPlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
-    
+
     // 新しい再生が開始される前に古い再生を停止
     if (status.isPlaying && sound) {
       const currentStatus = await sound.getStatusAsync();
-      if (currentStatus.isLoaded && currentStatus.isPlaying && currentStatus.positionMillis !== status.positionMillis) {
+      if (
+        currentStatus.isLoaded &&
+        currentStatus.isPlaying &&
+        currentStatus.positionMillis !== status.positionMillis
+      ) {
         await sound.stopAsync();
         return;
       }
     }
-    
+
     setPosition(status.positionMillis);
     setDuration(status.durationMillis || 0);
 
@@ -75,7 +85,7 @@ export function useAudioPlayer(songs: Song[]) {
           await sound.setPositionAsync(0);
           await sound.playAsync();
         } catch (error) {
-        // console.error('リピート再生エラー:', error);
+          // console.error('リピート再生エラー:', error);
           nextSongRef.current();
         }
       } else {
@@ -84,35 +94,33 @@ export function useAudioPlayer(songs: Song[]) {
     }
   };
 
-
   // 曲の再生処理
   const playSong = async (song: Song) => {
     try {
       // 既存の音声を確実に停止・解放
       await unloadSound();
-      
+
       // 新しい曲の設定（先にUIを更新）
       setCurrentSong(song);
       setIsPlaying(false);
-      
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         song.song_path,
-        { 
-          shouldPlay: true,  // 自動再生を有効に
-          progressUpdateIntervalMillis: 500 
+        {
+          shouldPlay: true, // 自動再生を有効に
+          progressUpdateIntervalMillis: 500,
         },
         onPlaybackStatusUpdate
       );
-      
+
       setSound(newSound);
       setIsPlaying(true);
     } catch (error) {
-      console.error('再生エラー:', error);
+      console.error("再生エラー:", error);
       setIsPlaying(false);
       setSound(null);
     }
   };
-
 
   // 再生/一時停止の切り替え
   const togglePlayPause = async (song?: Song) => {
@@ -134,7 +142,7 @@ export function useAudioPlayer(songs: Song[]) {
           return;
         }
         // 新しい曲を再生
-        setCurrentSong(song);  // すぐにUIを更新するため、先にセット
+        setCurrentSong(song); // すぐにUIを更新するため、先にセット
         await playSong(song);
         return;
       }
@@ -153,15 +161,14 @@ export function useAudioPlayer(songs: Song[]) {
         }
       }
     } catch (error) {
-      console.error('再生/一時停止エラー:', error);
+      console.error("再生/一時停止エラー:", error);
     }
   };
-
 
   // 次の曲を再生
   const playNextSong = useCallback(async () => {
     if (!songs.length) return;
-    
+
     if (repeat && currentSong) {
       await playSong(currentSong);
       return;
@@ -172,36 +179,33 @@ export function useAudioPlayer(songs: Song[]) {
       const randomIndex = Math.floor(Math.random() * songs.length);
       nextSong = songs[randomIndex];
     } else {
-      const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
+      const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
       nextSong = songs[(currentIndex + 1) % songs.length];
     }
-    
+
     await playSong(nextSong);
   }, [currentSong, songs, shuffle, repeat]);
-
 
   // nextSongRefの更新
   useEffect(() => {
     nextSongRef.current = playNextSong;
   }, [playNextSong]);
 
-
   // 前の曲を再生
   const playPrevSong = useCallback(async () => {
     if (!songs.length) return;
-    
+
     let prevSong: Song;
     if (shuffle) {
       const randomIndex = Math.floor(Math.random() * songs.length);
       prevSong = songs[randomIndex];
     } else {
-      const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
+      const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
       prevSong = songs[(currentIndex - 1 + songs.length) % songs.length];
     }
-    
+
     await playSong(prevSong);
   }, [currentSong, songs, shuffle]);
-
 
   // 再生停止
   const stop = async () => {
@@ -215,7 +219,6 @@ export function useAudioPlayer(songs: Song[]) {
     }
   };
 
-
   // 指定位置にシーク
   const seekTo = async (millis: number) => {
     if (sound) {
@@ -223,7 +226,6 @@ export function useAudioPlayer(songs: Song[]) {
       setPosition(millis);
     }
   };
-
 
   // フックの戻り値
   return {
