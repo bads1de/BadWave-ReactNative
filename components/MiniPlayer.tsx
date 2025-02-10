@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -5,11 +8,11 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  Animated,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
-import type Song from "../types";
+import { Feather } from "@expo/vector-icons";
+import Song from "../types";
 
 interface MiniPlayerProps {
   currentSong: Song;
@@ -18,19 +21,45 @@ interface MiniPlayerProps {
   onPress: () => void;
 }
 
-export default function MiniPlayer({
+export default function ModernMiniPlayer({
   currentSong,
   isPlaying,
   onPlayPause,
   onPress,
 }: MiniPlayerProps) {
+  const translateY = useRef(new Animated.Value(60)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, translateY]); // Added opacity and translateY to dependencies
+
   return (
-    <BlurView intensity={80} tint="dark" style={styles.blurContainer}>
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          transform: [{ translateY }],
+          opacity,
+        },
+      ]}
+    >
       <LinearGradient
-        colors={["rgba(255,255,255,0.1)", "rgba(255,255,255,0.05)"]}
+        colors={["#1e2a78", "#ff9190"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.container}
+        style={styles.gradient}
       >
         <TouchableOpacity style={styles.contentContainer} onPress={onPress}>
           <Image source={currentSong.image_path} style={styles.image} />
@@ -49,7 +78,7 @@ export default function MiniPlayer({
               onPlayPause();
             }}
           >
-            <Ionicons
+            <Feather
               name={isPlaying ? "pause" : "play"}
               size={24}
               color="#fff"
@@ -57,24 +86,33 @@ export default function MiniPlayer({
           </TouchableOpacity>
         </TouchableOpacity>
       </LinearGradient>
-    </BlurView>
+    </Animated.View>
   );
 }
 
 const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
-  blurContainer: {
+  container: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-  },
-  container: {
     height: 80,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+  },
+  gradient: {
+    flex: 1,
   },
   contentContainer: {
     flex: 1,
@@ -83,28 +121,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   image: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 15,
   },
   songInfo: {
     flex: 1,
-    marginLeft: 15,
   },
   title: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    marginBottom: 4,
   },
   author: {
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(255,255,255,0.8)",
     fontSize: 14,
-    marginTop: 2,
   },
   playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",

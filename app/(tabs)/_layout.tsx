@@ -13,7 +13,7 @@ export default function TabLayout() {
   const { togglePlayPause } = useAudioPlayer(songs);
 
   return (
-    <View style={{ flex: 1 }}>
+    <>
       <Tabs
         screenOptions={{
           tabBarPosition: "bottom",
@@ -157,6 +157,6 @@ export default function TabLayout() {
           />
         </View>
       )}
-    </View>
+    </>
   );
 }
