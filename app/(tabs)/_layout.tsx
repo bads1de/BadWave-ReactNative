@@ -56,7 +56,11 @@ export default function TabLayout() {
                     ? {
                         textShadowColor: "#4c1d95",
                         textShadowOffset: { width: 0, height: 0 },
-                        textShadowRadius: 8,
+                        textShadowRadius: 20,
+                        shadowColor: "#6d28d9",
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowRadius: 20,
+                        shadowOpacity: 0.8,
                       }
                     : {}
                 }
@@ -87,7 +91,11 @@ export default function TabLayout() {
                     ? {
                         textShadowColor: "#4c1d95",
                         textShadowOffset: { width: 0, height: 0 },
-                        textShadowRadius: 8,
+                        textShadowRadius: 20,
+                        shadowColor: "#6d28d9",
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowRadius: 20,
+                        shadowOpacity: 0.8,
                       }
                     : {}
                 }
@@ -118,7 +126,11 @@ export default function TabLayout() {
                     ? {
                         textShadowColor: "#4c1d95",
                         textShadowOffset: { width: 0, height: 0 },
-                        textShadowRadius: 8,
+                        textShadowRadius: 20,
+                        shadowColor: "#6d28d9",
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowRadius: 20,
+                        shadowOpacity: 0.8,
                       }
                     : {}
                 }

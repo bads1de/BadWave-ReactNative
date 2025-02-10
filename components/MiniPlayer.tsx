@@ -1,6 +1,15 @@
-import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Song from "../types";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+import type Song from "../types";
 
 interface MiniPlayerProps {
   currentSong: Song;
@@ -16,58 +25,88 @@ export default function MiniPlayer({
   onPress,
 }: MiniPlayerProps) {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Image source={currentSong.image_path} style={styles.image} />
-      <View style={styles.songInfo}>
-        <Text style={styles.title}>{currentSong.title}</Text>
-        <Text style={styles.author}>{currentSong.author}</Text>
-      </View>
-      <TouchableOpacity
-        onPress={(e) => {
-          e.stopPropagation();
-          onPlayPause();
-        }}
+    <BlurView intensity={80} tint="dark" style={styles.blurContainer}>
+      <LinearGradient
+        colors={["rgba(255,255,255,0.1)", "rgba(255,255,255,0.05)"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
       >
-        <Ionicons
-          name={isPlaying ? "pause-circle" : "play-circle"}
-          size={40}
-          color="#fff"
-        />
-      </TouchableOpacity>
-    </TouchableOpacity>
+        <TouchableOpacity style={styles.contentContainer} onPress={onPress}>
+          <Image source={currentSong.image_path} style={styles.image} />
+          <View style={styles.songInfo}>
+            <Text style={styles.title} numberOfLines={1}>
+              {currentSong.title}
+            </Text>
+            <Text style={styles.author} numberOfLines={1}>
+              {currentSong.author}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.playButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              onPlayPause();
+            }}
+          >
+            <Ionicons
+              name={isPlaying ? "pause" : "play"}
+              size={24}
+              color="#fff"
+            />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </LinearGradient>
+    </BlurView>
   );
 }
 
+const { width } = Dimensions.get("window");
+
 const styles = StyleSheet.create({
-  container: {
+  blurContainer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 70,
-    backgroundColor: "#222",
+  },
+  container: {
+    height: 80,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: "hidden",
+  },
+  contentContainer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#333",
+    paddingHorizontal: 20,
   },
   image: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   songInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 15,
   },
   title: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
   },
   author: {
-    color: "#999",
-    fontSize: 12,
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 14,
+    marginTop: 2,
+  },
+  playButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
