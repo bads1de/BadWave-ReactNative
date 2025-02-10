@@ -3,6 +3,11 @@ import { Audio, AVPlaybackStatus } from "expo-av";
 import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
 
+/**
+ * オーディオプレーヤーの機能を管理するためのカスタムフック。
+ * @param {Song[]} songs 再生する曲の配列。
+ * @returns {{ sound: Audio.Sound | null, isPlaying: boolean, currentSong: Song | null, position: number, duration: number, playSong: (song: Song) => Promise<void>, togglePlayPause: (song?: Song) => Promise<void>, playNextSong: () => Promise<void>, playPrevSong: () => Promise<void>, stop: () => Promise<void>, seekTo: (millis: number) => Promise<void>, repeat: boolean, setRepeat: (repeat: boolean) => void, shuffle: boolean, setShuffle: (shuffle: boolean) => void }}
+ */
 // Audioプレーヤーのカスタムフック
 export function useAudioPlayer(songs: Song[]) {
   const {
@@ -23,10 +28,19 @@ export function useAudioPlayer(songs: Song[]) {
   } = usePlayerStore();
 
   // 次の曲を再生するための参照
+  /**
+   * 次の曲を再生するための関数への参照。
+   */
   const nextSongRef = useRef<() => Promise<void>>(async () => {});
 
   // オーディオモードの初期設定
   useEffect(() => {
+    // オーディオモードを設定
+    // allowsRecordingIOS: iOSでの録音を許可するか
+    // staysActiveInBackground: バックグラウンドでアクティブな状態を維持するか
+    // playsInSilentModeIOS: iOSのサイレントモードで再生するか
+    // shouldDuckAndroid: Androidで他のオーディオをダッキングするか
+    // playThroughEarpieceAndroid: Androidでイヤホンから再生するか
     Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
       staysActiveInBackground: true,
@@ -37,6 +51,9 @@ export function useAudioPlayer(songs: Song[]) {
   }, []);
 
   // サウンドのクリーンアップ処理
+  /**
+   * サウンドをアンロードし、状態をリセットします。
+   */
   const unloadSound = async () => {
     if (sound) {
       try {
@@ -49,6 +66,8 @@ export function useAudioPlayer(songs: Song[]) {
   };
 
   // コンポーネントのアンマウント時にクリーンアップ
+  // コンポーネントがアンマウントされたときに、サウンドをアンロードする
+  // クリーンアップ関数
   useEffect(() => {
     return () => {
       if (sound) {
@@ -60,6 +79,10 @@ export function useAudioPlayer(songs: Song[]) {
   }, [sound]);
 
   // 再生状態の更新処理
+  /**
+   * 再生状態の更新を処理するコールバック関数。
+   * @param {AVPlaybackStatus} status 再生状態。
+   */
   const onPlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
 
@@ -94,6 +117,10 @@ export function useAudioPlayer(songs: Song[]) {
     }
   };
 
+  /**
+   * 指定された曲を再生します。
+   * @param {Song} song 再生する曲。
+   */
   // 曲の再生処理
   const playSong = async (song: Song) => {
     try {
@@ -123,6 +150,10 @@ export function useAudioPlayer(songs: Song[]) {
   };
 
   // 再生/一時停止の切り替え
+  /**
+   * 再生と一時停止を切り替えます。
+   * @param {Song} [song] 再生する曲（オプション）。指定しない場合は、現在の曲の再生/一時停止を切り替えます。
+   */
   const togglePlayPause = async (song?: Song) => {
     try {
       // 新しい曲が指定された場合
@@ -166,6 +197,9 @@ export function useAudioPlayer(songs: Song[]) {
   };
 
   // 次の曲を再生
+  /**
+   * 次の曲を再生します。
+   */
   const playNextSong = useCallback(async () => {
     if (!songs.length) return;
 
@@ -187,11 +221,15 @@ export function useAudioPlayer(songs: Song[]) {
   }, [currentSong, songs, shuffle, repeat]);
 
   // nextSongRefの更新
+  // `playNextSong` が変更されるたびに `nextSongRef.current` を更新
   useEffect(() => {
     nextSongRef.current = playNextSong;
   }, [playNextSong]);
 
   // 前の曲を再生
+  /**
+   * 前の曲を再生します。
+   */
   const playPrevSong = useCallback(async () => {
     if (!songs.length) return;
 
@@ -208,6 +246,9 @@ export function useAudioPlayer(songs: Song[]) {
   }, [currentSong, songs, shuffle]);
 
   // 再生停止
+  /**
+   * 再生を停止し、リソースを解放します。
+   */
   const stop = async () => {
     if (sound) {
       await sound.unloadAsync();
@@ -220,6 +261,10 @@ export function useAudioPlayer(songs: Song[]) {
   };
 
   // 指定位置にシーク
+  /**
+   * 指定された位置にシークします。
+   * @param {number} millis シークする位置（ミリ秒単位）。
+   */
   const seekTo = async (millis: number) => {
     if (sound) {
       await sound.setPositionAsync(millis);

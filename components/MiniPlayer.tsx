@@ -43,7 +43,7 @@ export default function ModernMiniPlayer({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [opacity, translateY]); // Added opacity and translateY to dependencies
+  }, [opacity, translateY]);
 
   return (
     <Animated.View
