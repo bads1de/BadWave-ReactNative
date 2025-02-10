@@ -3,9 +3,12 @@ import { FontAwesome } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { View } from "react-native";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { songs } from "@/data/songs";
 
 export default function TabLayout() {
   const { showPlayer } = usePlayerStore();
+  const { currentSong, isPlaying, togglePlayPause } = useAudioPlayer(songs);
   return (
     <Tabs
       screenOptions={{

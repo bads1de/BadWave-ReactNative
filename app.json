@@ -18,6 +18,10 @@
       },
       "package": "com.s3xmaxman.badmusicappmobile"
     },
+    "androidNavigationBar": {
+      "backgroundColor": "#000000",
+      "barStyle": "light-content"
+    },
     "web": {
       "bundler": "metro",
       "output": "static",
