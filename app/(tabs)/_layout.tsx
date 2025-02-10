@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // 追加
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { View } from "react-native";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 
 export default function TabLayout() {
@@ -20,7 +21,7 @@ export default function TabLayout() {
           ? { display: "none" }
           : {
               backgroundColor: "#000",
-              borderTopColor: "#333",
+              borderTopWidth: 0,
               height: 60,
               paddingBottom: 8,
               paddingTop: 8,
@@ -37,8 +38,30 @@ export default function TabLayout() {
         name="index"
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="home" size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                width: 50,
+                height: 40,
+              }}
+            >
+              <FontAwesome
+                name="home"
+                size={24}
+                color={focused ? "#4c1d95" : "#666"}
+                style={
+                  focused
+                    ? {
+                        textShadowColor: "#4c1d95",
+                        textShadowOffset: { width: 0, height: 0 },
+                        textShadowRadius: 8,
+                      }
+                    : {}
+                }
+              />
+            </View>
           ),
         }}
       />
@@ -46,8 +69,30 @@ export default function TabLayout() {
         name="search"
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="search" size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                width: 50,
+                height: 40,
+              }}
+            >
+              <FontAwesome
+                name="search"
+                size={24}
+                color={focused ? "#4c1d95" : "#666"}
+                style={
+                  focused
+                    ? {
+                        textShadowColor: "#4c1d95",
+                        textShadowOffset: { width: 0, height: 0 },
+                        textShadowRadius: 8,
+                      }
+                    : {}
+                }
+              />
+            </View>
           ),
         }}
       />
@@ -55,8 +100,30 @@ export default function TabLayout() {
         name="library"
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="bookshelf" size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                width: 50,
+                height: 40,
+              }}
+            >
+              <MaterialCommunityIcons
+                name="bookshelf"
+                size={24}
+                color={focused ? "#4c1d95" : "#666"}
+                style={
+                  focused
+                    ? {
+                        textShadowColor: "#4c1d95",
+                        textShadowOffset: { width: 0, height: 0 },
+                        textShadowRadius: 8,
+                      }
+                    : {}
+                }
+              />
+            </View>
           ),
         }}
       />

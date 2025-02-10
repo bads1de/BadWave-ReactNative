@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import  Song  from '../types';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Song from "../types";
 
 interface MiniPlayerProps {
   currentSong: Song;
@@ -9,7 +9,12 @@ interface MiniPlayerProps {
   onPress: () => void;
 }
 
-export default function MiniPlayer({ currentSong, isPlaying, onPlayPause, onPress }: MiniPlayerProps) {
+export default function MiniPlayer({
+  currentSong,
+  isPlaying,
+  onPlayPause,
+  onPress,
+}: MiniPlayerProps) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <Image source={currentSong.image_path} style={styles.image} />
@@ -17,14 +22,16 @@ export default function MiniPlayer({ currentSong, isPlaying, onPlayPause, onPres
         <Text style={styles.title}>{currentSong.title}</Text>
         <Text style={styles.author}>{currentSong.author}</Text>
       </View>
-      <TouchableOpacity onPress={(e) => {
-        e.stopPropagation();
-        onPlayPause();
-      }}>
-        <Ionicons 
-          name={isPlaying ? "pause-circle" : "play-circle"} 
-          size={40} 
-          color="#fff" 
+      <TouchableOpacity
+        onPress={(e) => {
+          e.stopPropagation();
+          onPlayPause();
+        }}
+      >
+        <Ionicons
+          name={isPlaying ? "pause-circle" : "play-circle"}
+          size={40}
+          color="#fff"
         />
       </TouchableOpacity>
     </TouchableOpacity>
@@ -33,17 +40,17 @@ export default function MiniPlayer({ currentSong, isPlaying, onPlayPause, onPres
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     height: 70,
-    backgroundColor: '#222',
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: "#222",
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: "#333",
   },
   image: {
     width: 40,
@@ -55,12 +62,12 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   author: {
-    color: '#999',
+    color: "#999",
     fontSize: 12,
   },
 });
