@@ -74,9 +74,9 @@ export default function Player({
           maximumValue={duration}
           value={position}
           onSlidingComplete={onSeek}
-          minimumTrackTintColor="#1DB954"
+          minimumTrackTintColor="#4c1d95"
           maximumTrackTintColor="#777"
-          thumbTintColor="#1DB954"
+          thumbTintColor="#4c1d95"
         />
 
         <View style={styles.timeContainer}>
@@ -89,7 +89,7 @@ export default function Player({
             <Ionicons
               name="shuffle"
               size={25}
-              color={shuffle ? "#1DB954" : "#fff"}
+              color={shuffle ? "#4c1d95" : "#fff"}
             />
           </TouchableOpacity>
 
@@ -113,7 +113,7 @@ export default function Player({
             <Ionicons
               name="repeat"
               size={25}
-              color={repeat ? "#1DB954" : "#fff"}
+              color={repeat ? "#4c1d95" : "#fff"}
             />
           </TouchableOpacity>
         </View>
