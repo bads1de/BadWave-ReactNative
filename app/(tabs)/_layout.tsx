@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons"; // 追加
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 
 export default function TabLayout() {
@@ -55,7 +56,7 @@ export default function TabLayout() {
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="list" size={24} color={color} />
+            <MaterialCommunityIcons name="bookshelf" size={24} color={color} />
           ),
         }}
       />
