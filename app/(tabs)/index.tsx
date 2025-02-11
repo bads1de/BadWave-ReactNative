@@ -16,43 +16,56 @@ import { usePlayerStore } from "@/hooks/usePlayerStore";
 import SpotlightBoard from "@/components/SpotlightBoard";
 import GenreCard from "@/components/GenreCard";
 import { genreCards } from "@/constants";
+import SongItem from "@/components/SongItem";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
   const { togglePlayPause, isPlaying } = useAudioPlayer(songs);
 
+  // const renderItem = useCallback(
+  //   ({ item }: { item: any }) => (
+  //     <TouchableOpacity
+  //       style={styles.songItem}
+  //       onPress={async () => {
+  //         await togglePlayPause(item);
+  //       }}
+  //     >
+  //       <Image source={item.image_path} style={styles.image} />
+  //       <View style={styles.songInfo}>
+  //         <Text style={styles.title}>{item.title}</Text>
+  //         <Text style={styles.author}>{item.author}</Text>
+  //       </View>
+  //       <TouchableOpacity
+  //         onPress={async (e) => {
+  //           e.stopPropagation();
+  //           await togglePlayPause(item);
+  //         }}
+  //       >
+  //         <Ionicons
+  //           name={
+  //             currentSong?.id === item.id && isPlaying
+  //               ? "pause-circle"
+  //               : "play-circle"
+  //           }
+  //           size={40}
+  //           color="#fff"
+  //         />
+  //       </TouchableOpacity>
+  //     </TouchableOpacity>
+  //   ),
+  //   [currentSong, isPlaying, togglePlayPause]
+  // );
+
   const renderItem = useCallback(
     ({ item }: { item: any }) => (
-      <TouchableOpacity
-        style={styles.songItem}
-        onPress={async () => {
+      <SongItem
+        song={item}
+        onClick={async (id: string) => {
           await togglePlayPause(item);
         }}
-      >
-        <Image source={item.image_path} style={styles.image} />
-        <View style={styles.songInfo}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.author}>{item.author}</Text>
-        </View>
-        <TouchableOpacity
-          onPress={async (e) => {
-            e.stopPropagation();
-            await togglePlayPause(item);
-          }}
-        >
-          <Ionicons
-            name={
-              currentSong?.id === item.id && isPlaying
-                ? "pause-circle"
-                : "play-circle"
-            }
-            size={40}
-            color="#fff"
-          />
-        </TouchableOpacity>
-      </TouchableOpacity>
+      />
     ),
-    [currentSong, isPlaying, togglePlayPause]
+    [togglePlayPause]
   );
 
   return (
@@ -77,11 +90,13 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
+        <Text style={styles.headerTitle}>Songs</Text>
         <FlatList
           data={songs}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          scrollEnabled={false}
+          horizontal
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={[
             styles.songsContainer,
             currentSong && !showPlayer && { paddingBottom: 10 },
