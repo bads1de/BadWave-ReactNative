@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native";
 
 interface SpotlightModalProps {
   item: {
@@ -51,9 +52,6 @@ export default function SpotlightModal({
   );
 }
 
-import { TouchableOpacity } from "react-native";
-
-// 例として動画上でタップするとミュート状態を切り替えるための半透明オーバーレイ
 function TouchableOverlay({ onPress }: { onPress: () => void }) {
   return (
     <TouchableOpacity
