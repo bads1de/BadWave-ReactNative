@@ -1,4 +1,6 @@
+import React, { useCallback } from "react";
 import {
+  SafeAreaView,
   View,
   Text,
   FlatList,
@@ -8,7 +10,6 @@ import {
 } from "react-native";
 import { songs } from "../../data/songs";
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback } from "react";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 import SpotlightBoard from "@/components/SpotlightBoard";
@@ -52,7 +53,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.listWrapper}>
         <SpotlightBoard />
         <FlatList
@@ -65,7 +66,7 @@ export default function HomeScreen() {
           ]}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

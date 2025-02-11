@@ -8,7 +8,7 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { songs } from "@/data/songs";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
-
+import Header from "@/components/Header";
 export default function TabLayout() {
   const { showPlayer, setShowPlayer, currentSong } = usePlayerStore();
   const {
@@ -28,6 +28,7 @@ export default function TabLayout() {
 
   return (
     <>
+      <Header />
       <Tabs
         screenOptions={{
           tabBarPosition: "bottom",
