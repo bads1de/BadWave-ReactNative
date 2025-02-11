@@ -8,6 +8,10 @@ export default function Header() {
         style={styles.logo}
       />
       <Text style={styles.title}>BadMusicApp</Text>
+      <Image
+        source={require("../assets/images/user.png")}
+        style={styles.userIcon}
+      />
     </View>
   );
 }
@@ -15,21 +19,27 @@ export default function Header() {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 30,
+    paddingHorizontal: 15,
     backgroundColor: "#000",
   },
   logo: {
     width: 40,
     height: 40,
     resizeMode: "contain",
-    marginRight: 10,
   },
   title: {
     color: "#fff",
     fontSize: 20,
-    paddingVertical: 5,
     fontWeight: "bold",
+  },
+  userIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    resizeMode: "cover",
+    overflow: "hidden",
   },
 });
