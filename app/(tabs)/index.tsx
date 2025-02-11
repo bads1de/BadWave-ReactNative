@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback } from "react";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
+import SpotlightBoard from "@/components/SpotlightBoard";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
@@ -58,6 +59,7 @@ export default function HomeScreen() {
           currentSong && !showPlayer && { marginBottom: 70 },
         ]}
       >
+        <SpotlightBoard />
         <FlatList
           data={songs}
           renderItem={renderItem}
