@@ -17,6 +17,7 @@ import SpotlightBoard from "@/components/SpotlightBoard";
 import GenreCard from "@/components/GenreCard";
 import { genreCards } from "@/constants";
 import SongItem from "@/components/SongItem";
+import TrendBoard from "@/components/TrendBoard";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
@@ -76,6 +77,8 @@ export default function HomeScreen() {
           currentSong && !showPlayer && { paddingBottom: 130 },
         ]}
       >
+        <Text style={styles.headerTitle}>Trend</Text>
+        <TrendBoard />
         <Text style={styles.headerTitle}>Spotlight</Text>
         <SpotlightBoard />
 
