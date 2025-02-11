@@ -3,23 +3,25 @@ import {
   SafeAreaView,
   View,
   Text,
-  FlatList,
+  ScrollView,
   Image,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { songs } from "../../data/songs";
+import { songs } from "@/data/songs";
 import { Ionicons } from "@expo/vector-icons";
-import { useAudioPlayer } from "../../hooks/useAudioPlayer";
-import { usePlayerStore } from "../../hooks/usePlayerStore";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { usePlayerStore } from "@/hooks/usePlayerStore";
 import SpotlightBoard from "@/components/SpotlightBoard";
+import GenreCard from "@/components/GenreCard";
+import { genreCards } from "@/constants";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
   const { togglePlayPause, isPlaying } = useAudioPlayer(songs);
 
   const renderItem = useCallback(
-    ({ item }: any) => (
+    ({ item }: { item: any }) => (
       <TouchableOpacity
         style={styles.songItem}
         onPress={async () => {
@@ -54,18 +56,30 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.listWrapper}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.listWrapper,
+          currentSong && !showPlayer && { paddingBottom: 130 },
+        ]}
+      >
+        <Text style={styles.headerTitle}>Spotlight</Text>
         <SpotlightBoard />
-        <FlatList
-          data={songs}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.listContainer,
-            currentSong && !showPlayer && { paddingBottom: 130 },
-          ]}
-        />
-      </View>
+
+        <Text style={styles.headerTitle}>Genres</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScroll}
+        >
+          {genreCards.map((item) => (
+            <GenreCard key={item.id} genre={item.name} />
+          ))}
+        </ScrollView>
+
+        <View style={styles.songsContainer}>
+          {songs.map((item: any) => renderItem({ item }))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -76,11 +90,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
   listWrapper: {
-    flex: 1,
-  },
-  listContainer: {
     padding: 16,
-    paddingTop: 220,
+  },
+  headerTitle: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "auto",
+    marginBottom: 16,
+  },
+  horizontalScroll: {
+    paddingVertical: 8,
+  },
+  songsContainer: {
+    marginTop: 16,
   },
   songItem: {
     flexDirection: "row",

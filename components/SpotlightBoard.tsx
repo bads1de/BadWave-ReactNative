@@ -49,7 +49,6 @@ const SpotlightBoard = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Spotlight</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -120,11 +119,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   videoWrapper: {
-    width: 120, // 必要に応じて拡大してもよい
+    width: 120,
     aspectRatio: 9 / 16,
     marginRight: 16,
     borderRadius: 12,
-    overflow: "hidden", // カードの角を丸めるために必要
+    overflow: "hidden",
     backgroundColor: "#333",
   },
   video: {
@@ -138,6 +137,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     padding: 4,
     borderRadius: 20,
-    zIndex: 1, // muteアイコンが常に前面に表示されるように
+    zIndex: 1,
   },
 });
