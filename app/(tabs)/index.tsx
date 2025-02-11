@@ -73,14 +73,20 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "#000",
+    paddingVertical: 8,
+    zIndex: 1,
   },
   listWrapper: {
     flex: 1,
   },
   listContainer: {
     padding: 16,
+    paddingTop: 220,
   },
   songItem: {
     flexDirection: "row",
