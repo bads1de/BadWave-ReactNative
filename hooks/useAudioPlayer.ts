@@ -3,6 +3,8 @@ import { Audio, AVPlaybackStatus } from "expo-av";
 import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
 
+// TODO:　リファクタリングが必要…
+
 /**
  * オーディオプレーヤーの機能を管理するためのカスタムフック。
  * @param {Song[]} songs 再生する曲の配列。

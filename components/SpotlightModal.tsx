@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Modal,
   View,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
+import * as NavigationBar from "expo-navigation-bar";
 
 interface SpotlightModalProps {
   item: {
@@ -29,6 +30,15 @@ export default function SpotlightModal({
   onClose,
 }: SpotlightModalProps) {
   const { width, height } = Dimensions.get("window");
+
+  useEffect(() => {
+    // モーダル表示中にNavigationBarを非表示にする
+    NavigationBar.setVisibilityAsync("hidden");
+    return () => {
+      // モーダルが閉じられたときにNavigationBarを再表示する
+      NavigationBar.setVisibilityAsync("visible");
+    };
+  }, []);
 
   return (
     <Modal
