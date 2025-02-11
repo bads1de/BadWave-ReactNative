@@ -6,10 +6,10 @@ import {
   StyleSheet,
   Pressable,
   Dimensions,
+  StatusBar,
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native";
 
 interface SpotlightModalProps {
   item: {
@@ -28,89 +28,90 @@ export default function SpotlightModal({
   onMuteToggle,
   onClose,
 }: SpotlightModalProps) {
+  const { width, height } = Dimensions.get("window");
+
   return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <StatusBar translucent backgroundColor="transparent" />
       <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Video
-            source={item.video_path}
-            style={styles.video}
-            shouldPlay
-            isLooping
-            resizeMode={ResizeMode.CONTAIN}
-            isMuted={isMuted}
+        <Video
+          source={item.video_path}
+          style={styles.video}
+          shouldPlay
+          isLooping
+          resizeMode={ResizeMode.COVER}
+          isMuted={isMuted}
+        />
+        <Pressable onPress={onClose} style={styles.closeButton}>
+          <Ionicons name="close" size={30} color="#fff" />
+        </Pressable>
+        <Pressable onPress={onMuteToggle} style={styles.muteButton}>
+          <Ionicons
+            name={isMuted ? "volume-mute" : "volume-high"}
+            size={24}
+            color="#fff"
           />
-          <TouchableOverlay onPress={onMuteToggle} />
+        </Pressable>
+        <View style={styles.textContainer}>
           <Text style={styles.title}>{item.title}</Text>
           <Text style={styles.description}>{item.description}</Text>
-          <Pressable onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={30} color="#fff" />
-          </Pressable>
         </View>
       </View>
     </Modal>
   );
 }
 
-function TouchableOverlay({ onPress }: { onPress: () => void }) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.overlay}
-      activeOpacity={0.7}
-    />
-  );
-}
-
-const { width, height } = Dimensions.get("window");
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.9)",
+    backgroundColor: "black",
     justifyContent: "center",
     alignItems: "center",
-  },
-  modalContent: {
-    width: width * 0.9,
-    height: height * 0.8,
-    backgroundColor: "#222",
-    borderRadius: 12,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    padding: 16,
   },
   video: {
-    width: "100%",
-    height: "60%",
-    borderRadius: 12,
-  },
-  overlay: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 8,
-    borderRadius: 20,
-    zIndex: 2,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-  },
-  description: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 8,
-    textAlign: "center",
+    ...StyleSheet.absoluteFillObject,
   },
   closeButton: {
     position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 3,
+    top: 40,
+    right: 20,
+    zIndex: 2,
+  },
+  muteButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 2,
+  },
+  textContainer: {
+    position: "absolute",
+    bottom: 40,
+    width: "100%",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    textShadowColor: "#fff",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  description: {
+    fontSize: 18,
+    color: "#fff",
+    marginTop: 10,
+    textAlign: "center",
+    textShadowColor: "#fff",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
 });

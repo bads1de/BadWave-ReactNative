@@ -53,18 +53,16 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.listWrapper,
-          currentSong && !showPlayer && { marginBottom: 70 },
-        ]}
-      >
+      <View style={styles.listWrapper}>
         <SpotlightBoard />
         <FlatList
           data={songs}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={[
+            styles.listContainer,
+            currentSong && !showPlayer && { paddingBottom: 130 },
+          ]}
         />
       </View>
     </View>
@@ -73,13 +71,8 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    flex: 1,
     backgroundColor: "#000",
-    paddingVertical: 8,
-    zIndex: 1,
   },
   listWrapper: {
     flex: 1,
