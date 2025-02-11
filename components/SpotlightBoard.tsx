@@ -21,6 +21,7 @@ const SpotlightBoard = () => {
   // 動画再生/停止はタッチイン・アウトで制御
   const handlePressIn = (index: number) => {
     const videoRef = videoRefs.current[index];
+
     if (videoRef) {
       videoRef
         .playAsync()
@@ -30,6 +31,7 @@ const SpotlightBoard = () => {
 
   const handlePressOut = (index: number) => {
     const videoRef = videoRefs.current[index];
+
     if (videoRef) {
       videoRef
         .pauseAsync()

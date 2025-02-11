@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  FlatList,
 } from "react-native";
 import { songs } from "@/data/songs";
 import { Ionicons } from "@expo/vector-icons";
@@ -76,9 +77,16 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
-        <View style={styles.songsContainer}>
-          {songs.map((item: any) => renderItem({ item }))}
-        </View>
+        <FlatList
+          data={songs}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          scrollEnabled={false}
+          contentContainerStyle={[
+            styles.songsContainer,
+            currentSong && !showPlayer && { paddingBottom: 10 },
+          ]}
+        />
       </ScrollView>
     </SafeAreaView>
   );

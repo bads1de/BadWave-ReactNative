@@ -33,7 +33,6 @@ const getPolygonPoints = (genre: string): string => {
   }
 };
 
-// 色の配列（16進数カラー）をコンポーネント外に定義することで再生成を防ぐ
 const COLORS = [
   "#a855f7",
   "#3b82f6",
