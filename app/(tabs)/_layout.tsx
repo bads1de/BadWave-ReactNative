@@ -5,7 +5,6 @@ import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import getSongs from "@/actions/getSongs";
-import Song from "@/types";
 import Header from "@/components/Header";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";

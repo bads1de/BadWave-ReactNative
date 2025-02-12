@@ -25,18 +25,18 @@ export default function HomeScreen() {
     queryKey: [CACHED_QUERIES.songs],
     queryFn: getSongs,
   });
-  const { togglePlayPause, isPlaying } = useAudioPlayer(songs);
+  const { playSong, isPlaying } = useAudioPlayer(songs);
 
   const renderItem = useCallback(
     ({ item }: { item: any }) => (
       <SongItem
         song={item}
         onClick={async (id: string) => {
-          await togglePlayPause(item);
+          await playSong(item);
         }}
       />
     ),
-    [togglePlayPause]
+    [playSong]
   );
 
   return (

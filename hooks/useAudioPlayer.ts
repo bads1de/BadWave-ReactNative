@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
+import useLoadSongUrl from "./useLoadSongUrl";
 
 // TODO:　リファクタリングが必要…
 
@@ -133,8 +134,17 @@ export function useAudioPlayer(songs: Song[]) {
       setCurrentSong(song);
       setIsPlaying(false);
 
+      const songUrl = await useLoadSongUrl(song);
+
+      if (!songUrl) {
+        console.error("曲の読み込み中にエラーが発生しました。");
+        setIsPlaying(false);
+        setSound(null);
+        return;
+      }
+
       const { sound: newSound } = await Audio.Sound.createAsync(
-        song.song_path,
+        { uri: songUrl },
         {
           shouldPlay: true, // 自動再生を有効に
           progressUpdateIntervalMillis: 500,
