@@ -47,12 +47,12 @@ export default function HomeScreen() {
           currentSong && !showPlayer && { paddingBottom: 130 },
         ]}
       >
-        <Text style={styles.headerTitle}>Trend</Text>
+        <Text style={styles.sectionTitle}>Trend</Text>
         <TrendBoard />
-        <Text style={styles.headerTitle}>Spotlight</Text>
+        <Text style={styles.sectionTitle}>Spotlight</Text>
         <SpotlightBoard />
 
-        <Text style={styles.headerTitle}>Genres</Text>
+        <Text style={styles.sectionTitle}>Genres</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -63,7 +63,7 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
-        <Text style={styles.headerTitle}>Songs</Text>
+        <Text style={styles.sectionTitle}>Songs</Text>
         <FlatList
           data={songs}
           renderItem={renderItem}
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   listWrapper: {
     padding: 16,
   },
-  headerTitle: {
+  sectionTitle: {
     color: "#fff",
     fontSize: 28,
     fontWeight: "bold",
