@@ -8,7 +8,7 @@ export default interface Song {
   author: string;
   title: string;
   song_path: any;
-  image_path: any;
+  image_path: string;
   video_path?: string;
   genre?: string;
   count?: string;
@@ -25,7 +25,7 @@ export interface Playlist {
   songs?: any[];
 }
 
-export interface PlaylistSong {
+export default interface PlaylistSong {
   id: string;
   user_id: string;
   playlist_id: string;

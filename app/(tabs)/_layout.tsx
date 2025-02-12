@@ -1,17 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { songs } from "@/data/songs";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
 import Header from "@/components/Header";
+import getSongs from "@/actions/getSongs";
+import Song from "@/types";
 
 export default function TabLayout() {
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { showPlayer, setShowPlayer, currentSong } = usePlayerStore();
+
+  useEffect(() => {
+    async function fetchSongs() {
+      try {
+        const fetchedSongs = await getSongs();
+        setSongs(fetchedSongs);
+      } catch (error) {
+        console.error("曲の取得に失敗しました:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchSongs();
+  }, []);
+
   const {
     sound,
     isPlaying,
@@ -26,6 +45,15 @@ export default function TabLayout() {
     shuffle,
     setShuffle,
   } = useAudioPlayer(songs);
+
+  // 曲データ取得中はローディング表示
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -62,14 +90,7 @@ export default function TabLayout() {
           options={{
             headerShown: false,
             tabBarIcon: ({ focused }) => (
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 50,
-                  height: 40,
-                }}
-              >
+              <View style={styles.iconContainer}>
                 <FontAwesome
                   name="home"
                   size={24}
@@ -97,14 +118,7 @@ export default function TabLayout() {
           options={{
             headerShown: false,
             tabBarIcon: ({ focused }) => (
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 50,
-                  height: 40,
-                }}
-              >
+              <View style={styles.iconContainer}>
                 <FontAwesome
                   name="search"
                   size={24}
@@ -132,14 +146,7 @@ export default function TabLayout() {
           options={{
             headerShown: false,
             tabBarIcon: ({ focused }) => (
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 50,
-                  height: 40,
-                }}
-              >
+              <View style={styles.iconContainer}>
                 <MaterialCommunityIcons
                   name="bookshelf"
                   size={24}
@@ -186,7 +193,7 @@ export default function TabLayout() {
         </View>
       )}
 
-      {/* MiniPlayerはフルプレイヤーが表示されていない場合に下部に表示 */}
+      {/* MiniPlayerはフルプレイヤー表示中でない場合に下部に表示 */}
       {currentSong && !showPlayer && (
         <View style={styles.miniPlayerContainer}>
           <MiniPlayer
@@ -202,6 +209,12 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  iconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 50,
+    height: 40,
+  },
   fullPlayerContainer: {
     position: "absolute",
     top: 0,
@@ -217,5 +230,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
   },
 });
