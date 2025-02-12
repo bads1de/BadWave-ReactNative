@@ -9,6 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
+import useLoadImage from "@/hooks/useLoadImage";
 
 interface PlayerProps {
   sound: any;
@@ -48,9 +49,11 @@ export default function Player({
     return `${minutes}:${Number(seconds) < 10 ? "0" : ""}${seconds}`;
   };
 
+  const imagePath = useLoadImage(currentSong);
+
   return (
     <ImageBackground
-      source={currentSong.image_path}
+      source={{ uri: imagePath! }}
       style={styles.backgroundImage}
       resizeMode="cover"
     >

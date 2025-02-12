@@ -109,6 +109,41 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="library"
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <View
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 50,
+                  height: 40,
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="bookshelf"
+                  size={24}
+                  color={focused ? "#4c1d95" : "#666"}
+                  style={
+                    focused
+                      ? {
+                          textShadowColor: "#4c1d95",
+                          textShadowOffset: { width: 0, height: 0 },
+                          textShadowRadius: 20,
+                          shadowColor: "#6d28d9",
+                          shadowOffset: { width: 0, height: 0 },
+                          shadowRadius: 20,
+                          shadowOpacity: 0.8,
+                        }
+                      : {}
+                  }
+                />
+              </View>
+            ),
+          }}
+        />
       </Tabs>
 
       {showPlayer && currentSong && (

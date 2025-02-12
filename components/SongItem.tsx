@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,7 +10,7 @@ interface SongItemProps {
   onClick: (id: string) => void;
 }
 
-export default function SongItem({ song, onClick }: SongItemProps) {
+const SongItem = memo(({ song, onClick }: SongItemProps) => {
   const imagePath = useLoadImage(song);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -49,7 +49,9 @@ export default function SongItem({ song, onClick }: SongItemProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
+
+export default SongItem;
 
 const styles = StyleSheet.create({
   container: {
