@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import {
   Modal,
   View,
@@ -23,23 +22,14 @@ interface SpotlightModalProps {
   onClose: () => void;
 }
 
-// TODO: 大きすぎるのでリデザインをする
 export default function SpotlightModal({
   item,
   isMuted,
   onMuteToggle,
   onClose,
 }: SpotlightModalProps) {
-  const { width, height } = Dimensions.get("window");
-
-  useEffect(() => {
-    // モーダル表示中にNavigationBarを非表示にする
-    NavigationBar.setVisibilityAsync("hidden");
-    return () => {
-      // モーダルが閉じられたときにNavigationBarを再表示する
-      NavigationBar.setVisibilityAsync("visible");
-    };
-  }, []);
+  const windowWidth = Dimensions.get("window").width;
+  const windowHeight = Dimensions.get("window").height;
 
   return (
     <Modal
@@ -53,15 +43,19 @@ export default function SpotlightModal({
       <View style={styles.modalContainer}>
         <Video
           source={item.video_path}
-          style={styles.video}
+          style={[
+            styles.video,
+            { width: windowWidth * 0.8, height: windowHeight * 0.7 },
+          ]}
           shouldPlay
           isLooping
-          resizeMode={ResizeMode.COVER}
+          resizeMode={ResizeMode.CONTAIN}
           isMuted={isMuted}
         />
         <Pressable onPress={onClose} style={styles.closeButton}>
           <Ionicons name="close" size={30} color="#fff" />
         </Pressable>
+
         <Pressable onPress={onMuteToggle} style={styles.muteButton}>
           <Ionicons
             name={isMuted ? "volume-mute" : "volume-high"}
@@ -86,7 +80,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   video: {
-    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "black",
   },
   closeButton: {
     position: "absolute",
@@ -108,21 +102,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
-    textShadowColor: "#fff",
+    textShadowColor: "black",
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    textShadowRadius: 5,
   },
   description: {
-    fontSize: 18,
+    fontSize: 12,
     color: "#fff",
-    marginTop: 10,
+    marginTop: 5,
     textAlign: "center",
-    textShadowColor: "#fff",
+    textShadowColor: "black",
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowRadius: 4,
   },
 });
