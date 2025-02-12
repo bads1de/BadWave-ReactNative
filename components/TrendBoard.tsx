@@ -10,24 +10,20 @@ import {
 import useGetTrendSongs from "@/hooks/useGetTrendSongs";
 import useLoadImage from "@/hooks/useLoadImage";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import Song from "@/types";
 
 interface TrendItemProps {
   song: Song;
   index: number;
-  onPlay: (id: string) => void;
+  onPlay: (song: Song) => void;
 }
 
 const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
   const imageUrl = useLoadImage(song);
-  const navigation = useNavigation();
 
   return (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={() => onPlay(song.id)}
-    >
+    <TouchableOpacity style={styles.itemContainer} onPress={() => onPlay(song)}>
       <Image source={{ uri: imageUrl! }} style={styles.image} />
       <View style={styles.textContainer}>
         <Text style={styles.rankText}>#{index + 1}</Text>
@@ -48,7 +44,11 @@ const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
 export default function TrendBoard() {
   const { trends, isLoading, error } = useGetTrendSongs("all");
 
-  const onPlay = (id: string) => {};
+  const { playSong } = useAudioPlayer(trends);
+
+  const onPlay = async (song: Song) => {
+    await playSong(song);
+  };
 
   if (isLoading) {
     return (
