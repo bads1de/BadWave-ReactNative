@@ -10,7 +10,6 @@ import {
   FlatList,
 } from "react-native";
 import { songs } from "@/data/songs";
-import { Ionicons } from "@expo/vector-icons";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
 import SpotlightBoard from "@/components/SpotlightBoard";
@@ -22,40 +21,6 @@ import TrendBoard from "@/components/TrendBoard";
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
   const { togglePlayPause, isPlaying } = useAudioPlayer(songs);
-
-  // const renderItem = useCallback(
-  //   ({ item }: { item: any }) => (
-  //     <TouchableOpacity
-  //       style={styles.songItem}
-  //       onPress={async () => {
-  //         await togglePlayPause(item);
-  //       }}
-  //     >
-  //       <Image source={item.image_path} style={styles.image} />
-  //       <View style={styles.songInfo}>
-  //         <Text style={styles.title}>{item.title}</Text>
-  //         <Text style={styles.author}>{item.author}</Text>
-  //       </View>
-  //       <TouchableOpacity
-  //         onPress={async (e) => {
-  //           e.stopPropagation();
-  //           await togglePlayPause(item);
-  //         }}
-  //       >
-  //         <Ionicons
-  //           name={
-  //             currentSong?.id === item.id && isPlaying
-  //               ? "pause-circle"
-  //               : "play-circle"
-  //           }
-  //           size={40}
-  //           color="#fff"
-  //         />
-  //       </TouchableOpacity>
-  //     </TouchableOpacity>
-  //   ),
-  //   [currentSong, isPlaying, togglePlayPause]
-  // );
 
   const renderItem = useCallback(
     ({ item }: { item: any }) => (

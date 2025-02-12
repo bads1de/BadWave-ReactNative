@@ -23,6 +23,7 @@ interface SpotlightModalProps {
   onClose: () => void;
 }
 
+// TODO: 大きすぎるのでリデザインをする
 export default function SpotlightModal({
   item,
   isMuted,

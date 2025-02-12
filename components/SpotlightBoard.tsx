@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SpotlightData } from "../data/spotlight";
 import SpotlightModal from "./SpotlightModal";
 
-const SpotlightBoard = () => {
+export default function SpotlightBoard() {
   const [isMuted, setIsMuted] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -101,9 +101,7 @@ const SpotlightBoard = () => {
       )}
     </View>
   );
-};
-
-export default SpotlightBoard;
+}
 
 const styles = StyleSheet.create({
   container: {
