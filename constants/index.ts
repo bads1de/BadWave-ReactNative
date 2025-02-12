@@ -8,3 +8,14 @@ export const genreCards = [
   { id: 7, name: "Trance" },
   { id: 8, name: "Drum and Bass" },
 ];
+
+export const CACHE_PREFIX = "@query-cache";
+
+export const CACHED_QUERIES = {
+  songs: "songs",
+} as const;
+
+export const CACHE_CONFIG = {
+  staleTime: 1000 * 60 * 30, // 30分間
+  gcTime: 1000 * 60 * 60, // 60分間
+} as const;

@@ -1,35 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import getSongs from "@/actions/getSongs";
+import Song from "@/types";
+import Header from "@/components/Header";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
-import Header from "@/components/Header";
-import getSongs from "@/actions/getSongs";
-import Song from "@/types";
+import { CACHED_QUERIES } from "@/constants";
 
 export default function TabLayout() {
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { showPlayer, setShowPlayer, currentSong } = usePlayerStore();
-
-  useEffect(() => {
-    async function fetchSongs() {
-      try {
-        const fetchedSongs = await getSongs();
-        setSongs(fetchedSongs);
-      } catch (error) {
-        console.error("曲の取得に失敗しました:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchSongs();
-  }, []);
+  const { data: songs = [], isLoading } = useQuery({
+    queryKey: [CACHED_QUERIES.songs],
+    queryFn: getSongs,
+  });
 
   const {
     sound,
@@ -46,7 +35,6 @@ export default function TabLayout() {
     setShuffle,
   } = useAudioPlayer(songs);
 
-  // 曲データ取得中はローディング表示
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -61,13 +49,9 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           tabBarPosition: "bottom",
-          headerStyle: {
-            backgroundColor: "#000",
-          },
+          headerStyle: { backgroundColor: "#000" },
           headerTintColor: "#fff",
-          headerTitleStyle: {
-            color: "#fff",
-          },
+          headerTitleStyle: { color: "#fff" },
           tabBarStyle: showPlayer
             ? { display: "none" }
             : {
@@ -80,9 +64,7 @@ export default function TabLayout() {
           tabBarActiveTintColor: "#fff",
           tabBarInactiveTintColor: "#666",
           tabBarShowLabel: false,
-          tabBarItemStyle: {
-            borderRadius: 10,
-          },
+          tabBarItemStyle: { borderRadius: 10 },
         }}
       >
         <Tabs.Screen
@@ -119,51 +101,10 @@ export default function TabLayout() {
             headerShown: false,
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconContainer}>
-                <FontAwesome
-                  name="search"
-                  size={24}
-                  color={focused ? "#4c1d95" : "#666"}
-                  style={
-                    focused
-                      ? {
-                          textShadowColor: "#4c1d95",
-                          textShadowOffset: { width: 0, height: 0 },
-                          textShadowRadius: 20,
-                          shadowColor: "#6d28d9",
-                          shadowOffset: { width: 0, height: 0 },
-                          shadowRadius: 20,
-                          shadowOpacity: 0.8,
-                        }
-                      : {}
-                  }
-                />
-              </View>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="library"
-          options={{
-            headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <View style={styles.iconContainer}>
                 <MaterialCommunityIcons
-                  name="bookshelf"
+                  name="magnify"
                   size={24}
                   color={focused ? "#4c1d95" : "#666"}
-                  style={
-                    focused
-                      ? {
-                          textShadowColor: "#4c1d95",
-                          textShadowOffset: { width: 0, height: 0 },
-                          textShadowRadius: 20,
-                          shadowColor: "#6d28d9",
-                          shadowOffset: { width: 0, height: 0 },
-                          shadowRadius: 20,
-                          shadowOpacity: 0.8,
-                        }
-                      : {}
-                  }
                 />
               </View>
             ),
@@ -171,7 +112,6 @@ export default function TabLayout() {
         />
       </Tabs>
 
-      {/* フルスクリーンPlayerの表示（全画面オーバーレイ） */}
       {showPlayer && currentSong && (
         <View style={styles.fullPlayerContainer}>
           <Player
@@ -193,7 +133,6 @@ export default function TabLayout() {
         </View>
       )}
 
-      {/* MiniPlayerはフルプレイヤー表示中でない場合に下部に表示 */}
       {currentSong && !showPlayer && (
         <View style={styles.miniPlayerContainer}>
           <MiniPlayer
@@ -209,11 +148,11 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  iconContainer: {
-    alignItems: "center",
+  loadingContainer: {
+    flex: 1,
     justifyContent: "center",
-    width: 50,
-    height: 40,
+    alignItems: "center",
+    backgroundColor: "#000",
   },
   fullPlayerContainer: {
     position: "absolute",
@@ -231,10 +170,10 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 5,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
+  iconContainer: {
     alignItems: "center",
-    backgroundColor: "#000",
+    justifyContent: "center",
+    width: 50,
+    height: 40,
   },
 });
