@@ -9,17 +9,22 @@ import {
   StyleSheet,
   FlatList,
 } from "react-native";
-import { songs } from "@/data/songs";
+import { useQuery } from "@tanstack/react-query";
+import getSongs from "@/actions/getSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
 import SpotlightBoard from "@/components/SpotlightBoard";
 import GenreCard from "@/components/GenreCard";
-import { genreCards } from "@/constants";
+import { CACHED_QUERIES, genreCards } from "@/constants";
 import SongItem from "@/components/SongItem";
 import TrendBoard from "@/components/TrendBoard";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
+  const { data: songs = [] } = useQuery({
+    queryKey: [CACHED_QUERIES.songs],
+    queryFn: getSongs,
+  });
   const { togglePlayPause, isPlaying } = useAudioPlayer(songs);
 
   const renderItem = useCallback(

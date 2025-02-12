@@ -23,6 +23,7 @@ const persistenceManager = new QueryPersistenceManager(queryClient);
 queryClient.getQueryCache().subscribe(async (event) => {
   if (event?.query.state.data) {
     const queryKey = event.query.queryKey[0] as keyof typeof CACHED_QUERIES;
+
     if (Object.values(CACHED_QUERIES).includes(queryKey)) {
       await persistenceManager.saveCache(queryKey, event.query.state.data);
     }

@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
+import useLoadImage from "@/hooks/useLoadImage";
 
 interface SongItemProps {
   song: Song;
@@ -10,12 +11,14 @@ interface SongItemProps {
 }
 
 export default function SongItem({ song, onClick }: SongItemProps) {
+  const imagePath = useLoadImage(song);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+
   return (
     <TouchableOpacity style={styles.container} onPress={() => onClick(song.id)}>
       <View style={styles.imageContainer}>
         <Image
-          source={song.image_path}
+          source={{ uri: imagePath! }}
           style={styles.image}
           onLoad={() => setIsImageLoaded(true)}
         />
