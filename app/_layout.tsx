@@ -5,6 +5,9 @@ import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
 import { QueryPersistenceManager } from "@/lib/query-persistence-manager";
+import { AuthProvider } from "@/providers/AuthProvider";
+import { useAuthStore } from "@/hooks/useAuthStore";
+import AuthModal from "@/components/AuthModal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,12 +37,17 @@ queryClient.getQueryCache().subscribe(async (event) => {
 persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 
 export default function RootLayout() {
+  const { showAuthModal } = useAuthStore();
+
   return (
     <QueryClientProvider client={queryClient}>
-      <View style={{ flex: 1, backgroundColor: "#000" }}>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }} />
-      </View>
+      <AuthProvider>
+        <View style={{ flex: 1, backgroundColor: "#000" }}>
+          <StatusBar style="light" />
+          {showAuthModal && <AuthModal />}
+          <Stack screenOptions={{ headerShown: false }} />
+        </View>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

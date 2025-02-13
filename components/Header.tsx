@@ -1,6 +1,11 @@
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { useAuthStore } from "@/hooks/useAuthStore";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function Header() {
+  const { setShowAuthModal } = useAuthStore();
+  const { session } = useAuth();
+
   return (
     <View style={styles.container}>
       <Image
@@ -8,10 +13,24 @@ export default function Header() {
         style={styles.logo}
       />
       <Text style={styles.title}>BadMusicApp</Text>
-      <Image
-        source={require("../assets/images/user.png")}
-        style={styles.userIcon}
-      />
+      {session ? (
+        <TouchableOpacity
+          onPress={() => setShowAuthModal(true)}
+          style={styles.userIcon}
+        >
+          <Image
+            source={require("../assets/images/user.png")}
+            style={styles.userIcon}
+          />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          onPress={() => setShowAuthModal(true)}
+          style={styles.loginButton}
+        >
+          <Text style={styles.loginText}>Login</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -41,5 +60,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: "cover",
     overflow: "hidden",
+  },
+  loginButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: "#4c4c4c",
+    borderRadius: 5,
+  },
+  loginText: {
+    color: "#fff",
+    fontSize: 15,
   },
 });
