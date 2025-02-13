@@ -1,6 +1,4 @@
-import Song from "../types";
-
-export const songs: Song[] = [
+export const songs = [
   {
     id: "1",
     user_id: "test-user-1",
