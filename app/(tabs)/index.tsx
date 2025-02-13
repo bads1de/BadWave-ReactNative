@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import getSongs from "@/actions/getSongs";
@@ -21,11 +22,32 @@ import TrendBoard from "@/components/TrendBoard";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
-  const { data: songs = [] } = useQuery({
+  const {
+    data: songs = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: [CACHED_QUERIES.songs],
     queryFn: getSongs,
   });
+
   const { playSong, isPlaying } = useAudioPlayer(songs);
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error.message}</Text>
+      </View>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4c1d95" />
+      </View>
+    );
+  }
 
   const renderItem = useCallback(
     ({ item }: { item: any }) => (
@@ -126,5 +148,22 @@ const styles = StyleSheet.create({
   author: {
     color: "#999",
     fontSize: 14,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
+  },
+  errorText: {
+    color: "#fff",
+    fontSize: 16,
+    marginTop: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
   },
 });
