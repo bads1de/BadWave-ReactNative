@@ -19,6 +19,8 @@ import GenreCard from "@/components/GenreCard";
 import { CACHED_QUERIES, genreCards } from "@/constants";
 import SongItem from "@/components/SongItem";
 import TrendBoard from "@/components/TrendBoard";
+import Loading from "@/components/Loding";
+import Error from "@/components/Error";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
@@ -34,19 +36,7 @@ export default function HomeScreen() {
   const { playSong, isPlaying } = useAudioPlayer(songs);
 
   if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error.message}</Text>
-      </View>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4c1d95" />
-      </View>
-    );
+    return <Error message={error.message} />;
   }
 
   const renderItem = useCallback(
@@ -86,17 +76,21 @@ export default function HomeScreen() {
         </ScrollView>
 
         <Text style={styles.sectionTitle}>Songs</Text>
-        <FlatList
-          data={songs}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.songsContainer,
-            currentSong && !showPlayer && { paddingBottom: 10 },
-          ]}
-        />
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <FlatList
+            data={songs}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.songsContainer,
+              currentSong && !showPlayer && { paddingBottom: 10 },
+            ]}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -148,22 +142,5 @@ const styles = StyleSheet.create({
   author: {
     color: "#999",
     fontSize: 14,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000",
-  },
-  errorText: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 8,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000",
   },
 });

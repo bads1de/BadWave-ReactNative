@@ -13,7 +13,8 @@ import getSongsByTitle from "@/actions/getSongsByTitle";
 import ListItem from "@/components/ListItem";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { CACHED_QUERIES } from "@/constants";
-import { Ionicons } from "@expo/vector-icons";
+import Loading from "@/components/Loding";
+import Error from "@/components/Error";
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,12 +33,7 @@ export default function SearchScreen() {
   const { playSong } = useAudioPlayer(songs);
 
   if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Ionicons name="alert-circle" size={24} color="#ef4444" />
-        <Text style={styles.errorText}>{error.message}</Text>
-      </View>
-    );
+    return <Error message={error.message} />;
   }
 
   return (
@@ -51,9 +47,7 @@ export default function SearchScreen() {
       />
 
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4c1d95" />
-        </View>
+        <Loading />
       ) : (
         <FlatList
           data={songs}
@@ -87,22 +81,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     fontSize: 16,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   listContainer: {
     paddingBottom: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorText: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 8,
   },
 });
