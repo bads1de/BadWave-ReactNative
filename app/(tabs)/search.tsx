@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   View,
   TextInput,
+  Text,
   ActivityIndicator,
   StyleSheet,
   FlatList,
@@ -12,6 +13,7 @@ import getSongsByTitle from "@/actions/getSongsByTitle";
 import ListItem from "@/components/ListItem";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { CACHED_QUERIES } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,6 +30,15 @@ export default function SearchScreen() {
   });
 
   const { playSong } = useAudioPlayer(songs);
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle" size={24} color="#ef4444" />
+        <Text style={styles.errorText}>{error.message}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -83,5 +94,15 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "#fff",
+    fontSize: 16,
+    marginTop: 8,
   },
 });
