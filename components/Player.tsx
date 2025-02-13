@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   Text,
@@ -5,16 +6,20 @@ import {
   TouchableOpacity,
   ImageBackground,
   Dimensions,
+  StyleSheet as RNStyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
+import { ResizeMode, Video } from "expo-av";
 import useLoadImage from "@/hooks/useLoadImage";
+import useLoadVideo from "@/hooks/useLoadVideo";
+import Song from "@/types";
 
 interface PlayerProps {
   sound: any;
   isPlaying: boolean;
-  currentSong: any;
+  currentSong: Song;
   position: number;
   duration: number;
   onPlayPause: () => void;
@@ -49,18 +54,89 @@ export default function Player({
     return `${minutes}:${Number(seconds) < 10 ? "0" : ""}${seconds}`;
   };
 
-  const imagePath = useLoadImage(currentSong);
+  const imageUrl = useLoadImage(currentSong);
+  const videoUrl = useLoadVideo(currentSong);
+
+  if (videoUrl) {
+    return (
+      <View style={styles.backgroundImage}>
+        <Video
+          source={{ uri: videoUrl }}
+          style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted
+        />
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Ionicons name="chevron-down" size={30} color="#fff" />
+        </TouchableOpacity>
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
+          locations={[0, 0.5, 1]}
+          style={styles.bottomContainer}
+        >
+          <View style={styles.infoContainer}>
+            <Text style={styles.title}>{currentSong.title}</Text>
+            <Text style={styles.author}>{currentSong.author}</Text>
+          </View>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={duration}
+            value={position}
+            onSlidingComplete={onSeek}
+            minimumTrackTintColor="#4c1d95"
+            maximumTrackTintColor="#777"
+            thumbTintColor="#4c1d95"
+          />
+          <View style={styles.timeContainer}>
+            <Text style={styles.timeText}>{formatTime(position)}</Text>
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+          </View>
+          <View style={styles.controls}>
+            <TouchableOpacity onPress={() => setShuffle(!shuffle)}>
+              <Ionicons
+                name="shuffle"
+                size={25}
+                color={shuffle ? "#4c1d95" : "#fff"}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onPrev}>
+              <Ionicons name="play-skip-back" size={35} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.playButton} onPress={onPlayPause}>
+              <Ionicons
+                name={isPlaying ? "pause-circle" : "play-circle"}
+                size={70}
+                color="#fff"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onNext}>
+              <Ionicons name="play-skip-forward" size={35} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setRepeat(!repeat)}>
+              <Ionicons
+                name="repeat"
+                size={25}
+                color={repeat ? "#4c1d95" : "#fff"}
+              />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  }
 
   return (
     <ImageBackground
-      source={{ uri: imagePath! }}
+      source={{ uri: imageUrl! }}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Ionicons name="chevron-down" size={30} color="#fff" />
       </TouchableOpacity>
-
       <LinearGradient
         colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
         locations={[0, 0.5, 1]}
@@ -70,7 +146,6 @@ export default function Player({
           <Text style={styles.title}>{currentSong.title}</Text>
           <Text style={styles.author}>{currentSong.author}</Text>
         </View>
-
         <Slider
           style={styles.slider}
           minimumValue={0}
@@ -81,12 +156,10 @@ export default function Player({
           maximumTrackTintColor="#777"
           thumbTintColor="#4c1d95"
         />
-
         <View style={styles.timeContainer}>
           <Text style={styles.timeText}>{formatTime(position)}</Text>
           <Text style={styles.timeText}>{formatTime(duration)}</Text>
         </View>
-
         <View style={styles.controls}>
           <TouchableOpacity onPress={() => setShuffle(!shuffle)}>
             <Ionicons
@@ -95,11 +168,9 @@ export default function Player({
               color={shuffle ? "#4c1d95" : "#fff"}
             />
           </TouchableOpacity>
-
           <TouchableOpacity onPress={onPrev}>
             <Ionicons name="play-skip-back" size={35} color="#fff" />
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.playButton} onPress={onPlayPause}>
             <Ionicons
               name={isPlaying ? "pause-circle" : "play-circle"}
@@ -107,11 +178,9 @@ export default function Player({
               color="#fff"
             />
           </TouchableOpacity>
-
           <TouchableOpacity onPress={onNext}>
             <Ionicons name="play-skip-forward" size={35} color="#fff" />
           </TouchableOpacity>
-
           <TouchableOpacity onPress={() => setRepeat(!repeat)}>
             <Ionicons
               name="repeat"
@@ -130,6 +199,9 @@ const styles = StyleSheet.create({
     flex: 1,
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
+  },
+  backgroundVideo: {
+    // 必要に応じてビデオ専用のスタイルを追加できます
   },
   closeButton: {
     position: "absolute",

@@ -53,6 +53,7 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
     return COLORS[randomIndex];
   }, []);
 
+  // Todo: 処理を追加する
   const handlePress = () => {};
 
   return (
