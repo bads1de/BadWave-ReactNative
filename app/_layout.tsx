@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { CACHE_CONFIG, CACHED_QUERIES, CACHE_PREFIX } from "@/constants";
+import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
 import { QueryPersistenceManager } from "@/lib/query-persistence-manager";
 
 const queryClient = new QueryClient({

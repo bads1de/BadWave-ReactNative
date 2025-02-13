@@ -51,7 +51,8 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "zustand": "^5.0.3",
-    "expo-video": "~2.0.5"
+    "expo-video": "~2.0.5",
+    "expo-auth-session": "~6.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

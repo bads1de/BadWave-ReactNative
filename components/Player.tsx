@@ -60,7 +60,6 @@ export default function Player({
   const imageUrl = useLoadImage(currentSong);
   const videoUrl = useLoadVideo(currentSong);
 
-  // プレイヤー部分は画面全体の高さを確保して表示する
   const renderPlayerContent = () => {
     if (videoUrl) {
       return (
@@ -208,7 +207,7 @@ export default function Player({
       contentContainerStyle={{ flexGrow: 1 }}
     >
       {renderPlayerContent()}
-      <Lyric lyrics={currentSong.lyrics || ""} />
+      {currentSong?.lyrics && <Lyric lyrics={currentSong.lyrics} />}
     </ScrollView>
   );
 }
