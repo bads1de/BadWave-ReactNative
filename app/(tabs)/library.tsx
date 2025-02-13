@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import getSongs from "@/actions/getSongs";
 
-export default async function LibraryScreen() {
+export default function LibraryScreen() {
   return (
     <View
       style={{
