@@ -19,7 +19,7 @@ import GenreCard from "@/components/GenreCard";
 import { CACHED_QUERIES, genreCards } from "@/constants";
 import SongItem from "@/components/SongItem";
 import TrendBoard from "@/components/TrendBoard";
-import Loading from "@/components/Loding";
+import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 
 export default function HomeScreen() {

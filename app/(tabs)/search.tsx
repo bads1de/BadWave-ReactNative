@@ -13,7 +13,7 @@ import getSongsByTitle from "@/actions/getSongsByTitle";
 import ListItem from "@/components/ListItem";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { CACHED_QUERIES } from "@/constants";
-import Loading from "@/components/Loding";
+import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 
 export default function SearchScreen() {
