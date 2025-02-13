@@ -13,6 +13,7 @@ export const CACHE_PREFIX = "@query-cache";
 
 export const CACHED_QUERIES = {
   songs: "songs",
+  search: "search",
 } as const;
 
 export const CACHE_CONFIG = {
