@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import Svg, { Polygon } from "react-native-svg";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 interface GenreCardProps {
   genre: string;
@@ -45,7 +46,7 @@ const COLORS = [
 ];
 
 const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
-  const navigation = useNavigation();
+  const router = useRouter();
 
   // 初回レンダリング時にランダムなカラーを決定
   const randomColor = useMemo(() => {
@@ -53,26 +54,43 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
     return COLORS[randomIndex];
   }, []);
 
-  // Todo: 処理を追加する
-  const handlePress = () => {};
+  const handlePress = () => {
+    router.push({
+      pathname: "/genre/[genre]",
+      params: { genre: encodeURIComponent(genre) },
+    });
+  };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
-      <View style={styles.card}>
-        <View style={styles.shapeContainer}>
-          <Svg width={shapeWidth} height={shapeHeight} viewBox="0 0 100 100">
-            <Polygon points={getPolygonPoints(genre)} fill={randomColor} />
-          </Svg>
+    <View style={styles.pageContainer}>
+      <TouchableOpacity style={styles.container} onPress={handlePress}>
+        <View style={styles.card}>
+          <View style={styles.shapeContainer}>
+            <Svg width={shapeWidth} height={shapeHeight} viewBox="0 0 100 100">
+              <Polygon points={getPolygonPoints(genre)} fill={randomColor} />
+            </Svg>
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.genreText}>{genre}</Text>
+          </View>
         </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.genreText}>{genre}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  pageContainer: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  backButton: {
+    position: "absolute",
+    top: 48,
+    left: 16,
+    zIndex: 1,
+    padding: 8,
+  },
   container: {
     marginHorizontal: 8,
     marginVertical: 8,
@@ -83,7 +101,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     overflow: "hidden",
     position: "relative",
-    borderRadius: 8,
+    borderRadius: 12,
+    shadowColor: "#fff",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   shapeContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -99,8 +125,11 @@ const styles = StyleSheet.create({
   },
   genreText: {
     color: "#fff",
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
 });
 
