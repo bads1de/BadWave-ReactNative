@@ -8,6 +8,7 @@ const getSongs = async () => {
 
   if (error) {
     console.log(error.message);
+    throw new Error(error.message);
   }
 
   return data || [];

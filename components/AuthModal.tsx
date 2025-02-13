@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 
+// TODO: Googleログインを実装する
 export default function AuthModal() {
   const { session } = useAuth();
   const { setShowAuthModal } = useAuthStore();
