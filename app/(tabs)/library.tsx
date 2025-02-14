@@ -17,6 +17,7 @@ import CustomButton from "@/components/CustomButton";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import SongItem from "@/components/SongItem";
 import Song from "@/types";
+import PlaylistItem from "@/components/PlaylistItem";
 
 type LibraryType = "liked" | "playlists";
 
@@ -97,6 +98,7 @@ export default function LibraryScreen() {
       {type === "liked" ? (
         likedSongs ? (
           <FlatList
+            key={"liked"}
             data={likedSongs}
             renderItem={renderLikedSongs}
             keyExtractor={(item) => item.id}
@@ -110,12 +112,12 @@ export default function LibraryScreen() {
         )
       ) : playlists && playlists.length > 0 ? (
         <FlatList
+          key={"playlists"}
           data={playlists}
           renderItem={({ item }) => (
-            <View>
-              <Text style={{ color: "#fff" }}>{item.title}</Text>
-            </View>
+            <PlaylistItem playlist={item} onPress={() => {}} />
           )}
+          numColumns={2}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
         />
