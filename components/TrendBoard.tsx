@@ -4,11 +4,11 @@ import {
   Text,
   FlatList,
   Image,
-  TouchableOpacity,
   StyleSheet,
   Dimensions,
   ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import useLoadImage from "@/hooks/useLoadImage";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +19,9 @@ import Song from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
 import getTrendSongs, { TrendPeriod } from "@/actions/useGetTrendSongs";
+import CustomButton from "./CustomButton";
+import Loading from "./Loading";
+import Error from "./Error";
 
 interface TrendItemProps {
   song: Song;
@@ -84,20 +87,11 @@ export default function TrendBoard() {
   };
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4c1d95" />
-      </View>
-    );
+    return <Loading />;
   }
 
   if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Ionicons name="alert-circle" size={24} color="#ef4444" />
-        <Text style={styles.errorText}>{error.message}</Text>
-      </View>
-    );
+    return <Error message={error.message} />;
   }
 
   return (
@@ -108,70 +102,42 @@ export default function TrendBoard() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.periodButtons}
         >
-          <TouchableOpacity
-            style={[
-              styles.periodButton,
-              period === "all" && styles.periodButtonActive,
-            ]}
+          <CustomButton
+            label="All"
+            isActive={period === "all"}
+            activeStyle={styles.periodButtonActive}
+            inactiveStyle={styles.periodButton}
+            activeTextStyle={styles.periodButtonTextActive}
+            inactiveTextStyle={styles.periodButtonText}
             onPress={() => setPeriod("all")}
-          >
-            <Text
-              style={[
-                styles.periodButtonText,
-                period === "all" && styles.periodButtonTextActive,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.periodButton,
-              period === "month" && styles.periodButtonActive,
-            ]}
+          />
+          <CustomButton
+            label="Month"
+            isActive={period === "month"}
+            activeStyle={styles.periodButtonActive}
+            inactiveStyle={styles.periodButton}
+            activeTextStyle={styles.periodButtonTextActive}
+            inactiveTextStyle={styles.periodButtonText}
             onPress={() => setPeriod("month")}
-          >
-            <Text
-              style={[
-                styles.periodButtonText,
-                period === "month" && styles.periodButtonTextActive,
-              ]}
-            >
-              Month
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.periodButton,
-              period === "week" && styles.periodButtonActive,
-            ]}
+          />
+          <CustomButton
+            label="Week"
+            isActive={period === "week"}
+            activeStyle={styles.periodButtonActive}
+            inactiveStyle={styles.periodButton}
+            activeTextStyle={styles.periodButtonTextActive}
+            inactiveTextStyle={styles.periodButtonText}
             onPress={() => setPeriod("week")}
-          >
-            <Text
-              style={[
-                styles.periodButtonText,
-                period === "week" && styles.periodButtonTextActive,
-              ]}
-            >
-              Week
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.periodButton,
-              period === "day" && styles.periodButtonActive,
-            ]}
+          />
+          <CustomButton
+            label="Day"
+            isActive={period === "day"}
+            activeStyle={styles.periodButtonActive}
+            inactiveStyle={styles.periodButton}
+            activeTextStyle={styles.periodButtonTextActive}
+            inactiveTextStyle={styles.periodButtonText}
             onPress={() => setPeriod("day")}
-          >
-            <Text
-              style={[
-                styles.periodButtonText,
-                period === "day" && styles.periodButtonTextActive,
-              ]}
-            >
-              Day
-            </Text>
-          </TouchableOpacity>
+          />
         </ScrollView>
       </View>
       <FlatList
@@ -197,22 +163,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 8,
-  },
-  loadingContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  errorContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-    gap: 8,
-  },
-  errorText: {
-    color: "#ef4444",
-    fontSize: 16,
   },
   itemContainer: {
     width: ITEM_WIDTH,
@@ -292,9 +242,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   periodButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 24,
     backgroundColor: "rgba(255,255,255,0.1)",
   },
   periodButtonActive: {
@@ -310,8 +257,6 @@ const styles = StyleSheet.create({
   },
   periodButtonText: {
     color: "rgba(255,255,255,0.6)",
-    fontSize: 15,
-    fontWeight: "600",
   },
   periodButtonTextActive: {
     color: "#fff",

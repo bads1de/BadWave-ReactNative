@@ -16,6 +16,8 @@ export const CACHED_QUERIES = {
   search: "search",
   songsByGenre: "songsByGenre",
   trendsSongs: "trendsSongs",
+  likedSongs: "likedSongs",
+  playlists: "playlists",
 } as const;
 
 export const CACHE_CONFIG = {

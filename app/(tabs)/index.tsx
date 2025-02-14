@@ -22,6 +22,7 @@ import TrendBoard from "@/components/TrendBoard";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 
+// ToDO: Headerのバグを修正
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
   const {
