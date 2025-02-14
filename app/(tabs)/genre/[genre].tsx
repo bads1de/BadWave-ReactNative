@@ -28,7 +28,7 @@ export default function GenreSongsScreen() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: [CACHED_QUERIES.genre, genre],
+    queryKey: [CACHED_QUERIES.songsByGenre, genre],
     queryFn: () => getSongsByGenre(genre as string),
     enabled: !!genre,
   });

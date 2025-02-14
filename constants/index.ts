@@ -14,7 +14,8 @@ export const CACHE_PREFIX = "@query-cache";
 export const CACHED_QUERIES = {
   songs: "songs",
   search: "search",
-  genre: "songsByGenre",
+  songsByGenre: "songsByGenre",
+  trendsSongs: "trendsSongs",
 } as const;
 
 export const CACHE_CONFIG = {
