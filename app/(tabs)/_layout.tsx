@@ -11,6 +11,7 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
 import { CACHED_QUERIES } from "@/constants";
+import { useHeaderStore } from "@/hooks/useHeaderStore";
 
 export default function TabLayout() {
   const { showPlayer, setShowPlayer, currentSong } = usePlayerStore();
@@ -34,6 +35,8 @@ export default function TabLayout() {
     setShuffle,
   } = useAudioPlayer(songs);
 
+  const { showHeader } = useHeaderStore();
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -44,7 +47,7 @@ export default function TabLayout() {
 
   return (
     <>
-      <Header />
+      {showHeader && <Header />}
       <Tabs
         screenOptions={{
           tabBarPosition: "bottom",

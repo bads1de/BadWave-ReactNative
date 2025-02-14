@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import {
   View,
   FlatList,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import getSongsByGenre from "@/actions/getSongsByGenre";
@@ -17,10 +17,12 @@ import Error from "@/components/Error";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useLocalSearchParams } from "expo-router";
 import { CACHED_QUERIES } from "@/constants";
+import { useHeaderStore } from "@/hooks/useHeaderStore";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
   const { genre } = useLocalSearchParams();
+  const { setShowHeader } = useHeaderStore();
   const {
     data: songs = [],
     isLoading,
@@ -30,6 +32,20 @@ export default function GenreSongsScreen() {
     queryFn: () => getSongsByGenre(genre as string),
     enabled: !!genre,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      setShowHeader(false);
+      return () => {
+        setShowHeader(true);
+      };
+    }, [setShowHeader])
+  );
+
+  const routerBack = () => {
+    router.back();
+    setShowHeader(true);
+  };
 
   const { playSong } = useAudioPlayer(songs);
 
@@ -45,10 +61,7 @@ export default function GenreSongsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={routerBack}>
             <Ionicons name="chevron-back" size={28} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.title}>{genre}</Text>

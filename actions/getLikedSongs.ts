@@ -16,10 +16,8 @@ const getLikedSongs = async (): Promise<Song[]> => {
 
   if (error) {
     console.error("Error fetching liked songs:", error);
-    return [];
+    throw new Error(error.message);
   }
-
-  if (!data) return [];
 
   // 取得したデータから曲の情報のみを新しい配列にして返す
   return (data as Song[]) || [];
