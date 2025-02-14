@@ -2,16 +2,19 @@ import Song from "@/types";
 import { supabase } from "@/lib/supabase";
 
 const getLikedSongs = async (): Promise<Song[]> => {
-  // 現在のユーザーセッションを取得
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // いいねされた曲を取得
+  if (!session) {
+    console.error("ログインしていません。sessionが取得されていません。");
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("liked_songs_regular")
-    .select(`*,"songs"(*)`)
-    .eq("user_id", session?.user.id)
+    .select(`*, songs(*)`)
+    .eq("user_id", session.user.id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -19,8 +22,9 @@ const getLikedSongs = async (): Promise<Song[]> => {
     throw new Error(error.message);
   }
 
-  // 取得したデータから曲の情報のみを新しい配列にして返す
-  return (data as Song[]) || [];
+  if (!data) return [];
+
+  return data.map((item: any) => item.songs);
 };
 
 export default getLikedSongs;

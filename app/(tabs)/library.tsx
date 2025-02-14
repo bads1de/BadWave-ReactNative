@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
@@ -7,6 +7,8 @@ import getPlaylists from "@/actions/getPlaylists";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 import CustomButton from "@/components/CustomButton";
+import ListItem from "@/components/ListItem";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 type LibraryType = "liked" | "playlists";
 
@@ -30,6 +32,8 @@ export default function LibraryScreen() {
     queryKey: [CACHED_QUERIES.playlists],
     queryFn: getPlaylists,
   });
+
+  const { playSong } = useAudioPlayer(likedSongs || []);
 
   if (isLikedLoading || isPlaylistsLoading) {
     return <Loading />;
@@ -68,6 +72,42 @@ export default function LibraryScreen() {
           />
         </ScrollView>
       </View>
+      {type === "liked" ? (
+        likedSongs && likedSongs.length > 0 ? (
+          <FlatList
+            data={likedSongs}
+            renderItem={({ item }) => (
+              <ListItem
+                song={item}
+                onPress={async (song) => {
+                  await playSong(song);
+                }}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+          />
+        ) : (
+          <View style={[styles.noSongsContainer, { flex: 1 }]}>
+            <Text style={styles.noSongsText}>No songs found.</Text>
+          </View>
+        )
+      ) : playlists && playlists.length > 0 ? (
+        <FlatList
+          data={playlists}
+          renderItem={({ item }) => (
+            <View>
+              <Text style={{ color: "#fff" }}>{item.title}</Text>
+            </View>
+          )}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+        />
+      ) : (
+        <View style={[styles.noSongsContainer, { flex: 1 }]}>
+          <Text style={styles.noSongsText}>No playlists found.</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -113,5 +153,16 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(255,255,255,0.3)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+  },
+  listContainer: {
+    paddingBottom: 100,
+  },
+  noSongsContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  noSongsText: {
+    color: "#fff",
+    fontSize: 18,
   },
 });
