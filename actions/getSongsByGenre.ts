@@ -17,7 +17,7 @@ const getSongsByGenre = async (genre: string | string[]): Promise<Song[]> => {
     throw new Error(error.message);
   }
 
-  return (data as any) || [];
+  return (data as Song[]) || [];
 };
 
 export default getSongsByGenre;

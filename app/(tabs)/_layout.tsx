@@ -144,6 +144,13 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="genre/[genre]"
+          options={{
+            headerShown: false,
+            href: null,
+          }}
+        />
       </Tabs>
 
       {showPlayer && currentSong && (

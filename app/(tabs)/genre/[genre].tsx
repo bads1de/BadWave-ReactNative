@@ -51,7 +51,7 @@ export default function GenreSongsScreen() {
           >
             <Ionicons name="chevron-back" size={28} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.title}>{genre} の曲一覧</Text>
+          <Text style={styles.title}>{genre}</Text>
         </View>
         <FlatList
           data={songs}

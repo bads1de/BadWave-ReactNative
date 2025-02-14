@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
+import Song from "@/types";
 
-const getSongs = async () => {
+const getSongs = async (): Promise<Song[]> => {
   const { data, error } = await supabase
     .from("songs")
     .select("*")
@@ -11,7 +12,7 @@ const getSongs = async () => {
     throw new Error(error.message);
   }
 
-  return data || [];
+  return (data as Song[]) || [];
 };
 
 export default getSongs;
