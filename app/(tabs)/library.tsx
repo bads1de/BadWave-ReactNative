@@ -73,20 +73,20 @@ export default function LibraryScreen() {
         </ScrollView>
       </View>
       {type === "liked" ? (
-        likedSongs && likedSongs.length > 0 ? (
-          <FlatList
-            data={likedSongs}
-            renderItem={({ item }) => (
-              <ListItem
-                song={item}
-                onPress={async (song) => {
-                  await playSong(song);
-                }}
-              />
-            )}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
-          />
+        likedSongs ? (
+          <View>
+            <Text style={{ color: "white" }}>
+              {`Total liked songs: ${likedSongs.length}`}
+            </Text>
+            {likedSongs.map((song) => (
+              <View key={song.id} style={{ padding: 10 }}>
+                <Text style={{ color: "white" }}>{`Title: ${song.title}`}</Text>
+                <Text
+                  style={{ color: "white" }}
+                >{`Author: ${song.author}`}</Text>
+              </View>
+            ))}
+          </View>
         ) : (
           <View style={[styles.noSongsContainer, { flex: 1 }]}>
             <Text style={styles.noSongsText}>No songs found.</Text>

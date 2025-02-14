@@ -78,7 +78,6 @@ export default function TrendBoard() {
   } = useQuery({
     queryKey: [CACHED_QUERIES.trendsSongs, period],
     queryFn: () => getTrendSongs(period),
-    staleTime: CACHE_CONFIG.staleTime,
   });
   const { playSong } = useAudioPlayer(trends);
 
