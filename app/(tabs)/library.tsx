@@ -1,5 +1,12 @@
-import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
-import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  FlatList,
+  SafeAreaView,
+} from "react-native";
+import React, { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import getLikedSongs from "@/actions/getLikedSongs";
@@ -7,8 +14,9 @@ import getPlaylists from "@/actions/getPlaylists";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 import CustomButton from "@/components/CustomButton";
-import ListItem from "@/components/ListItem";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import SongItem from "@/components/SongItem";
+import Song from "@/types";
 
 type LibraryType = "liked" | "playlists";
 
@@ -43,6 +51,20 @@ export default function LibraryScreen() {
     return <Error message={(likedError || playlistsError)!.message} />;
   }
 
+  const renderLikedSongs = useCallback(
+    ({ item }: { item: Song }) => {
+      return (
+        <SongItem
+          song={item}
+          onClick={async (id: string) => {
+            await playSong(item);
+          }}
+        />
+      );
+    },
+    [playSong]
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Library</Text>
@@ -74,19 +96,13 @@ export default function LibraryScreen() {
       </View>
       {type === "liked" ? (
         likedSongs ? (
-          <View>
-            <Text style={{ color: "white" }}>
-              {`Total liked songs: ${likedSongs.length}`}
-            </Text>
-            {likedSongs.map((song) => (
-              <View key={song.id} style={{ padding: 10 }}>
-                <Text style={{ color: "white" }}>{`Title: ${song.title}`}</Text>
-                <Text
-                  style={{ color: "white" }}
-                >{`Author: ${song.author}`}</Text>
-              </View>
-            ))}
-          </View>
+          <FlatList
+            data={likedSongs}
+            renderItem={renderLikedSongs}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.listContainer}
+          />
         ) : (
           <View style={[styles.noSongsContainer, { flex: 1 }]}>
             <Text style={styles.noSongsText}>No songs found.</Text>
