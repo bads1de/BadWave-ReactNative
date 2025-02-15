@@ -17,6 +17,7 @@ import useLoadImage from "@/hooks/useLoadImage";
 import useLoadVideo from "@/hooks/useLoadVideo";
 import Song from "@/types";
 import Lyric from "./lyric";
+import LikeButton from "./LikeButton";
 
 interface PlayerProps {
   sound: any;
@@ -83,8 +84,11 @@ export default function Player({
             style={styles.bottomContainer}
           >
             <View style={styles.infoContainer}>
-              <Text style={styles.title}>{currentSong.title}</Text>
-              <Text style={styles.author}>{currentSong.author}</Text>
+              <View style={styles.textContainer}>
+                <Text style={styles.title}>{currentSong.title}</Text>
+                <Text style={styles.author}>{currentSong.author}</Text>
+              </View>
+              <LikeButton songId={currentSong.id} size={28} />
             </View>
             <Slider
               style={styles.slider}
@@ -149,8 +153,11 @@ export default function Player({
             style={styles.bottomContainer}
           >
             <View style={styles.infoContainer}>
-              <Text style={styles.title}>{currentSong.title}</Text>
-              <Text style={styles.author}>{currentSong.author}</Text>
+              <View style={styles.textContainer}>
+                <Text style={styles.title}>{currentSong.title}</Text>
+                <Text style={styles.author}>{currentSong.author}</Text>
+              </View>
+              <LikeButton songId={currentSong.id} size={28} />
             </View>
             <Slider
               style={styles.slider}
@@ -239,10 +246,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 30,
   },
-  infoContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
   title: {
     color: "#fff",
     fontSize: 24,
@@ -275,5 +278,15 @@ const styles = StyleSheet.create({
   },
   playButton: {
     transform: [{ scale: 1.2 }],
+  },
+  infoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  textContainer: {
+    flex: 1,
+    alignItems: "flex-start",
   },
 });

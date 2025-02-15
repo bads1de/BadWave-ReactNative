@@ -8,7 +8,7 @@ export const COLORS = {
 };
 
 export const GRADIENTS = {
-  success: ["#00FF00", "#00CC00"],
+  success: ["#4c1d95", "#6d28d9"],
   error: ["#FF0000", "#CC0000"],
   pinkBlue: ["#FF69B4", "#4169E1"],
 } as const;

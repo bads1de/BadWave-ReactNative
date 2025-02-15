@@ -36,9 +36,13 @@ const ToastConfig = {
   ),
 
   info: (props: BaseToastProps) => (
-    <BlurView intensity={30} style={styles.container} tint="dark">
+    <BlurView
+      intensity={30}
+      style={[styles.container, { backgroundColor: "rgba(76,29,149,0.3)" }]}
+      tint="dark"
+    >
       <LinearGradient
-        colors={GRADIENTS.pinkBlue}
+        colors={["#4c1d95", "#6d28d9"]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -56,11 +60,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginHorizontal: 20,
     marginBottom: 40,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowColor: "#4c1d95",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
     elevation: 8,
+    borderWidth: 1,
+    borderColor: "rgba(76,29,149,0.5)",
   },
   gradient: {
     padding: 16,
@@ -80,7 +86,7 @@ const styles = StyleSheet.create({
 export const ToastComponent = () => (
   <Toast
     config={ToastConfig}
-    position="bottom"
+    position="top"
     autoHide={true}
     visibilityTime={3000}
     bottomOffset={80}

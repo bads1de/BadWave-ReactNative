@@ -12,9 +12,6 @@ const getLikedSongs = async (): Promise<Song[]> => {
       return [];
     }
 
-    // デバッグ用：セッション情報の出力
-    console.log("Current session:", session);
-
     const { data, error } = await supabase
       .from("liked_songs_regular")
       .select(
