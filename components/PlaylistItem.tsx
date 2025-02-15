@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
     margin: 8,
     position: "relative",
   },
-
   imageContainer: {
     flex: 1,
     position: "relative",

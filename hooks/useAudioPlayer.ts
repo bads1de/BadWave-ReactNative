@@ -127,6 +127,8 @@ export function useAudioPlayer(songs: Song[]) {
   // 曲の再生処理
   const playSong = async (song: Song) => {
     try {
+      if (!song) return;
+
       // 既存の音声を確実に停止・解放
       await unloadSound();
 
