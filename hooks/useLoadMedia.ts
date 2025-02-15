@@ -1,25 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import Song, { Playlist } from "@/types";
 
-type MediaType = "video" | "image" | "song";
+type MediaType = "video" | "image";
 
+/**
+ * メディアファイルの公開URLを取得するためのカスタムフック。
+ *
+ * @param {Song | Playlist | null} data - メディアファイルの情報を含むオブジェクト。Song または Playlist 型。
+ * @param {MediaType} mediaType - 取得するメディアのタイプ。"video", "image", "song" のいずれか。
+ * @returns {string | null} メディアファイルの公開URL。メディアファイルが存在しない場合はnull。
+ */
 const useLoadMedia = (data: Song | Playlist | null, mediaType: MediaType) => {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    /**
+     * メディアファイルの公開URLをSupabaseストレージから取得し、ステートに設定する関数。
+     */
     const loadMedia = async () => {
       if (!data) {
         setUrl(null);
         return;
       }
 
+      // mediaType に応じて、適切なファイルパスを取得
       const mediaPath =
         mediaType === "video"
           ? (data as Song)?.video_path
           : mediaType === "image"
           ? (data as Song | Playlist)?.image_path
-          : (data as Song)?.song_path;
+          : null;
 
       if (!mediaPath) {
         setUrl(null);

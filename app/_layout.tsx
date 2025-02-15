@@ -8,6 +8,7 @@ import { QueryPersistenceManager } from "@/lib/query-persistence-manager";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
+import Toast from "react-native-toast-message";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +47,7 @@ export default function RootLayout() {
           <StatusBar style="light" />
           {showAuthModal && <AuthModal />}
           <Stack screenOptions={{ headerShown: false }} />
+          <Toast />
         </View>
       </AuthProvider>
     </QueryClientProvider>

@@ -71,9 +71,6 @@ export default function AuthModal() {
               <Text style={styles.loggedInText}>
                 ログイン済み: {session.user.email}
               </Text>
-              <Text style={styles.loggedInText}>
-                ユーザーID: {session.user.id}
-              </Text>
               <TouchableOpacity style={styles.button} onPress={signOut}>
                 <Text style={styles.buttonText}>ログアウト</Text>
               </TouchableOpacity>
