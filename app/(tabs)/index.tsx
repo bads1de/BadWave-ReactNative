@@ -47,6 +47,7 @@ export default function HomeScreen() {
         onClick={async (id: string) => {
           await playSong(item);
         }}
+        dynamicSize={false}
       />
     ),
     [playSong]

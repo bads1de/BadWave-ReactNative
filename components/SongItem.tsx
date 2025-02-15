@@ -1,5 +1,14 @@
 import React, { useState, memo } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ViewStyle,
+  StyleProp,
+  Dimensions,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
@@ -8,55 +17,71 @@ import useLoadImage from "@/hooks/useLoadImage";
 interface SongItemProps {
   song: Song;
   onClick: (id: string) => void;
+  dynamicSize?: boolean;
 }
 
-const SongItem = memo(({ song, onClick }: SongItemProps) => {
-  const imagePath = useLoadImage(song);
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
+const SongItem = memo(
+  ({ song, onClick, dynamicSize = false }: SongItemProps) => {
+    const imagePath = useLoadImage(song);
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  return (
-    <TouchableOpacity style={styles.container} onPress={() => onClick(song.id)}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: imagePath! }}
-          style={styles.image}
-          onLoad={() => setIsImageLoaded(true)}
-        />
-        {/* 画像の読み込み中はプレースホルダーを表示 */}
-        {!isImageLoaded && <View style={styles.imagePlaceholder} />}
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.8)"]}
-          style={styles.gradientOverlay}
-        />
-        <View style={styles.textOverlay}>
-          <Text style={styles.title} numberOfLines={1}>
-            {song.title}
-          </Text>
-          <Text style={styles.author} numberOfLines={1}>
-            {song.author}
-          </Text>
-          <View style={styles.statsContainer}>
-            <View style={styles.statsItem}>
-              <Ionicons name="play" size={14} color="#fff" />
-              <Text style={styles.statsText}>{song.count}</Text>
-            </View>
-            <View style={styles.statsItem}>
-              <Ionicons name="heart" size={14} color="#fff" />
-              <Text style={styles.statsText}>{song.like_count}</Text>
+    const { width: windowWidth } = Dimensions.get("window");
+
+    const calculateItemSize = () => {
+      if (dynamicSize) {
+        const itemWidth = (windowWidth - 48) / 2 - 16;
+        const itemHeight = itemWidth * 1.6;
+        return { width: itemWidth, height: itemHeight };
+      }
+      return { width: 180, height: 320 };
+    };
+
+    const dynamicStyle = calculateItemSize();
+
+    return (
+      <TouchableOpacity
+        style={[styles.container, dynamicStyle]}
+        onPress={() => onClick(song.id)}
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: imagePath! }}
+            style={styles.image}
+            onLoad={() => setIsImageLoaded(true)}
+          />
+          {!isImageLoaded && <View style={styles.imagePlaceholder} />}
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.8)"]}
+            style={styles.gradientOverlay}
+          />
+          <View style={styles.textOverlay}>
+            <Text style={styles.title} numberOfLines={1}>
+              {song.title}
+            </Text>
+            <Text style={styles.author} numberOfLines={1}>
+              {song.author}
+            </Text>
+            <View style={styles.statsContainer}>
+              <View style={styles.statsItem}>
+                <Ionicons name="play" size={14} color="#fff" />
+                <Text style={styles.statsText}>{song.count}</Text>
+              </View>
+              <View style={styles.statsItem}>
+                <Ionicons name="heart" size={14} color="#fff" />
+                <Text style={styles.statsText}>{song.like_count}</Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-});
+      </TouchableOpacity>
+    );
+  }
+);
 
 export default SongItem;
 
 const styles = StyleSheet.create({
   container: {
-    width: 180,
-    height: 320,
     borderRadius: 12,
     overflow: "hidden",
     margin: 8,

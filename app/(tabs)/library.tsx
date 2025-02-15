@@ -57,9 +57,10 @@ export default function LibraryScreen() {
       return (
         <SongItem
           song={item}
-          onClick={async (id: string) => {
+          onClick={async () => {
             await playSong(item);
           }}
+          dynamicSize={true}
         />
       );
     },
