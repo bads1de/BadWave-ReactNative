@@ -18,11 +18,13 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import SongItem from "@/components/SongItem";
 import Song from "@/types";
 import PlaylistItem from "@/components/PlaylistItem";
+import { useRouter } from "expo-router";
 
 type LibraryType = "liked" | "playlists";
 
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
+  const router = useRouter();
 
   const {
     data: likedSongs,
@@ -116,7 +118,15 @@ export default function LibraryScreen() {
           key={"playlists"}
           data={playlists}
           renderItem={({ item }) => (
-            <PlaylistItem playlist={item} onPress={() => {}} />
+            <PlaylistItem
+              playlist={item}
+              onPress={(playlist) =>
+                router.push({
+                  pathname: "/playlist/[playlistId]",
+                  params: { playlistId: playlist.id },
+                })
+              }
+            />
           )}
           numColumns={2}
           keyExtractor={(item) => item.id}

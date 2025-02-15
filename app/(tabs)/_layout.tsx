@@ -154,6 +154,13 @@ export default function TabLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="playlist/[playlistId]"
+          options={{
+            headerShown: false,
+            href: null,
+          }}
+        />
       </Tabs>
 
       {showPlayer && currentSong && (

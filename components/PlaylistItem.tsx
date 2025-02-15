@@ -54,12 +54,6 @@ export default function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
           <Text style={styles.title} numberOfLines={2}>
             {playlist.title}
           </Text>
-          <View style={styles.statsContainer}>
-            <Ionicons name="musical-notes" size={14} color="#fff" />
-            <Text style={styles.statsText}>
-              {playlist.songs?.length || 0} songs
-            </Text>
-          </View>
         </View>
       </View>
     </TouchableOpacity>
