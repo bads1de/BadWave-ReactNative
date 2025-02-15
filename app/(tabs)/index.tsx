@@ -22,7 +22,6 @@ import TrendBoard from "@/components/TrendBoard";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 
-// ToDO: Headerのバグを修正
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
   const {
@@ -34,7 +33,7 @@ export default function HomeScreen() {
     queryFn: getSongs,
   });
 
-  const { playSong, isPlaying } = useAudioPlayer(songs);
+  const { playSong } = useAudioPlayer(songs);
 
   if (error) {
     return <Error message={error.message} />;

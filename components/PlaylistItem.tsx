@@ -5,7 +5,7 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,18 +17,16 @@ interface PlaylistItemProps {
   onPress: (playlist: Playlist) => void;
 }
 
-const { width } = Dimensions.get("window");
-const ITEM_WIDTH = (width - 48) / 2;
+export default function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
+  const { width } = useWindowDimensions();
+  const itemWidth = (width - 48) / 2;
+  const dynamicStyles = { width: itemWidth, height: itemWidth * 1.2 };
 
-export default function NeonPlaylistItem({
-  playlist,
-  onPress,
-}: PlaylistItemProps) {
   const imageUrl = useLoadImage(playlist);
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, dynamicStyles]}
       onPress={() => onPress(playlist)}
       activeOpacity={0.7}
     >
@@ -70,8 +68,6 @@ export default function NeonPlaylistItem({
 
 const styles = StyleSheet.create({
   container: {
-    width: ITEM_WIDTH,
-    height: ITEM_WIDTH * 1.2,
     margin: 8,
     position: "relative",
   },

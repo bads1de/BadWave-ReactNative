@@ -44,14 +44,6 @@ export default function LibraryScreen() {
 
   const { playSong } = useAudioPlayer(likedSongs || []);
 
-  if (isLikedLoading || isPlaylistsLoading) {
-    return <Loading />;
-  }
-
-  if (likedError || playlistsError) {
-    return <Error message={(likedError || playlistsError)!.message} />;
-  }
-
   const renderLikedSongs = useCallback(
     ({ item }: { item: Song }) => {
       return (
@@ -66,6 +58,14 @@ export default function LibraryScreen() {
     },
     [playSong]
   );
+
+  if (isLikedLoading || isPlaylistsLoading) {
+    return <Loading />;
+  }
+
+  if (likedError || playlistsError) {
+    return <Error message={(likedError || playlistsError)!.message} />;
+  }
 
   return (
     <View style={styles.container}>
