@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
  * @param {Song } song - 曲データ
  * @returns {string} 読み込まれた曲のURL
  */
-const loadSongUrl = async (song: Song): Promise<string> => {
+const useLoadSongUrl = async (song: Song): Promise<string> => {
   if (!song) {
     return "";
   }
@@ -24,4 +24,4 @@ const loadSongUrl = async (song: Song): Promise<string> => {
   }
 };
 
-export default loadSongUrl;
+export default useLoadSongUrl;
