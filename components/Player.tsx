@@ -17,6 +17,7 @@ import useLoadImage from "@/hooks/useLoadImage";
 import useLoadVideo from "@/hooks/useLoadVideo";
 import Song from "@/types";
 import Lyric from "./lyric";
+import { formatTime } from "@/lib/utils";
 
 interface PlayerProps {
   sound: any;
@@ -150,12 +151,7 @@ const MediaBackground = ({
   );
 };
 
-const formatTime = (millis: number) => {
-  const minutes = Math.floor(millis / 60000);
-  const seconds = ((millis % 60000) / 1000).toFixed(0);
-  return `${minutes}:${Number(seconds) < 10 ? "0" : ""}${seconds}`;
-};
-
+// Todo:全体的に思い動作とSeekBarが重すぎる問題を解決する
 export default function Player(props: PlayerProps) {
   const { data: imageUrl } = useLoadImage(props.currentSong);
   const { data: videoUrl } = useLoadVideo(props.currentSong);

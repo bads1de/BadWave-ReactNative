@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { CACHE_CONFIG } from "@/constants";
 
-type MediaType = "image" | "video" | "song";
+type MediaType = "image" | "video";
 
 const useLoadMedia = (
   mediaType: MediaType,

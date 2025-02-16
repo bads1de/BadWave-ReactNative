@@ -1,5 +1,3 @@
-//Todo: DBからURLを取得するので、型を変更する
-
 export type SongType = "regular" | "suno";
 
 export default interface Song {
