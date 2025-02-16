@@ -50,13 +50,8 @@ export default function LibraryScreen() {
     enabled: !!session,
   });
 
-  if (isLikedLoading || isPlaylistsLoading) {
-    return <Loading />;
-  }
-
-  if (likedError || playlistsError) {
-    return <Error message={(likedError || playlistsError)!.message} />;
-  }
+  console.log(playlists);
+  console.log(likedSongs);
 
   const { playSong } = useAudioPlayer(likedSongs ?? []);
 
@@ -73,6 +68,14 @@ export default function LibraryScreen() {
     },
     [playSong]
   );
+
+  if (isLikedLoading || isPlaylistsLoading) {
+    return <Loading />;
+  }
+
+  if (likedError || playlistsError) {
+    return <Error message={(likedError || playlistsError)!.message} />;
+  }
 
   return (
     <View style={styles.container}>

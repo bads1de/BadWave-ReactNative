@@ -12,6 +12,7 @@ import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
 import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
+import Loading from "@/components/Loading";
 
 export default function TabLayout() {
   const { showPlayer, setShowPlayer, currentSong } = usePlayerStore();
@@ -37,13 +38,7 @@ export default function TabLayout() {
 
   const { showHeader } = useHeaderStore();
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
-  }
+  if (isLoading) return <Loading />;
 
   return (
     <>

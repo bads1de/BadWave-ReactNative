@@ -35,10 +35,6 @@ export default function HomeScreen() {
 
   const { playSong } = useAudioPlayer(songs);
 
-  if (error) {
-    return <Error message={error.message} />;
-  }
-
   const renderItem = useCallback(
     ({ item }: { item: any }) => (
       <SongItem
@@ -51,6 +47,10 @@ export default function HomeScreen() {
     ),
     [playSong]
   );
+
+  if (error) {
+    return <Error message={error.message} />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
