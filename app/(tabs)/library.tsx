@@ -21,6 +21,7 @@ import PlaylistItem from "@/components/PlaylistItem";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
+import CreatePlaylist from "@/components/CreatePlaylist";
 
 type LibraryType = "liked" | "playlists";
 
@@ -49,9 +50,6 @@ export default function LibraryScreen() {
     queryFn: getPlaylists,
     enabled: !!session,
   });
-
-  console.log(playlists);
-  console.log(likedSongs);
 
   const { playSong } = useAudioPlayer(likedSongs ?? []);
 
@@ -98,6 +96,7 @@ export default function LibraryScreen() {
       ) : (
         <>
           <View style={styles.typeSelector}>
+            <CreatePlaylist />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

@@ -8,7 +8,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { Playlist } from "@/types";
 import useLoadImage from "@/hooks/useLoadImage";
 
