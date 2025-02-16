@@ -7,20 +7,10 @@ const getLikedSongs = async (): Promise<Song[]> => {
       data: { session },
     } = await supabase.auth.getSession();
 
-    if (!session) {
-      console.error("ログインしていません。sessionが取得されていません。");
-      return [];
-    }
-
     const { data, error } = await supabase
       .from("liked_songs_regular")
-      .select(
-        `
-        *,
-        songs:songs(*)
-      `
-      )
-      .eq("user_id", session.user.id)
+      .select("*, songs(*)")
+      .eq("user_id", session?.user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -33,8 +23,6 @@ const getLikedSongs = async (): Promise<Song[]> => {
     // データ構造を変換
     return data.map((item) => ({
       ...item.songs,
-      id: item.songs?.id || item.song_id,
-      created_at: item.created_at,
     }));
   } catch (error) {
     console.error("Unexpected error:", error);

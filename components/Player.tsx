@@ -18,6 +18,7 @@ import useLoadVideo from "@/hooks/useLoadVideo";
 import Song from "@/types";
 import Lyric from "./lyric";
 import { formatTime } from "@/lib/utils";
+import LikeButton from "./LikeButton";
 
 interface PlayerProps {
   sound: any;
@@ -58,6 +59,7 @@ const PlayerControls = ({
         <Text style={styles.title}>{currentSong.title}</Text>
         <Text style={styles.author}>{currentSong.author}</Text>
       </View>
+      <LikeButton songId={currentSong.id} />
     </View>
     <Slider
       style={styles.slider}

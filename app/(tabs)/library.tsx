@@ -30,10 +30,54 @@ export default function LibraryScreen() {
   const { setShowAuthModal } = useAuthStore();
   const router = useRouter();
 
-  if (!session) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Library</Text>
+  const {
+    data: likedSongs,
+    isLoading: isLikedLoading,
+    error: likedError,
+  } = useQuery({
+    queryKey: [CACHED_QUERIES.likedSongs],
+    queryFn: getLikedSongs,
+    enabled: !!session,
+  });
+
+  const {
+    data: playlists = [],
+    isLoading: isPlaylistsLoading,
+    error: playlistsError,
+  } = useQuery({
+    queryKey: [CACHED_QUERIES.playlists],
+    queryFn: getPlaylists,
+    enabled: !!session,
+  });
+
+  if (isLikedLoading || isPlaylistsLoading) {
+    return <Loading />;
+  }
+
+  if (likedError || playlistsError) {
+    return <Error message={(likedError || playlistsError)!.message} />;
+  }
+
+  const { playSong } = useAudioPlayer(likedSongs ?? []);
+
+  const renderLikedSongs = useCallback(
+    ({ item }: { item: Song }) => {
+      return (
+        <SongItem
+          key={item.id}
+          song={item}
+          onClick={async () => await playSong(item)}
+          dynamicSize={true}
+        />
+      );
+    },
+    [playSong]
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Library</Text>
+      {!session ? (
         <View style={styles.loginContainer}>
           <Text style={styles.loginMessage}>
             Please login to view your library
@@ -48,120 +92,74 @@ export default function LibraryScreen() {
             inactiveTextStyle={styles.loginButtonText}
           />
         </View>
-      </View>
-    );
-  }
-
-  const {
-    data: likedSongs,
-    isLoading: isLikedLoading,
-    error: likedError,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.likedSongs],
-    queryFn: getLikedSongs,
-  });
-
-  const {
-    data: playlists = [],
-    isLoading: isPlaylistsLoading,
-    error: playlistsError,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.playlists],
-    queryFn: getPlaylists,
-  });
-
-  const { playSong } = useAudioPlayer(likedSongs || []);
-
-  const renderLikedSongs = useCallback(
-    ({ item }: { item: Song }) => {
-      return (
-        <SongItem
-          song={item}
-          onClick={async () => {
-            await playSong(item);
-          }}
-          dynamicSize={true}
-        />
-      );
-    },
-    [playSong]
-  );
-
-  if (isLikedLoading || isPlaylistsLoading) {
-    return <Loading />;
-  }
-
-  if (likedError || playlistsError) {
-    return <Error message={(likedError || playlistsError)!.message} />;
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Library</Text>
-      <View style={styles.typeSelector}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.typeButtons}
-        >
-          <CustomButton
-            label="Liked"
-            isActive={type === "liked"}
-            activeStyle={styles.typeButtonActive}
-            inactiveStyle={styles.typeButton}
-            activeTextStyle={styles.typeButtonTextActive}
-            inactiveTextStyle={styles.typeButtonText}
-            onPress={() => setType("liked")}
-          />
-          <CustomButton
-            label="Playlists"
-            isActive={type === "playlists"}
-            activeStyle={styles.typeButtonActive}
-            inactiveStyle={styles.typeButton}
-            activeTextStyle={styles.typeButtonTextActive}
-            inactiveTextStyle={styles.typeButtonText}
-            onPress={() => setType("playlists")}
-          />
-        </ScrollView>
-      </View>
-      {type === "liked" ? (
-        likedSongs ? (
-          <FlatList
-            key={"liked"}
-            data={likedSongs}
-            renderItem={renderLikedSongs}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            contentContainerStyle={styles.listContainer}
-          />
-        ) : (
-          <View style={[styles.noSongsContainer, { flex: 1 }]}>
-            <Text style={styles.noSongsText}>No songs found.</Text>
-          </View>
-        )
-      ) : playlists && playlists.length > 0 ? (
-        <FlatList
-          key={"playlists"}
-          data={playlists}
-          renderItem={({ item }) => (
-            <PlaylistItem
-              playlist={item}
-              onPress={(playlist) =>
-                router.push({
-                  pathname: "/playlist/[playlistId]",
-                  params: { playlistId: playlist.id },
-                })
-              }
-            />
-          )}
-          numColumns={2}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-        />
       ) : (
-        <View style={[styles.noSongsContainer, { flex: 1 }]}>
-          <Text style={styles.noSongsText}>No playlists found.</Text>
-        </View>
+        <>
+          <View style={styles.typeSelector}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.typeButtons}
+            >
+              <CustomButton
+                label="Liked"
+                isActive={type === "liked"}
+                activeStyle={styles.typeButtonActive}
+                inactiveStyle={styles.typeButton}
+                activeTextStyle={styles.typeButtonTextActive}
+                inactiveTextStyle={styles.typeButtonText}
+                onPress={() => setType("liked")}
+              />
+              <CustomButton
+                label="Playlists"
+                isActive={type === "playlists"}
+                activeStyle={styles.typeButtonActive}
+                inactiveStyle={styles.typeButton}
+                activeTextStyle={styles.typeButtonTextActive}
+                inactiveTextStyle={styles.typeButtonText}
+                onPress={() => setType("playlists")}
+              />
+            </ScrollView>
+          </View>
+          {type === "liked" ? (
+            likedSongs && likedSongs.length > 0 ? (
+              <FlatList
+                key={"liked"}
+                data={likedSongs}
+                renderItem={renderLikedSongs}
+                keyExtractor={(item) => item.id}
+                numColumns={2}
+                contentContainerStyle={styles.listContainer}
+              />
+            ) : (
+              <View style={[styles.noSongsContainer, { flex: 1 }]}>
+                <Text style={styles.noSongsText}>No songs found.</Text>
+              </View>
+            )
+          ) : playlists && playlists.length > 0 ? (
+            <FlatList
+              key={"playlists"}
+              data={playlists}
+              renderItem={({ item }) => (
+                <PlaylistItem
+                  playlist={item}
+                  onPress={(playlist) =>
+                    router.push({
+                      pathname: "/playlist/[playlistId]",
+                      params: { playlistId: playlist.id },
+                    })
+                  }
+                />
+              )}
+              numColumns={2}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContainer}
+            />
+          ) : (
+            <View style={[styles.noSongsContainer, { flex: 1 }]}>
+              <Text style={styles.noSongsText}>No playlists found.</Text>
+            </View>
+          )}
+        </>
       )}
     </View>
   );
