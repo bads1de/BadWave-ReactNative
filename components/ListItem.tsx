@@ -27,7 +27,7 @@ export default function ListItem({
   showStats = true,
   imageSize = "medium",
 }: ListItemProps) {
-  const imageUrl = useLoadImage(song);
+  const { data: imageUrl } = useLoadImage(song);
 
   const getImageSize = () => {
     switch (imageSize) {

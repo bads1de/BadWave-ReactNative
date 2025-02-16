@@ -6,7 +6,6 @@ import {
   Image,
   StyleSheet,
   Dimensions,
-  ActivityIndicator,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
@@ -33,7 +32,7 @@ const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.6;
 
 const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
-  const imageUrl = useLoadImage(song);
+  const { data: imageUrl } = useLoadImage(song);
 
   return (
     <TouchableOpacity

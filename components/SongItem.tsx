@@ -22,7 +22,7 @@ interface SongItemProps {
 
 const SongItem = memo(
   ({ song, onClick, dynamicSize = false }: SongItemProps) => {
-    const imagePath = useLoadImage(song);
+    const { data: imagePath } = useLoadImage(song);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
     const { width: windowWidth } = Dimensions.get("window");

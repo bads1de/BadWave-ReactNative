@@ -3,12 +3,9 @@ import useLoadMedia from "./useLoadMedia";
 
 type ImageData = Song | Playlist | null;
 
-/**
- * 画像データを読み込むカスタムフック
- *
- * @param data - 画像データを含むオブジェクト
- * @returns 読み込まれた画像のURLまたは null
- */
-const useLoadImage = (data: ImageData) => useLoadMedia(data, "image");
+const useLoadImage = (data: ImageData) => {
+  const mediaPath = data && "image_path" in data ? data.image_path : null;
+  return useLoadMedia("image", mediaPath);
+};
 
 export default useLoadImage;

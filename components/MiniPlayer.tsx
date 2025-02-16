@@ -30,7 +30,7 @@ export default function ModernMiniPlayer({
 }: MiniPlayerProps) {
   const translateY = useRef(new Animated.Value(60)).current;
   const opacity = useRef(new Animated.Value(0)).current;
-  const imagePath = useLoadImage(currentSong);
+  const { data: imagePath } = useLoadImage(currentSong);
 
   useEffect(() => {
     Animated.parallel([

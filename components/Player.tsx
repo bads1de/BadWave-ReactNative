@@ -17,7 +17,6 @@ import useLoadImage from "@/hooks/useLoadImage";
 import useLoadVideo from "@/hooks/useLoadVideo";
 import Song from "@/types";
 import Lyric from "./lyric";
-import LikeButton from "./LikeButton";
 
 interface PlayerProps {
   sound: any;
@@ -36,185 +35,153 @@ interface PlayerProps {
   setShuffle: (value: boolean) => void;
 }
 
-// TODO: Expo-videoで実装
-export default function Player({
+const { width, height } = Dimensions.get("window");
+
+const PlayerControls = ({
   isPlaying,
-  currentSong,
   position,
   duration,
   onPlayPause,
   onNext,
   onPrev,
   onSeek,
-  onClose,
-  repeat,
-  setRepeat,
   shuffle,
   setShuffle,
-}: PlayerProps) {
-  const formatTime = (millis: number) => {
-    const minutes = Math.floor(millis / 60000);
-    const seconds = ((millis % 60000) / 1000).toFixed(0);
-    return `${minutes}:${Number(seconds) < 10 ? "0" : ""}${seconds}`;
-  };
+  repeat,
+  setRepeat,
+  currentSong,
+}: PlayerProps) => (
+  <>
+    <View style={styles.infoContainer}>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>{currentSong.title}</Text>
+        <Text style={styles.author}>{currentSong.author}</Text>
+      </View>
+    </View>
+    <Slider
+      style={styles.slider}
+      minimumValue={0}
+      maximumValue={duration}
+      value={position}
+      onSlidingComplete={onSeek}
+      minimumTrackTintColor="#4c1d95"
+      maximumTrackTintColor="#777"
+      thumbTintColor="#4c1d95"
+    />
+    <View style={styles.timeContainer}>
+      <Text style={styles.timeText}>{formatTime(position)}</Text>
+      <Text style={styles.timeText}>{formatTime(duration)}</Text>
+    </View>
+    <View style={styles.controls}>
+      <ControlButton
+        icon="shuffle"
+        isActive={shuffle}
+        onPress={() => setShuffle(!shuffle)}
+      />
+      <ControlButton icon="play-skip-back" onPress={onPrev} />
+      <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
+      <ControlButton icon="play-skip-forward" onPress={onNext} />
+      <ControlButton
+        icon="repeat"
+        isActive={repeat}
+        onPress={() => setRepeat(!repeat)}
+      />
+    </View>
+  </>
+);
 
-  const imageUrl = useLoadImage(currentSong);
-  const videoUrl = useLoadVideo(currentSong);
+const ControlButton = ({
+  icon,
+  isActive,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  isActive?: boolean;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity onPress={onPress}>
+    <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
+  </TouchableOpacity>
+);
 
-  const renderPlayerContent = () => {
-    if (videoUrl) {
-      return (
-        <View style={styles.playerContainer}>
-          <View style={styles.backgroundImage}>
-            <Video
-              source={{ uri: videoUrl }}
-              style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
-              resizeMode={ResizeMode.COVER}
-              shouldPlay
-              isLooping
-              isMuted
-            />
-          </View>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="chevron-down" size={30} color="#fff" />
-          </TouchableOpacity>
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
-            locations={[0, 0.5, 1]}
-            style={styles.bottomContainer}
-          >
-            <View style={styles.infoContainer}>
-              <View style={styles.textContainer}>
-                <Text style={styles.title}>{currentSong.title}</Text>
-                <Text style={styles.author}>{currentSong.author}</Text>
-              </View>
-              <LikeButton songId={currentSong.id} size={28} />
-            </View>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={duration}
-              value={position}
-              onSlidingComplete={onSeek}
-              minimumTrackTintColor="#4c1d95"
-              maximumTrackTintColor="#777"
-              thumbTintColor="#4c1d95"
-            />
-            <View style={styles.timeContainer}>
-              <Text style={styles.timeText}>{formatTime(position)}</Text>
-              <Text style={styles.timeText}>{formatTime(duration)}</Text>
-            </View>
-            <View style={styles.controls}>
-              <TouchableOpacity onPress={() => setShuffle(!shuffle)}>
-                <Ionicons
-                  name="shuffle"
-                  size={25}
-                  color={shuffle ? "#4c1d95" : "#fff"}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onPrev}>
-                <Ionicons name="play-skip-back" size={35} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.playButton} onPress={onPlayPause}>
-                <Ionicons
-                  name={isPlaying ? "pause-circle" : "play-circle"}
-                  size={70}
-                  color="#fff"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onNext}>
-                <Ionicons name="play-skip-forward" size={35} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setRepeat(!repeat)}>
-                <Ionicons
-                  name="repeat"
-                  size={25}
-                  color={repeat ? "#4c1d95" : "#fff"}
-                />
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-        </View>
-      );
-    }
+const PlayPauseButton = ({
+  isPlaying,
+  onPress,
+}: {
+  isPlaying: boolean;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity style={styles.playButton} onPress={onPress}>
+    <Ionicons
+      name={isPlaying ? "pause-circle" : "play-circle"}
+      size={70}
+      color="#fff"
+    />
+  </TouchableOpacity>
+);
+
+const MediaBackground = ({
+  videoUrl,
+  imageUrl,
+}: {
+  videoUrl?: string | null;
+  imageUrl?: string | null;
+}) => {
+  if (videoUrl) {
     return (
-      <View style={styles.playerContainer}>
-        <ImageBackground
-          source={{ uri: imageUrl! }}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        >
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="chevron-down" size={30} color="#fff" />
-          </TouchableOpacity>
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
-            locations={[0, 0.5, 1]}
-            style={styles.bottomContainer}
-          >
-            <View style={styles.infoContainer}>
-              <View style={styles.textContainer}>
-                <Text style={styles.title}>{currentSong.title}</Text>
-                <Text style={styles.author}>{currentSong.author}</Text>
-              </View>
-              <LikeButton songId={currentSong.id} size={28} />
-            </View>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={duration}
-              value={position}
-              onSlidingComplete={onSeek}
-              minimumTrackTintColor="#4c1d95"
-              maximumTrackTintColor="#777"
-              thumbTintColor="#4c1d95"
-            />
-            <View style={styles.timeContainer}>
-              <Text style={styles.timeText}>{formatTime(position)}</Text>
-              <Text style={styles.timeText}>{formatTime(duration)}</Text>
-            </View>
-            <View style={styles.controls}>
-              <TouchableOpacity onPress={() => setShuffle(!shuffle)}>
-                <Ionicons
-                  name="shuffle"
-                  size={25}
-                  color={shuffle ? "#4c1d95" : "#fff"}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onPrev}>
-                <Ionicons name="play-skip-back" size={35} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.playButton} onPress={onPlayPause}>
-                <Ionicons
-                  name={isPlaying ? "pause-circle" : "play-circle"}
-                  size={70}
-                  color="#fff"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onNext}>
-                <Ionicons name="play-skip-forward" size={35} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setRepeat(!repeat)}>
-                <Ionicons
-                  name="repeat"
-                  size={25}
-                  color={repeat ? "#4c1d95" : "#fff"}
-                />
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-        </ImageBackground>
+      <View style={styles.backgroundImage}>
+        <Video
+          source={{ uri: videoUrl }}
+          style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted
+        />
       </View>
     );
-  };
+  }
+  return (
+    <ImageBackground
+      source={{ uri: imageUrl! }}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    />
+  );
+};
+
+const formatTime = (millis: number) => {
+  const minutes = Math.floor(millis / 60000);
+  const seconds = ((millis % 60000) / 1000).toFixed(0);
+  return `${minutes}:${Number(seconds) < 10 ? "0" : ""}${seconds}`;
+};
+
+export default function Player(props: PlayerProps) {
+  const { data: imageUrl } = useLoadImage(props.currentSong);
+  const { data: videoUrl } = useLoadVideo(props.currentSong);
 
   return (
     <ScrollView
       style={styles.scrollContainer}
       contentContainerStyle={{ flexGrow: 1 }}
     >
-      {renderPlayerContent()}
-      {currentSong?.lyrics && <Lyric lyrics={currentSong.lyrics} />}
+      <View style={styles.playerContainer}>
+        <MediaBackground videoUrl={videoUrl} imageUrl={imageUrl} />
+
+        <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
+          <Ionicons name="chevron-down" size={30} color="#fff" />
+        </TouchableOpacity>
+
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
+          locations={[0, 0.5, 1]}
+          style={styles.bottomContainer}
+        >
+          <PlayerControls {...props} />
+        </LinearGradient>
+      </View>
+
+      {props.currentSong?.lyrics && <Lyric lyrics={props.currentSong.lyrics} />}
     </ScrollView>
   );
 }
@@ -225,12 +192,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
   playerContainer: {
-    height: Dimensions.get("window").height,
+    height,
+    width,
   },
   backgroundImage: {
-    flex: 1,
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
+    ...StyleSheet.absoluteFillObject,
   },
   backgroundVideo: {},
   closeButton: {

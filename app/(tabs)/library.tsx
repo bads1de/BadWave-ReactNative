@@ -19,12 +19,38 @@ import SongItem from "@/components/SongItem";
 import Song from "@/types";
 import PlaylistItem from "@/components/PlaylistItem";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/providers/AuthProvider";
+import { useAuthStore } from "@/hooks/useAuthStore";
 
 type LibraryType = "liked" | "playlists";
 
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
+  const { session } = useAuth();
+  const { setShowAuthModal } = useAuthStore();
   const router = useRouter();
+
+  if (!session) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Library</Text>
+        <View style={styles.loginContainer}>
+          <Text style={styles.loginMessage}>
+            Please login to view your library
+          </Text>
+          <CustomButton
+            label="Login"
+            isActive
+            onPress={() => setShowAuthModal(true)}
+            activeStyle={styles.loginButton}
+            inactiveStyle={styles.loginButton}
+            activeTextStyle={styles.loginButtonText}
+            inactiveTextStyle={styles.loginButtonText}
+          />
+        </View>
+      </View>
+    );
+  }
 
   const {
     data: likedSongs,
@@ -142,6 +168,28 @@ export default function LibraryScreen() {
 }
 
 const styles = StyleSheet.create({
+  loginContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+  },
+  loginMessage: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+  },
+  loginButton: {
+    backgroundColor: "#4c1d95",
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  loginButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   container: {
     flex: 1,
     backgroundColor: "#000",

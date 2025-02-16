@@ -22,7 +22,7 @@ export default function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
   const itemWidth = (width - 48) / 2;
   const dynamicStyles = { width: itemWidth, height: itemWidth * 1.2 };
 
-  const imageUrl = useLoadImage(playlist);
+  const { data: imageUrl } = useLoadImage(playlist);
 
   return (
     <TouchableOpacity
