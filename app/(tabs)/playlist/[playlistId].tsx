@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Song from "@/types";
 import { CACHED_QUERIES } from "@/constants";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import DeletePlaylistButton from "@/components/DeletePlaylistButton";
 
 export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
@@ -24,7 +25,7 @@ export default function PlaylistDetailScreen() {
     enabled: !!playlistId,
   });
 
-  const { playSong } = useAudioPlayer(songs || []);
+  const { playSong } = useAudioPlayer(songs ?? []);
 
   const renderSongs = useCallback(
     ({ item }: { item: Song }) => (
@@ -44,7 +45,10 @@ export default function PlaylistDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Playlist Songs</Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Playlist Songs</Text>
+        <DeletePlaylistButton playlistId={playlistId} />
+      </View>
       {songs && songs.length > 0 ? (
         <FlatList
           data={songs}
@@ -67,11 +71,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     padding: 16,
   },
+  titleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   title: {
     color: "#fff",
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 16,
   },
   emptyContainer: {
     flex: 1,
