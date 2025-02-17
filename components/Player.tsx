@@ -62,6 +62,7 @@ const PlayerControls = ({
           <Text style={styles.author}>{currentSong.author}</Text>
         </View>
         <AddPlaylist songId={currentSong.id} />
+        <View style={{ paddingHorizontal: 8 }} />
         <LikeButton songId={currentSong.id} />
       </View>
       <Slider

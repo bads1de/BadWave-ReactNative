@@ -35,6 +35,8 @@ export default function PlaylistDetailScreen() {
           await playSong(item);
         }}
         dynamicSize={true}
+        showDeleteButton={true}
+        playlistId={playlistId}
       />
     ),
     [playSong]

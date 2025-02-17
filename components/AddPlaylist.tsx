@@ -196,7 +196,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
             <View style={styles.header}>
               <Text style={styles.title}>プレイリストに追加</Text>
               <TouchableOpacity onPress={() => setModalOpen(false)}>
-                <Ionicons name="close" size={24} color="gray" />
+                <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
             </View>
 
@@ -214,7 +214,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
                   <Ionicons
                     name={isAdded[playlist.id] ? "checkbox" : "square-outline"}
                     size={20}
-                    color={isAdded[playlist.id] ? "#4CAF50" : "gray"}
+                    color={isAdded[playlist.id] ? "#4CAF50" : "white"}
                   />
                   <Text
                     style={[
@@ -238,13 +238,19 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.8)",
   },
   modalContent: {
-    backgroundColor: "white",
+    backgroundColor: "#000",
     marginHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 15,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    shadowColor: "#4c1d95",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   header: {
     flexDirection: "row",
@@ -255,25 +261,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
+    color: "white",
   },
   playlistItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#444",
   },
   playlistName: {
     marginLeft: 10,
     fontSize: 16,
+    color: "white",
   },
   scrollView: {
     maxHeight: 300,
   },
   addedPlaylistItem: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "rgba(76, 29, 149, 0.1)",
   },
   addedPlaylistName: {
-    color: "#888",
+    color: "#aaa",
   },
 });
