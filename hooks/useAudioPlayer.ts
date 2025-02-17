@@ -4,6 +4,13 @@ import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
 import loadSongUrl from "@/actions/LoadSongUrl";
 
+/**
+ * オーディオプレーヤーのカスタムフック。
+ * 曲の再生、一時停止、シーク、リピート、シャッフルなどの機能を提供する。
+ *
+ * @param {Song[]} songs 再生する曲のリスト
+ * @returns {object} オーディオプレーヤーの各種状態と操作関数
+ */
 export function useAudioPlayer(songs: Song[]) {
   const {
     sound,
@@ -22,7 +29,11 @@ export function useAudioPlayer(songs: Song[]) {
     setShuffle,
   } = usePlayerStore();
 
-  // メモ化されたソング配列のインデックスマップ
+  /**
+   * 曲のIDをキー、songs配列内のインデックスを値とするオブジェクト。
+   * シャッフル時や次の曲の再生時に、効率的に曲を検索するために使用する。
+   * @type {Record<string, number>}
+   */
   const songIndexMap = useMemo(() => {
     return songs.reduce((acc, song, index) => {
       acc[song.id] = index;
@@ -30,28 +41,44 @@ export function useAudioPlayer(songs: Song[]) {
     }, {} as Record<string, number>);
   }, [songs]);
 
+  /**
+   * 次の曲を再生するための関数を保持するref。
+   * 曲の終了時に、リピート設定やシャッフル設定に応じて次の曲を再生するために使用する。
+   */
   const nextSongRef = useRef<() => Promise<void>>(async () => {});
 
-  // ステータス更新用のデバウンス
+  /**
+   * 再生状態の更新をデバウンスするためのタイマーのref。
+   */
   const statusUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 最後のポジション更新時刻を追跡
+  /**
+   * 最後にポジションを更新した時刻を記録するref。
+   * ポジションの更新頻度を制限するために使用する。
+   */
   const lastPositionUpdateRef = useRef<number>(0);
 
-  // Audio モードの設定を初期化時のみ実行
+  /**
+   * Audioモードを初期化する。
+   * iOSでのバックグラウンド再生、サイレントモードでの再生などを設定する。
+   */
   useEffect(() => {
     const initAudioMode = async () => {
       await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        staysActiveInBackground: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
+        allowsRecordingIOS: false, // iOSでの録音を許可しない
+        staysActiveInBackground: true, // バックグラウンドで再生を継続する
+        playsInSilentModeIOS: true, // サイレントモードでも再生する
+        shouldDuckAndroid: true, // 他のアプリの音量を下げる
+        playThroughEarpieceAndroid: false, // イヤホンから再生しない
       });
     };
     initAudioMode();
   }, []);
 
+  /**
+   * サウンドオブジェクトを解放する。
+   * コンポーネントのアンマウント時や、新しい曲を再生する前に呼び出される。
+   */
   const unloadSound = useCallback(async () => {
     if (sound) {
       try {
@@ -63,6 +90,9 @@ export function useAudioPlayer(songs: Song[]) {
     }
   }, [sound, setSound]);
 
+  /**
+   * コンポーネントのアンマウント時に、タイマーをクリアし、サウンドを解放する。
+   */
   useEffect(() => {
     return () => {
       if (statusUpdateTimeoutRef.current) {
@@ -72,12 +102,18 @@ export function useAudioPlayer(songs: Song[]) {
     };
   }, [unloadSound]);
 
+  /**
+   * 再生状態の更新時に呼び出されるコールバック関数。
+   * ポジション、デュレーションの更新、曲の終了処理などを行う。
+   *
+   * @param {AVPlaybackStatus} status Expo AVの再生状態オブジェクト
+   */
   const onPlaybackStatusUpdate = useCallback(
     (status: AVPlaybackStatus) => {
       if (!status.isLoaded) return;
 
       const now = Date.now();
-      // ポジション更新を100ms以上の間隔に制限
+      // ポジションの更新を100ms間隔に制限する
       if (now - lastPositionUpdateRef.current >= 100) {
         if (position !== status.positionMillis) {
           setPosition(status.positionMillis);
@@ -88,13 +124,16 @@ export function useAudioPlayer(songs: Song[]) {
         lastPositionUpdateRef.current = now;
       }
 
+      // 曲が終了したときの処理
       if (status.didJustFinish) {
         if (repeat && sound) {
+          // リピートが有効な場合は、曲を最初から再生する
           sound
             .setPositionAsync(0)
             .then(() => sound.playAsync())
             .catch((error: any) => console.error("リピート再生エラー:", error));
         } else {
+          // リピートが無効な場合は、次の曲を再生する
           nextSongRef.current();
         }
       }
@@ -102,28 +141,36 @@ export function useAudioPlayer(songs: Song[]) {
     [position, duration, repeat, sound, setPosition, setDuration]
   );
 
+  /**
+   * 指定された曲を再生する。
+   *
+   * @param {Song} song 再生する曲
+   */
   const playSong = useCallback(
     async (song: Song) => {
       if (!song) return;
 
       try {
+        // 既存のサウンドを解放する
         await unloadSound();
         setCurrentSong(song);
         setIsPlaying(false);
 
+        // 曲のURLを取得する
         const songUrl = await loadSongUrl(song);
         if (!songUrl) {
           console.error("曲の読み込み中にエラーが発生しました。");
           return;
         }
 
+        // 新しいサウンドオブジェクトを作成し、再生を開始する
         const { sound: newSound } = await Audio.Sound.createAsync(
           { uri: songUrl },
           {
             shouldPlay: true,
-            progressUpdateIntervalMillis: 1000,
+            progressUpdateIntervalMillis: 1000, // 1秒ごとに進捗を更新
           },
-          onPlaybackStatusUpdate
+          onPlaybackStatusUpdate // 再生状態の更新ハンドラ
         );
 
         setSound(newSound);
@@ -143,6 +190,11 @@ export function useAudioPlayer(songs: Song[]) {
     ]
   );
 
+  /**
+   * 再生/一時停止を切り替える。
+   *
+   * @param {Song} [song] 再生/一時停止する曲。省略された場合は、現在再生中の曲を対象とする。
+   */
   const togglePlayPause = useCallback(
     async (song?: Song) => {
       if (!sound) return;
@@ -151,17 +203,21 @@ export function useAudioPlayer(songs: Song[]) {
         const status = await sound.getStatusAsync();
 
         if (song) {
+          // 引数でsongが渡された場合
           if (currentSong?.id === song.id) {
+            // 現在再生中の曲と同じであれば、再生/一時停止を切り替える
             if (status.isLoaded) {
               await (status.isPlaying ? sound.pauseAsync() : sound.playAsync());
               setIsPlaying(!status.isPlaying);
             }
             return;
           }
+          // 違う曲であれば、その曲を再生する
           await playSong(song);
           return;
         }
 
+        // 引数でsongが渡されなかった場合、現在再生中の曲の再生/一時停止を切り替える
         if (currentSong && status.isLoaded) {
           await (status.isPlaying ? sound.pauseAsync() : sound.playAsync());
           setIsPlaying(!status.isPlaying);
@@ -173,21 +229,34 @@ export function useAudioPlayer(songs: Song[]) {
     [sound, currentSong, playSong, setIsPlaying]
   );
 
+  /**
+   * 次に再生する曲のインデックスを取得する。
+   * シャッフルが有効な場合はランダムなインデックスを、そうでない場合は現在の曲の次のインデックスを返す。
+   *
+   * @returns {number} 次に再生する曲のインデックス
+   */
   const getNextSongIndex = useCallback(() => {
     if (!currentSong || !songs.length) return 0;
 
     if (shuffle) {
+      // シャッフルが有効な場合は、ランダムなインデックスを返す
       return Math.floor(Math.random() * songs.length);
     }
 
+    // シャッフルが無効な場合は、現在の曲の次のインデックスを返す
     const currentIndex = songIndexMap[currentSong.id] ?? -1;
     return (currentIndex + 1) % songs.length;
   }, [currentSong, songs, shuffle, songIndexMap]);
 
+  /**
+   * 次の曲を再生する。
+   * リピートが有効な場合は現在の曲を再度再生、そうでない場合は次の曲を再生する。
+   */
   const playNextSong = useCallback(async () => {
     if (!songs.length) return;
 
     if (repeat && currentSong) {
+      // リピートが有効な場合は、現在の曲を再度再生する
       await playSong(currentSong);
       return;
     }
@@ -200,14 +269,23 @@ export function useAudioPlayer(songs: Song[]) {
     }
   }, [songs, repeat, currentSong, playSong, getNextSongIndex]);
 
+  /**
+   * playNextSong関数をnextSongRefに設定する。
+   */
   useEffect(() => {
     nextSongRef.current = playNextSong;
   }, [playNextSong]);
 
+  /**
+   * 指定されたミリ秒にシークする。
+   *
+   * @param {number} millis シーク先のミリ秒
+   */
   const seekTo = useCallback(
     async (millis: number) => {
       if (!sound) return;
 
+      // 連続シークを防ぐため、タイマーをクリアする
       if (statusUpdateTimeoutRef.current) {
         clearTimeout(statusUpdateTimeoutRef.current);
       }
@@ -215,6 +293,7 @@ export function useAudioPlayer(songs: Song[]) {
       try {
         await sound.setPositionAsync(millis);
 
+        // シーク後、50ms後にポジションを更新する
         statusUpdateTimeoutRef.current = setTimeout(() => {
           setPosition(millis);
         }, 50);
@@ -225,6 +304,51 @@ export function useAudioPlayer(songs: Song[]) {
     [sound, setPosition]
   );
 
+  /**
+   * 前の曲を再生する
+   */
+  const playPrevSong = useCallback(async () => {
+    if (!songs.length || !currentSong) return;
+
+    // 現在の曲のインデックスを取得
+    const currentIndex = songIndexMap[currentSong.id] ?? -1;
+
+    // 前の曲のインデックスを計算（シャッフルが有効な場合はランダム）
+    const prevIndex = shuffle
+      ? Math.floor(Math.random() * songs.length)
+      : (currentIndex - 1 + songs.length) % songs.length;
+
+    try {
+      await playSong(songs[prevIndex]);
+    } catch (error) {
+      console.error("前の曲の再生エラー:", error);
+    }
+  }, [songs, currentSong, shuffle, songIndexMap, playSong]);
+
+  /**
+   * 再生を停止し、状態をリセットする
+   */
+  const stop = useCallback(async () => {
+    if (!sound) return;
+
+    try {
+      await unloadSound();
+      setIsPlaying(false);
+      setCurrentSong(null);
+      setPosition(0);
+      setDuration(0);
+    } catch (error) {
+      console.error("停止エラー:", error);
+    }
+  }, [
+    sound,
+    unloadSound,
+    setIsPlaying,
+    setCurrentSong,
+    setPosition,
+    setDuration,
+  ]);
+
   return {
     sound,
     isPlaying,
@@ -234,40 +358,8 @@ export function useAudioPlayer(songs: Song[]) {
     playSong,
     togglePlayPause,
     playNextSong,
-    playPrevSong: useCallback(async () => {
-      if (!songs.length || !currentSong) return;
-
-      const currentIndex = songIndexMap[currentSong.id] ?? -1;
-      const prevIndex = shuffle
-        ? Math.floor(Math.random() * songs.length)
-        : (currentIndex - 1 + songs.length) % songs.length;
-
-      try {
-        await playSong(songs[prevIndex]);
-      } catch (error) {
-        console.error("前の曲の再生エラー:", error);
-      }
-    }, [songs, currentSong, shuffle, songIndexMap, playSong]),
-    stop: useCallback(async () => {
-      if (!sound) return;
-
-      try {
-        await unloadSound();
-        setIsPlaying(false);
-        setCurrentSong(null);
-        setPosition(0);
-        setDuration(0);
-      } catch (error) {
-        console.error("停止エラー:", error);
-      }
-    }, [
-      sound,
-      unloadSound,
-      setIsPlaying,
-      setCurrentSong,
-      setPosition,
-      setDuration,
-    ]),
+    playPrevSong,
+    stop,
     seekTo,
     repeat,
     setRepeat,

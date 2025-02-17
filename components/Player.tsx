@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import Song from "@/types";
 import Lyric from "./lyric";
 import { formatTime } from "@/lib/utils";
 import LikeButton from "./LikeButton";
+import AddPlaylist from "./AddPlaylist";
 
 interface PlayerProps {
   sound: any;
@@ -60,6 +61,7 @@ const PlayerControls = ({
           <Text style={styles.title}>{currentSong.title}</Text>
           <Text style={styles.author}>{currentSong.author}</Text>
         </View>
+        <AddPlaylist songId={currentSong.id} />
         <LikeButton songId={currentSong.id} />
       </View>
       <Slider

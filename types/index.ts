@@ -23,7 +23,7 @@ export interface Playlist {
   songs?: any[];
 }
 
-export default interface PlaylistSong {
+export interface PlaylistSong {
   id: string;
   user_id: string;
   playlist_id: string;
