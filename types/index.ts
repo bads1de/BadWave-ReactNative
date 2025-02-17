@@ -20,7 +20,7 @@ export interface Playlist {
   user_id: string;
   image_path?: string;
   title: string;
-  songs?: any[];
+  songs?: Song[];
 }
 
 export interface PlaylistSong {

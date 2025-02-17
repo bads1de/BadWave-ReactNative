@@ -15,6 +15,8 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import Song, { Playlist, PlaylistSong } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
+import updatePlaylistImage from "@/actions/updatePlaylistImage";
+import getSongById from "@/actions/getSongById";
 
 interface AddPlaylistProps {
   songId: string;
@@ -86,6 +88,15 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
       });
 
       if (error) throw error;
+
+      // 追加した曲の情報を取得
+      const songData = await getSongById(songId);
+
+      // プレイリストの画像パスを更新（必要な場合）
+      if (songData?.image_path) {
+        await updatePlaylistImage(playlistId, songData.image_path);
+      }
+
       return playlistId;
     },
     onMutate: async (playlistId) => {
