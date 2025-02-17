@@ -1,14 +1,10 @@
 import React, { useCallback } from "react";
 import {
   SafeAreaView,
-  View,
   Text,
   ScrollView,
-  Image,
-  TouchableOpacity,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import getSongs from "@/actions/getSongs";
@@ -21,6 +17,7 @@ import SongItem from "@/components/SongItem";
 import TrendBoard from "@/components/TrendBoard";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
+import Song from "@/types";
 
 export default function HomeScreen() {
   const { currentSong, showPlayer } = usePlayerStore();
@@ -36,10 +33,10 @@ export default function HomeScreen() {
   const { playSong } = useAudioPlayer(songs);
 
   const renderItem = useCallback(
-    ({ item }: { item: any }) => (
+    ({ item }: { item: Song }) => (
       <SongItem
         song={item}
-        onClick={async (id: string) => {
+        onClick={async () => {
           await playSong(item);
         }}
         dynamicSize={false}
