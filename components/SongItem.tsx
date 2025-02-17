@@ -57,6 +57,7 @@ const SongItem = memo(
         queryClient.invalidateQueries({
           queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
         });
+
         Toast.show({
           type: "success",
           text1: "曲を削除しました",

@@ -18,6 +18,7 @@ export const CACHED_QUERIES = {
   trendsSongs: "trendsSongs",
   likedSongs: "likedSongs",
   playlists: "playlists",
+  playlistById: "playlistById",
   playlistSongs: "playlistSongs",
 } as const;
 

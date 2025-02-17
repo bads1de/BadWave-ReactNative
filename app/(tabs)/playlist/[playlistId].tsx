@@ -11,6 +11,7 @@ import Song from "@/types";
 import { CACHED_QUERIES } from "@/constants";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import DeletePlaylistButton from "@/components/DeletePlaylistButton";
+import getPlaylistById from "@/actions/getPlaylistById";
 
 export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
@@ -22,6 +23,16 @@ export default function PlaylistDetailScreen() {
   } = useQuery({
     queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
     queryFn: () => getPlaylistSongs(playlistId),
+    enabled: !!playlistId,
+  });
+
+  const {
+    data: playlist,
+    isLoading: isLoadingPlaylist,
+    error: playlistError,
+  } = useQuery({
+    queryKey: [CACHED_QUERIES.playlistById, playlistId],
+    queryFn: () => getPlaylistById(playlistId),
     enabled: !!playlistId,
   });
 
@@ -48,7 +59,7 @@ export default function PlaylistDetailScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>Playlist Songs</Text>
+        <Text style={styles.title}>{playlist?.title}</Text>
         <DeletePlaylistButton playlistId={playlistId} />
       </View>
       {songs && songs.length > 0 ? (

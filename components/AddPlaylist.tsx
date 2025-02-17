@@ -13,7 +13,7 @@ import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
-import Song, { Playlist, PlaylistSong } from "@/types";
+import Song, { PlaylistSong } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
 import updatePlaylistImage from "@/actions/updatePlaylistImage";
 import getSongById from "@/actions/getSongById";
@@ -214,7 +214,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
                   <Ionicons
                     name={isAdded[playlist.id] ? "checkbox" : "square-outline"}
                     size={20}
-                    color={isAdded[playlist.id] ? "#4CAF50" : "white"}
+                    color={isAdded[playlist.id] ? "#4c1d95" : "white"}
                   />
                   <Text
                     style={[
