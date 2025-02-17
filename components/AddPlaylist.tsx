@@ -13,10 +13,9 @@ import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
-import Song, { PlaylistSong } from "@/types";
+import Song, { PlaylistSong, Playlist } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
-import updatePlaylistImage from "@/actions/updatePlaylistImage";
-import getSongById from "@/actions/getSongById";
+import addPlaylistSong from "@/actions/addPlaylistSong";
 
 interface AddPlaylistProps {
   songId: string;
@@ -80,24 +79,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
     mutationFn: async (playlistId: string) => {
       if (!session?.user.id) throw new Error("未認証ユーザー");
 
-      const { error } = await supabase.from("playlist_songs").insert({
-        playlist_id: playlistId,
-        user_id: session.user.id,
-        song_id: songId,
-        song_type: "regular",
-      });
-
-      if (error) throw error;
-
-      // 追加した曲の情報を取得
-      const songData = await getSongById(songId);
-
-      // プレイリストの画像パスを更新（必要な場合）
-      if (songData?.image_path) {
-        await updatePlaylistImage(playlistId, songData.image_path);
-      }
-
-      return playlistId;
+      return addPlaylistSong({ playlistId, userId: session.user.id, songId });
     },
     onMutate: async (playlistId) => {
       await queryClient.cancelQueries({
@@ -109,60 +91,89 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
         playlistId,
       ]);
 
-      // 楽観的更新
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs, playlistId],
         (old: PlaylistSong[] = []) => [
           ...old,
           {
-            ...queryClient.getQueryData<Song>([CACHED_QUERIES.songs, songId]),
+            ...(queryClient.getQueryData<Song>([
+              CACHED_QUERIES.songs,
+              songId,
+            ]) || {}),
             playlist_id: playlistId,
             song_type: "regular",
+            created_at: new Date().toISOString(),
           },
         ]
       );
 
       setIsAdded((prev) => ({ ...prev, [playlistId]: true }));
-
-      Toast.show({
-        type: "success",
-        text1: "プレイリストに追加しました",
-      });
-
       return { previousData, playlistId };
     },
     onError: (error: any, playlistId, context) => {
-      console.error("プレイリスト追加エラー:", error);
       Toast.show({
         type: "error",
         text1: "追加に失敗しました",
         text2: error.message,
       });
 
-      // ロールバック時にpreviousDataがundefinedの場合の処理を追加
       if (context?.previousData) {
         queryClient.setQueryData(
           [CACHED_QUERIES.playlistSongs, context.playlistId],
           context.previousData
         );
-      } else {
-        // previousDataがない場合の代替処理（例：キャッシュを再取得）
-        queryClient.invalidateQueries({
-          queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
-        });
       }
       setIsAdded((prev) => ({ ...prev, [playlistId]: false }));
+    },
+    onSuccess: (data, playlistId) => {
+      const { songData } = data;
+
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlistSongs, playlistId],
+        (old: PlaylistSong[] = []) => {
+          const exists = old.some((song) => song.id === songData.id);
+          return exists
+            ? old
+            : [
+                ...old,
+                {
+                  ...songData,
+                  playlist_id: playlistId,
+                  song_type: "regular",
+                  created_at: new Date().toISOString(),
+                },
+              ];
+        }
+      );
+
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlists],
+        (old: Playlist[] = []) =>
+          old.map((playlist) =>
+            playlist.id === playlistId && songData?.image_path
+              ? { ...playlist, image_path: songData.image_path }
+              : playlist
+          )
+      );
+
+      Toast.show({
+        type: "success",
+        text1: "追加しました",
+      });
     },
     onSettled: (data, error, playlistId) => {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlists],
       });
     },
   });
 
   const handleAddToPlaylist = (playlistId: string) => {
     if (!session?.user.id) {
-      Toast.show({ type: "error", text1: "ログインが必要です" });
+      Toast.show({ type: "error", text1: "not authenticated" });
       return;
     }
 

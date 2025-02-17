@@ -18,7 +18,7 @@ interface PlaylistItemProps {
 
 export default function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
   const { width } = useWindowDimensions();
-  const itemWidth = (width - 48) / 2;
+  const itemWidth = (width - 48) / 2.2;
   const dynamicStyles = { width: itemWidth, height: itemWidth * 1.2 };
 
   const { data: imageUrl } = useLoadImage(playlist);
