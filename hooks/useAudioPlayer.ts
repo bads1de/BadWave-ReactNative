@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useMemo } from "react";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
@@ -22,19 +22,37 @@ export function useAudioPlayer(songs: Song[]) {
     setShuffle,
   } = usePlayerStore();
 
+  // メモ化されたソング配列のインデックスマップ
+  const songIndexMap = useMemo(() => {
+    return songs.reduce((acc, song, index) => {
+      acc[song.id] = index;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [songs]);
+
   const nextSongRef = useRef<() => Promise<void>>(async () => {});
 
+  // ステータス更新用のデバウンス
+  const statusUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 最後のポジション更新時刻を追跡
+  const lastPositionUpdateRef = useRef<number>(0);
+
+  // Audio モードの設定を初期化時のみ実行
   useEffect(() => {
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      staysActiveInBackground: true,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    });
+    const initAudioMode = async () => {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+    };
+    initAudioMode();
   }, []);
 
-  const unloadSound = async () => {
+  const unloadSound = useCallback(async () => {
     if (sound) {
       try {
         await sound.unloadAsync();
@@ -43,77 +61,67 @@ export function useAudioPlayer(songs: Song[]) {
         console.error("サウンド解放エラー:", error);
       }
     }
-  };
+  }, [sound, setSound]);
 
   useEffect(() => {
     return () => {
-      if (sound) {
-        sound.unloadAsync().catch((error: any) => {
-          console.error("クリーンアップエラー:", error);
-        });
+      if (statusUpdateTimeoutRef.current) {
+        clearTimeout(statusUpdateTimeoutRef.current);
       }
+      unloadSound();
     };
-  }, [sound]);
+  }, [unloadSound]);
 
-  const onPlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
-    if (!status.isLoaded) return;
+  const onPlaybackStatusUpdate = useCallback(
+    (status: AVPlaybackStatus) => {
+      if (!status.isLoaded) return;
 
-    const currentStatus = await sound?.getStatusAsync();
-
-    if (status.isPlaying && sound && currentStatus?.isLoaded) {
-      if (currentStatus.positionMillis !== status.positionMillis) {
-        await sound.stopAsync();
-        return;
-      }
-    }
-
-    if (position !== status.positionMillis) {
-      setPosition(status.positionMillis);
-    }
-    if (duration !== (status.durationMillis || 0)) {
-      setDuration(status.durationMillis || 0);
-    }
-
-    if (status.didJustFinish) {
-      if (repeat) {
-        if (sound) {
-          try {
-            await sound.setPositionAsync(0);
-            await sound.playAsync();
-          } catch (error) {
-            console.error("リピート再生エラー:", error);
-          }
+      const now = Date.now();
+      // ポジション更新を100ms以上の間隔に制限
+      if (now - lastPositionUpdateRef.current >= 100) {
+        if (position !== status.positionMillis) {
+          setPosition(status.positionMillis);
         }
-      } else {
-        nextSongRef.current();
+        if (duration !== (status.durationMillis || 0)) {
+          setDuration(status.durationMillis || 0);
+        }
+        lastPositionUpdateRef.current = now;
       }
-    }
-  };
 
-  const playSong = async (song: Song) => {
-    if (!song) return;
-
-    try {
-      await unloadSound();
-
-      setCurrentSong(song);
-      setIsPlaying(false);
-
-      const songUrl = await loadSongUrl(song);
-
-      if (!songUrl) {
-        console.error("曲の読み込み中にエラーが発生しました。");
-        setIsPlaying(false);
-        setSound(null);
-        return;
+      if (status.didJustFinish) {
+        if (repeat && sound) {
+          sound
+            .setPositionAsync(0)
+            .then(() => sound.playAsync())
+            .catch((error: any) => console.error("リピート再生エラー:", error));
+        } else {
+          nextSongRef.current();
+        }
       }
+    },
+    [position, duration, repeat, sound, setPosition, setDuration]
+  );
+
+  const playSong = useCallback(
+    async (song: Song) => {
+      if (!song) return;
 
       try {
+        await unloadSound();
+        setCurrentSong(song);
+        setIsPlaying(false);
+
+        const songUrl = await loadSongUrl(song);
+        if (!songUrl) {
+          console.error("曲の読み込み中にエラーが発生しました。");
+          return;
+        }
+
         const { sound: newSound } = await Audio.Sound.createAsync(
           { uri: songUrl },
           {
             shouldPlay: true,
-            progressUpdateIntervalMillis: 1500,
+            progressUpdateIntervalMillis: 1000,
           },
           onPlaybackStatusUpdate
         );
@@ -125,47 +133,56 @@ export function useAudioPlayer(songs: Song[]) {
         setIsPlaying(false);
         setSound(null);
       }
-    } catch (error) {
-      console.error("再生前のエラー:", error);
-    }
-  };
+    },
+    [
+      unloadSound,
+      setCurrentSong,
+      setIsPlaying,
+      setSound,
+      onPlaybackStatusUpdate,
+    ]
+  );
 
-  const togglePlayPause = async (song?: Song) => {
-    if (!sound) return;
+  const togglePlayPause = useCallback(
+    async (song?: Song) => {
+      if (!sound) return;
 
-    try {
-      const status = await sound.getStatusAsync();
+      try {
+        const status = await sound.getStatusAsync();
 
-      if (song) {
-        if (currentSong?.id === song.id) {
-          if (status.isLoaded) {
-            if (status.isPlaying) {
-              await sound.pauseAsync();
-              setIsPlaying(false);
-            } else {
-              await sound.playAsync();
-              setIsPlaying(true);
+        if (song) {
+          if (currentSong?.id === song.id) {
+            if (status.isLoaded) {
+              await (status.isPlaying ? sound.pauseAsync() : sound.playAsync());
+              setIsPlaying(!status.isPlaying);
             }
+            return;
           }
+          await playSong(song);
           return;
         }
-        await playSong(song);
-        return;
-      }
 
-      if (currentSong && status.isLoaded) {
-        if (status.isPlaying) {
-          await sound.pauseAsync();
-          setIsPlaying(false);
-        } else {
-          await sound.playAsync();
-          setIsPlaying(true);
+        if (currentSong && status.isLoaded) {
+          await (status.isPlaying ? sound.pauseAsync() : sound.playAsync());
+          setIsPlaying(!status.isPlaying);
         }
+      } catch (error) {
+        console.error("再生/一時停止エラー:", error);
       }
-    } catch (error) {
-      console.error("再生/一時停止エラー:", error);
+    },
+    [sound, currentSong, playSong, setIsPlaying]
+  );
+
+  const getNextSongIndex = useCallback(() => {
+    if (!currentSong || !songs.length) return 0;
+
+    if (shuffle) {
+      return Math.floor(Math.random() * songs.length);
     }
-  };
+
+    const currentIndex = songIndexMap[currentSong.id] ?? -1;
+    return (currentIndex + 1) % songs.length;
+  }, [currentSong, songs, shuffle, songIndexMap]);
 
   const playNextSong = useCallback(async () => {
     if (!songs.length) return;
@@ -175,62 +192,38 @@ export function useAudioPlayer(songs: Song[]) {
       return;
     }
 
-    const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
-    const nextIndex = shuffle
-      ? Math.floor(Math.random() * songs.length)
-      : (currentIndex + 1) % songs.length;
-
     try {
+      const nextIndex = getNextSongIndex();
       await playSong(songs[nextIndex]);
     } catch (error) {
       console.error("次の曲の再生エラー:", error);
     }
-  }, [currentSong, songs, shuffle, repeat, playSong]);
+  }, [songs, repeat, currentSong, playSong, getNextSongIndex]);
 
   useEffect(() => {
     nextSongRef.current = playNextSong;
   }, [playNextSong]);
 
-  const playPrevSong = useCallback(async () => {
-    if (!songs.length) return;
+  const seekTo = useCallback(
+    async (millis: number) => {
+      if (!sound) return;
 
-    const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
-    const prevIndex = shuffle
-      ? Math.floor(Math.random() * songs.length)
-      : (currentIndex - 1 + songs.length) % songs.length;
+      if (statusUpdateTimeoutRef.current) {
+        clearTimeout(statusUpdateTimeoutRef.current);
+      }
 
-    try {
-      await playSong(songs[prevIndex]);
-    } catch (error) {
-      console.error("前の曲の再生エラー:", error);
-    }
-  }, [currentSong, songs, shuffle, playSong]);
+      try {
+        await sound.setPositionAsync(millis);
 
-  const stop = async () => {
-    if (!sound) return;
-
-    try {
-      await sound.unloadAsync();
-      setSound(null);
-      setIsPlaying(false);
-      setCurrentSong(null);
-      setPosition(0);
-      setDuration(0);
-    } catch (error) {
-      console.error("停止エラー:", error);
-    }
-  };
-
-  const seekTo = async (millis: number) => {
-    if (!sound) return;
-
-    try {
-      await sound.setPositionAsync(millis);
-      setPosition(millis);
-    } catch (error) {
-      console.error("シークエラー:", error);
-    }
-  };
+        statusUpdateTimeoutRef.current = setTimeout(() => {
+          setPosition(millis);
+        }, 50);
+      } catch (error) {
+        console.error("シークエラー:", error);
+      }
+    },
+    [sound, setPosition]
+  );
 
   return {
     sound,
@@ -241,8 +234,40 @@ export function useAudioPlayer(songs: Song[]) {
     playSong,
     togglePlayPause,
     playNextSong,
-    playPrevSong,
-    stop,
+    playPrevSong: useCallback(async () => {
+      if (!songs.length || !currentSong) return;
+
+      const currentIndex = songIndexMap[currentSong.id] ?? -1;
+      const prevIndex = shuffle
+        ? Math.floor(Math.random() * songs.length)
+        : (currentIndex - 1 + songs.length) % songs.length;
+
+      try {
+        await playSong(songs[prevIndex]);
+      } catch (error) {
+        console.error("前の曲の再生エラー:", error);
+      }
+    }, [songs, currentSong, shuffle, songIndexMap, playSong]),
+    stop: useCallback(async () => {
+      if (!sound) return;
+
+      try {
+        await unloadSound();
+        setIsPlaying(false);
+        setCurrentSong(null);
+        setPosition(0);
+        setDuration(0);
+      } catch (error) {
+        console.error("停止エラー:", error);
+      }
+    }, [
+      sound,
+      unloadSound,
+      setIsPlaying,
+      setCurrentSong,
+      setPosition,
+      setDuration,
+    ]),
     seekTo,
     repeat,
     setRepeat,

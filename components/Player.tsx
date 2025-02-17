@@ -53,8 +53,6 @@ const PlayerControls = ({
   setRepeat,
   currentSong,
 }: PlayerProps) => {
-  const formattedCurrentTime = useMemo(() => formatTime(position), [position]);
-  const formattedDuration = useMemo(() => formatTime(duration), [duration]);
   return (
     <>
       <View style={styles.infoContainer}>
@@ -75,8 +73,8 @@ const PlayerControls = ({
         thumbTintColor="#4c1d95"
       />
       <View style={styles.timeContainer}>
-        <Text style={styles.timeText}>{formattedCurrentTime}</Text>
-        <Text style={styles.timeText}>{formattedDuration}</Text>
+        <Text style={styles.timeText}>{formatTime(position)}</Text>
+        <Text style={styles.timeText}>{formatTime(duration)}</Text>
       </View>
       <View style={styles.controls}>
         <ControlButton
