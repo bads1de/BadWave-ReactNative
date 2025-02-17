@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -52,46 +52,50 @@ const PlayerControls = ({
   repeat,
   setRepeat,
   currentSong,
-}: PlayerProps) => (
-  <>
-    <View style={styles.infoContainer}>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{currentSong.title}</Text>
-        <Text style={styles.author}>{currentSong.author}</Text>
+}: PlayerProps) => {
+  const formattedCurrentTime = useMemo(() => formatTime(position), [position]);
+  const formattedDuration = useMemo(() => formatTime(duration), [duration]);
+  return (
+    <>
+      <View style={styles.infoContainer}>
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>{currentSong.title}</Text>
+          <Text style={styles.author}>{currentSong.author}</Text>
+        </View>
+        <LikeButton songId={currentSong.id} />
       </View>
-      <LikeButton songId={currentSong.id} />
-    </View>
-    <Slider
-      style={styles.slider}
-      minimumValue={0}
-      maximumValue={duration}
-      value={position}
-      onSlidingComplete={onSeek}
-      minimumTrackTintColor="#4c1d95"
-      maximumTrackTintColor="#777"
-      thumbTintColor="#4c1d95"
-    />
-    <View style={styles.timeContainer}>
-      <Text style={styles.timeText}>{formatTime(position)}</Text>
-      <Text style={styles.timeText}>{formatTime(duration)}</Text>
-    </View>
-    <View style={styles.controls}>
-      <ControlButton
-        icon="shuffle"
-        isActive={shuffle}
-        onPress={() => setShuffle(!shuffle)}
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={duration}
+        value={position}
+        onSlidingComplete={onSeek}
+        minimumTrackTintColor="#4c1d95"
+        maximumTrackTintColor="#777"
+        thumbTintColor="#4c1d95"
       />
-      <ControlButton icon="play-skip-back" onPress={onPrev} />
-      <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
-      <ControlButton icon="play-skip-forward" onPress={onNext} />
-      <ControlButton
-        icon="repeat"
-        isActive={repeat}
-        onPress={() => setRepeat(!repeat)}
-      />
-    </View>
-  </>
-);
+      <View style={styles.timeContainer}>
+        <Text style={styles.timeText}>{formattedCurrentTime}</Text>
+        <Text style={styles.timeText}>{formattedDuration}</Text>
+      </View>
+      <View style={styles.controls}>
+        <ControlButton
+          icon="shuffle"
+          isActive={shuffle}
+          onPress={() => setShuffle(!shuffle)}
+        />
+        <ControlButton icon="play-skip-back" onPress={onPrev} />
+        <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
+        <ControlButton icon="play-skip-forward" onPress={onNext} />
+        <ControlButton
+          icon="repeat"
+          isActive={repeat}
+          onPress={() => setRepeat(!repeat)}
+        />
+      </View>
+    </>
+  );
+};
 
 const ControlButton = ({
   icon,
