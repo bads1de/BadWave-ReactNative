@@ -22,6 +22,7 @@ interface SongItemProps {
   dynamicSize?: boolean;
   showDeleteButton?: boolean;
   playlistId?: string;
+  songType?: string;
 }
 
 const SongItem = memo(
@@ -31,6 +32,7 @@ const SongItem = memo(
     dynamicSize = false,
     showDeleteButton,
     playlistId,
+    songType = "regular",
   }: SongItemProps) => {
     const { data: imagePath } = useLoadImage(song);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -51,7 +53,7 @@ const SongItem = memo(
 
     // Todo:　挙動が不安定削除できたりできなかったりする
     const { mutate: deleteSong } = useMutation({
-      mutationFn: () => deletePlaylistSong(playlistId!, song.id),
+      mutationFn: () => deletePlaylistSong(playlistId!, song.id, songType),
       onSuccess: () => {
         // 成功したらキャッシュを更新し、トーストを表示
         queryClient.invalidateQueries({

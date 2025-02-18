@@ -8,7 +8,8 @@ import { supabase } from "@/lib/supabase";
 
 const deletePlaylistSong = async (
   playlistId: string,
-  songId: string
+  songId: string,
+  songType: string = "regular"
 ): Promise<void> => {
   const {
     data: { session },
@@ -24,7 +25,7 @@ const deletePlaylistSong = async (
     .eq("playlist_id", playlistId)
     .eq("user_id", session.user.id)
     .eq("song_id", songId)
-    .eq("song_type", "regular");
+    .eq("song_type", songType);
 
   if (error) {
     throw new Error(error.message);
