@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
-import * as NavigationBar from "expo-navigation-bar";
 
 interface SpotlightModalProps {
   item: {
@@ -42,7 +41,7 @@ export default function SpotlightModal({
       <StatusBar translucent backgroundColor="transparent" />
       <View style={styles.modalContainer}>
         <Video
-          source={item.video_path}
+          source={{ uri: item.video_path }}
           style={[
             styles.video,
             { width: windowWidth * 0.8, height: windowHeight * 0.7 },

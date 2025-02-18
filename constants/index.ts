@@ -20,6 +20,7 @@ export const CACHED_QUERIES = {
   playlists: "playlists",
   playlistById: "playlistById",
   playlistSongs: "playlistSongs",
+  spotlights: "spotlights",
 } as const;
 
 export const CACHE_CONFIG = {

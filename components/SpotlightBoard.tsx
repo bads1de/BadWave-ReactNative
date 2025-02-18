@@ -9,14 +9,27 @@ import {
 } from "react-native";
 import { ResizeMode, Video } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
-import { SpotlightData } from "../data/spotlight";
 import SpotlightModal from "./SpotlightModal";
+import { CACHED_QUERIES } from "@/constants";
+import getSpotlights from "@/actions/getSpotlights";
+import { useQuery } from "@tanstack/react-query";
+import Loading from "./Loading";
+import Error from "./Error";
 
 export default function SpotlightBoard() {
   const [isMuted, setIsMuted] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const videoRefs = useRef<any[]>([]);
+
+  const {
+    data: spotlightData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [CACHED_QUERIES.spotlights],
+    queryFn: getSpotlights,
+  });
 
   // 動画再生/停止はタッチイン・アウトで制御
   const handlePressIn = (index: number) => {
@@ -49,6 +62,14 @@ export default function SpotlightBoard() {
     setIsMuted((prev) => !prev);
   };
 
+  if (isLoading) {
+    <Loading />;
+  }
+
+  if (isError) {
+    return <Error message={"Something went wrong"} />;
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -56,7 +77,7 @@ export default function SpotlightBoard() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
-        {SpotlightData.map((item, index) => (
+        {spotlightData?.map((item, index) => (
           <Pressable
             key={item.id}
             style={styles.videoWrapper}
@@ -68,7 +89,7 @@ export default function SpotlightBoard() {
               ref={(ref) => {
                 if (ref) videoRefs.current[index] = ref;
               }}
-              source={item.video_path}
+              source={{ uri: item.video_path }}
               style={styles.video}
               isLooping
               shouldPlay={false}
