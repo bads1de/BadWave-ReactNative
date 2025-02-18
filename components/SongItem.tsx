@@ -11,8 +11,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import useLoadImage from "@/hooks/useLoadImage";
-import { useQueryClient } from "@tanstack/react-query";
-import Toast from "react-native-toast-message";
 import DeletePlaylistSongsBtn from "./DeletePlaylistSongsBtn";
 
 interface SongItemProps {
@@ -47,9 +45,6 @@ const SongItem = memo(
     };
 
     const dynamicStyle = calculateItemSize();
-
-    console.log("playlistId", playlistId);
-    console.log("songId", song.id);
 
     return (
       <TouchableOpacity
