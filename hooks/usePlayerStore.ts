@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import Song from "../types";
 
-// Removed position and duration from global state
+
 type PlayerState = {
   showPlayer: boolean;
   currentSong: Song | null;
