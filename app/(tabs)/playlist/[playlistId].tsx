@@ -13,7 +13,6 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import DeletePlaylistButton from "@/components/DeletePlaylistButton";
 import getPlaylistById from "@/actions/getPlaylistById";
 
-// Todo: プレイリストに即座に更新されないバグがある
 export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
 
@@ -40,22 +39,25 @@ export default function PlaylistDetailScreen() {
   const { playSong } = useAudioPlayer(songs ?? []);
 
   const renderSongs = useCallback(
-    ({ item }: { item: Song }) => (
-      <SongItem
-        song={item}
-        onClick={async () => {
-          await playSong(item);
-        }}
-        dynamicSize={true}
-        showDeleteButton={true}
-        playlistId={playlistId}
-      />
-    ),
-    [playSong]
+    ({ item }: { item: Song }) =>
+      playlistId ? (
+        <SongItem
+          song={item}
+          onClick={async () => {
+            await playSong(item);
+          }}
+          dynamicSize={true}
+          showDeleteButton={true}
+          playlistId={playlistId}
+        />
+      ) : (
+        <Loading />
+      ),
+    [playSong, playlistId]
   );
 
-  if (isLoading) return <Loading />;
-  if (error) return <Error message={error.message} />;
+  if (isLoading || isLoadingPlaylist) return <Loading />;
+  if (error || playlistError) return <Error message={"something went wrong"} />;
 
   return (
     <SafeAreaView style={styles.container}>

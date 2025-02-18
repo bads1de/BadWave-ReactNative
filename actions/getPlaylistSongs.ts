@@ -38,10 +38,7 @@ const getPlaylistSongs = async (
     songType: "regular",
   }));
 
-  return playlistSongs.sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  return playlistSongs;
 };
 
 export default getPlaylistSongs;

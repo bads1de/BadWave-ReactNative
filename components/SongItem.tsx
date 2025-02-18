@@ -48,6 +48,9 @@ const SongItem = memo(
 
     const dynamicStyle = calculateItemSize();
 
+    console.log("playlistId", playlistId);
+    console.log("songId", song.id);
+
     return (
       <TouchableOpacity
         style={[styles.container, dynamicStyle]}
