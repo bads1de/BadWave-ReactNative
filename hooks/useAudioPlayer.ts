@@ -28,6 +28,7 @@ export function useAudioPlayer(songs: Song[]) {
   // Local slider state for position and duration
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
+  const positionUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * 曲のIDをキー、songs配列内のインデックスを値とするオブジェクト。
@@ -115,12 +116,8 @@ export function useAudioPlayer(songs: Song[]) {
       const now = Date.now();
       // ポジションの更新を100ms間隔に制限する
       if (now - lastPositionUpdateRef.current >= 100) {
-        if (position !== status.positionMillis) {
-          setPosition(status.positionMillis);
-        }
-        if (duration !== (status.durationMillis || 0)) {
-          setDuration(status.durationMillis || 0);
-        }
+        setPosition(status.positionMillis);
+        setDuration(status.durationMillis || 0);
         lastPositionUpdateRef.current = now;
       }
 
@@ -138,7 +135,7 @@ export function useAudioPlayer(songs: Song[]) {
         }
       }
     },
-    [position, duration, repeat, sound]
+    [repeat, sound]
   );
 
   /**
@@ -155,6 +152,8 @@ export function useAudioPlayer(songs: Song[]) {
         await unloadSound();
         setCurrentSong(song);
         setIsPlaying(false);
+        setPosition(0); 
+        setDuration(0); 
 
         // 曲のURLを取得する
         const songUrl = await loadSongUrl(song);
@@ -168,13 +167,20 @@ export function useAudioPlayer(songs: Song[]) {
           { uri: songUrl },
           {
             shouldPlay: true,
-            progressUpdateIntervalMillis: 1000, // 1秒ごとに進捗を更新
+            progressUpdateIntervalMillis: 1000, 
           },
-          onPlaybackStatusUpdate // 再生状態の更新ハンドラ
+          onPlaybackStatusUpdate 
         );
 
         setSound(newSound);
         setIsPlaying(true);
+
+        // 初期状態を取得
+        const initialStatus = await newSound.getStatusAsync();
+        if (initialStatus.isLoaded) {
+          setPosition(initialStatus.positionMillis);
+          setDuration(initialStatus.durationMillis || 0);
+        }
       } catch (error) {
         console.error("再生エラー:", error);
         setIsPlaying(false);
@@ -292,11 +298,14 @@ export function useAudioPlayer(songs: Song[]) {
 
       try {
         await sound.setPositionAsync(millis);
+        setPosition(millis);
 
-        // シーク後、50ms後にポジションを更新する
-        statusUpdateTimeoutRef.current = setTimeout(() => {
-          setPosition(millis);
-        }, 50);
+        // シーク後に現在の状態を取得して更新
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          setPosition(status.positionMillis);
+          setDuration(status.durationMillis || 0);
+        }
       } catch (error) {
         console.error("シークエラー:", error);
       }
@@ -348,6 +357,32 @@ export function useAudioPlayer(songs: Song[]) {
     setPosition,
     setDuration,
   ]);
+
+  const updatePlaybackStatus = useCallback(async () => {
+    if (sound) {
+      try {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded) {
+          setPosition(status.positionMillis);
+          setDuration(status.durationMillis || 0);
+        }
+      } catch (error) {
+        console.error("Error updating playback status:", error);
+      }
+    }
+  }, [sound]);
+
+  // 定期的に再生位置を更新
+  useEffect(() => {
+    if (isPlaying && sound) {
+      positionUpdateIntervalRef.current = setInterval(updatePlaybackStatus, 1000);
+    }
+    return () => {
+      if (positionUpdateIntervalRef.current) {
+        clearInterval(positionUpdateIntervalRef.current);
+      }
+    };
+  }, [isPlaying, sound, updatePlaybackStatus]);
 
   return {
     sound,
