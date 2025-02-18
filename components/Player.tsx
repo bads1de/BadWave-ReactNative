@@ -17,9 +17,10 @@ import useLoadImage from "@/hooks/useLoadImage";
 import useLoadVideo from "@/hooks/useLoadVideo";
 import Song from "@/types";
 import Lyric from "./lyric";
-import { formatTime } from "@/lib/utils";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
+import ProgressSlider from "./ProgressSlider";
+
 
 interface PlayerProps {
   sound: any;
@@ -66,20 +67,13 @@ const PlayerControls = memo(({
         <View style={{ paddingHorizontal: 8 }} />
         <LikeButton songId={currentSong.id} />
       </View>
-      <Slider
-        style={styles.slider}
-        minimumValue={0}
-        maximumValue={duration}
-        value={position}
-        onSlidingComplete={onSeek}
-        minimumTrackTintColor="#4c1d95"
-        maximumTrackTintColor="#777"
-        thumbTintColor="#4c1d95"
+      
+      <ProgressSlider 
+        position={position}
+        duration={duration}
+        onSeek={onSeek}
       />
-      <View style={styles.timeContainer}>
-        <Text style={styles.timeText}>{formatTime(position)}</Text>
-        <Text style={styles.timeText}>{formatTime(duration)}</Text>
-      </View>
+
       <View style={styles.controls}>
         <ControlButton
           icon="shuffle"
