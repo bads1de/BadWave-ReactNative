@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
 
 // TODO: Googleログインを実装する
 export default function AuthModal() {
@@ -19,6 +20,7 @@ export default function AuthModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const signInWithEmail = async () => {
     setLoading(true);
@@ -54,6 +56,10 @@ export default function AuthModal() {
     await supabase.auth.signOut();
   };
 
+  const resetCache = () => {
+    queryClient.resetQueries();
+  };
+
   return (
     <Modal visible transparent animationType="fade">
       <View style={styles.backdrop}>
@@ -73,6 +79,9 @@ export default function AuthModal() {
               </Text>
               <TouchableOpacity style={styles.button} onPress={signOut}>
                 <Text style={styles.buttonText}>ログアウト</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={resetCache}>
+                <Text style={styles.buttonText}>キャッシュをリセット</Text>
               </TouchableOpacity>
             </View>
           ) : (

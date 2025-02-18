@@ -21,8 +21,6 @@ import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
 
-
-
 interface PlayerProps {
   sound: any;
   isPlaying: boolean;
@@ -42,133 +40,134 @@ interface PlayerProps {
 
 const { width, height } = Dimensions.get("window");
 
-const PlayerControls = memo(({
-  isPlaying,
-  position,
-  duration,
-  onPlayPause,
-  onNext,
-  onPrev,
-  onSeek,
-  shuffle,
-  setShuffle,
-  repeat,
-  setRepeat,
-  currentSong,
-}: PlayerProps) => {
-  console.log("PlayerControls");
-  return (
-    <>
-      <View style={styles.infoContainer}>
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{currentSong.title}</Text>
-          <Text style={styles.author}>{currentSong.author}</Text>
-        </View>
-        <AddPlaylist songId={currentSong.id} />
-        <View style={{ paddingHorizontal: 8 }} />
-        <LikeButton songId={currentSong.id} />
-      </View>
-      
-      <Slider
-        style={styles.slider}
-        minimumValue={0}
-        maximumValue={duration}
-        value={position}
-        onSlidingComplete={onSeek}
-        minimumTrackTintColor="#4c1d95"
-        maximumTrackTintColor="#777"
-        thumbTintColor="#4c1d95"
-      />
-      <View style={styles.timeContainer}>
-        <Text style={styles.timeText}>{formatTime(position)}</Text>
-        <Text style={styles.timeText}>{formatTime(duration)}</Text>
-      </View>
-
-      <View style={styles.controls}>
-        <ControlButton
-          icon="shuffle"
-          isActive={shuffle}
-          onPress={() => setShuffle(!shuffle)}
-        />
-        <ControlButton icon="play-skip-back" onPress={onPrev} />
-        <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
-        <ControlButton icon="play-skip-forward" onPress={onNext} />
-        <ControlButton
-          icon="repeat"
-          isActive={repeat}
-          onPress={() => setRepeat(!repeat)}
-        />
-      </View>
-    </>
-  );
-});
-
-const ControlButton = memo(({
-  icon,
-  isActive,
-  onPress,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  isActive?: boolean;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity onPress={onPress}>
-    <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
-  </TouchableOpacity>
-));
-
-const PlayPauseButton = memo(({
-  isPlaying,
-  onPress,
-}: {
-  isPlaying: boolean;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity style={styles.playButton} onPress={onPress}>
-    <Ionicons
-      name={isPlaying ? "pause-circle" : "play-circle"}
-      size={70}
-      color="#fff"
-    />
-  </TouchableOpacity>
-));
-
-const MediaBackground = memo(({
-  videoUrl,
-  imageUrl,
-}: {
-  videoUrl?: string | null;
-  imageUrl?: string | null;
-}) => {
-  if (videoUrl) {
+const PlayerControls = memo(
+  ({
+    isPlaying,
+    position,
+    duration,
+    onPlayPause,
+    onNext,
+    onPrev,
+    onSeek,
+    shuffle,
+    setShuffle,
+    repeat,
+    setRepeat,
+    currentSong,
+  }: PlayerProps) => {
+    console.log("PlayerControls");
     return (
-      <View style={styles.backgroundImage}>
-        <Video
-          source={{ uri: videoUrl }}
-          style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
-          resizeMode={ResizeMode.COVER}
-          shouldPlay
-          isLooping
-          isMuted
+      <>
+        <View style={styles.infoContainer}>
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>{currentSong.title}</Text>
+            <Text style={styles.author}>{currentSong.author}</Text>
+          </View>
+          <AddPlaylist songId={currentSong.id} />
+          <View style={{ paddingHorizontal: 8 }} />
+          <LikeButton songId={currentSong.id} />
+        </View>
+
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={duration}
+          value={position}
+          onSlidingComplete={onSeek}
+          minimumTrackTintColor="#4c1d95"
+          maximumTrackTintColor="#777"
+          thumbTintColor="#4c1d95"
         />
-      </View>
+        <View style={styles.timeContainer}>
+          <Text style={styles.timeText}>{formatTime(position)}</Text>
+          <Text style={styles.timeText}>{formatTime(duration)}</Text>
+        </View>
+
+        <View style={styles.controls}>
+          <ControlButton
+            icon="shuffle"
+            isActive={shuffle}
+            onPress={() => setShuffle(!shuffle)}
+          />
+          <ControlButton icon="play-skip-back" onPress={onPrev} />
+          <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
+          <ControlButton icon="play-skip-forward" onPress={onNext} />
+          <ControlButton
+            icon="repeat"
+            isActive={repeat}
+            onPress={() => setRepeat(!repeat)}
+          />
+        </View>
+      </>
     );
   }
-  return (
-    <ImageBackground
-      source={{ uri: imageUrl! }}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    />
-  );
-});
+);
 
-// Todo:全体的に思い動作とSeekBarが重すぎる問題を解決する
+const ControlButton = memo(
+  ({
+    icon,
+    isActive,
+    onPress,
+  }: {
+    icon: keyof typeof Ionicons.glyphMap;
+    isActive?: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity onPress={onPress}>
+      <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
+    </TouchableOpacity>
+  )
+);
+
+const PlayPauseButton = memo(
+  ({ isPlaying, onPress }: { isPlaying: boolean; onPress: () => void }) => (
+    <TouchableOpacity style={styles.playButton} onPress={onPress}>
+      <Ionicons
+        name={isPlaying ? "pause-circle" : "play-circle"}
+        size={70}
+        color="#fff"
+      />
+    </TouchableOpacity>
+  )
+);
+
+const MediaBackground = memo(
+  ({
+    videoUrl,
+    imageUrl,
+  }: {
+    videoUrl?: string | null;
+    imageUrl?: string | null;
+  }) => {
+    if (videoUrl) {
+      return (
+        <View style={styles.backgroundImage}>
+          <Video
+            source={{ uri: videoUrl }}
+            style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay
+            isLooping
+            isMuted
+          />
+        </View>
+      );
+    }
+    return (
+      <ImageBackground
+        source={{ uri: imageUrl! }}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+    );
+  }
+);
+
 function Player(props: PlayerProps) {
   const { data: imageUrl } = useLoadImage(props.currentSong);
   const { data: videoUrl } = useLoadVideo(props.currentSong);
 
-   console.log("Player");
+  console.log("Player");
 
   return (
     <ScrollView
