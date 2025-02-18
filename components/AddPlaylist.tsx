@@ -22,6 +22,7 @@ interface AddPlaylistProps {
   children?: React.ReactNode;
 }
 
+// Todo: プレイリストに即座に更新されないバグがある
 export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();

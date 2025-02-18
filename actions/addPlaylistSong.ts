@@ -25,7 +25,7 @@ const addPlaylistSong = async ({
 
   const songData = await getSongById(songId);
 
-  if (!songData?.image_path) {
+  if (songData?.image_path) {
     await updatePlaylistImage(playlistId, songData.image_path);
   }
 

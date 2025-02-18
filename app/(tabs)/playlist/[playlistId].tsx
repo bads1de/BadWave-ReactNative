@@ -13,6 +13,7 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import DeletePlaylistButton from "@/components/DeletePlaylistButton";
 import getPlaylistById from "@/actions/getPlaylistById";
 
+// Todo: プレイリストに即座に更新されないバグがある
 export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
 
