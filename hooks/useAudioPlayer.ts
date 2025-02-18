@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useMemo } from "react";
+import { useEffect, useCallback, useRef, useMemo, useState } from "react";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
@@ -16,18 +16,18 @@ export function useAudioPlayer(songs: Song[]) {
     sound,
     currentSong,
     isPlaying,
-    position,
-    duration,
     repeat,
     shuffle,
     setSound,
     setCurrentSong,
     setIsPlaying,
-    setPosition,
-    setDuration,
     setRepeat,
     setShuffle,
   } = usePlayerStore();
+
+  // Local slider state for position and duration
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   /**
    * 曲のIDをキー、songs配列内のインデックスを値とするオブジェクト。
@@ -138,7 +138,7 @@ export function useAudioPlayer(songs: Song[]) {
         }
       }
     },
-    [position, duration, repeat, sound, setPosition, setDuration]
+    [position, duration, repeat, sound]
   );
 
   /**
@@ -301,7 +301,7 @@ export function useAudioPlayer(songs: Song[]) {
         console.error("シークエラー:", error);
       }
     },
-    [sound, setPosition]
+    [sound]
   );
 
   /**

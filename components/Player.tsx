@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   View,
   Text,
@@ -40,7 +40,7 @@ interface PlayerProps {
 
 const { width, height } = Dimensions.get("window");
 
-const PlayerControls = ({
+const PlayerControls = memo(({
   isPlaying,
   position,
   duration,
@@ -96,9 +96,9 @@ const PlayerControls = ({
       </View>
     </>
   );
-};
+});
 
-const ControlButton = ({
+const ControlButton = memo(({
   icon,
   isActive,
   onPress,
@@ -110,9 +110,9 @@ const ControlButton = ({
   <TouchableOpacity onPress={onPress}>
     <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
   </TouchableOpacity>
-);
+));
 
-const PlayPauseButton = ({
+const PlayPauseButton = memo(({
   isPlaying,
   onPress,
 }: {
@@ -126,9 +126,9 @@ const PlayPauseButton = ({
       color="#fff"
     />
   </TouchableOpacity>
-);
+));
 
-const MediaBackground = ({
+const MediaBackground = memo(({
   videoUrl,
   imageUrl,
 }: {
@@ -156,12 +156,14 @@ const MediaBackground = ({
       resizeMode="cover"
     />
   );
-};
+});
 
 // Todo:全体的に思い動作とSeekBarが重すぎる問題を解決する
-export default function Player(props: PlayerProps) {
+function Player(props: PlayerProps) {
   const { data: imageUrl } = useLoadImage(props.currentSong);
   const { data: videoUrl } = useLoadVideo(props.currentSong);
+
+ 
 
   return (
     <ScrollView
@@ -188,6 +190,8 @@ export default function Player(props: PlayerProps) {
     </ScrollView>
   );
 }
+
+export default memo(Player);
 
 const styles = StyleSheet.create({
   scrollContainer: {
