@@ -15,6 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylistSong from "@/actions/deletePlaylistSong"; // これをインポート
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
+import { useRouter } from "expo-router";
 
 interface SongItemProps {
   song: Song;
@@ -34,6 +35,7 @@ const SongItem = memo(
     playlistId,
     songType = "regular",
   }: SongItemProps) => {
+    const router = useRouter();
     const { data: imagePath } = useLoadImage(song);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     const queryClient = useQueryClient();
@@ -75,6 +77,13 @@ const SongItem = memo(
       },
     });
 
+    const handleTitlePress = () => {
+      router.push({
+        pathname: `/song/[songId]`,
+        params: { songId: song.id },
+      });
+    };
+
     return (
       <TouchableOpacity
         style={[styles.container, dynamicStyle]}
@@ -92,9 +101,11 @@ const SongItem = memo(
             style={styles.gradientOverlay}
           />
           <View style={styles.textOverlay}>
-            <Text style={styles.title} numberOfLines={1}>
-              {song.title}
-            </Text>
+            <TouchableOpacity onPress={handleTitlePress}>
+              <Text style={styles.title} numberOfLines={1}>
+                {song.title}
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.author} numberOfLines={1}>
               {song.author}
             </Text>

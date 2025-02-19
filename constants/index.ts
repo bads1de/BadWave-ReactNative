@@ -12,6 +12,7 @@ export const genreCards = [
 export const CACHE_PREFIX = "@query-cache";
 
 export const CACHED_QUERIES = {
+  song: "song",
   songs: "songs",
   search: "search",
   songsByGenre: "songsByGenre",
