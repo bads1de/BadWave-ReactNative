@@ -11,7 +11,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import useLoadImage from "@/hooks/useLoadImage";
-import DeletePlaylistSongsBtn from "./DeletePlaylistSongsBtn";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import deletePlaylistSong from "@/actions/deletePlaylistSong"; // これをインポート
+import { CACHED_QUERIES } from "@/constants";
+import Toast from "react-native-toast-message";
 
 interface SongItemProps {
   song: Song;
@@ -32,8 +35,10 @@ const SongItem = memo(
     songType = "regular",
   }: SongItemProps) => {
     const { data: imagePath } = useLoadImage(song);
-    const { width: windowWidth } = Dimensions.get("window");
     const [isImageLoaded, setIsImageLoaded] = useState(false);
+    const queryClient = useQueryClient();
+
+    const { width: windowWidth } = Dimensions.get("window");
 
     const calculateItemSize = () => {
       if (dynamicSize) {
@@ -45,6 +50,30 @@ const SongItem = memo(
     };
 
     const dynamicStyle = calculateItemSize();
+
+    // Todo:　挙動が不安定削除できたりできなかったりする
+    const { mutate: deleteSong } = useMutation({
+      mutationFn: () => deletePlaylistSong(playlistId!, song.id, songType),
+      onSuccess: () => {
+        // 成功したらキャッシュを更新し、トーストを表示
+        queryClient.invalidateQueries({
+          queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
+        });
+
+        Toast.show({
+          type: "success",
+          text1: "曲を削除しました",
+        });
+      },
+      onError: (error: any) => {
+        // エラーハンドリング
+        Toast.show({
+          type: "error",
+          text1: "エラーが発生しました",
+          text2: error.message,
+        });
+      },
+    });
 
     return (
       <TouchableOpacity
@@ -69,7 +98,6 @@ const SongItem = memo(
             <Text style={styles.author} numberOfLines={1}>
               {song.author}
             </Text>
-
             <View style={styles.statsContainer}>
               <View style={styles.statsItem}>
                 <Ionicons name="play" size={14} color="#fff" />
@@ -81,12 +109,14 @@ const SongItem = memo(
               </View>
             </View>
           </View>
+          {/* 削除ボタンの追加 */}
           {showDeleteButton && playlistId && (
-            <DeletePlaylistSongsBtn
-              songId={song.id}
-              playlistId={playlistId}
-              songType={songType}
-            />
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => deleteSong()}
+            >
+              <Ionicons name="trash-outline" size={20} color="red" />
+            </TouchableOpacity>
           )}
         </View>
       </TouchableOpacity>

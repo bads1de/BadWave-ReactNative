@@ -55,7 +55,6 @@ const PlayerControls = memo(
     setRepeat,
     currentSong,
   }: PlayerProps) => {
-    console.log("PlayerControls");
     return (
       <>
         <View style={styles.infoContainer}>
@@ -166,8 +165,6 @@ const MediaBackground = memo(
 function Player(props: PlayerProps) {
   const { data: imageUrl } = useLoadImage(props.currentSong);
   const { data: videoUrl } = useLoadVideo(props.currentSong);
-
-  console.log("Player");
 
   return (
     <ScrollView
