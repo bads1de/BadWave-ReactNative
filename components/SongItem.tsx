@@ -53,7 +53,6 @@ const SongItem = memo(
 
     const dynamicStyle = calculateItemSize();
 
-    // Todo:　挙動が不安定削除できたりできなかったりする
     const { mutate: deleteSong } = useMutation({
       mutationFn: () => deletePlaylistSong(playlistId!, song.id, songType),
       onSuccess: () => {
