@@ -16,6 +16,7 @@ import { CACHED_QUERIES } from "@/constants";
 import Song, { PlaylistSong, Playlist } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
 import addPlaylistSong from "@/actions/addPlaylistSong";
+import usePlaylistStatus from "@/hooks/usePlaylistStatus";
 
 interface AddPlaylistProps {
   songId: string;
@@ -26,7 +27,6 @@ interface AddPlaylistProps {
 export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
-  const [isAdded, setIsAdded] = useState<Record<string, boolean>>({});
   const [modalOpen, setModalOpen] = useState(false);
 
   const { data: playlists = [] } = useQuery({
@@ -34,41 +34,10 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
     queryFn: getPlaylists,
   });
 
-  const fetchAddedStatus = useCallback(async () => {
-    if (!session?.user.id) {
-      setIsAdded({});
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from("playlist_songs")
-        .select("playlist_id")
-        .eq("song_id", songId)
-        .eq("user_id", session.user.id)
-        .eq("song_type", "regular");
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      const statusMap = playlists.reduce((acc, playlist) => {
-        acc[playlist.id] = data.some(
-          (item) => item.playlist_id === playlist.id
-        );
-        return acc;
-      }, {} as Record<string, boolean>);
-
-      setIsAdded(statusMap);
-    } catch (error: any) {
-      console.error("Error fetching playlist status:", error);
-      Toast.show({
-        type: "error",
-        text1: "データの取得に失敗しました",
-        text2: error.message,
-      });
-    }
-  }, [session, songId, playlists]);
+  const { isAdded, fetchAddedStatus } = usePlaylistStatus({
+    songId,
+    playlists,
+  });
 
   useEffect(() => {
     if (modalOpen) {
