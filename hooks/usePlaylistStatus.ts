@@ -41,6 +41,7 @@ const usePlaylistStatus = ({ songId, playlists }: UsePlaylistStatusProps) => {
       setIsAdded(statusMap);
     } catch (error: any) {
       console.error("Error fetching playlist status:", error);
+
       Toast.show({
         type: "error",
         text1: "エラーが発生しました",
@@ -48,10 +49,6 @@ const usePlaylistStatus = ({ songId, playlists }: UsePlaylistStatusProps) => {
       });
     }
   }, [songId, playlists, session?.user.id]);
-
-  useEffect(() => {
-    fetchAddedStatus();
-  }, [fetchAddedStatus]);
 
   return { isAdded, fetchAddedStatus };
 };

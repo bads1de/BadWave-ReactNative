@@ -23,7 +23,6 @@ interface AddPlaylistProps {
   children?: React.ReactNode;
 }
 
-// Todo: プレイリストに即座に更新されないバグがある
 export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
@@ -40,54 +39,34 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
   });
 
   useEffect(() => {
-    if (modalOpen) {
-      fetchAddedStatus();
-    }
-  }, [modalOpen, fetchAddedStatus]);
+    fetchAddedStatus();
+  }, [fetchAddedStatus, songId, playlists]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (playlistId: string) => {
       if (!session?.user.id) throw new Error("未認証ユーザー");
       return addPlaylistSong({ playlistId, userId: session.user.id, songId });
     },
-    onMutate: async (playlistId) => {
-      await queryClient.cancelQueries({
-        queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
-      });
-
-      const previousSongs = queryClient.getQueryData<PlaylistSong[]>([
-        CACHED_QUERIES.playlistSongs,
-        playlistId,
-      ]);
-
-      // オプティミスティック更新を簡素化
-      queryClient.setQueryData(
-        [CACHED_QUERIES.playlistSongs, playlistId],
-        (old: PlaylistSong[] = []) => [
-          ...old,
-          {
-            ...(queryClient.getQueryData<Song>([
-              CACHED_QUERIES.songs,
-              songId,
-            ]) || {}),
-            songType: "regular",
-          },
-        ]
-      );
-
-      return { previousSongs, playlistId };
-    },
-    onError: (error, playlistId, context) => {
-      queryClient.setQueryData(
-        [CACHED_QUERIES.playlistSongs, playlistId],
-        context?.previousSongs
-      );
-    },
-    onSettled: (data, error, playlistId) => {
+    onSuccess: () => {
+      // 成功時にキャッシュを更新
       queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
+        queryKey: [CACHED_QUERIES.playlistSongs],
       });
-      fetchAddedStatus(); // 追加ステータスを明示的に更新
+
+      // isAdded ステートを更新
+      fetchAddedStatus();
+
+      Toast.show({
+        type: "success",
+        text1: "プレイリストに追加しました",
+      });
+    },
+    onError: (error) => {
+      Toast.show({
+        type: "error",
+        text1: "エラーが発生しました",
+        text2: error.message,
+      });
     },
   });
 
