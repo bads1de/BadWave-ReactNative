@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import getSongById from "@/actions/getSongById";
 import Loading from "@/components/Loading";
@@ -19,9 +19,13 @@ import useLoadImage from "@/hooks/useLoadImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddPlaylist from "@/components/AddPlaylist";
 import { CACHED_QUERIES } from "@/constants";
+import { useHeaderStore } from "@/hooks/useHeaderStore";
+import { useRouter } from "expo-router";
 
 export default function SongDetailScreen() {
+  const router = useRouter();
   const { songId } = useLocalSearchParams<{ songId: string }>();
+  const { setShowHeader } = useHeaderStore();
 
   const {
     data: song,
@@ -30,6 +34,7 @@ export default function SongDetailScreen() {
   } = useQuery({
     queryKey: [CACHED_QUERIES.song, songId],
     queryFn: () => getSongById(songId),
+    enabled: !!songId,
   });
 
   const { playSong, isPlaying, currentSong, togglePlayPause } = useAudioPlayer(
@@ -37,6 +42,15 @@ export default function SongDetailScreen() {
   );
 
   const { data: imagePath } = useLoadImage(song!);
+
+  useFocusEffect(
+    useCallback(() => {
+      setShowHeader(false);
+      return () => {
+        setShowHeader(true);
+      };
+    }, [setShowHeader])
+  );
 
   const handlePlayPause = useCallback(() => {
     if (currentSong?.id === song?.id) {
@@ -55,18 +69,25 @@ export default function SongDetailScreen() {
   }
 
   if (!song) {
-    return <Text>曲が見つかりません</Text>;
+    return <Text>Song not found</Text>;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.imageContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
           <Image source={{ uri: imagePath! }} style={styles.image} />
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.8)"]}
             style={styles.gradientOverlay}
           />
+
           <View style={styles.playButtonContainer}>
             <TouchableOpacity onPress={handlePlayPause}>
               <Ionicons
@@ -96,14 +117,22 @@ export default function SongDetailScreen() {
               <Text style={styles.statsText}>{song.like_count}</Text>
             </View>
           </View>
+
           <View style={styles.buttonContainer}>
             <AddPlaylist songId={songId}>
               <View style={styles.addButton}>
                 <Ionicons name="add-circle-outline" size={24} color="white" />
-                <Text style={styles.addButtonText}>プレイリストに追加</Text>
+                <Text style={styles.addButtonText}>Add to Playlist</Text>
               </View>
             </AddPlaylist>
           </View>
+
+          {song.lyrics && (
+            <View style={styles.lyricsContainer}>
+              <Text style={styles.lyricsTitle}>Lyrics</Text>
+              <Text style={styles.lyricsText}>{song.lyrics}</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -118,7 +147,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: "relative",
     width: "100%",
-    aspectRatio: 1, // 正方形を維持
+    aspectRatio: 1,
   },
   image: {
     width: "100%",
@@ -130,7 +159,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 100, // グラデーションの高さを調整
+    height: 100,
   },
   playButtonContainer: {
     position: "absolute",
@@ -183,5 +212,32 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: "white",
     marginLeft: 5,
+  },
+  backButton: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    zIndex: 1,
+    padding: 10,
+  },
+  lyricsContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#222",
+    borderRadius: 5,
+  },
+  lyricsTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  lyricsText: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+    textShadowColor: "#fff",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
 });
