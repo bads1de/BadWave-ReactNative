@@ -27,13 +27,14 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
+  const [isAdded, setIsAdded] = useState<Record<string, boolean>>({});
 
   const { data: playlists = [] } = useQuery({
     queryKey: [CACHED_QUERIES.playlists],
     queryFn: getPlaylists,
   });
 
-  const { isAdded, fetchAddedStatus } = usePlaylistStatus({
+  const { isAdded: queryAddedStatus, fetchAddedStatus } = usePlaylistStatus({
     songId,
     playlists,
   });
@@ -47,25 +48,54 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
       if (!session?.user.id) throw new Error("未認証ユーザー");
       return addPlaylistSong({ playlistId, userId: session.user.id, songId });
     },
-    onSuccess: () => {
-      // 成功時にキャッシュを更新
-      queryClient.invalidateQueries({
+    onMutate: async (playlistId) => {
+      // 現在のクエリデータをキャンセルしてスナップショットを取得
+      await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlistSongs],
       });
 
-      // isAdded ステートを更新
-      fetchAddedStatus();
+      const previousPlaylistSongs = queryClient.getQueryData<PlaylistSong[]>([
+        CACHED_QUERIES.playlistSongs,
+      ]);
 
-      Toast.show({
-        type: "success",
-        text1: "プレイリストに追加しました",
-      });
+      // 楽観的にキャッシュを更新
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlistSongs],
+        (old: PlaylistSong[] = []) => [
+          ...old,
+          {
+            playlist_id: playlistId,
+            song_id: songId,
+            user_id: session?.user.id,
+            created_at: new Date().toISOString(),
+            song_type: "regular",
+          },
+        ]
+      );
+
+      // isAddedステートを即時更新
+      setIsAdded((prev) => ({ ...prev, [playlistId]: true }));
+
+      return { previousPlaylistSongs };
     },
-    onError: (error) => {
+    onError: (error, playlistId, context) => {
+      // エラー発生時に前の状態にロールバック
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlistSongs],
+        context?.previousPlaylistSongs
+      );
+      setIsAdded((prev) => ({ ...prev, [playlistId]: false }));
+
       Toast.show({
         type: "error",
         text1: "エラーが発生しました",
         text2: error.message,
+      });
+    },
+    onSettled: () => {
+      // 最終的なデータ整合性を保証するために再検証
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlistSongs],
       });
     },
   });
