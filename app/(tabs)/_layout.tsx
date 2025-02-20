@@ -102,6 +102,19 @@ export default function TabLayout() {
                   name="magnify"
                   size={24}
                   color={focused ? "#4c1d95" : "#666"}
+                  style={
+                    focused
+                      ? {
+                          textShadowColor: "#4c1d95",
+                          textShadowOffset: { width: 0, height: 0 },
+                          textShadowRadius: 20,
+                          shadowColor: "#6d28d9",
+                          shadowOffset: { width: 0, height: 0 },
+                          shadowRadius: 20,
+                          shadowOpacity: 0.8,
+                        }
+                      : {}
+                  }
                 />
               </View>
             ),

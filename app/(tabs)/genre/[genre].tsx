@@ -44,7 +44,6 @@ export default function GenreSongsScreen() {
 
   const routerBack = () => {
     router.back();
-    setShowHeader(true);
   };
 
   const { playSong } = useAudioPlayer(songs);
