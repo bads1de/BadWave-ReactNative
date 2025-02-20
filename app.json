@@ -16,12 +16,11 @@
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "softwareKeyboardLayoutMode": "resize",
-      "navigationBar": {
-        "visible": "immersive",
-        "backgroundColor": "#00000000"
-      },
       "package": "com.s3xmaxman.badmusicappmobile"
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#000000",
+      "barStyle": "light-content"
     },
     "web": {
       "bundler": "metro",
@@ -33,11 +32,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#000000",
-          "image": "./assets/images/splash.png",
-          "resizeMode": "contain",
-          "androidScaleType": "centerCrop",
-          "androidWindowInsets": "none"
+          "backgroundColor": "#000",
+          "image": "./assets/images/logo.png",
+          "resizeMode": "cover"
         }
       ],
       "expo-video"

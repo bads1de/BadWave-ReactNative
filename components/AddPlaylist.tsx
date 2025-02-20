@@ -97,6 +97,10 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlistSongs],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlists],
+      });
     },
   });
 

@@ -21,7 +21,7 @@ import { useHeaderStore } from "@/hooks/useHeaderStore";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
-  const { genre } = useLocalSearchParams();
+  const { genre } = useLocalSearchParams<{ genre: string }>();
   const { setShowHeader } = useHeaderStore();
   const {
     data: songs = [],
@@ -29,7 +29,7 @@ export default function GenreSongsScreen() {
     error,
   } = useQuery({
     queryKey: [CACHED_QUERIES.songsByGenre, genre],
-    queryFn: () => getSongsByGenre(genre as string),
+    queryFn: () => getSongsByGenre(genre),
     enabled: !!genre,
   });
 
