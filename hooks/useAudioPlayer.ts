@@ -2,7 +2,6 @@ import { useEffect, useCallback, useRef, useMemo, useState } from "react";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
-import loadSongUrl from "@/actions/LoadSongUrl";
 
 /**
  * オーディオプレーヤーのカスタムフック。
@@ -152,11 +151,11 @@ export function useAudioPlayer(songs: Song[]) {
         await unloadSound();
         setCurrentSong(song);
         setIsPlaying(false);
-        setPosition(0); 
-        setDuration(0); 
+        setPosition(0);
+        setDuration(0);
 
         // 曲のURLを取得する
-        const songUrl = await loadSongUrl(song);
+        const songUrl = song.song_path;
         if (!songUrl) {
           console.error("曲の読み込み中にエラーが発生しました。");
           return;
@@ -167,9 +166,9 @@ export function useAudioPlayer(songs: Song[]) {
           { uri: songUrl },
           {
             shouldPlay: true,
-            progressUpdateIntervalMillis: 1000, 
+            progressUpdateIntervalMillis: 1000,
           },
-          onPlaybackStatusUpdate 
+          onPlaybackStatusUpdate
         );
 
         setSound(newSound);
@@ -375,7 +374,10 @@ export function useAudioPlayer(songs: Song[]) {
   // 定期的に再生位置を更新
   useEffect(() => {
     if (isPlaying && sound) {
-      positionUpdateIntervalRef.current = setInterval(updatePlaybackStatus, 1000);
+      positionUpdateIntervalRef.current = setInterval(
+        updatePlaybackStatus,
+        1000
+      );
     }
     return () => {
       if (positionUpdateIntervalRef.current) {

@@ -13,11 +13,14 @@ const useLoadMedia = (
     queryFn: async () => {
       if (!mediaPath) return null;
 
+      const isExternalUrl =
+        mediaPath.startsWith("http://") || mediaPath.startsWith("https://");
+
       const { data } = await supabase.storage
         .from(`${mediaType}s`)
         .getPublicUrl(mediaPath);
 
-      return data?.publicUrl || null;
+      return isExternalUrl ? mediaPath : data?.publicUrl || null;
     },
     staleTime: CACHE_CONFIG.staleTime,
     gcTime: CACHE_CONFIG.gcTime,
