@@ -60,7 +60,9 @@ const PlayerControls = memo(
       <>
         <View style={styles.infoContainer}>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{currentSong.title}</Text>
+            <Text style={styles.title} numberOfLines={1}>
+              {currentSong.title}
+            </Text>
             <Text style={styles.author}>{currentSong.author}</Text>
           </View>
           <AddPlaylist songId={currentSong.id} />
