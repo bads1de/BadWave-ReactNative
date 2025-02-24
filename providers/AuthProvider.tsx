@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
+import { CACHED_QUERIES } from "@/constants";
 
 interface AuthProviderProps {
   session: Session | null;
@@ -17,21 +19,22 @@ const AuthContext = createContext<AuthProviderProps | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    // 初回のセッション取得
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
     });
 
-    // セッションの変更を監視
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_, newSession) => {
       setSession(newSession);
+      // 認証状態が変更されたら、ユーザー情報のキャッシュを無効化
+      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.user] });
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   return (
     <AuthContext.Provider value={{ session, setSession }}>

@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import { useAuth } from "@/providers/AuthProvider";
+import { useUser } from "@/actions/getUser";
 
 export default function Header() {
   const { setShowAuthModal } = useAuthStore();
+  const { data: user } = useUser();
   const { session } = useAuth();
 
   return (
@@ -18,10 +20,7 @@ export default function Header() {
           onPress={() => setShowAuthModal(true)}
           style={styles.userIcon}
         >
-          <Image
-            source={require("../assets/images/user.png")}
-            style={styles.userIcon}
-          />
+          <Image source={{ uri: user?.avatar_url! }} style={styles.userIcon} />
         </TouchableOpacity>
       ) : (
         <TouchableOpacity

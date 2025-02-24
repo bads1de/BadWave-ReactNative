@@ -20,6 +20,7 @@ import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
+import ScrollingText from "./ScrollingText";
 
 interface PlayerProps {
   sound: any;
