@@ -41,7 +41,7 @@ persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
 
-  // Initialize TrackPlayer
+  // TrackPlayerの初期化
   useEffect(() => {
     setupTrackPlayer();
   }, []);
