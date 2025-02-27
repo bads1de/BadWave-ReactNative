@@ -18,6 +18,7 @@ import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
+import { PanGestureHandler, Directions } from "react-native-gesture-handler";
 
 interface PlayerProps {
   sound: any;
@@ -160,35 +161,57 @@ const MediaBackground = memo(
   }
 );
 
-function Player(props: PlayerProps) {
+const Player = (props: PlayerProps) => {
+  const handleSwipe = (direction: Directions) => {
+    if (direction === Directions.RIGHT) {
+      return props.onNext();
+    }
+
+    if (direction === Directions.LEFT) {
+      return props.onPrev();
+    }
+  };
+
   return (
-    <ScrollView
-      style={styles.scrollContainer}
-      contentContainerStyle={{ flexGrow: 1 }}
+    <PanGestureHandler
+      onGestureEvent={({ nativeEvent }) => {
+        if (nativeEvent.translationX > 50) {
+          handleSwipe(Directions.RIGHT);
+        } else if (nativeEvent.translationX < -50) {
+          handleSwipe(Directions.LEFT);
+        }
+      }}
     >
-      <View style={styles.playerContainer}>
-        <MediaBackground
-          videoUrl={props.currentSong.video_path}
-          imageUrl={props.currentSong.image_path}
-        />
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        <View style={styles.playerContainer}>
+          <MediaBackground
+            videoUrl={props.currentSong.video_path}
+            imageUrl={props.currentSong.image_path}
+          />
 
-        <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
-          <Ionicons name="chevron-down" size={30} color="#fff" />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
+            <Ionicons name="chevron-down" size={30} color="#fff" />
+          </TouchableOpacity>
 
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
-          locations={[0, 0.5, 1]}
-          style={styles.bottomContainer}
-        >
-          <PlayerControls {...props} />
-        </LinearGradient>
-      </View>
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
+            locations={[0, 0.5, 1]}
+            style={styles.bottomContainer}
+          >
+            <PlayerControls {...props} />
+          </LinearGradient>
+        </View>
 
-      {props.currentSong?.lyrics && <Lyric lyrics={props.currentSong.lyrics} />}
-    </ScrollView>
+        {props.currentSong?.lyrics && (
+          <Lyric lyrics={props.currentSong.lyrics} />
+        )}
+      </ScrollView>
+    </PanGestureHandler>
   );
-}
+};
 
 export default memo(Player);
 

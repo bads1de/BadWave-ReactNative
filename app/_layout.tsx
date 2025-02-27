@@ -9,6 +9,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,15 +42,17 @@ export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <View style={{ flex: 1, backgroundColor: "#000" }}>
-          <StatusBar style="light" />
-          {showAuthModal && <AuthModal />}
-          <Stack screenOptions={{ headerShown: false }} />
-          <ToastComponent />
-        </View>
-      </AuthProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <View style={{ flex: 1, backgroundColor: "#000" }}>
+            <StatusBar style="light" />
+            {showAuthModal && <AuthModal />}
+            <Stack screenOptions={{ headerShown: false }} />
+            <ToastComponent />
+          </View>
+        </AuthProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
