@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import Song from "../types";
 
-
 type PlayerState = {
   showPlayer: boolean;
   currentSong: Song | null;
   isPlaying: boolean;
   repeat: boolean;
   shuffle: boolean;
+  sound: any;
 };
 
 type PlayerActions = {
@@ -16,6 +16,7 @@ type PlayerActions = {
   setIsPlaying: (value: boolean) => void;
   setRepeat: (value: boolean) => void;
   setShuffle: (value: boolean) => void;
+  setSound: (sound: any) => void;
 };
 
 export const usePlayerStore = create<PlayerState & PlayerActions>((set) => ({
@@ -24,6 +25,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set) => ({
   isPlaying: false,
   repeat: false,
   shuffle: false,
+  sound: null,
 
   // Actions
   setShowPlayer: (value) => set({ showPlayer: value }),
@@ -31,4 +33,5 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set) => ({
   setIsPlaying: (value) => set({ isPlaying: value }),
   setRepeat: (value) => set({ repeat: value }),
   setShuffle: (value) => set({ shuffle: value }),
+  setSound: (sound) => set({ sound }),
 }));

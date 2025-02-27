@@ -9,7 +9,6 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
-import { setupTrackPlayer } from "@/services/trackPlayerService";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,11 +39,6 @@ persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 
 export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
-
-  // TrackPlayerの初期化
-  useEffect(() => {
-    setupTrackPlayer();
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
