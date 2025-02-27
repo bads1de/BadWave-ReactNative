@@ -1,5 +1,12 @@
 import { useEffect, useCallback, useRef, useMemo, useState } from "react";
-import { Audio, AVPlaybackStatus } from "expo-av";
+import TrackPlayer, {
+  Event,
+  RepeatMode,
+  State,
+  useTrackPlayerEvents,
+  usePlaybackState,
+  useProgress,
+} from "react-native-track-player";
 import Song from "../types";
 import { usePlayerStore } from "./usePlayerStore";
 
@@ -12,28 +19,21 @@ import { usePlayerStore } from "./usePlayerStore";
  */
 export function useAudioPlayer(songs: Song[]) {
   const {
-    sound,
     currentSong,
     isPlaying,
     repeat,
     shuffle,
-    setSound,
     setCurrentSong,
     setIsPlaying,
     setRepeat,
     setShuffle,
   } = usePlayerStore();
 
-  // Local slider state for position and duration
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const positionUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // TrackPlayer のステートとプログレスを使用
+  const playbackState = usePlaybackState();
+  const { position, duration } = useProgress();
 
-  /**
-   * 曲のIDをキー、songs配列内のインデックスを値とするオブジェクト。
-   * シャッフル時や次の曲の再生時に、効率的に曲を検索するために使用する。
-   * @type {Record<string, number>}
-   */
+  // 曲のIDをキー、songs配列内のインデックスを値とするオブジェクト
   const songIndexMap = useMemo(() => {
     return songs.reduce((acc, song, index) => {
       acc[song.id] = index;
@@ -41,118 +41,58 @@ export function useAudioPlayer(songs: Song[]) {
     }, {} as Record<string, number>);
   }, [songs]);
 
-  /**
-   * 次の曲を再生するための関数を保持するref。
-   * 曲の終了時に、リピート設定やシャッフル設定に応じて次の曲を再生するために使用する。
-   */
-  const nextSongRef = useRef<() => Promise<void>>(async () => {});
-
-  /**
-   * 再生状態の更新をデバウンスするためのタイマーのref。
-   */
-  const statusUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  /**
-   * 最後にポジションを更新した時刻を記録するref。
-   * ポジションの更新頻度を制限するために使用する。
-   */
-  const lastPositionUpdateRef = useRef<number>(0);
-
-  /**
-   * Audioモードを初期化する。
-   * iOSでのバックグラウンド再生、サイレントモードでの再生などを設定する。
-   */
-  useEffect(() => {
-    const initAudioMode = async () => {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false, // iOSでの録音を許可しない
-        staysActiveInBackground: true, // バックグラウンドで再生を継続する
-        playsInSilentModeIOS: true, // サイレントモードでも再生する
-        shouldDuckAndroid: true, // 他のアプリの音量を下げる
-        playThroughEarpieceAndroid: false, // イヤホンから再生しない
-      });
-    };
-    initAudioMode();
-  }, []);
-
-  /**
-   * サウンドオブジェクトを解放する。
-   * コンポーネントのアンマウント時や、新しい曲を再生する前に呼び出される。
-   */
-  const unloadSound = useCallback(async () => {
-    if (sound) {
-      try {
-        await sound.unloadAsync();
-        setSound(null);
-      } catch (error) {
-        console.error("サウンド解放エラー:", error);
+  // TrackPlayerのイベントを監視
+  useTrackPlayerEvents([Event.PlaybackState, Event.PlaybackError], async (event) => {
+    if (event.type === Event.PlaybackState) {
+      if (event.state === State.Playing) {
+        setIsPlaying(true);
+      } else if (
+        event.state === State.Paused ||
+        event.state === State.Stopped ||
+        event.state === State.None
+      ) {
+        setIsPlaying(false);
       }
+    } else if (event.type === Event.PlaybackError) {
+      console.error("Playback error:", event.message);
     }
-  }, [sound, setSound]);
+  });
 
   /**
-   * コンポーネントのアンマウント時に、タイマーをクリアし、サウンドを解放する。
+   * 再生状態の監視
    */
   useEffect(() => {
-    return () => {
-      if (statusUpdateTimeoutRef.current) {
-        clearTimeout(statusUpdateTimeoutRef.current);
-      }
-      unloadSound();
+    const updatePlaybackState = async () => {
+      const state = await TrackPlayer.getState();
+      setIsPlaying(state === State.Playing);
     };
-  }, [unloadSound]);
+
+    updatePlaybackState();
+  }, [playbackState, setIsPlaying]);
 
   /**
-   * 再生状態の更新時に呼び出されるコールバック関数。
-   * ポジション、デュレーションの更新、曲の終了処理などを行う。
-   *
-   * @param {AVPlaybackStatus} status Expo AVの再生状態オブジェクト
+   * リピートモードの設定
    */
-  const onPlaybackStatusUpdate = useCallback(
-    (status: AVPlaybackStatus) => {
-      if (!status.isLoaded) return;
+  useEffect(() => {
+    const updateRepeatMode = async () => {
+      await TrackPlayer.setRepeatMode(
+        repeat ? RepeatMode.Queue : RepeatMode.Off
+      );
+    };
 
-      const now = Date.now();
-      // ポジションの更新を100ms間隔に制限する
-      if (now - lastPositionUpdateRef.current >= 100) {
-        setPosition(status.positionMillis);
-        setDuration(status.durationMillis || 0);
-        lastPositionUpdateRef.current = now;
-      }
-
-      // 曲が終了したときの処理
-      if (status.didJustFinish) {
-        if (repeat && sound) {
-          // リピートが有効な場合は、曲を最初から再生する
-          sound
-            .setPositionAsync(0)
-            .then(() => sound.playAsync())
-            .catch((error: any) => console.error("リピート再生エラー:", error));
-        } else {
-          // リピートが無効な場合は、次の曲を再生する
-          nextSongRef.current();
-        }
-      }
-    },
-    [repeat, sound]
-  );
+    updateRepeatMode();
+  }, [repeat]);
 
   /**
-   * 指定された曲を再生する。
-   *
-   * @param {Song} song 再生する曲
+   * 指定された曲を再生する
    */
   const playSong = useCallback(
     async (song: Song) => {
       if (!song) return;
 
       try {
-        // 既存のサウンドを解放する
-        await unloadSound();
-        setCurrentSong(song);
-        setIsPlaying(false);
-        setPosition(0);
-        setDuration(0);
+        // 現在のキューをリセット
+        await TrackPlayer.reset();
 
         // 曲のURLを取得する
         const songUrl = song.song_path;
@@ -162,59 +102,45 @@ export function useAudioPlayer(songs: Song[]) {
           return;
         }
 
-        // 新しいサウンドオブジェクトを作成し、再生を開始する
-        const { sound: newSound } = await Audio.Sound.createAsync(
-          { uri: songUrl },
-          {
-            shouldPlay: true,
-            progressUpdateIntervalMillis: 1000,
-          },
-          onPlaybackStatusUpdate
-        );
+        // 曲をキューに追加
+        await TrackPlayer.add({
+          id: song.id,
+          url: songUrl,
+          title: song.title,
+          artist: song.author,
+          artwork: song.image_path || undefined,
+          // 追加のメタデータがあれば設定
+          genre: song.genre,
+          // duration: 0, // 自動的に計算される
+        });
 
-        setSound(newSound);
+        // 再生を開始
+        await TrackPlayer.play();
+        setCurrentSong(song);
         setIsPlaying(true);
-
-        // 初期状態を取得
-        const initialStatus = await newSound.getStatusAsync();
-        if (initialStatus.isLoaded) {
-          setPosition(initialStatus.positionMillis);
-          setDuration(initialStatus.durationMillis || 0);
-        }
       } catch (error) {
         console.error("再生エラー:", error);
         setIsPlaying(false);
-        setSound(null);
       }
     },
-    [
-      unloadSound,
-      setCurrentSong,
-      setIsPlaying,
-      setSound,
-      onPlaybackStatusUpdate,
-    ]
+    [setCurrentSong, setIsPlaying]
   );
 
   /**
-   * 再生/一時停止を切り替える。
-   *
-   * @param {Song} [song] 再生/一時停止する曲。省略された場合は、現在再生中の曲を対象とする。
+   * 再生/一時停止を切り替える
    */
   const togglePlayPause = useCallback(
     async (song?: Song) => {
-      if (!sound) return;
-
       try {
-        const status = await sound.getStatusAsync();
-
         if (song) {
           // 引数でsongが渡された場合
           if (currentSong?.id === song.id) {
             // 現在再生中の曲と同じであれば、再生/一時停止を切り替える
-            if (status.isLoaded) {
-              await (status.isPlaying ? sound.pauseAsync() : sound.playAsync());
-              setIsPlaying(!status.isPlaying);
+            const state = await TrackPlayer.getState();
+            if (state === State.Playing) {
+              await TrackPlayer.pause();
+            } else {
+              await TrackPlayer.play();
             }
             return;
           }
@@ -224,22 +150,21 @@ export function useAudioPlayer(songs: Song[]) {
         }
 
         // 引数でsongが渡されなかった場合、現在再生中の曲の再生/一時停止を切り替える
-        if (currentSong && status.isLoaded) {
-          await (status.isPlaying ? sound.pauseAsync() : sound.playAsync());
-          setIsPlaying(!status.isPlaying);
+        const state = await TrackPlayer.getState();
+        if (state === State.Playing) {
+          await TrackPlayer.pause();
+        } else {
+          await TrackPlayer.play();
         }
       } catch (error) {
         console.error("再生/一時停止エラー:", error);
       }
     },
-    [sound, currentSong, playSong, setIsPlaying]
+    [currentSong, playSong]
   );
 
   /**
-   * 次に再生する曲のインデックスを取得する。
-   * シャッフルが有効な場合はランダムなインデックスを、そうでない場合は現在の曲の次のインデックスを返す。
-   *
-   * @returns {number} 次に再生する曲のインデックス
+   * 次に再生する曲のインデックスを取得する
    */
   const getNextSongIndex = useCallback(() => {
     if (!currentSong || !songs.length) return 0;
@@ -255,63 +180,39 @@ export function useAudioPlayer(songs: Song[]) {
   }, [currentSong, songs, shuffle, songIndexMap]);
 
   /**
-   * 次の曲を再生する。
-   * リピートが有効な場合は現在の曲を再度再生、そうでない場合は次の曲を再生する。
+   * 次の曲を再生する
    */
   const playNextSong = useCallback(async () => {
     if (!songs.length) return;
 
-    if (repeat && currentSong) {
-      // リピートが有効な場合は、現在の曲を再度再生する
-      await playSong(currentSong);
-      return;
-    }
-
     try {
-      const nextIndex = getNextSongIndex();
-      await playSong(songs[nextIndex]);
+      if (shuffle) {
+        // シャッフルが有効な場合は、ランダムな曲を再生
+        const nextIndex = Math.floor(Math.random() * songs.length);
+        await playSong(songs[nextIndex]);
+      } else {
+        // 通常の場合は、次の曲を再生
+        const queue = await TrackPlayer.getQueue();
+        if (queue.length > 0) {
+          const currentIndex = await TrackPlayer.getCurrentTrack();
+          if (currentIndex !== null && currentIndex < queue.length - 1) {
+            // キュー内に次の曲がある場合
+            await TrackPlayer.skipToNext();
+          } else {
+            // キューの最後の曲の場合、または不明な場合
+            const nextIndex = getNextSongIndex();
+            await playSong(songs[nextIndex]);
+          }
+        } else {
+          // キューが空の場合
+          const nextIndex = getNextSongIndex();
+          await playSong(songs[nextIndex]);
+        }
+      }
     } catch (error) {
       console.error("次の曲の再生エラー:", error);
     }
-  }, [songs, repeat, currentSong, playSong, getNextSongIndex]);
-
-  /**
-   * playNextSong関数をnextSongRefに設定する。
-   */
-  useEffect(() => {
-    nextSongRef.current = playNextSong;
-  }, [playNextSong]);
-
-  /**
-   * 指定されたミリ秒にシークする。
-   *
-   * @param {number} millis シーク先のミリ秒
-   */
-  const seekTo = useCallback(
-    async (millis: number) => {
-      if (!sound) return;
-
-      // 連続シークを防ぐため、タイマーをクリアする
-      if (statusUpdateTimeoutRef.current) {
-        clearTimeout(statusUpdateTimeoutRef.current);
-      }
-
-      try {
-        await sound.setPositionAsync(millis);
-        setPosition(millis);
-
-        // シーク後に現在の状態を取得して更新
-        const status = await sound.getStatusAsync();
-        if (status.isLoaded) {
-          setPosition(status.positionMillis);
-          setDuration(status.durationMillis || 0);
-        }
-      } catch (error) {
-        console.error("シークエラー:", error);
-      }
-    },
-    [sound]
-  );
+  }, [songs, shuffle, playSong, getNextSongIndex]);
 
   /**
    * 前の曲を再生する
@@ -319,16 +220,39 @@ export function useAudioPlayer(songs: Song[]) {
   const playPrevSong = useCallback(async () => {
     if (!songs.length || !currentSong) return;
 
-    // 現在の曲のインデックスを取得
-    const currentIndex = songIndexMap[currentSong.id] ?? -1;
-
-    // 前の曲のインデックスを計算（シャッフルが有効な場合はランダム）
-    const prevIndex = shuffle
-      ? Math.floor(Math.random() * songs.length)
-      : (currentIndex - 1 + songs.length) % songs.length;
-
     try {
-      await playSong(songs[prevIndex]);
+      if (shuffle) {
+        // シャッフルが有効な場合は、ランダムな曲を再生
+        const prevIndex = Math.floor(Math.random() * songs.length);
+        await playSong(songs[prevIndex]);
+      } else {
+        // 通常の場合は、前の曲を再生
+        const currentPosition = await TrackPlayer.getPosition();
+        if (currentPosition > 3) {
+          // 現在の曲が3秒以上再生されている場合は、曲の先頭に戻る
+          await TrackPlayer.seekTo(0);
+        } else {
+          // 3秒未満の場合は、前の曲を再生
+          const queue = await TrackPlayer.getQueue();
+          if (queue.length > 0) {
+            const currentIndex = await TrackPlayer.getCurrentTrack();
+            if (currentIndex !== null && currentIndex > 0) {
+              // キュー内に前の曲がある場合
+              await TrackPlayer.skipToPrevious();
+            } else {
+              // キューの最初の曲の場合、または不明な場合
+              const currentIndex = songIndexMap[currentSong.id] ?? -1;
+              const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
+              await playSong(songs[prevIndex]);
+            }
+          } else {
+            // キューが空の場合
+            const currentIndex = songIndexMap[currentSong.id] ?? -1;
+            const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
+            await playSong(songs[prevIndex]);
+          }
+        }
+      }
     } catch (error) {
       console.error("前の曲の再生エラー:", error);
     }
@@ -338,61 +262,32 @@ export function useAudioPlayer(songs: Song[]) {
    * 再生を停止し、状態をリセットする
    */
   const stop = useCallback(async () => {
-    if (!sound) return;
-
     try {
-      await unloadSound();
+      await TrackPlayer.reset();
       setIsPlaying(false);
       setCurrentSong(null);
-      setPosition(0);
-      setDuration(0);
     } catch (error) {
       console.error("停止エラー:", error);
     }
-  }, [
-    sound,
-    unloadSound,
-    setIsPlaying,
-    setCurrentSong,
-    setPosition,
-    setDuration,
-  ]);
+  }, [setIsPlaying, setCurrentSong]);
 
-  const updatePlaybackStatus = useCallback(async () => {
-    if (sound) {
-      try {
-        const status = await sound.getStatusAsync();
-        if (status.isLoaded) {
-          setPosition(status.positionMillis);
-          setDuration(status.durationMillis || 0);
-        }
-      } catch (error) {
-        console.error("Error updating playback status:", error);
-      }
+  /**
+   * 指定されたミリ秒にシークする
+   */
+  const seekTo = useCallback(async (millis: number) => {
+    try {
+      // TrackPlayerはミリ秒ではなく秒単位で指定する必要がある
+      await TrackPlayer.seekTo(millis / 1000);
+    } catch (error) {
+      console.error("シークエラー:", error);
     }
-  }, [sound]);
-
-  // 定期的に再生位置を更新
-  useEffect(() => {
-    if (isPlaying && sound) {
-      positionUpdateIntervalRef.current = setInterval(
-        updatePlaybackStatus,
-        1000
-      );
-    }
-    return () => {
-      if (positionUpdateIntervalRef.current) {
-        clearInterval(positionUpdateIntervalRef.current);
-      }
-    };
-  }, [isPlaying, sound, updatePlaybackStatus]);
+  }, []);
 
   return {
-    sound,
     isPlaying,
     currentSong,
-    position,
-    duration,
+    position: position * 1000, // 秒からミリ秒に変換
+    duration: duration * 1000, // 秒からミリ秒に変換
     playSong,
     togglePlayPause,
     playNextSong,

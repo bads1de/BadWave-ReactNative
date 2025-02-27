@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { View } from "react-native";
@@ -9,6 +9,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
+import { setupTrackPlayer } from "@/services/trackPlayerService";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,11 @@ persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 
 export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
+
+  // Initialize TrackPlayer
+  useEffect(() => {
+    setupTrackPlayer();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
