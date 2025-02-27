@@ -10,7 +10,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
-import useLoadImage from "@/hooks/useLoadImage";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylistSong from "@/actions/deletePlaylistSong"; // これをインポート
 import { CACHED_QUERIES } from "@/constants";
@@ -36,7 +35,6 @@ const SongItem = memo(
     songType = "regular",
   }: SongItemProps) => {
     const router = useRouter();
-    const { data: imagePath } = useLoadImage(song);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     const queryClient = useQueryClient();
 
@@ -90,7 +88,7 @@ const SongItem = memo(
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: imagePath! }}
+            source={{ uri: song.image_path }}
             style={styles.image}
             onLoad={() => setIsImageLoaded(true)}
           />

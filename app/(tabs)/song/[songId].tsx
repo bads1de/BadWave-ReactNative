@@ -15,7 +15,6 @@ import Error from "@/components/Error";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import useLoadImage from "@/hooks/useLoadImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddPlaylist from "@/components/AddPlaylist";
 import { CACHED_QUERIES } from "@/constants";
@@ -40,8 +39,6 @@ export default function SongDetailScreen() {
   const { playSong, isPlaying, currentSong, togglePlayPause } = useAudioPlayer(
     song ? [song] : []
   );
-
-  const { data: imagePath } = useLoadImage(song!);
 
   useFocusEffect(
     useCallback(() => {
@@ -82,7 +79,7 @@ export default function SongDetailScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Image source={{ uri: imagePath! }} style={styles.image} />
+          <Image source={{ uri: song.image_path! }} style={styles.image} />
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.8)"]}
             style={styles.gradientOverlay}

@@ -13,7 +13,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import Song from "../types";
-import useLoadImage from "@/hooks/useLoadImage";
 
 interface MiniPlayerProps {
   currentSong: Song;
@@ -30,7 +29,6 @@ export default function ModernMiniPlayer({
 }: MiniPlayerProps) {
   const translateY = useRef(new Animated.Value(60)).current;
   const opacity = useRef(new Animated.Value(0)).current;
-  const { data: imagePath } = useLoadImage(currentSong);
 
   useEffect(() => {
     Animated.parallel([
@@ -64,7 +62,10 @@ export default function ModernMiniPlayer({
         style={styles.gradient}
       >
         <TouchableOpacity style={styles.contentContainer} onPress={onPress}>
-          <Image source={{ uri: imagePath! }} style={styles.image} />
+          <Image
+            source={{ uri: currentSong.image_path }}
+            style={styles.image}
+          />
           <View style={styles.songInfo}>
             <Text style={styles.title} numberOfLines={1}>
               {currentSong.title}

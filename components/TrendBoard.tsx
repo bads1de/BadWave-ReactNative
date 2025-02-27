@@ -9,7 +9,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import useLoadImage from "@/hooks/useLoadImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
@@ -32,15 +31,13 @@ const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.6;
 
 const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
-  const { data: imageUrl } = useLoadImage(song);
-
   return (
     <TouchableOpacity
       style={styles.itemContainer}
       onPress={() => onPlay(song)}
       activeOpacity={0.7}
     >
-      <Image source={{ uri: imageUrl! }} style={styles.image} />
+      <Image source={{ uri: song.image_path }} style={styles.image} />
       <LinearGradient
         colors={["transparent", "rgba(0,0,0,0.9)"]}
         style={styles.gradient}

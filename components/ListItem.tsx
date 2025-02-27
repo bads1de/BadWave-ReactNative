@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import useLoadImage from "@/hooks/useLoadImage";
 import Song from "@/types";
 
 interface ListItemProps {
@@ -27,8 +26,6 @@ export default function ListItem({
   showStats = true,
   imageSize = "medium",
 }: ListItemProps) {
-  const { data: imageUrl } = useLoadImage(song);
-
   const getImageSize = () => {
     switch (imageSize) {
       case "small":
@@ -52,7 +49,7 @@ export default function ListItem({
           { width: getImageSize(), height: getImageSize() },
         ]}
       >
-        <Image source={{ uri: imageUrl! }} style={styles.image} />
+        <Image source={{ uri: song.image_path }} style={styles.image} />
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.7)"]}
           style={styles.gradient}

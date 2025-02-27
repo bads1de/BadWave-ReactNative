@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Playlist } from "@/types";
-import useLoadImage from "@/hooks/useLoadImage";
 
 interface PlaylistItemProps {
   playlist: Playlist;
@@ -20,8 +19,6 @@ export default function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
   const { width } = useWindowDimensions();
   const itemWidth = (width - 48) / 2.2;
   const dynamicStyles = { width: itemWidth, height: itemWidth * 1.2 };
-
-  const { data: imageUrl } = useLoadImage(playlist);
 
   return (
     <TouchableOpacity
@@ -34,7 +31,7 @@ export default function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
       <View style={styles.decorativeCard2} />
 
       <View style={styles.imageContainer}>
-        <Image source={{ uri: imageUrl! }} style={styles.image} />
+        <Image source={{ uri: playlist.image_path }} style={styles.image} />
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.9)"]}
           style={styles.gradient}

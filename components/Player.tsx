@@ -13,8 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
 import { ResizeMode, Video } from "expo-av";
-import useLoadImage from "@/hooks/useLoadImage";
-import useLoadVideo from "@/hooks/useLoadVideo";
 import Song from "@/types";
 import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
@@ -59,9 +57,7 @@ const PlayerControls = memo(
       <>
         <View style={styles.infoContainer}>
           <View style={styles.textContainer}>
-            <Text style={styles.title} numberOfLines={1}>
-              {currentSong.title}
-            </Text>
+            <Text style={styles.title}>{currentSong.title}</Text>
             <Text style={styles.author}>{currentSong.author}</Text>
           </View>
           <AddPlaylist songId={currentSong.id} />
@@ -165,16 +161,16 @@ const MediaBackground = memo(
 );
 
 function Player(props: PlayerProps) {
-  const { data: imageUrl } = useLoadImage(props.currentSong);
-  const { data: videoUrl } = useLoadVideo(props.currentSong);
-
   return (
     <ScrollView
       style={styles.scrollContainer}
       contentContainerStyle={{ flexGrow: 1 }}
     >
       <View style={styles.playerContainer}>
-        <MediaBackground videoUrl={videoUrl} imageUrl={imageUrl} />
+        <MediaBackground
+          videoUrl={props.currentSong.video_path}
+          imageUrl={props.currentSong.image_path}
+        />
 
         <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
           <Ionicons name="chevron-down" size={30} color="#fff" />

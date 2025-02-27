@@ -156,6 +156,7 @@ export function useAudioPlayer(songs: Song[]) {
 
         // 曲のURLを取得する
         const songUrl = song.song_path;
+
         if (!songUrl) {
           console.error("曲の読み込み中にエラーが発生しました。");
           return;
