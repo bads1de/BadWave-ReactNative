@@ -18,7 +18,7 @@ import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
-import { PanGestureHandler, Directions, PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
+
 
 interface PlayerProps {
   sound: any;
@@ -208,16 +208,10 @@ const PlayerControls: FC<PlayerProps> = memo(({
 const Player: FC<PlayerProps> = (props) => {
   const { currentSong, onClose, onNext, onPrev } = props;
 
-  const handleGestureEvent = useCallback((event: PanGestureHandlerGestureEvent) => {
-    if (event.nativeEvent.translationX > 50) {
-      onNext();
-    } else if (event.nativeEvent.translationX < -50) {
-      onPrev();
-    }
-  }, [onNext, onPrev]);
+
 
   return (
-    <PanGestureHandler onGestureEvent={handleGestureEvent}>
+
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={{ flexGrow: 1 }}
@@ -245,7 +239,7 @@ const Player: FC<PlayerProps> = (props) => {
           <Lyric lyrics={currentSong.lyrics} />
         )}
       </ScrollView>
-    </PanGestureHandler>
+
   );
 };
 

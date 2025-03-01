@@ -9,7 +9,6 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
 import TrackPlayer from "react-native-track-player";
 
@@ -72,7 +71,6 @@ export default function RootLayout() {
   }, [isPlayerReady]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <View style={{ flex: 1, backgroundColor: "#000" }}>
@@ -83,6 +81,5 @@ export default function RootLayout() {
           </View>
         </AuthProvider>
       </QueryClientProvider>
-    </GestureHandlerRootView>
   );
 }

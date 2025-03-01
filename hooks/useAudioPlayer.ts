@@ -42,13 +42,7 @@ export function useAudioPlayer(songs: Song[]) {
   const progressPosition = rawPosition * 1000;
   const progressDuration = rawDuration * 1000;
 
-  // 曲のIDをキー、songs配列内のインデックスを値とするマップを作成
-  const songIndexMap = useMemo(() => {
-    return songs.reduce((acc, song, index) => {
-      acc[song.id] = index;
-      return acc;
-    }, {} as Record<string, number>);
-  }, [songs]);
+
 
   // 再生状態を同期
   useEffect(() => {
@@ -65,7 +59,7 @@ export function useAudioPlayer(songs: Song[]) {
 
       try {
         setCurrentSong(song);
-        await playTrack(song.song_path);
+        await playTrack(songs, song.id);
       } catch (error) {
         console.error("再生エラー:", error);
         setIsPlaying(false);
