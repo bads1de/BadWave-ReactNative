@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback, FC } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
-import { PanGestureHandler, Directions } from "react-native-gesture-handler";
+import { PanGestureHandler, Directions, PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
 
 interface PlayerProps {
   sound: any;
@@ -32,167 +32,203 @@ interface PlayerProps {
   onSeek: (millis: number) => void;
   onClose: () => void;
   repeat: boolean;
+  repeatMode: 'off' | 'track' | 'queue';
   setRepeat: (value: boolean) => void;
   shuffle: boolean;
   setShuffle: (value: boolean) => void;
 }
 
+interface SongInfoProps {
+  currentSong: Song;
+}
+
+interface ProgressProps {
+  position: number;
+  duration: number;
+  onSeek: (millis: number) => void;
+}
+
+interface ControlsProps {
+  isPlaying: boolean;
+  onPlayPause: () => void;
+  onNext: () => void;
+  onPrev: () => void;
+  shuffle: boolean;
+  setShuffle: (value: boolean) => void;
+  repeat: boolean;
+  setRepeat: (value: boolean) => void;
+}
+
+interface ControlButtonProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  isActive?: boolean;
+  onPress: () => void;
+}
+
+interface PlayPauseButtonProps {
+  isPlaying: boolean;
+  onPress: () => void;
+}
+
+interface MediaBackgroundProps {
+  videoUrl?: string | null;
+  imageUrl?: string | null;
+}
+
 const { width, height } = Dimensions.get("window");
 
-const PlayerControls = memo(
-  ({
-    isPlaying,
-    position,
-    duration,
-    onPlayPause,
-    onNext,
-    onPrev,
-    onSeek,
-    shuffle,
-    setShuffle,
-    repeat,
-    setRepeat,
-    currentSong,
-  }: PlayerProps) => {
-    return (
-      <>
-        <View style={styles.infoContainer}>
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>{currentSong.title}</Text>
-            <Text style={styles.author}>{currentSong.author}</Text>
-          </View>
-          <AddPlaylist songId={currentSong.id} />
-          <View style={{ paddingHorizontal: 8 }} />
-          <LikeButton songId={currentSong.id} />
-        </View>
+const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => (
+  <View style={styles.infoContainer}>
+    <View style={styles.textContainer}>
+      <Text style={styles.title}>{currentSong.title}</Text>
+      <Text style={styles.author}>{currentSong.author}</Text>
+    </View>
+    <AddPlaylist songId={currentSong.id} />
+    <View style={{ paddingHorizontal: 8 }} />
+    <LikeButton songId={currentSong.id} />
+  </View>
+));
 
-        <Slider
-          style={styles.slider}
-          minimumValue={0}
-          maximumValue={duration}
-          value={position}
-          onSlidingComplete={onSeek}
-          minimumTrackTintColor="#4c1d95"
-          maximumTrackTintColor="#777"
-          thumbTintColor="#4c1d95"
+const Progress: FC<ProgressProps> = memo(({ position, duration, onSeek }) => (
+  <>
+    <Slider
+      style={styles.slider}
+      minimumValue={0}
+      maximumValue={duration}
+      value={position}
+      onSlidingComplete={onSeek}
+      minimumTrackTintColor="#4c1d95"
+      maximumTrackTintColor="#777"
+      thumbTintColor="#4c1d95"
+    />
+    <View style={styles.timeContainer}>
+      <Text style={styles.timeText}>{formatTime(position)}</Text>
+      <Text style={styles.timeText}>{formatTime(duration)}</Text>
+    </View>
+  </>
+));
+
+const Controls: FC<ControlsProps> = memo(({
+  isPlaying,
+  onPlayPause,
+  onNext,
+  onPrev,
+  shuffle,
+  setShuffle,
+  repeat,
+  setRepeat,
+}) => (
+  <View style={styles.controls}>
+    <ControlButton
+      icon="shuffle"
+      isActive={shuffle}
+      onPress={() => setShuffle(true)}
+    />
+    <ControlButton icon="play-skip-back" onPress={onPrev} />
+    <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
+    <ControlButton icon="play-skip-forward" onPress={onNext} />
+    <ControlButton
+      icon="repeat"
+      isActive={repeat}
+      onPress={() => setRepeat(!repeat)}
+    />
+  </View>
+));
+
+const ControlButton: FC<ControlButtonProps> = memo(({ icon, isActive, onPress }) => (
+  <TouchableOpacity onPress={onPress}>
+    <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
+  </TouchableOpacity>
+));
+
+const PlayPauseButton: FC<PlayPauseButtonProps> = memo(({ isPlaying, onPress }) => (
+  <TouchableOpacity style={styles.playButton} onPress={onPress}>
+    <Ionicons
+      name={isPlaying ? "pause-circle" : "play-circle"}
+      size={70}
+      color="#fff"
+    />
+  </TouchableOpacity>
+));
+
+const MediaBackground: FC<MediaBackgroundProps> = memo(({ videoUrl, imageUrl }) => {
+  if (videoUrl) {
+    return (
+      <View style={styles.backgroundImage}>
+        <Video
+          source={{ uri: videoUrl }}
+          style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted
         />
-        <View style={styles.timeContainer}>
-          <Text style={styles.timeText}>{formatTime(position)}</Text>
-          <Text style={styles.timeText}>{formatTime(duration)}</Text>
-        </View>
-
-        <View style={styles.controls}>
-          <ControlButton
-            icon="shuffle"
-            isActive={shuffle}
-            onPress={() => setShuffle(!shuffle)}
-          />
-          <ControlButton icon="play-skip-back" onPress={onPrev} />
-          <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
-          <ControlButton icon="play-skip-forward" onPress={onNext} />
-          <ControlButton
-            icon="repeat"
-            isActive={repeat}
-            onPress={() => setRepeat(!repeat)}
-          />
-        </View>
-      </>
+      </View>
     );
   }
-);
+  return (
+    <ImageBackground
+      source={{ uri: imageUrl! }}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    />
+  );
+});
 
-const ControlButton = memo(
-  ({
-    icon,
-    isActive,
-    onPress,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    isActive?: boolean;
-    onPress: () => void;
-  }) => (
-    <TouchableOpacity onPress={onPress}>
-      <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
-    </TouchableOpacity>
-  )
-);
+const PlayerControls: FC<PlayerProps> = memo(({
+  isPlaying,
+  position,
+  duration,
+  onPlayPause,
+  onNext,
+  onPrev,
+  onSeek,
+  shuffle,
+  setShuffle,
+  repeat,
+  setRepeat,
+  currentSong,
+}) => (
+  <>
+    <SongInfo currentSong={currentSong} />
+    <Progress position={position} duration={duration} onSeek={onSeek} />
+    <Controls
+      isPlaying={isPlaying}
+      onPlayPause={onPlayPause}
+      onNext={onNext}
+      onPrev={onPrev}
+      shuffle={shuffle}
+      setShuffle={setShuffle}
+      repeat={repeat}
+      setRepeat={setRepeat}
+    />
+  </>
+));
 
-const PlayPauseButton = memo(
-  ({ isPlaying, onPress }: { isPlaying: boolean; onPress: () => void }) => (
-    <TouchableOpacity style={styles.playButton} onPress={onPress}>
-      <Ionicons
-        name={isPlaying ? "pause-circle" : "play-circle"}
-        size={70}
-        color="#fff"
-      />
-    </TouchableOpacity>
-  )
-);
+const Player: FC<PlayerProps> = (props) => {
+  const { currentSong, onClose, onNext, onPrev } = props;
 
-const MediaBackground = memo(
-  ({
-    videoUrl,
-    imageUrl,
-  }: {
-    videoUrl?: string | null;
-    imageUrl?: string | null;
-  }) => {
-    if (videoUrl) {
-      return (
-        <View style={styles.backgroundImage}>
-          <Video
-            source={{ uri: videoUrl }}
-            style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
-            resizeMode={ResizeMode.COVER}
-            shouldPlay
-            isLooping
-            isMuted
-          />
-        </View>
-      );
+  const handleGestureEvent = useCallback((event: PanGestureHandlerGestureEvent) => {
+    if (event.nativeEvent.translationX > 50) {
+      onNext();
+    } else if (event.nativeEvent.translationX < -50) {
+      onPrev();
     }
-    return (
-      <ImageBackground
-        source={{ uri: imageUrl! }}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      />
-    );
-  }
-);
-
-const Player = (props: PlayerProps) => {
-  const handleSwipe = (direction: Directions) => {
-    if (direction === Directions.RIGHT) {
-      return props.onNext();
-    }
-
-    if (direction === Directions.LEFT) {
-      return props.onPrev();
-    }
-  };
+  }, [onNext, onPrev]);
 
   return (
-    <PanGestureHandler
-      onGestureEvent={({ nativeEvent }) => {
-        if (nativeEvent.translationX > 50) {
-          handleSwipe(Directions.RIGHT);
-        } else if (nativeEvent.translationX < -50) {
-          handleSwipe(Directions.LEFT);
-        }
-      }}
-    >
+    <PanGestureHandler onGestureEvent={handleGestureEvent}>
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={{ flexGrow: 1 }}
       >
         <View style={styles.playerContainer}>
           <MediaBackground
-            videoUrl={props.currentSong.video_path}
-            imageUrl={props.currentSong.image_path}
+            videoUrl={currentSong.video_path}
+            imageUrl={currentSong.image_path}
           />
 
-          <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Ionicons name="chevron-down" size={30} color="#fff" />
           </TouchableOpacity>
 
@@ -205,15 +241,16 @@ const Player = (props: PlayerProps) => {
           </LinearGradient>
         </View>
 
-        {props.currentSong?.lyrics && (
-          <Lyric lyrics={props.currentSong.lyrics} />
+        {currentSong?.lyrics && (
+          <Lyric lyrics={currentSong.lyrics} />
         )}
       </ScrollView>
     </PanGestureHandler>
   );
 };
 
-export default memo(Player);
+const MemoizedPlayer = memo(Player);
+export default MemoizedPlayer;
 
 const styles = StyleSheet.create({
   scrollContainer: {

@@ -31,6 +31,7 @@ export default function TabLayout() {
     playPrevSong,
     seekTo,
     repeat,
+    repeatMode,
     setRepeat,
     shuffle,
     setShuffle,
@@ -192,6 +193,7 @@ export default function TabLayout() {
             onSeek={seekTo}
             onClose={() => setShowPlayer(false)}
             repeat={repeat}
+            repeatMode={repeatMode}
             setRepeat={setRepeat}
             shuffle={shuffle}
             setShuffle={setShuffle}

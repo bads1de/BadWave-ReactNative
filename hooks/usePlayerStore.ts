@@ -1,37 +1,34 @@
 import { create } from "zustand";
+import { RepeatMode } from "react-native-track-player";
 import Song from "../types";
 
 type PlayerState = {
   showPlayer: boolean;
   currentSong: Song | null;
   isPlaying: boolean;
-  repeat: boolean;
+  repeatMode: RepeatMode;
   shuffle: boolean;
-  sound: any;
 };
 
 type PlayerActions = {
   setShowPlayer: (value: boolean) => void;
   setCurrentSong: (song: Song | null) => void;
   setIsPlaying: (value: boolean) => void;
-  setRepeat: (value: boolean) => void;
+  setRepeatMode: (mode: RepeatMode) => void;
   setShuffle: (value: boolean) => void;
-  setSound: (sound: any) => void;
 };
 
 export const usePlayerStore = create<PlayerState & PlayerActions>((set) => ({
   showPlayer: false,
   currentSong: null,
   isPlaying: false,
-  repeat: false,
+  repeatMode: RepeatMode.Off,
   shuffle: false,
-  sound: null,
 
   // Actions
   setShowPlayer: (value) => set({ showPlayer: value }),
   setCurrentSong: (song) => set({ currentSong: song }),
   setIsPlaying: (value) => set({ isPlaying: value }),
-  setRepeat: (value) => set({ repeat: value }),
+  setRepeatMode: (mode) => set({ repeatMode: mode }),
   setShuffle: (value) => set({ shuffle: value }),
-  setSound: (sound) => set({ sound }),
 }));
