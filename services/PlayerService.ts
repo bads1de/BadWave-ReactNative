@@ -117,45 +117,39 @@ export async function toggleShuffle() {
       // シャッフルを有効にする場合
       originalQueue = [...queue];
 
-      // 現在の曲を除外してシャッフル
-      let remainingTracks = currentTrack
-        ? queue.filter(track => track.id !== currentTrack.id)
-        : [...queue];
-      const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
-
-      // 現在の曲を先頭に、シャッフルした残りの曲を後ろに配置
-      const newQueue = currentTrack
-        ? [currentTrack, ...shuffledTracks]
-        : shuffledTracks;
-
-      await TrackPlayer.reset();
-      await TrackPlayer.add(newQueue);
-
-      // 現在の曲と再生状態を復元
       if (currentTrack) {
-        await TrackPlayer.skip(0);
-        await TrackPlayer.seekTo(currentPosition);
-        if (isPlaying) {
-          await TrackPlayer.play();
-        }
+        // 現在の曲を除外してシャッフル
+        let remainingTracks = queue.filter(track => track.id !== currentTrack.id);
+        const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
+        
+        // 現在の曲の後ろにシャッフルした曲を配置
+        // 再生中の曲はそのままにして、後続の曲だけを入れ替える
+        await TrackPlayer.removeUpcomingTracks();
+        await TrackPlayer.add(shuffledTracks);
+      } else {
+        // 再生中の曲がない場合は全体をシャッフル
+        const shuffledTracks = [...queue].sort(() => Math.random() - 0.5);
+        await TrackPlayer.reset();
+        await TrackPlayer.add(shuffledTracks);
       }
     } else {
       // シャッフルを無効にする場合
-      if (originalQueue.length > 0) {
+      if (originalQueue.length > 0 && currentTrack) {
+        // 現在の曲のインデックスを元のキューから取得
+        const originalIndex = originalQueue.findIndex(track => track.id === currentTrack.id);
+        
+        if (originalIndex !== -1) {
+          // 現在の曲の後ろに元の順序の曲を配置
+          const tracksAfterCurrent = originalQueue.slice(originalIndex + 1);
+          
+          // 後続の曲を入れ替え
+          await TrackPlayer.removeUpcomingTracks();
+          await TrackPlayer.add(tracksAfterCurrent);
+        }
+      } else if (originalQueue.length > 0) {
+        // 再生中の曲がない場合は元のキュー全体を復元
         await TrackPlayer.reset();
         await TrackPlayer.add(originalQueue);
-
-        // 現在の曲と再生状態を復元
-        if (currentTrack) {
-          const newIndex = originalQueue.findIndex(track => track.id === currentTrack.id);
-          if (newIndex !== -1) {
-            await TrackPlayer.skip(newIndex);
-            await TrackPlayer.seekTo(currentPosition);
-            if (isPlaying) {
-              await TrackPlayer.play();
-            }
-          }
-        }
       }
     }
 
@@ -233,27 +227,38 @@ export async function playSong(url: string) {
       return;
     }
 
-    // キュー情報を取得
-    const queue = await TrackPlayer.getQueue();
-
     // 曲の準備
     const tracks = convertToTracks(songsData);
     const selectedTrack = tracks[songIndex];
+
+    // 現在のキュー情報と再生状態を確認
+    const currentQueue = await TrackPlayer.getQueue();
+    const currentTrackIndex = await TrackPlayer.getActiveTrackIndex();
+    const isCurrentlyPlaying = currentTrackIndex !== null && currentTrackIndex !== undefined && currentTrackIndex >= 0;
+
+    // 選択した曲が現在のキューに存在するか確認
+    const selectedTrackInQueue = isCurrentlyPlaying ? 
+      currentQueue.findIndex(track => track.id === selectedTrack.id) : -1;
+
+    if (selectedTrackInQueue !== -1) {
+      // 選択した曲がすでにキューにある場合は、その曲にスキップ
+      await TrackPlayer.skip(selectedTrackInQueue);
+      await TrackPlayer.play();
+      return;
+    }
 
     // キューのクリアと再設定
     await TrackPlayer.reset();
 
     if (isShuffleEnabled) {
-      // 現在の曲を除外して残りをシャッフル
+      // 選択した曲を先頭に、残りをシャッフルして後ろに配置
       const remainingTracks = tracks.filter(track => track.id !== selectedTrack.id);
       const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
       
-      // 選択した曲を先頭に、シャッフルした曲を後ろに配置
       const newQueue = [selectedTrack, ...shuffledTracks];
       originalQueue = [...tracks]; // 元の順序を保存
       
       await TrackPlayer.add(newQueue);
-      await TrackPlayer.skip(0); // 選択曲は先頭にあるため
     } else {
       // シャッフルが無効の場合は通常の順序で追加
       await TrackPlayer.add(tracks);
@@ -278,16 +283,14 @@ export async function playSong(url: string) {
       const selectedTrack = tracks[fallbackSongIndex];
 
       if (isShuffleEnabled) {
-        // 現在の曲を除外して残りをシャッフル
+        // 選択した曲を先頭に、残りをシャッフルして後ろに配置
         const remainingTracks = tracks.filter(track => track.id !== selectedTrack.id);
         const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
         
-        // 選択した曲を先頭に、シャッフルした曲を後ろに配置
         const newQueue = [selectedTrack, ...shuffledTracks];
         originalQueue = [...tracks]; // 元の順序を保存
         
         await TrackPlayer.add(newQueue);
-        await TrackPlayer.skip(0);
       } else {
         await TrackPlayer.add(tracks);
         await TrackPlayer.skip(fallbackSongIndex);

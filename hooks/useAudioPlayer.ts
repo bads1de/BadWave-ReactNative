@@ -205,8 +205,11 @@ export function useAudioPlayer(songs: Song[]) {
     shuffle,
     setShuffle: async (value: boolean) => {
       try {
-        const newShuffleState = await toggleShuffle();
-        setShuffle(newShuffleState);
+        // 現在の状態と異なる場合のみトグル処理を実行
+        if (value !== shuffle) {
+          const newShuffleState = await toggleShuffle();
+          setShuffle(newShuffleState);
+        }
       } catch (error) {
         console.error('シャッフルモード設定エラー:', error);
       }
