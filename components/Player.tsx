@@ -122,7 +122,7 @@ const Controls: FC<ControlsProps> = memo(({
     <ControlButton
       icon="shuffle"
       isActive={shuffle}
-      onPress={() => setShuffle(true)}
+      onPress={() => setShuffle(!shuffle)}
     />
     <ControlButton icon="play-skip-back" onPress={onPrev} />
     <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
