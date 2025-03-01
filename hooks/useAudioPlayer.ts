@@ -283,7 +283,15 @@ export function useAudioPlayer(songs: Song[]) {
     } catch (error) {
       console.error("次の曲の再生エラー:", error);
     }
-  }, [songs, repeat, currentSong, sound, setIsPlaying, playSong, getNextSongIndex]);
+  }, [
+    songs,
+    repeat,
+    currentSong,
+    sound,
+    setIsPlaying,
+    playSong,
+    getNextSongIndex,
+  ]);
 
   /**
    * playNextSong関数をnextSongRefに設定する。
@@ -369,7 +377,7 @@ export function useAudioPlayer(songs: Song[]) {
   ]);
 
   const updatePlaybackStatus = useCallback(async () => {
-    if (sound && isPlaying) {  
+    if (sound && isPlaying) {
       try {
         const status = await sound.getStatusAsync();
         if (status.isLoaded) {
@@ -377,7 +385,10 @@ export function useAudioPlayer(songs: Song[]) {
           if (Math.abs(status.positionMillis - position) > 500) {
             setPosition(status.positionMillis);
           }
-          if (status.durationMillis && Math.abs(status.durationMillis - duration) > 500) {
+          if (
+            status.durationMillis &&
+            Math.abs(status.durationMillis - duration) > 500
+          ) {
             setDuration(status.durationMillis);
           }
         }
@@ -392,7 +403,7 @@ export function useAudioPlayer(songs: Song[]) {
     if (isPlaying && sound) {
       positionUpdateIntervalRef.current = setInterval(
         updatePlaybackStatus,
-        2000  
+        2000
       );
     }
     return () => {
