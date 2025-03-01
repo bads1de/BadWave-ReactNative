@@ -19,9 +19,43 @@ export const REPEAT_STATES = {
   QUEUE: "queue", // キュー全体をリピート
 };
 
-// シャッフル状態と元のキューを管理するグローバル変数
-let isShuffleEnabled = false;
-let originalQueue: Track[] = [];
+// シャッフル状態を管理するクラス
+class QueueManager {
+  private static instance: QueueManager;
+  private isShuffleEnabled: boolean = false;
+  private originalQueue: Track[] = [];
+
+  private constructor() {}
+
+  static getInstance(): QueueManager {
+    if (!QueueManager.instance) {
+      QueueManager.instance = new QueueManager();
+    }
+    return QueueManager.instance;
+  }
+
+  getShuffleState(): boolean {
+    return this.isShuffleEnabled;
+  }
+
+  setShuffleState(state: boolean): void {
+    this.isShuffleEnabled = state;
+  }
+
+  getOriginalQueue(): Track[] {
+    return [...this.originalQueue];
+  }
+
+  setOriginalQueue(queue: Track[]): void {
+    this.originalQueue = [...queue];
+  }
+
+  clearOriginalQueue(): void {
+    this.originalQueue = [];
+  }
+}
+
+const queueManager = QueueManager.getInstance();
 
 /**
  * プレイヤーの初期設定を行う
@@ -106,16 +140,17 @@ export async function toggleShuffle() {
       (await TrackPlayer.getPlaybackState()).state === State.Playing;
 
     // シャッフルの切り替え
-    isShuffleEnabled = !isShuffleEnabled;
+    const newShuffleState = !queueManager.getShuffleState();
+    queueManager.setShuffleState(newShuffleState);
 
     // 現在再生中のトラックを特定
     const currentTrack = currentTrackIndex !== null && currentTrackIndex !== undefined && currentTrackIndex >= 0
       ? queue[currentTrackIndex]
       : null;
 
-    if (isShuffleEnabled) {
+    if (newShuffleState) {
       // シャッフルを有効にする場合
-      originalQueue = [...queue];
+      queueManager.setOriginalQueue(queue);
 
       if (currentTrack) {
         // 現在の曲を除外してシャッフル
@@ -134,9 +169,10 @@ export async function toggleShuffle() {
       }
     } else {
       // シャッフルを無効にする場合
+      const originalQueue = queueManager.getOriginalQueue();
       if (originalQueue.length > 0 && currentTrack) {
         // 現在の曲のインデックスを元のキューから取得
-        const originalIndex = originalQueue.findIndex(track => track.id === currentTrack.id);
+        const originalIndex = originalQueue.findIndex((track: Track) => track.id === currentTrack.id);
         
         if (originalIndex !== -1) {
           // 現在の曲の後ろに元の順序の曲を配置
@@ -153,10 +189,10 @@ export async function toggleShuffle() {
       }
     }
 
-    return isShuffleEnabled;
+    return newShuffleState;
   } catch (error) {
     console.error("シャッフルの切り替え中にエラーが発生しました:", error);
-    return isShuffleEnabled;
+    return queueManager.getShuffleState();
   }
 }
 
@@ -210,8 +246,8 @@ export async function getRepeatMode() {
  * 現在のシャッフル状態を取得
  * @returns {boolean} シャッフルが有効かどうか
  */
-export function getShuffleState() {
-  return isShuffleEnabled;
+export function getShuffleState(): boolean {
+  return queueManager.getShuffleState();
 }
 
 /**
@@ -250,13 +286,13 @@ export async function playSong(url: string) {
     // キューのクリアと再設定
     await TrackPlayer.reset();
 
-    if (isShuffleEnabled) {
+    if (queueManager.getShuffleState()) {
       // 選択した曲を先頭に、残りをシャッフルして後ろに配置
       const remainingTracks = tracks.filter(track => track.id !== selectedTrack.id);
       const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
       
       const newQueue = [selectedTrack, ...shuffledTracks];
-      originalQueue = [...tracks]; // 元の順序を保存
+      queueManager.setOriginalQueue(tracks); // 元の順序を保存
       
       await TrackPlayer.add(newQueue);
     } else {
@@ -282,13 +318,13 @@ export async function playSong(url: string) {
       }
       const selectedTrack = tracks[fallbackSongIndex];
 
-      if (isShuffleEnabled) {
+      if (queueManager.getShuffleState()) {
         // 選択した曲を先頭に、残りをシャッフルして後ろに配置
         const remainingTracks = tracks.filter(track => track.id !== selectedTrack.id);
         const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
         
         const newQueue = [selectedTrack, ...shuffledTracks];
-        originalQueue = [...tracks]; // 元の順序を保存
+        queueManager.setOriginalQueue(tracks); // 元の順序を保存
         
         await TrackPlayer.add(newQueue);
       } else {
@@ -386,8 +422,11 @@ export async function skipToPrevious() {
 
 /**
  * トラックプレイヤーの進捗状況を取得する
- * @returns {any} 進捗状況
+ * @returns {Progress} 進捗状況（position, duration, buffered）
  */
 export const useTrackPlayerProgress = () => {
   return useProgress();
 };
+
+// Progress型をエクスポート
+export type { Progress } from 'react-native-track-player';
