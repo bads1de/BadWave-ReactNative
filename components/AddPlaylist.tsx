@@ -10,13 +10,12 @@ import {
   Animated,
   Dimensions,
 } from "react-native";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
-import { PlaylistSong, Playlist } from "@/types";
+import { PlaylistSong } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
 import addPlaylistSong from "@/actions/addPlaylistSong";
 import usePlaylistStatus from "@/hooks/usePlaylistStatus";
@@ -48,7 +47,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
 
   useEffect(() => {
     fetchAddedStatus();
-  }, [fetchAddedStatus, songId, playlists]);
+  }, [songId]);
 
   useEffect(() => {
     if (modalOpen) {

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, FC } from "react";
+import React, { memo, useCallback, useEffect, FC } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
 
-
 interface PlayerProps {
   sound: any;
   isPlaying: boolean;
@@ -32,7 +31,7 @@ interface PlayerProps {
   onSeek: (millis: number) => void;
   onClose: () => void;
   repeat: boolean;
-  repeatMode: 'off' | 'track' | 'queue';
+  repeatMode: "off" | "track" | "queue";
   setRepeat: (value: boolean) => void;
   shuffle: boolean;
   setShuffle: (value: boolean) => void;
@@ -108,138 +107,142 @@ const Progress: FC<ProgressProps> = memo(({ position, duration, onSeek }) => (
   </>
 ));
 
-const Controls: FC<ControlsProps> = memo(({
-  isPlaying,
-  onPlayPause,
-  onNext,
-  onPrev,
-  shuffle,
-  setShuffle,
-  repeat,
-  setRepeat,
-}) => (
-  <View style={styles.controls}>
-    <ControlButton
-      icon="shuffle"
-      isActive={shuffle}
-      onPress={() => setShuffle(!shuffle)}
-    />
-    <ControlButton icon="play-skip-back" onPress={onPrev} />
-    <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
-    <ControlButton icon="play-skip-forward" onPress={onNext} />
-    <ControlButton
-      icon="repeat"
-      isActive={repeat}
-      onPress={() => setRepeat(!repeat)}
-    />
-  </View>
-));
+const Controls: FC<ControlsProps> = memo(
+  ({
+    isPlaying,
+    onPlayPause,
+    onNext,
+    onPrev,
+    shuffle,
+    setShuffle,
+    repeat,
+    setRepeat,
+  }) => (
+    <View style={styles.controls}>
+      <ControlButton
+        icon="shuffle"
+        isActive={shuffle}
+        onPress={() => setShuffle(!shuffle)}
+      />
+      <ControlButton icon="play-skip-back" onPress={onPrev} />
+      <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
+      <ControlButton icon="play-skip-forward" onPress={onNext} />
+      <ControlButton
+        icon="repeat"
+        isActive={repeat}
+        onPress={() => setRepeat(!repeat)}
+      />
+    </View>
+  )
+);
 
-const ControlButton: FC<ControlButtonProps> = memo(({ icon, isActive, onPress }) => (
-  <TouchableOpacity onPress={onPress}>
-    <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
-  </TouchableOpacity>
-));
+const ControlButton: FC<ControlButtonProps> = memo(
+  ({ icon, isActive, onPress }) => (
+    <TouchableOpacity onPress={onPress}>
+      <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
+    </TouchableOpacity>
+  )
+);
 
-const PlayPauseButton: FC<PlayPauseButtonProps> = memo(({ isPlaying, onPress }) => (
-  <TouchableOpacity style={styles.playButton} onPress={onPress}>
-    <Ionicons
-      name={isPlaying ? "pause-circle" : "play-circle"}
-      size={70}
-      color="#fff"
-    />
-  </TouchableOpacity>
-));
+const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
+  ({ isPlaying, onPress }) => (
+    <TouchableOpacity style={styles.playButton} onPress={onPress}>
+      <Ionicons
+        name={isPlaying ? "pause-circle" : "play-circle"}
+        size={70}
+        color="#fff"
+      />
+    </TouchableOpacity>
+  )
+);
 
-const MediaBackground: FC<MediaBackgroundProps> = memo(({ videoUrl, imageUrl }) => {
-  if (videoUrl) {
+const MediaBackground: FC<MediaBackgroundProps> = memo(
+  ({ videoUrl, imageUrl }) => {
+    if (videoUrl) {
+      return (
+        <View style={styles.backgroundImage}>
+          <Video
+            source={{ uri: videoUrl }}
+            style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay
+            isLooping
+            isMuted
+          />
+        </View>
+      );
+    }
     return (
-      <View style={styles.backgroundImage}>
-        <Video
-          source={{ uri: videoUrl }}
-          style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
-          resizeMode={ResizeMode.COVER}
-          shouldPlay
-          isLooping
-          isMuted
-        />
-      </View>
+      <ImageBackground
+        source={{ uri: imageUrl! }}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
     );
   }
-  return (
-    <ImageBackground
-      source={{ uri: imageUrl! }}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    />
-  );
-});
+);
 
-const PlayerControls: FC<PlayerProps> = memo(({
-  isPlaying,
-  position,
-  duration,
-  onPlayPause,
-  onNext,
-  onPrev,
-  onSeek,
-  shuffle,
-  setShuffle,
-  repeat,
-  setRepeat,
-  currentSong,
-}) => (
-  <>
-    <SongInfo currentSong={currentSong} />
-    <Progress position={position} duration={duration} onSeek={onSeek} />
-    <Controls
-      isPlaying={isPlaying}
-      onPlayPause={onPlayPause}
-      onNext={onNext}
-      onPrev={onPrev}
-      shuffle={shuffle}
-      setShuffle={setShuffle}
-      repeat={repeat}
-      setRepeat={setRepeat}
-    />
-  </>
-));
+const PlayerControls: FC<PlayerProps> = memo(
+  ({
+    isPlaying,
+    position,
+    duration,
+    onPlayPause,
+    onNext,
+    onPrev,
+    onSeek,
+    shuffle,
+    setShuffle,
+    repeat,
+    setRepeat,
+    currentSong,
+  }) => (
+    <>
+      <SongInfo currentSong={currentSong} />
+      <Progress position={position} duration={duration} onSeek={onSeek} />
+      <Controls
+        isPlaying={isPlaying}
+        onPlayPause={onPlayPause}
+        onNext={onNext}
+        onPrev={onPrev}
+        shuffle={shuffle}
+        setShuffle={setShuffle}
+        repeat={repeat}
+        setRepeat={setRepeat}
+      />
+    </>
+  )
+);
 
 const Player: FC<PlayerProps> = (props) => {
   const { currentSong, onClose, onNext, onPrev } = props;
 
-
-
   return (
+    <ScrollView
+      style={styles.scrollContainer}
+      contentContainerStyle={{ flexGrow: 1 }}
+    >
+      <View style={styles.playerContainer}>
+        <MediaBackground
+          videoUrl={currentSong.video_path}
+          imageUrl={currentSong.image_path}
+        />
 
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
-        <View style={styles.playerContainer}>
-          <MediaBackground
-            videoUrl={currentSong.video_path}
-            imageUrl={currentSong.image_path}
-          />
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Ionicons name="chevron-down" size={30} color="#fff" />
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="chevron-down" size={30} color="#fff" />
-          </TouchableOpacity>
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
+          locations={[0, 0.5, 1]}
+          style={styles.bottomContainer}
+        >
+          <PlayerControls {...props} />
+        </LinearGradient>
+      </View>
 
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
-            locations={[0, 0.5, 1]}
-            style={styles.bottomContainer}
-          >
-            <PlayerControls {...props} />
-          </LinearGradient>
-        </View>
-
-        {currentSong?.lyrics && (
-          <Lyric lyrics={currentSong.lyrics} />
-        )}
-      </ScrollView>
-
+      {currentSong?.lyrics && <Lyric lyrics={currentSong.lyrics} />}
+    </ScrollView>
   );
 };
 
