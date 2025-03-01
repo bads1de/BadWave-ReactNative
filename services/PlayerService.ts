@@ -44,7 +44,6 @@ export async function setupPlayer(): Promise<boolean> {
         Capability.SkipToNext,
         Capability.SkipToPrevious,
       ],
-      progressUpdateEventInterval: 2,
     });
 
     return true;
@@ -62,16 +61,29 @@ export async function setupPlayer(): Promise<boolean> {
 export function playbackService() {
   return async () => {
     try {
-      await TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
-      await TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
-      await TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.stop());
-      await TrackPlayer.addEventListener(Event.RemoteNext, () => TrackPlayer.skipToNext());
-      await TrackPlayer.addEventListener(Event.RemotePrevious, () => TrackPlayer.skipToPrevious());
+      await TrackPlayer.addEventListener(Event.RemotePlay, () =>
+        TrackPlayer.play()
+      );
+      await TrackPlayer.addEventListener(Event.RemotePause, () =>
+        TrackPlayer.pause()
+      );
+      await TrackPlayer.addEventListener(Event.RemoteStop, () =>
+        TrackPlayer.stop()
+      );
+      await TrackPlayer.addEventListener(Event.RemoteNext, () =>
+        TrackPlayer.skipToNext()
+      );
+      await TrackPlayer.addEventListener(Event.RemotePrevious, () =>
+        TrackPlayer.skipToPrevious()
+      );
       await TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
         console.error("再生エラーが発生しました:", error);
       });
     } catch (error) {
-      console.error("プレイバックサービスの設定中にエラーが発生しました:", error);
+      console.error(
+        "プレイバックサービスの設定中にエラーが発生しました:",
+        error
+      );
       throw error;
     }
   };
