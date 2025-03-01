@@ -59,7 +59,7 @@ export default function RootLayout() {
     };
 
     if (!isPlaybackServiceRegistered.current) {
-      TrackPlayer.registerPlaybackService(() => playbackService);
+      TrackPlayer.registerPlaybackService(playbackService);
       isPlaybackServiceRegistered.current = true;
       console.log("再生サービスが登録されました");
     }

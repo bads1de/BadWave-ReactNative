@@ -60,41 +60,22 @@ export async function setupPlayer(): Promise<boolean> {
  * TrackPlayerのリモート制御イベントに対するハンドラーを登録します
  * @returns {Promise<void>}
  */
-export async function playbackService(): Promise<void> {
-  let subscriptions: EmitterSubscription[] = [];
-
-  try {
-    // イベントリスナーの登録と同時にサブスクリプションを保持
-    subscriptions = [
-      TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play()),
-      TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause()),
-      TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.stop()),
-      TrackPlayer.addEventListener(Event.RemoteNext, () => TrackPlayer.skipToNext()),
-      TrackPlayer.addEventListener(Event.RemotePrevious, () => TrackPlayer.skipToPrevious()),
-      // エラーイベントのハンドリング
-      TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
+export function playbackService() {
+  return async () => {
+    try {
+      await TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
+      await TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
+      await TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.stop());
+      await TrackPlayer.addEventListener(Event.RemoteNext, () => TrackPlayer.skipToNext());
+      await TrackPlayer.addEventListener(Event.RemotePrevious, () => TrackPlayer.skipToPrevious());
+      await TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
         console.error("再生エラーが発生しました:", error);
-      }),
-    ];
-
-    // アプリ終了時のクリーンアップ
-    if (typeof process !== 'undefined') {
-      const cleanup = () => {
-        subscriptions.forEach(subscription => subscription.remove());
-        subscriptions = [];
-      };
-
-      process.on('exit', cleanup);
-      process.on('SIGINT', cleanup);
-      process.on('SIGTERM', cleanup);
+      });
+    } catch (error) {
+      console.error("プレイバックサービスの設定中にエラーが発生しました:", error);
+      throw error;
     }
-
-  } catch (error) {
-    console.error("プレイバックサービスの設定中にエラーが発生しました:", error);
-    // エラー時のクリーンアップ
-    subscriptions.forEach(subscription => subscription.remove());
-    throw error;
-  }
+  };
 }
 
 // 型定義のエクスポート
