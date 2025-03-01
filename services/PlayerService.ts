@@ -7,19 +7,9 @@ import TrackPlayer, {
   RepeatMode,
   AppKilledPlaybackBehavior,
 } from "react-native-track-player";
-import getSongs from "../actions/getSongs";
-import Song from "@/types";
+import type Song from "@/types";
 
-/**
- * トラックプレイヤーのリピート状態を定義
- */
-export const REPEAT_STATES = {
-  OFF: "off", // リピートなし
-  TRACK: "track", // 現在のトラックをリピート
-  QUEUE: "queue", // キュー全体をリピート
-};
-
-// シャッフル状態と元のキューを管理するグローバル変数
+// シャッフル状態と元のキューを管理する変数 (モジュールレベル)
 let isShuffleEnabled = false;
 let originalQueue: Track[] = [];
 
@@ -28,17 +18,13 @@ let originalQueue: Track[] = [];
  * @returns {Promise<boolean>} 初期設定が成功したかどうか
  */
 export async function setupPlayer() {
-  let isSetup = false;
-
   try {
     await TrackPlayer.getActiveTrackIndex();
-    isSetup = true;
+    return true;
   } catch (e) {
     await TrackPlayer.setupPlayer();
     await TrackPlayer.updateOptions({
       android: {
-        // 再生が停止したときに、音声再生の通知も削除されるかどうか。
-        // stoppingAppPausesPlaybackがfalseに設定されている場合、これは無視されます。
         appKilledPlaybackBehavior: AppKilledPlaybackBehavior.PausePlayback,
       },
       capabilities: [
@@ -57,9 +43,7 @@ export async function setupPlayer() {
       ],
       progressUpdateEventInterval: 2,
     });
-    isSetup = true;
-  } finally {
-    return isSetup;
+    return true;
   }
 }
 
@@ -79,7 +63,7 @@ export async function playbackService() {
  * @param {Song[]} songs - 変換する曲データ
  * @returns {Track[]} 変換されたトラックデータ
  */
-const convertToTracks = (songs: Song[]) => {
+export const convertToTracks = (songs: Song[]): Track[] => {
   return songs.map((song) => ({
     id: song.id,
     url: song.song_path,
@@ -93,25 +77,18 @@ const convertToTracks = (songs: Song[]) => {
  * シャッフル状態をトグルする
  * @returns {Promise<boolean>} シャッフルが有効かどうか
  */
-export async function toggleShuffle() {
+export async function toggleShuffle(): Promise<boolean> {
   try {
     const queue = await TrackPlayer.getQueue();
     if (!queue || queue.length <= 1) return false;
 
     const currentTrackIndex = await TrackPlayer.getActiveTrackIndex();
-    const currentPosition = await TrackPlayer.getProgress().then(
-      (progress) => progress.position
-    );
-    const isPlaying =
-      (await TrackPlayer.getPlaybackState()).state === State.Playing;
-
-    // シャッフルの切り替え
-    isShuffleEnabled = !isShuffleEnabled;
-
-    // 現在再生中のトラックを特定
     const currentTrack = currentTrackIndex !== null && currentTrackIndex !== undefined && currentTrackIndex >= 0
       ? queue[currentTrackIndex]
       : null;
+
+    // シャッフルの切り替え
+    isShuffleEnabled = !isShuffleEnabled;
 
     if (isShuffleEnabled) {
       // シャッフルを有効にする場合
@@ -119,11 +96,10 @@ export async function toggleShuffle() {
 
       if (currentTrack) {
         // 現在の曲を除外してシャッフル
-        let remainingTracks = queue.filter(track => track.id !== currentTrack.id);
+        const remainingTracks = queue.filter(track => track.id !== currentTrack.id);
         const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
         
-        // 現在の曲の後ろにシャッフルした曲を配置
-        // 再生中の曲はそのままにして、後続の曲だけを入れ替える
+        // 後続の曲だけを入れ替える
         await TrackPlayer.removeUpcomingTracks();
         await TrackPlayer.add(shuffledTracks);
       } else {
@@ -139,15 +115,13 @@ export async function toggleShuffle() {
         const originalIndex = originalQueue.findIndex(track => track.id === currentTrack.id);
         
         if (originalIndex !== -1) {
-          // 現在の曲の後ろに元の順序の曲を配置
-          const tracksAfterCurrent = originalQueue.slice(originalIndex + 1);
-          
           // 後続の曲を入れ替え
+          const tracksAfterCurrent = originalQueue.slice(originalIndex + 1);
           await TrackPlayer.removeUpcomingTracks();
           await TrackPlayer.add(tracksAfterCurrent);
         }
       } else if (originalQueue.length > 0) {
-        // 再生中の曲がない場合は元のキュー全体を復元
+        // 元のキュー全体を復元
         await TrackPlayer.reset();
         await TrackPlayer.add(originalQueue);
       }
@@ -164,11 +138,11 @@ export async function toggleShuffle() {
  * リピート状態をトグルする (off -> track -> queue -> off)
  * @returns {Promise<RepeatMode>} 新しいリピート状態
  */
-export async function toggleRepeat() {
+export async function toggleRepeat(): Promise<RepeatMode> {
   try {
     const currentMode = await TrackPlayer.getRepeatMode();
+    let nextMode: RepeatMode;
 
-    let nextMode;
     switch (currentMode) {
       case RepeatMode.Off:
         nextMode = RepeatMode.Track;
@@ -184,9 +158,7 @@ export async function toggleRepeat() {
     }
 
     await TrackPlayer.setRepeatMode(nextMode);
-    // 設定後に実際のモードを取得して返す
-    const confirmedMode = await TrackPlayer.getRepeatMode();
-    return confirmedMode;
+    return await TrackPlayer.getRepeatMode();
   } catch (error) {
     console.error("リピートモードの切り替え中にエラーが発生しました:", error);
     return RepeatMode.Off;
@@ -197,7 +169,7 @@ export async function toggleRepeat() {
  * 現在のリピート状態を取得
  * @returns {Promise<RepeatMode>} 現在のリピート状態
  */
-export async function getRepeatMode() {
+export async function getRepeatMode(): Promise<RepeatMode> {
   try {
     return await TrackPlayer.getRepeatMode();
   } catch (error) {
@@ -210,7 +182,7 @@ export async function getRepeatMode() {
  * 現在のシャッフル状態を取得
  * @returns {boolean} シャッフルが有効かどうか
  */
-export function getShuffleState() {
+export function getShuffleState(): boolean {
   return isShuffleEnabled;
 }
 
@@ -218,176 +190,99 @@ export function getShuffleState() {
  * 指定されたURLの曲を再生する
  * @param {string} url - 再生する曲のURL
  */
-export async function playSong(url: string) {
+export async function playSong(url: string): Promise<void> {
   try {
-    const songsData = await getSongs();
-    const songIndex = songsData.findIndex((song) => song.song_path === url);
-    if (songIndex === -1) {
-      console.error("曲が見つかりません");
-      return;
-    }
+    const queue = await TrackPlayer.getQueue();
+    const currentTrack = queue.find(track => track.url === url);
 
-    // 曲の準備
-    const tracks = convertToTracks(songsData);
-    const selectedTrack = tracks[songIndex];
-
-    // 現在のキュー情報と再生状態を確認
-    const currentQueue = await TrackPlayer.getQueue();
-    const currentTrackIndex = await TrackPlayer.getActiveTrackIndex();
-    const isCurrentlyPlaying = currentTrackIndex !== null && currentTrackIndex !== undefined && currentTrackIndex >= 0;
-
-    // 選択した曲が現在のキューに存在するか確認
-    const selectedTrackInQueue = isCurrentlyPlaying ? 
-      currentQueue.findIndex(track => track.id === selectedTrack.id) : -1;
-
-    if (selectedTrackInQueue !== -1) {
-      // 選択した曲がすでにキューにある場合は、その曲にスキップ
-      await TrackPlayer.skip(selectedTrackInQueue);
+    if (currentTrack) {
+      // 既にキューに存在する場合は、そのトラックにジャンプ
+      const trackIndex = queue.indexOf(currentTrack);
+      await TrackPlayer.skip(trackIndex);
       await TrackPlayer.play();
-      return;
-    }
-
-    // キューのクリアと再設定
-    await TrackPlayer.reset();
-
-    if (isShuffleEnabled) {
-      // 選択した曲を先頭に、残りをシャッフルして後ろに配置
-      const remainingTracks = tracks.filter(track => track.id !== selectedTrack.id);
-      const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
-      
-      const newQueue = [selectedTrack, ...shuffledTracks];
-      originalQueue = [...tracks]; // 元の順序を保存
-      
-      await TrackPlayer.add(newQueue);
     } else {
-      // シャッフルが無効の場合は通常の順序で追加
-      await TrackPlayer.add(tracks);
-      await TrackPlayer.skip(songIndex);
-    }
-
-    await TrackPlayer.play();
-  } catch (error) {
-    console.error("曲の再生中にエラーが発生しました:", error);
-
-    try {
-      // Fallback: reset player and add all songs
+      // キューに存在しない場合は、現在のキューをクリアして新しいトラックを追加
       await TrackPlayer.reset();
-      const songsData = await getSongs();
-      const tracks = convertToTracks(songsData);
-
-      // フォールバック処理でも songIndex を再取得
-      const fallbackSongIndex = songsData.findIndex((song) => song.song_path === url);
-      if (fallbackSongIndex === -1) {
-        throw new Error("曲が見つかりません");
-      }
-      const selectedTrack = tracks[fallbackSongIndex];
-
-      if (isShuffleEnabled) {
-        // 選択した曲を先頭に、残りをシャッフルして後ろに配置
-        const remainingTracks = tracks.filter(track => track.id !== selectedTrack.id);
-        const shuffledTracks = remainingTracks.sort(() => Math.random() - 0.5);
-        
-        const newQueue = [selectedTrack, ...shuffledTracks];
-        originalQueue = [...tracks]; // 元の順序を保存
-        
-        await TrackPlayer.add(newQueue);
-      } else {
-        await TrackPlayer.add(tracks);
-        await TrackPlayer.skip(fallbackSongIndex);
-      }
-
+      await TrackPlayer.add({
+        url,
+        title: 'Loading...', 
+        artist: 'Loading...', 
+        // artwork を省略（undefined扱いになる）
+      });
       await TrackPlayer.play();
-    } catch (fallbackError) {
-      console.error(
-        "フォールバック処理中にエラーが発生しました:",
-        fallbackError
-      );
     }
+  } catch (error) {
+    console.error("再生中にエラーが発生しました:", error);
+    throw error;
   }
 }
 
 /**
  * 次の曲にスキップする
  */
-export async function skipToNext() {
+export async function skipToNext(): Promise<void> {
   try {
     const queue = await TrackPlayer.getQueue();
     const currentIndex = await TrackPlayer.getCurrentTrack();
-
-    // 特殊なケースを処理するためにリピートモードを取得
     const repeatMode = await TrackPlayer.getRepeatMode();
 
     // トラックリピートがオンの場合、曲の最初に戻る
     if (repeatMode === RepeatMode.Track) {
       await TrackPlayer.seekTo(0);
-      await TrackPlayer.play();
-      return;
+      return TrackPlayer.play();
     }
 
     // 次の曲が存在するかチェック
     if (currentIndex != null && currentIndex < queue.length - 1) {
       await TrackPlayer.skipToNext();
-      await TrackPlayer.play();
-    } else if (queue.length > 0) {
-      // キューリピートがオンの場合、または手動でループする場合は最初の曲にループ
-      if (repeatMode === RepeatMode.Queue || repeatMode === RepeatMode.Off) {
-        await TrackPlayer.skip(0);
-        await TrackPlayer.play();
-      }
+      return TrackPlayer.play();
+    } else if (queue.length > 0 && (repeatMode === RepeatMode.Queue || repeatMode === RepeatMode.Off)) {
+      // キューの最後の場合、最初の曲にループ
+      await TrackPlayer.skip(0);
+      return TrackPlayer.play();
     }
-  } catch (e) {
-    console.error("次の曲にスキップする際にエラーが発生しました:", e);
+  } catch (error) {
+    console.error("次の曲にスキップする際にエラーが発生しました:", error);
   }
 }
 
 /**
  * 前の曲にスキップする
  */
-export async function skipToPrevious() {
+export async function skipToPrevious(): Promise<void> {
   try {
     const queue = await TrackPlayer.getQueue();
     const currentIndex = await TrackPlayer.getActiveTrackIndex();
-    const position = await TrackPlayer.getProgress().then(
-      (progress) => progress.position
-    );
-
-    // 特殊なケースを処理するためにリピートモードを取得
+    const position = await TrackPlayer.getProgress().then(progress => progress.position);
     const repeatMode = await TrackPlayer.getRepeatMode();
 
     // 曲の3秒以上が経過している場合、前の曲を再生する代わりに現在の曲を最初から再生
     if (position > 3) {
       await TrackPlayer.seekTo(0);
-      await TrackPlayer.play();
-      return;
+      return TrackPlayer.play();
     }
 
     // トラックリピートがオンの場合、曲の最初に戻る
     if (repeatMode === RepeatMode.Track) {
       await TrackPlayer.seekTo(0);
-      await TrackPlayer.play();
-      return;
+      return TrackPlayer.play();
     }
 
     // 前の曲が存在するかチェック
     if (currentIndex != null && currentIndex > 0) {
       await TrackPlayer.skipToPrevious();
-      await TrackPlayer.play();
-    } else if (queue.length > 0) {
-      // キューリピートがオンの場合、または手動でループする場合は最後の曲にループ
-      if (repeatMode === RepeatMode.Queue || repeatMode === RepeatMode.Off) {
-        await TrackPlayer.skip(queue.length - 1);
-        await TrackPlayer.play();
-      }
+      return TrackPlayer.play();
+    } else if (queue.length > 0 && (repeatMode === RepeatMode.Queue || repeatMode === RepeatMode.Off)) {
+      // キューの最初の場合、最後の曲にループ
+      await TrackPlayer.skip(queue.length - 1);
+      return TrackPlayer.play();
     }
-  } catch (e) {
-    console.error("前の曲にスキップする際にエラーが発生しました:", e);
+  } catch (error) {
+    console.error("前の曲にスキップする際にエラーが発生しました:", error);
   }
 }
 
 /**
  * トラックプレイヤーの進捗状況を取得する
- * @returns {any} 進捗状況
  */
-export const useTrackPlayerProgress = () => {
-  return useProgress();
-};
+export const useTrackPlayerProgress = useProgress;
