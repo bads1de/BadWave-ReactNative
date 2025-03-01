@@ -140,11 +140,19 @@ export function useAudioPlayer(songs: Song[]) {
    * 指定された曲を再生する
    */
   const playSong = useCallback(
-    async (song: Song) => {
+    async (song: Song, playlistId?: string) => {
       if (!song) return;
 
       try {
         safeStateUpdate(() => setCurrentSong(song));
+        
+        // プレイリストIDがあればプレイリストコンテキスト、なければいいね曲コンテキストを設定
+        if (playlistId) {
+          queueManager.setContext('playlist', playlistId);
+        } else {
+          queueManager.setContext('liked');
+        }
+        
         const tracks = convertToTracks(songs);
         const selectedTrack = tracks.find(track => track.id === song.id);
         
@@ -155,12 +163,22 @@ export function useAudioPlayer(songs: Song[]) {
         // 現在のキュー情報を確認
         const currentQueue = await TrackPlayer.getQueue();
         const currentTrackIndex = await TrackPlayer.getActiveTrackIndex();
-        const isCurrentlyPlaying = currentTrackIndex !== null && 
-                                 currentTrackIndex !== undefined && 
+        const currentContext = queueManager.getContext();
+        const newContext = playlistId
+          ? { type: 'playlist' as const, id: playlistId }
+          : { type: 'liked' as const };
+
+        // コンテキストが変更された場合は、キューを再構築
+        const contextChanged =
+          currentContext.type !== newContext.type ||
+          currentContext.id !== newContext.id;
+
+        const isCurrentlyPlaying = currentTrackIndex !== null &&
+                                 currentTrackIndex !== undefined &&
                                  currentTrackIndex >= 0;
 
-        // 選択した曲が現在のキューに存在するか確認
-        const selectedTrackInQueue = isCurrentlyPlaying ? 
+        // コンテキストが同じで、選択した曲が現在のキューに存在する場合
+        const selectedTrackInQueue = !contextChanged && isCurrentlyPlaying ?
           currentQueue.findIndex(track => track.id === selectedTrack.id) : -1;
 
         if (selectedTrackInQueue !== -1) {
@@ -196,7 +214,7 @@ export function useAudioPlayer(songs: Song[]) {
    * 再生/一時停止を切り替える
    */
   const togglePlayPause = useCallback(
-    async (song?: Song) => {
+    async (song?: Song, playlistId?: string) => {
       try {
         if (song) {
           if (currentSong?.id === song.id) {
@@ -206,7 +224,7 @@ export function useAudioPlayer(songs: Song[]) {
               await TrackPlayer.play();
             }
           } else {
-            await playSong(song);
+            await playSong(song, playlistId);
           }
           return;
         }

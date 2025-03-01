@@ -43,7 +43,7 @@ export default function PlaylistDetailScreen() {
       <SongItem
         song={item}
         onClick={async () => {
-          await playSong(item);
+          await playSong(item, playlistId);
         }}
         dynamicSize={true}
         showDeleteButton={true}

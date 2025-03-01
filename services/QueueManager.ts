@@ -6,6 +6,10 @@ import { Track } from "react-native-track-player";
 interface QueueState {
   isShuffleEnabled: boolean;
   originalQueue: Track[];
+  context: {
+    type: 'playlist' | 'liked' | null;
+    id?: string;
+  };
 }
 
 /**
@@ -29,6 +33,9 @@ export class QueueManager {
     this.state = {
       isShuffleEnabled: false,
       originalQueue: [],
+      context: {
+        type: null,
+      },
     };
   }
 
@@ -148,10 +155,33 @@ export class QueueManager {
   /**
    * 現在の状態をリセット
    */
+  /**
+   * 現在の再生コンテキストを取得
+   */
+  getContext() {
+    return { ...this.state.context };
+  }
+
+  /**
+   * 再生コンテキストを設定
+   */
+  setContext(type: 'playlist' | 'liked' | null, id?: string) {
+    this.state = {
+      ...this.state,
+      context: { type, id },
+    };
+  }
+
+  /**
+   * 現在の状態をリセット
+   */
   reset(): void {
     this.state = {
       isShuffleEnabled: false,
       originalQueue: [],
+      context: {
+        type: null,
+      },
     };
   }
 }
