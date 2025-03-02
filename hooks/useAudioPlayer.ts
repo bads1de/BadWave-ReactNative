@@ -69,6 +69,9 @@ export function useAudioPlayer(songs: Song[]) {
   // キュー操作中フラグ
   const isQueueOperationInProgress = useRef(false);
 
+  // 最適化: 前回のトラックIDを追跡して、重複更新を防止
+  const lastProcessedTrackId = useRef<string | null>(null);
+
   const {
     currentSong,
     isPlaying,
@@ -152,10 +155,20 @@ export function useAudioPlayer(songs: Song[]) {
 
         if (event.nextTrack !== null && event.nextTrack !== undefined) {
           try {
-            const track = await TrackPlayer.getTrack(event.nextTrack);
-            if (track && track.id) {
-              const song = songMap[track.id];
+            // 最適化: キャッシュされた索引データを使用する代わりにTrackPlayer.getTrackを回避
+            const queue = await TrackPlayer.getQueue();
+            const nextTrack = queue[event.nextTrack];
+
+            if (nextTrack && nextTrack.id) {
+              // 重複更新を防止
+              if (lastProcessedTrackId.current === nextTrack.id) {
+                return;
+              }
+
+              const song = songMap[nextTrack.id];
               if (song) {
+                lastProcessedTrackId.current = nextTrack.id;
+                // 最適化: requestAnimationFrameで状態更新を遅延させず、即時に更新
                 safeStateUpdate(() => setCurrentSong(song));
               }
             }
@@ -192,11 +205,14 @@ export function useAudioPlayer(songs: Song[]) {
       isQueueOperationInProgress.current = true;
 
       try {
-        // 即座に UI 状態を更新して体感速度を改善
+        // 最適化: 即座に UI 状態を更新して体感速度を改善
         safeStateUpdate(() => {
           setCurrentSong(song);
           setIsPlaying(true);
         });
+
+        // 最適化: 最後に処理されたトラックIDを更新
+        lastProcessedTrackId.current = song.id;
 
         // コンテキスト設定
         queueManager.setContext(playlistId ? "playlist" : "liked", playlistId);
@@ -330,7 +346,7 @@ export function useAudioPlayer(songs: Song[]) {
   );
 
   /**
-   * 次の曲を再生する
+   * 次の曲を再生する (最適化版)
    */
   const playNextSong = useCallback(async () => {
     if (isQueueOperationInProgress.current) return;
@@ -346,15 +362,43 @@ export function useAudioPlayer(songs: Song[]) {
       if (queue.length === 0) return;
 
       const currentIndex = await TrackPlayer.getCurrentTrack();
+      if (currentIndex === null || currentIndex === undefined) return;
 
-      if (currentIndex != null && currentIndex < queue.length - 1) {
-        // 次の曲へ
+      // 次の曲を先読みして、UI更新を最適化
+      let nextIndex;
+      if (currentIndex < queue.length - 1) {
+        nextIndex = currentIndex + 1;
+      } else if (
+        repeatMode === RepeatMode.Queue ||
+        repeatMode === RepeatMode.Off
+      ) {
+        nextIndex = 0;
+      } else {
+        return;
+      }
+
+      // 最適化: 次の曲を確認して、先行してUI更新
+      if (nextIndex !== undefined && queue[nextIndex] && queue[nextIndex].id) {
+        const nextSongId = queue[nextIndex].id as string;
+        const nextSong = songMap[nextSongId];
+
+        if (nextSong) {
+          // 最適化: 先にUI更新を行うことで体感速度を向上
+          lastProcessedTrackId.current = nextSongId;
+          safeStateUpdate(() => {
+            setCurrentSong(nextSong);
+            setIsPlaying(true);
+          });
+        }
+      }
+
+      // プレイヤーの操作
+      if (currentIndex < queue.length - 1) {
         await TrackPlayer.skipToNext();
       } else if (
         repeatMode === RepeatMode.Queue ||
         repeatMode === RepeatMode.Off
       ) {
-        // 最初の曲へ戻る
         await TrackPlayer.skip(0);
       }
 
@@ -362,7 +406,14 @@ export function useAudioPlayer(songs: Song[]) {
     } catch (error) {
       handleError(error, "次の曲の再生エラー");
     }
-  }, [repeatMode, handleError]);
+  }, [
+    repeatMode,
+    handleError,
+    songMap,
+    setCurrentSong,
+    setIsPlaying,
+    safeStateUpdate,
+  ]);
 
   /**
    * 前の曲を再生する (最適化版)
@@ -379,19 +430,46 @@ export function useAudioPlayer(songs: Song[]) {
       }
 
       const queue = await TrackPlayer.getQueue();
-
       if (queue.length === 0) return;
 
       const currentIndex = await TrackPlayer.getActiveTrackIndex();
+      if (currentIndex === null || currentIndex === undefined) return;
 
-      if (currentIndex != null && currentIndex > 0) {
-        // 前の曲へ
+      // 前の曲を先読みして、UI更新を最適化
+      let prevIndex;
+      if (currentIndex > 0) {
+        prevIndex = currentIndex - 1;
+      } else if (
+        repeatMode === RepeatMode.Queue ||
+        repeatMode === RepeatMode.Off
+      ) {
+        prevIndex = queue.length - 1;
+      } else {
+        return;
+      }
+
+      // 最適化: 前の曲を確認して、先行してUI更新
+      if (prevIndex !== undefined && queue[prevIndex] && queue[prevIndex].id) {
+        const prevSongId = queue[prevIndex].id as string;
+        const prevSong = songMap[prevSongId];
+
+        if (prevSong) {
+          // 最適化: 先にUI更新を行うことで体感速度を向上
+          lastProcessedTrackId.current = prevSongId;
+          safeStateUpdate(() => {
+            setCurrentSong(prevSong);
+            setIsPlaying(true);
+          });
+        }
+      }
+
+      // プレイヤーの操作
+      if (currentIndex > 0) {
         await TrackPlayer.skipToPrevious();
       } else if (
         repeatMode === RepeatMode.Queue ||
         repeatMode === RepeatMode.Off
       ) {
-        // 最後の曲へ
         await TrackPlayer.skip(queue.length - 1);
       }
 
@@ -399,7 +477,14 @@ export function useAudioPlayer(songs: Song[]) {
     } catch (error) {
       handleError(error, "前の曲の再生エラー");
     }
-  }, [repeatMode, handleError]);
+  }, [
+    repeatMode,
+    handleError,
+    songMap,
+    setCurrentSong,
+    setIsPlaying,
+    safeStateUpdate,
+  ]);
 
   /**
    * 再生を停止する
