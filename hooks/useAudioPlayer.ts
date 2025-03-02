@@ -1,76 +1,37 @@
-import { useEffect, useCallback, useMemo, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import TrackPlayer, {
   RepeatMode,
   State,
-  Track,
   usePlaybackState,
   useProgress,
   Progress,
-  Event,
 } from "react-native-track-player";
-import Song from "../types";
+import type Song from "@/types";
 import { usePlayerStore } from "./usePlayerStore";
-import { queueManager, QueueManagerError } from "../services/QueueManager";
-
-/**
- * 曲データをトラック形式に変換 (単一の曲のみ)
- */
-const convertSongToTrack = (song: Song): Track => {
-  return {
-    id: song.id,
-    url: song.song_path,
-    title: song.title,
-    artist: song.author,
-    artwork: song.image_path,
-  };
-};
-
-/**
- * 曲データをトラック形式に変換 (複数曲)
- */
-const convertToTracks = (songs: Song[]): Track[] => {
-  return songs.map((song) => convertSongToTrack(song));
-};
+import { queueManager } from "../services/QueueManager";
+import { convertToTracks } from "./AudioPlayer/track";
+import { usePlayerInitialization } from "./AudioPlayer/initialization";
+import { usePlayerEvents } from "./AudioPlayer/events";
+import { usePlayerState, calculateProgress } from "./AudioPlayer/state";
+import {
+  useSafeStateUpdate,
+  useErrorHandler,
+  useCleanup,
+} from "./AudioPlayer/utils";
+import { useQueueOperations } from "./AudioPlayer/queue";
 
 /**
  * オーディオプレイヤーのカスタムフック
  * @param songs 再生可能な曲のリスト
  */
 export function useAudioPlayer(songs: Song[]) {
-  // プレイヤー初期化状態の管理
-  const isPlayerInitialized = useRef(false);
-
-  // プレイヤーの初期化
-  useEffect(() => {
-    const initializePlayer = async () => {
-      try {
-        const setupNeeded = (await TrackPlayer.getState()) === null;
-        if (setupNeeded && !isPlayerInitialized.current) {
-          await TrackPlayer.setupPlayer();
-          isPlayerInitialized.current = true;
-        }
-      } catch (error) {
-        // 初期化エラーは無視
-      }
-    };
-
-    initializePlayer();
-  }, []);
-
-  // 初期キュー設定のフラグ
-  const isQueueInitialized = useRef(false);
+  const { isPlayerInitialized, isQueueInitialized } = usePlayerInitialization();
 
   // コンポーネントがマウントされているかを追跡
   const isMounted = useRef(true);
 
   // クリーンアップ関数を保持
-  const cleanupFns = useRef<(() => void)[]>([]);
-
-  // キュー操作中フラグ
-  const isQueueOperationInProgress = useRef(false);
-
-  // 最適化: 前回のトラックIDを追跡して、重複更新を防止
-  const lastProcessedTrackId = useRef<string | null>(null);
+  const cleanupFns = useCleanup(isMounted);
 
   const {
     currentSong,
@@ -85,49 +46,27 @@ export function useAudioPlayer(songs: Song[]) {
 
   const playbackState = usePlaybackState();
   const { position: rawPosition, duration: rawDuration } = useProgress();
-  const progressPosition = rawPosition * 1000;
-  const progressDuration = rawDuration * 1000;
-
-  // 曲のIDをキーとする曲データマップを作成
-  const songMap = useMemo(() => {
-    return songs.reduce((acc, song) => {
-      acc[song.id] = song;
-      return acc;
-    }, {} as Record<string, Song>);
-  }, [songs]);
-
-  // キャッシュされたトラックマップ
-  const trackMap = useMemo(() => {
-    return songs.reduce((acc, song) => {
-      acc[song.id] = convertSongToTrack(song);
-      return acc;
-    }, {} as Record<string, Track>);
-  }, [songs]);
-
-  /**
-   * 安全な状態更新を行うためのユーティリティ関数
-   */
-  const safeStateUpdate = useCallback((callback: () => void) => {
-    if (isMounted.current) {
-      callback();
-    }
-  }, []);
-
-  /**
-   * エラーハンドリングを行うユーティリティ関数
-   */
-  const handleError = useCallback(
-    (error: unknown, context: string) => {
-      console.error(`${context}:`, error);
-      if (error instanceof QueueManagerError) {
-        console.error("キュー管理エラー:", error.message);
-      } else if (error instanceof Error) {
-        console.error("エラー:", error.message);
-      }
-      safeStateUpdate(() => setIsPlaying(false));
-    },
-    [safeStateUpdate, setIsPlaying]
+  const { progressPosition, progressDuration } = calculateProgress(
+    rawPosition,
+    rawDuration
   );
+
+  // 状態管理の初期化
+  const { songMap, trackMap } = usePlayerState({ songs });
+
+  // ユーティリティ関数の初期化
+  const safeStateUpdate = useSafeStateUpdate(isMounted);
+  const handleError = useErrorHandler({ safeStateUpdate, setIsPlaying });
+
+  // キュー操作の初期化
+  const { playSong, isQueueOperationInProgress, lastProcessedTrackId } = useQueueOperations({
+    songs,
+    trackMap,
+    setCurrentSong,
+    setIsPlaying,
+    shuffle,
+    isMounted,
+  });
 
   // コンポーネントのマウント状態を管理
   useEffect(() => {
@@ -140,148 +79,16 @@ export function useAudioPlayer(songs: Song[]) {
     };
   }, []);
 
-  // キューの初期化（プレイヤーの初期化後に実行）
-  useEffect(() => {
-    // 自動的なキューの初期化は行わない
-    isQueueInitialized.current = true;
-  }, []);
-
-  // トラック変更のハンドリング（最適化版）
-  useEffect(() => {
-    const trackChangeSubscription = TrackPlayer.addEventListener(
-      Event.PlaybackTrackChanged,
-      async (event) => {
-        if (!isMounted.current) return;
-
-        if (event.nextTrack !== null && event.nextTrack !== undefined) {
-          try {
-            // 最適化: キャッシュされた索引データを使用する代わりにTrackPlayer.getTrackを回避
-            const queue = await TrackPlayer.getQueue();
-            const nextTrack = queue[event.nextTrack];
-
-            if (nextTrack && nextTrack.id) {
-              // 重複更新を防止
-              if (lastProcessedTrackId.current === nextTrack.id) {
-                return;
-              }
-
-              const song = songMap[nextTrack.id];
-              if (song) {
-                lastProcessedTrackId.current = nextTrack.id;
-                // 最適化: requestAnimationFrameで状態更新を遅延させず、即時に更新
-                safeStateUpdate(() => setCurrentSong(song));
-              }
-            }
-          } catch (error) {
-            console.error("トラック変更イベントエラー:", error);
-          }
-        }
-      }
-    );
-
-    cleanupFns.current.push(() => {
-      trackChangeSubscription.remove();
-    });
-
-    return () => {
-      trackChangeSubscription.remove();
-    };
-  }, [songMap, setCurrentSong, safeStateUpdate]);
-
-  // 再生状態を同期
-  useEffect(() => {
-    if (isMounted.current) {
-      setIsPlaying(playbackState.state === State.Playing);
-    }
-  }, [playbackState, setIsPlaying]);
-
-  /**
-   * 指定された曲を再生する (最適化版)
-   */
-  const playSong = useCallback(
-    async (song: Song, playlistId?: string) => {
-      if (!song || isQueueOperationInProgress.current) return;
-
-      isQueueOperationInProgress.current = true;
-
-      try {
-        // 最適化: 即座に UI 状態を更新して体感速度を改善
-        safeStateUpdate(() => {
-          setCurrentSong(song);
-          setIsPlaying(true);
-        });
-
-        // 最適化: 最後に処理されたトラックIDを更新
-        lastProcessedTrackId.current = song.id;
-
-        // コンテキスト設定
-        queueManager.setContext(playlistId ? "playlist" : "liked", playlistId);
-
-        // 現在のキュー情報を確認
-        const currentQueue = await TrackPlayer.getQueue();
-        const selectedTrackIndex = currentQueue.findIndex(
-          (track) => track.id === song.id
-        );
-
-        if (selectedTrackIndex !== -1) {
-          // キューにすでに存在する場合は直接スキップ
-          await TrackPlayer.skip(selectedTrackIndex);
-          await TrackPlayer.play();
-          isQueueOperationInProgress.current = false;
-          return;
-        }
-
-        // キューに存在しない場合
-        const track = trackMap[song.id];
-        if (!track) {
-          throw new Error("曲が見つかりません");
-        }
-
-        // キューをリセットして現在の曲を追加（UI応答性向上のため）
-        await TrackPlayer.reset();
-        await TrackPlayer.add([track]);
-
-        // 再生開始
-        const playPromise = TrackPlayer.play();
-
-        // 非同期で残りの曲を追加（UIブロックを防止）
-        setTimeout(() => {
-          const remainingSongs = songs.filter((s) => s.id !== song.id);
-          let remainingTracks;
-
-          if (shuffle) {
-            remainingTracks = queueManager.shuffleQueue(
-              null,
-              convertToTracks(remainingSongs)
-            );
-          } else {
-            remainingTracks = convertToTracks(remainingSongs);
-          }
-
-          TrackPlayer.add(remainingTracks)
-            .catch((e) => console.error("残りの曲の追加エラー:", e))
-            .finally(() => {
-              isQueueOperationInProgress.current = false;
-            });
-        }, 300);
-
-        // 再生開始を待つ
-        await playPromise;
-      } catch (error) {
-        handleError(error, "再生エラー");
-        isQueueOperationInProgress.current = false;
-      }
-    },
-    [
-      songs,
-      trackMap,
-      setCurrentSong,
-      setIsPlaying,
-      shuffle,
-      handleError,
-      safeStateUpdate,
-    ]
-  );
+  // イベントハンドリングの設定
+  usePlayerEvents({
+    isMounted,
+    songMap,
+    lastProcessedTrackId,
+    cleanupFns,
+    safeStateUpdate,
+    setCurrentSong,
+    setIsPlaying,
+  });
 
   /**
    * 再生/一時停止を切り替える
@@ -433,7 +240,13 @@ export function useAudioPlayer(songs: Song[]) {
       if (queue.length === 0) return;
 
       const currentIndex = await TrackPlayer.getActiveTrackIndex();
-      if (currentIndex === null || currentIndex === undefined) return;
+      if (
+        currentIndex === null ||
+        currentIndex === undefined ||
+        currentIndex < 0
+      ) {
+        return;
+      }
 
       // 前の曲を先読みして、UI更新を最適化
       let prevIndex;
