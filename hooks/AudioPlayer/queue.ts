@@ -4,6 +4,7 @@ import type Song from "@/types";
 import { queueManager } from "../../services/QueueManager";
 import { convertToTracks } from "./track";
 import { useSafeStateUpdate, useErrorHandler } from "./utils";
+import useOnPlay from "../useOnPlay";
 
 interface UseQueueOperationsProps {
   songs: Song[];
@@ -32,6 +33,9 @@ export function useQueueOperations({
   const safeStateUpdate = useSafeStateUpdate(isMounted);
   const handleError = useErrorHandler({ safeStateUpdate, setIsPlaying });
 
+  // 再生回数更新関数を初期化
+  const onPlay = useOnPlay();
+
   /**
    * 指定された曲を再生する (最適化版)
    */
@@ -50,6 +54,9 @@ export function useQueueOperations({
 
         // 最適化: 最後に処理されたトラックIDを更新
         lastProcessedTrackId.current = song.id;
+
+        // 再生回数を更新
+        await onPlay(song.id);
 
         // コンテキスト設定
         queueManager.setContext(playlistId ? "playlist" : "liked", playlistId);
@@ -109,7 +116,16 @@ export function useQueueOperations({
         isQueueOperationInProgress.current = false;
       }
     },
-    [songs, trackMap, setCurrentSong, setIsPlaying, shuffle, handleError, safeStateUpdate]
+    [
+      songs,
+      trackMap,
+      setCurrentSong,
+      setIsPlaying,
+      shuffle,
+      handleError,
+      safeStateUpdate,
+      onPlay,
+    ]
   );
 
   return {

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import TrackPlayer, {
   RepeatMode,
   State,
@@ -9,7 +9,6 @@ import TrackPlayer, {
 import type Song from "@/types";
 import { usePlayerStore } from "./usePlayerStore";
 import { queueManager } from "../services/QueueManager";
-import { convertToTracks } from "./AudioPlayer/track";
 import { usePlayerInitialization } from "./AudioPlayer/initialization";
 import { usePlayerEvents } from "./AudioPlayer/events";
 import { usePlayerState, calculateProgress } from "./AudioPlayer/state";
@@ -59,14 +58,15 @@ export function useAudioPlayer(songs: Song[]) {
   const handleError = useErrorHandler({ safeStateUpdate, setIsPlaying });
 
   // キュー操作の初期化
-  const { playSong, isQueueOperationInProgress, lastProcessedTrackId } = useQueueOperations({
-    songs,
-    trackMap,
-    setCurrentSong,
-    setIsPlaying,
-    shuffle,
-    isMounted,
-  });
+  const { playSong, isQueueOperationInProgress, lastProcessedTrackId } =
+    useQueueOperations({
+      songs,
+      trackMap,
+      setCurrentSong,
+      setIsPlaying,
+      shuffle,
+      isMounted,
+    });
 
   // コンポーネントのマウント状態を管理
   useEffect(() => {
