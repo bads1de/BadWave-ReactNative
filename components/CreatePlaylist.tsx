@@ -10,15 +10,13 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import createPlaylist from "@/actions/createPlaylist";
-import { useAuthStore } from "@/hooks/useAuthStore";
+
 import Toast from "react-native-toast-message";
 
 export default function CreatePlaylist() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const queryClient = useQueryClient();
-  const { showAuthModal } = useAuthStore();
 
   const {
     mutate: create,
