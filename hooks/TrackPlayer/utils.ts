@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { QueueManagerError } from "./queue";
+import { QueueManagerError } from "./errors";
 
 // エラーハンドラーの引数の型定義
 type ErrorHandlerProps = {

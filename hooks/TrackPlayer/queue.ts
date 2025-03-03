@@ -1,6 +1,7 @@
 import { useCallback, MutableRefObject, useRef } from "react";
 import TrackPlayer, { Track } from "react-native-track-player";
 import type Song from "@/types";
+import { QueueManagerError } from "./errors";
 import { convertToTracks } from "./track";
 import { useSafeStateUpdate, useErrorHandler } from "./utils";
 
@@ -18,16 +19,6 @@ interface QueueState {
     type: "playlist" | "liked" | null;
     id: string | undefined;
   };
-}
-
-/**
- * キュー管理に関するエラー
- */
-export class QueueManagerError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "QueueManagerError";
-  }
 }
 
 /**
