@@ -25,7 +25,9 @@ export function usePlayerInitialization() {
         await TrackPlayer.setupPlayer();
         setIsInitialized(true);
         console.log("プレイヤーのセットアップが完了しました");
-      } catch (error) {
+      } catch (error: any) {
+        if (error.message?.includes("already been initialized")) return;
+
         console.error(
           "プレイヤーのセットアップ中にエラーが発生しました:",
           error

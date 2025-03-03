@@ -51,7 +51,7 @@ export default function SongDetailScreen() {
 
   const handlePlayPause = useCallback(() => {
     if (!song) return;
-    
+
     // 新しい曲の場合も、現在の曲の場合もtogglePlayPauseを使用
     togglePlayPause(song);
   }, [song, togglePlayPause]);
