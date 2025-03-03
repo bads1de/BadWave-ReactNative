@@ -49,6 +49,11 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
     fetchAddedStatus();
   }, [songId]);
 
+  // Update local isAdded state when queryAddedStatus changes
+  useEffect(() => {
+    setIsAdded(queryAddedStatus);
+  }, [queryAddedStatus]);
+
   useEffect(() => {
     if (modalOpen) {
       Animated.spring(animation, {
@@ -133,6 +138,17 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
       return;
     }
 
+    // Check if the song is already added to this playlist
+    if (isAdded[playlistId]) {
+      Toast.show({
+        type: "info",
+        text1: "追加済みです",
+        text2: "この曲は既にプレイリストに追加されています",
+        position: "bottom",
+      });
+      return;
+    }
+
     // アニメーション効果付きで追加
     Animated.sequence([
       Animated.timing(new Animated.Value(0), {
@@ -172,6 +188,8 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
             });
             return;
           }
+          // Refresh playlist status when opening modal
+          fetchAddedStatus();
           setModalOpen(true);
         }}
         style={styles.addButton}

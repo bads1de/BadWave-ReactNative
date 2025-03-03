@@ -32,7 +32,7 @@ export class QueueManagerError extends Error {
 
 /**
  * キュー操作に関するフック
- * 
+ *
  * @param isMounted - コンポーネントのマウント状態を管理するRef
  * @param setIsPlaying - 再生状態を更新する関数
  * @param songMap - 曲IDをキーとした曲データのマップ
@@ -62,7 +62,7 @@ export function useQueueOperations(
 
   /**
    * キューをシャッフルする
-   * 
+   *
    * @remarks
    * - 現在再生中のトラックはそのまま保持
    * - 残りのトラックをランダムに並べ替え
@@ -79,8 +79,12 @@ export function useQueueOperations(
       queueContext.current.originalQueue = [...queue];
 
       // 現在の曲を除外してシャッフル
-      const remainingTracks = queue.filter((track) => track.id !== currentTrack.id);
-      const shuffledTracks = [...remainingTracks].sort(() => Math.random() - 0.5);
+      const remainingTracks = queue.filter(
+        (track) => track.id !== currentTrack.id
+      );
+      const shuffledTracks = [...remainingTracks].sort(
+        () => Math.random() - 0.5
+      );
 
       // キューをクリアして再構築
       await TrackPlayer.removeUpcomingTracks();
@@ -98,7 +102,7 @@ export function useQueueOperations(
 
   /**
    * キューに曲を追加する
-   * 
+   *
    * @param songs - 追加する曲の配列
    * @param insertBeforeIndex - 指定した位置に挿入する場合のインデックス
    * @remarks
@@ -112,6 +116,7 @@ export function useQueueOperations(
       try {
         const tracks = convertToTracks(songs);
 
+        // キューをクリアして再構築
         if (insertBeforeIndex !== undefined) {
           await TrackPlayer.add(tracks, insertBeforeIndex);
         } else {
@@ -139,7 +144,7 @@ export function useQueueOperations(
 
   /**
    * 新しいキューを再生する
-   * 
+   *
    * @param song - 再生を開始する曲
    * @param songs - キューに含める曲の配列
    * @param playlistId - プレイリストID（任意）
@@ -208,7 +213,7 @@ export function useQueueOperations(
 
   /**
    * キューの状態を取得する
-   * 
+   *
    * @returns 現在のキュー状態
    */
   const getQueueState = useCallback(() => {
@@ -217,7 +222,7 @@ export function useQueueOperations(
 
   /**
    * シャッフルモードを設定する
-   * 
+   *
    * @param enabled - シャッフルモードを有効にするかどうか
    * @remarks
    * - シャッフルモードが変更された場合、キューの状態を更新

@@ -4,7 +4,7 @@ import { Track } from "react-native-track-player";
 /**
  * 曲データをトラック形式に変換 (単一の曲のみ)
  */
-export const convertSongToTrack = (song: Song): Track => {
+export function convertSongToTrack(song: Song): Track {
   return {
     id: song.id,
     url: song.song_path,
@@ -12,11 +12,11 @@ export const convertSongToTrack = (song: Song): Track => {
     artist: song.author,
     artwork: song.image_path,
   };
-};
+}
 
 /**
  * 曲データをトラック形式に変換 (複数曲)
  */
-export const convertToTracks = (songs: Song[]): Track[] => {
+export function convertToTracks(songs: Song[]): Track[] {
   return songs.map((song) => convertSongToTrack(song));
-};
+}
