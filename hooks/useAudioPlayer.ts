@@ -136,50 +136,92 @@ export function useAudioPlayer(songs: Song[]) {
   // 次の曲を再生する
   const playNextSong = useCallback(async () => {
     try {
+      console.log('Attempting to play next song');
+      const queue = await TrackPlayer.getQueue();
+      const currentIndex = await TrackPlayer.getCurrentTrack();
+      console.log('Current queue:', queue);
+      console.log('Current track index:', currentIndex);
+
+      if (currentIndex === null) {
+        console.log('No current track');
+        return;
+      }
+
       if (repeatMode === RepeatMode.Track) {
+        console.log('Track repeat mode - restarting current track');
         await TrackPlayer.seekTo(0);
         await TrackPlayer.play();
         return;
       }
 
-      const queue = await TrackPlayer.getQueue();
-      if (queue.length === 0) return;
-
-      const currentIndex = await TrackPlayer.getActiveTrackIndex();
-      if (currentIndex === null || currentIndex === undefined) return;
-
-      let nextIndex;
-      if (currentIndex < queue.length - 1) {
-        nextIndex = currentIndex + 1;
-      } else if (
-        repeatMode === RepeatMode.Queue ||
-        repeatMode === RepeatMode.Off
-      ) {
-        nextIndex = 0;
-      } else {
-        return;
-      }
-
-      if (nextIndex !== undefined && queue[nextIndex] && queue[nextIndex].id) {
-        const nextSongId = queue[nextIndex].id as string;
-        const nextSong = songMap[nextSongId];
-
-        if (nextSong) {
-          await TrackPlayer.skipToNext();
+      if (currentIndex === queue.length - 1) {
+        if (repeatMode === RepeatMode.Queue) {
+          console.log('Queue repeat mode - going back to first track');
+          await TrackPlayer.skip(0);
+          await TrackPlayer.play();
+        } else {
+          console.log('End of queue reached');
+          await TrackPlayer.seekTo(0);
+          await TrackPlayer.pause();
         }
+      } else {
+        console.log('Skipping to next track');
+        await TrackPlayer.skipToNext();
+        await TrackPlayer.play();
       }
     } catch (error) {
-      console.error("Error playing next song:", error);
+      console.error("Error in playNextSong:", error);
     }
-  }, [repeatMode, songMap]);
+  }, [repeatMode]);
 
   // 前の曲を再生する
   const playPrevSong = useCallback(async () => {
-    if (repeatMode === RepeatMode.Track) {
-      return handleTrackRepeat();
-    }
+    try {
+      console.log('Attempting to play previous song');
+      const position = await TrackPlayer.getPosition();
+      const currentIndex = await TrackPlayer.getCurrentTrack();
+      const queue = await TrackPlayer.getQueue();
+      console.log('Current position:', position);
+      console.log('Current track index:', currentIndex);
+      console.log('Queue length:', queue.length);
 
-    return handlePreviousTrack();
+      if (currentIndex === null) {
+        console.log('No current track');
+        return;
+      }
+
+      if (position > 3) {
+        console.log('Seeking to start of current track');
+        await TrackPlayer.seekTo(0);
+        await TrackPlayer.play();
+        return;
+      }
+
+      if (repeatMode === RepeatMode.Track) {
+        console.log('Track repeat mode - restarting current track');
+        await TrackPlayer.seekTo(0);
+        await TrackPlayer.play();
+        return;
+      }
+
+      if (currentIndex === 0) {
+        if (repeatMode === RepeatMode.Queue) {
+          console.log('Queue repeat mode - going to last track');
+          await TrackPlayer.skip(queue.length - 1);
+          await TrackPlayer.play();
+        } else {
+          console.log('Start of queue reached');
+          await TrackPlayer.seekTo(0);
+          await TrackPlayer.play();
+        }
+      } else {
+        console.log('Skipping to previous track');
+        await TrackPlayer.skipToPrevious();
+        await TrackPlayer.play();
+      }
+    } catch (error) {
+      console.error("Error in playPrevSong:", error);
+    }
   }, [repeatMode]);
 
   // 曲のリピート処理

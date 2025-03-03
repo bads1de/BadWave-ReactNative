@@ -12,6 +12,8 @@ interface QueueState {
   originalQueue: Track[];
   currentQueue: { id: string }[];
   lastProcessedTrackId: string | null;
+  playlistId: string | null;
+  currentSongId: string | null;
   context: {
     type: "playlist" | "liked" | null;
     id: string | undefined;
@@ -44,6 +46,8 @@ export function useQueueOperations(
     originalQueue: [],
     currentQueue: [],
     lastProcessedTrackId: null,
+    playlistId: null,
+    currentSongId: null,
     context: {
       type: null,
       id: undefined,
@@ -117,55 +121,68 @@ export function useQueueOperations(
   );
 
   /**
-   * 新しい曲をキューに追加して再生する
+   * 新しいキューを再生する
    */
   const playNewQueue = useCallback(
     async (song: Song, songs: Song[], playlistId?: string) => {
       try {
+        // 現在のキューをクリア
         await TrackPlayer.reset();
-        const track = trackMap[song.id];
 
-        if (!track) {
-          throw new Error("トラックが見つかりません");
-        }
-
-        // コンテキストの更新
-        queueContext.current = {
-          ...queueContext.current,
-          context: {
-            type: playlistId ? "playlist" : "liked",
-            id: playlistId,
-          },
-          lastProcessedTrackId: song.id,
-        };
-
-        // 曲の追加とメタデータの更新
-        await TrackPlayer.add(track);
-        await TrackPlayer.updateNowPlayingMetadata({
-          ...track,
-          title: song.title,
-          artist: song.author,
-        });
+        // 選択された曲のインデックスを見つける
+        const songIndex = songs.findIndex((s) => s.id === song.id);
+        if (songIndex === -1) return false;
 
         // キューの状態を更新
-        const newQueue = songs.map((s) => ({ id: s.id }));
-        queueContext.current.currentQueue = newQueue;
-        queueContext.current.originalQueue = convertToTracks(songs);
+        queueContext.current = {
+          playlistId: playlistId || null,
+          currentSongId: song.id,
+          isShuffleEnabled: false,
+          lastProcessedTrackId: song.id,
+          originalQueue: [],
+          currentQueue: [],
+          context: {
+            type: playlistId ? "playlist" : "liked",
+            id: playlistId || undefined,
+          },
+        };
 
-        await TrackPlayer.play();
+        // 選択された曲から始まる新しい配列を作成
+        const reorderedSongs = [
+          ...songs.slice(songIndex),
+          ...songs.slice(0, songIndex),
+        ];
 
-        // シャッフルモードの場合はキューをシャッフル
-        if (queueContext.current.isShuffleEnabled) {
-          await shuffleQueue();
-        }
+        // トラックをキューに追加
+        const tracks = reorderedSongs.map((song) => ({
+          id: song.id,
+          url: song.song_path,
+          title: song.title,
+          artist: song.author,
+          artwork: song.image_path,
+        }));
+
+        await TrackPlayer.add(tracks);
+
+        // キューの状態を更新
+        queueContext.current.originalQueue = [...tracks];
+        queueContext.current.currentQueue = tracks.map((track) => ({
+          id: track.id as string,
+        }));
+
+        console.log("New queue created:", {
+          tracks,
+          currentSongId: song.id,
+          queueLength: tracks.length,
+        });
 
         return true;
       } catch (error) {
-        handleError(error, "新しいキューの再生中にエラーが発生しました");
+        handleError(error, "新しいキューの作成中にエラーが発生しました");
         return false;
       }
     },
-    [handleError, trackMap, shuffleQueue]
+    [handleError]
   );
 
   /**

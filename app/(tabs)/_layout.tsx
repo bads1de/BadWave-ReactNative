@@ -36,8 +36,6 @@ export default function TabLayout() {
     setShuffle,
   } = useAudioPlayer(songs);
 
-  console.log(currentSong);
-
   const { showHeader } = useHeaderStore();
 
   if (isLoading) return <Loading />;
@@ -199,7 +197,9 @@ export default function TabLayout() {
                 ? "track"
                 : "queue"
             }
-            setRepeat={(value) => setRepeat(value ? RepeatMode.Track : RepeatMode.Off)}
+            setRepeat={(value) =>
+              setRepeat(value ? RepeatMode.Track : RepeatMode.Off)
+            }
             shuffle={shuffle}
             setShuffle={setShuffle}
           />
