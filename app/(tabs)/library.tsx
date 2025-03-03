@@ -51,7 +51,7 @@ export default function LibraryScreen() {
     enabled: !!session,
   });
 
-  const { playSong } = useAudioPlayer(likedSongs);
+  const { togglePlayPause } = useAudioPlayer(likedSongs);
 
   const renderLikedSongs = useCallback(
     ({ item }: { item: Song }) => {
@@ -59,12 +59,12 @@ export default function LibraryScreen() {
         <SongItem
           key={item.id}
           song={item}
-          onClick={async () => await playSong(item, undefined)}
+          onClick={async () => await togglePlayPause(item)}
           dynamicSize={true}
         />
       );
     },
-    [playSong]
+    [togglePlayPause]
   );
 
   if (isLikedLoading || isPlaylistsLoading) {

@@ -6,7 +6,6 @@ import TrackPlayer, {
   RepeatMode,
   Event,
 } from "react-native-track-player";
-import { usePlayerStore } from "./usePlayerStore";
 import { calculateProgress, useCleanup } from "./TrackPlayer/utils";
 import Song from "../types";
 import useOnPlay from "./useOnPlay";
@@ -17,7 +16,6 @@ export function useAudioPlayer(songs: Song[]) {
   const { songMap, trackMap } = usePlayerState({ songs });
   const onPlay = useOnPlay();
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const { setShowPlayer } = usePlayerStore();
   const isMounted = useRef(true);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>(RepeatMode.Off);
   const [shuffle, setShuffle] = useState<boolean>(false);
@@ -102,7 +100,6 @@ export function useAudioPlayer(songs: Song[]) {
             const success = await playNewQueue(song, songs, playlistId);
             if (success) {
               setCurrentSong(song);
-              setShowPlayer(true);
               await onPlay(song.id);
               await TrackPlayer.play();
             }
@@ -121,7 +118,7 @@ export function useAudioPlayer(songs: Song[]) {
         console.error("Error in togglePlayPause:", error);
       }
     },
-    [currentSong, isPlaying, playNewQueue, setShowPlayer, onPlay, songs]
+    [currentSong, isPlaying, playNewQueue, onPlay, songs]
   );
 
   // 指定された位置にシークする
@@ -136,19 +133,16 @@ export function useAudioPlayer(songs: Song[]) {
   // 次の曲を再生する
   const playNextSong = useCallback(async () => {
     try {
-      console.log('Attempting to play next song');
       const queue = await TrackPlayer.getQueue();
       const currentIndex = await TrackPlayer.getCurrentTrack();
-      console.log('Current queue:', queue);
-      console.log('Current track index:', currentIndex);
 
       if (currentIndex === null) {
-        console.log('No current track');
+        console.log("No current track");
         return;
       }
 
       if (repeatMode === RepeatMode.Track) {
-        console.log('Track repeat mode - restarting current track');
+        console.log("Track repeat mode - restarting current track");
         await TrackPlayer.seekTo(0);
         await TrackPlayer.play();
         return;
@@ -156,16 +150,13 @@ export function useAudioPlayer(songs: Song[]) {
 
       if (currentIndex === queue.length - 1) {
         if (repeatMode === RepeatMode.Queue) {
-          console.log('Queue repeat mode - going back to first track');
           await TrackPlayer.skip(0);
           await TrackPlayer.play();
         } else {
-          console.log('End of queue reached');
           await TrackPlayer.seekTo(0);
           await TrackPlayer.pause();
         }
       } else {
-        console.log('Skipping to next track');
         await TrackPlayer.skipToNext();
         await TrackPlayer.play();
       }
@@ -177,28 +168,14 @@ export function useAudioPlayer(songs: Song[]) {
   // 前の曲を再生する
   const playPrevSong = useCallback(async () => {
     try {
-      console.log('Attempting to play previous song');
-      const position = await TrackPlayer.getPosition();
       const currentIndex = await TrackPlayer.getCurrentTrack();
       const queue = await TrackPlayer.getQueue();
-      console.log('Current position:', position);
-      console.log('Current track index:', currentIndex);
-      console.log('Queue length:', queue.length);
 
       if (currentIndex === null) {
-        console.log('No current track');
-        return;
-      }
-
-      if (position > 3) {
-        console.log('Seeking to start of current track');
-        await TrackPlayer.seekTo(0);
-        await TrackPlayer.play();
         return;
       }
 
       if (repeatMode === RepeatMode.Track) {
-        console.log('Track repeat mode - restarting current track');
         await TrackPlayer.seekTo(0);
         await TrackPlayer.play();
         return;
@@ -206,16 +183,13 @@ export function useAudioPlayer(songs: Song[]) {
 
       if (currentIndex === 0) {
         if (repeatMode === RepeatMode.Queue) {
-          console.log('Queue repeat mode - going to last track');
           await TrackPlayer.skip(queue.length - 1);
           await TrackPlayer.play();
         } else {
-          console.log('Start of queue reached');
           await TrackPlayer.seekTo(0);
           await TrackPlayer.play();
         }
       } else {
-        console.log('Skipping to previous track');
         await TrackPlayer.skipToPrevious();
         await TrackPlayer.play();
       }
@@ -223,25 +197,6 @@ export function useAudioPlayer(songs: Song[]) {
       console.error("Error in playPrevSong:", error);
     }
   }, [repeatMode]);
-
-  // 曲のリピート処理
-  const handleTrackRepeat = useCallback(async () => {
-    try {
-      await TrackPlayer.seekTo(0);
-      await TrackPlayer.play();
-    } catch (error) {
-      console.error("Failed to repeat track:", error);
-    }
-  }, []);
-
-  // 前の曲への移動処理
-  const handlePreviousTrack = useCallback(async () => {
-    try {
-      await TrackPlayer.skipToPrevious();
-    } catch (error) {
-      console.error("Failed to skip to previous track:", error);
-    }
-  }, []);
 
   // 再生を停止する
   const stop = useCallback(async () => {

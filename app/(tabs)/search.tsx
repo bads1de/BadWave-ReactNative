@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  FlatList,
-} from "react-native";
+import { View, TextInput, StyleSheet, FlatList } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
 import getSongsByTitle from "@/actions/getSongsByTitle";
@@ -30,7 +23,7 @@ export default function SearchScreen() {
     enabled: debouncedQuery.length > 0,
   });
 
-  const { playSong } = useAudioPlayer(songs);
+  const { togglePlayPause } = useAudioPlayer(songs);
 
   if (error) {
     return <Error message={error.message} />;
@@ -56,7 +49,7 @@ export default function SearchScreen() {
             <ListItem
               song={item}
               onPress={async (song) => {
-                await playSong(song);
+                await togglePlayPause(song);
               }}
             />
           )}

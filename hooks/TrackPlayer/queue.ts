@@ -1,5 +1,5 @@
 import { useCallback, MutableRefObject, useRef } from "react";
-import TrackPlayer, { Track, Event } from "react-native-track-player";
+import TrackPlayer, { Track } from "react-native-track-player";
 import type Song from "@/types";
 import { convertToTracks } from "./track";
 import { useSafeStateUpdate, useErrorHandler } from "./utils";
@@ -169,12 +169,6 @@ export function useQueueOperations(
         queueContext.current.currentQueue = tracks.map((track) => ({
           id: track.id as string,
         }));
-
-        console.log("New queue created:", {
-          tracks,
-          currentSongId: song.id,
-          queueLength: tracks.length,
-        });
 
         return true;
       } catch (error) {

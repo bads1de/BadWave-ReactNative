@@ -20,7 +20,6 @@ import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
 
 interface PlayerProps {
-  sound?: any; // React Native Track Playerに移行したため、オプショナルに変更
   isPlaying: boolean;
   currentSong: Song;
   position: number;

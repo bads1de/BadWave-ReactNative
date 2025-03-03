@@ -75,10 +75,10 @@ export default function TrendBoard() {
     queryKey: [CACHED_QUERIES.trendsSongs, period],
     queryFn: () => getTrendSongs(period),
   });
-  const { playSong } = useAudioPlayer(trends);
+  const { togglePlayPause } = useAudioPlayer(trends);
 
   const onPlay = async (song: Song) => {
-    await playSong(song);
+    await togglePlayPause(song);
   };
 
   if (isLoading) {
