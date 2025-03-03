@@ -22,7 +22,7 @@ const getUser = async (): Promise<any> => {
     .single();
 
   if (error) {
-    console.log(error.message);
+    console.error(error.message);
     throw new Error(error.message);
   }
 

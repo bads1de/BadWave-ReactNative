@@ -15,6 +15,7 @@ const createPlaylist = async (name: string): Promise<void> => {
   });
 
   if (error) {
+    console.error(error.message);
     throw new Error(error.message);
   }
 };

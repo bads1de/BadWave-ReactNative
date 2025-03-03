@@ -15,10 +15,12 @@ const getSongById = async (songId: string): Promise<Song> => {
     .single();
 
   if (songError) {
+    console.error(songError.message);
     throw new Error(songError.message);
   }
 
   if (!songData) {
+    console.error("Song not found");
     throw new Error("Song not found");
   }
 

@@ -22,6 +22,10 @@ const updatePlaylistImage = async (
       .single();
 
     if (playlistError) {
+      console.error(
+        "プレイリストの取得中にエラーが発生しました:",
+        playlistError
+      );
       throw new Error(playlistError.message);
     }
 
@@ -32,6 +36,10 @@ const updatePlaylistImage = async (
         .eq("id", playlistId);
 
       if (updateError) {
+        console.error(
+          "プレイリスト画像の更新中にエラーが発生しました:",
+          updateError
+        );
         throw new Error(updateError.message);
       }
     }

@@ -21,7 +21,10 @@ const addPlaylistSong = async ({
     song_type: "regular",
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error(error.message);
+    throw new Error(error.message);
+  }
 
   const songData = await getSongById(songId);
 

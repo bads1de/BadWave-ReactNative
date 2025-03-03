@@ -28,6 +28,10 @@ const deletePlaylist = async (
     .eq("user_id", userId);
 
   if (playlistsError) {
+    console.error(
+      "プレイリストの削除中にエラーが発生しました:",
+      playlistsError
+    );
     throw new Error(playlistsError.message);
   }
 };

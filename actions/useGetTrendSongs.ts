@@ -45,6 +45,7 @@ const getTrendSongs = async (period: TrendPeriod = "all"): Promise<Song[]> => {
     .limit(10);
 
   if (error) {
+    console.error(error.message);
     throw new Error(error.message);
   }
 

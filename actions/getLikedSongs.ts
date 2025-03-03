@@ -18,7 +18,9 @@ const getLikedSongs = async (): Promise<Song[]> => {
       return [];
     }
 
-    if (!data) return [];
+    if (!data) {
+      return [];
+    }
 
     // データ構造を変換
     return data.map((item) => ({

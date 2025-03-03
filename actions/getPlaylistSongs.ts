@@ -29,7 +29,6 @@ const getPlaylistSongs = async (
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching playlist songs:", error);
     return [];
   }
 
