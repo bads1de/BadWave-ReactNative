@@ -82,6 +82,8 @@ export function useQueueOperations(
       const remainingTracks = queue.filter(
         (track) => track.id !== currentTrack.id
       );
+
+      // シャッフル
       const shuffledTracks = [...remainingTracks].sort(
         () => Math.random() - 0.5
       );
@@ -231,9 +233,9 @@ export function useQueueOperations(
   const setShuffleMode = useCallback(
     async (enabled: boolean) => {
       try {
-        const state = await TrackPlayer.getState();
         const currentTrack = await TrackPlayer.getActiveTrack();
 
+        // シャッフルモードを設定
         if (!currentTrack) {
           queueContext.current.isShuffleEnabled = enabled;
           return;

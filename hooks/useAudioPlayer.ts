@@ -100,11 +100,13 @@ export function useAudioPlayer(songs: Song[]) {
     // 初期トラックの設定
     handleTrackChange();
 
+    // イベントリスナーを追加
     const unsubscribe = TrackPlayer.addEventListener(
       Event.PlaybackActiveTrackChanged,
       handleTrackChange
     );
 
+    // クリーンアップ関数
     return () => {
       unsubscribe.remove();
     };

@@ -49,7 +49,6 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
     fetchAddedStatus();
   }, [songId]);
 
-  // Update local isAdded state when queryAddedStatus changes
   useEffect(() => {
     setIsAdded(queryAddedStatus);
   }, [queryAddedStatus]);
