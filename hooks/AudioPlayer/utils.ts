@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { QueueManagerError } from "@/services/QueueManager";
+import { QueueManagerError } from "./queue";
 
 type ErrorHandlerProps = {
   safeStateUpdate: (callback: () => void) => void;

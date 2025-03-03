@@ -8,7 +8,6 @@ import TrackPlayer, {
 } from "react-native-track-player";
 import type Song from "@/types";
 import { usePlayerStore } from "./usePlayerStore";
-import { queueManager } from "../services/QueueManager";
 import { usePlayerInitialization } from "./AudioPlayer/initialization";
 import { usePlayerEvents } from "./AudioPlayer/events";
 import { usePlayerState, calculateProgress } from "./AudioPlayer/state";
@@ -17,7 +16,7 @@ import {
   useErrorHandler,
   useCleanup,
 } from "./AudioPlayer/utils";
-import { useQueueOperations } from "./AudioPlayer/queue";
+import { useQueueOperations, queueManager } from "./AudioPlayer/queue";
 
 /**
  * オーディオプレイヤーのカスタムフック
@@ -66,6 +65,7 @@ export function useAudioPlayer(songs: Song[]) {
       setIsPlaying,
       shuffle,
       isMounted,
+      queueManager,
     });
 
   // コンポーネントのマウント状態を管理

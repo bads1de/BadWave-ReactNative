@@ -69,6 +69,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const { mutate, isPending } = useMutation({
     mutationFn: async (playlistId: string) => {
       if (!session?.user.id) throw new Error("未認証ユーザー");
+
       return addPlaylistSong({ playlistId, userId: session.user.id, songId });
     },
     onMutate: async (playlistId) => {
