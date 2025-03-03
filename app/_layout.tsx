@@ -10,6 +10,8 @@ import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
 import { usePlayerInitialization } from "@/hooks/TrackPlayer/initialization";
+import TrackPlayer from "react-native-track-player";
+import { playbackService } from "@/services/PlayerService";
 
 const queryClient = new QueryClient({
   defaultOptions: {

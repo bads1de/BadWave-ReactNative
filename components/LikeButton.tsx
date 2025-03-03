@@ -66,7 +66,7 @@ export default function LikeButton({ songId, size }: LikeButtonProps) {
   const { mutate } = useMutation({
     mutationKey: [CACHED_QUERIES.likedSongs, songId],
     mutationFn: async () => {
-      if (!session?.user.id) return;
+      if (!session?.user.id) throw new Error("未認証ユーザー");
 
       if (isLiked) {
         await supabase
@@ -147,7 +147,20 @@ export default function LikeButton({ songId, size }: LikeButtonProps) {
   });
 
   return (
-    <TouchableOpacity onPress={() => mutate()} disabled={isPending}>
+    <TouchableOpacity
+      onPress={() => {
+        if (!session) {
+          Toast.show({
+            type: "info",
+            text1: "ログインが必要です",
+            text2: "いいね機能を使うにはログインしてください",
+          });
+          return;
+        }
+        mutate();
+      }}
+      disabled={isPending}
+    >
       <Ionicons
         name={isLiked ? "heart" : "heart-outline"}
         size={size || 24}

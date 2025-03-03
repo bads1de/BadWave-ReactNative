@@ -288,3 +288,189 @@ react-native-track-player はメディアコントロールを使用していま
     <string name="playback_channel_name">Music Player</string>
 </resources>
 ```
+
+---
+
+## Player
+
+## `setupPlayer(options)`
+
+[`PlayerOptions`](/docs/api/objects/player-options) オブジェクトを受け入れます。
+
+## `updateOptions(options)`
+
+[`UpdateOptions`](/docs/api/objects/update-options) オブジェクトを受け入れます。コンポーネントの設定を更新します。
+
+⚠️ これらのパラメータは `setupPlayer()` で設定されるものとは異なります。以下にリストされているもの以外のパラメータは適用されません。
+
+## `play()`
+
+現在のトラックを再生または再開します。
+
+## `pause()`
+
+現在のトラックを一時停止します。
+
+## `stop()`
+
+再生を停止します。動作は `TrackPlayer.pause()` と同じで、`playWhenReady` が `false` になりますが、単に再生を一時停止するだけでなく、アイテムがアンロードされます。
+
+この関数は、それ以降の読み込み/バッファリングを停止させます。
+
+## `retry()`
+
+再生エラーにより停止したときに、現在のトラックを再試行します。
+
+## `seekBy(offset)`
+
+現在のトラック内で相対的な時間オフセットでシークします。
+
+パラメータ
+
+型
+
+説明
+
+offset
+
+`number`
+
+秒単位のオフセット
+
+**戻り値:** `Promise<void>`
+
+## `seekTo(seconds)`
+
+現在のトラック内の指定された時間位置にシークします。
+
+パラメータ
+
+型
+
+説明
+
+seconds
+
+`number`
+
+秒単位の位置
+
+**戻り値:** `Promise<void>`
+
+## `setVolume(volume)`
+
+プレイヤーの音量を設定します。
+
+パラメータ
+
+型
+
+説明
+
+volume
+
+`number`
+
+0 から 1 の範囲の音量
+
+**戻り値:** `Promise<void>`
+
+## `getVolume()`
+
+プレイヤーの音量を取得します（0 から 1 の間の数値）。
+
+**戻り値:** `Promise<number>`
+
+## `setRate(rate)`
+
+再生速度を設定します。
+
+パラメータ
+
+型
+
+説明
+
+rate
+
+`number`
+
+通常速度が 1 である再生速度
+
+**注意:** 再生速度が高い場合（例：2 以上）、トラックの `pitchAlgorithm` を `PitchAlgorithm.Voice` のようなものに設定することをお勧めします。そうしないと、デフォルトのピッチアルゴリズム（`SwiftAudioEx` では `AVAudioTimePitchAlgorithm.lowQualityZeroLatency` にダウングレードされます）が音声の単語を落とす可能性が高くなります。
+
+## `getRate()`
+
+再生速度を取得します。通常速度が 1 です。
+
+**戻り値:** `Promise<number>`
+
+## `getProgress()`
+
+アクティブなトラックの再生 [`Progress`](/docs/api/objects/progress) を取得します。
+
+**戻り値:** `Promise<`[Progress](/docs/api/objects/progress)`>`
+
+## `getPlaybackState()`
+
+プレイヤーの [`PlaybackState`](/docs/api/objects/playback-state) を取得します。
+
+**戻り値:** `Promise<`[PlaybackState](/docs/api/objects/playback-state)`>`
+
+## `getPlayWhenReady()`
+
+`playWhenReady` の現在の状態を取得します。
+
+**戻り値:** `Promise<boolean>`
+
+## `setPlayWhenReady(playWhenReady)`
+
+`TrackPlayer.setPlayWhenReady(false)` は `TrackPlayer.pause()` と同等で、`TrackPlayer.setPlayWhenReady(true)` は `TrackPlayer.play()` と同等です。
+
+パラメータ
+
+型
+
+説明
+
+playWhenReady
+
+`boolean`
+
+`playWhenReady` を設定するかどうかを表すブール値
+
+## ⚠️ `getState()`
+
+**⚠️ 非推奨**
+
+プレイヤーの再生 [`State`](/docs/api/constants/state) を取得します。
+
+**戻り値:** `Promise<`[State](/docs/api/constants/state)`>`
+
+## ⚠️ `getDuration()`
+
+**⚠️ 非推奨**
+
+現在のトラックの長さを秒単位で取得します。
+
+注意: `react-native-track-player` はストリーミングライブラリであり、トラックを徐々にバッファリングするため、正確な終了時間を把握していません。この関数が返す長さは様々な手法で決定されるため、_正確でない場合や全く利用できない場合があります_。
+
+[Track Object](/docs/api/objects/track) に `duration` プロパティを含めている場合にのみ、この関数の結果を信頼すべきです。
+
+**戻り値:** `Promise<number>`
+
+## ⚠️ `getPosition()`
+
+**⚠️ 非推奨**
+
+現在のトラックの位置を秒単位で取得します。
+
+**戻り値:** `Promise<number>`
+
+## ⚠️ `getBufferedPosition()`
+
+**⚠️ 非推奨**
+
+現在のトラックのバッファリングされた位置を秒単位で取得します。
+
+**戻り値:** `Promise<number>`

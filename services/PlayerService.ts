@@ -2,6 +2,8 @@ import TrackPlayer, {
   Event,
   Capability,
   AppKilledPlaybackBehavior,
+  State,
+  PlaybackState,
 } from "react-native-track-player";
 
 /**
@@ -13,7 +15,7 @@ import TrackPlayer, {
 export async function setupPlayer(): Promise<boolean> {
   try {
     // サービスがすでに実行されているかチェック
-    const isSetup = await TrackPlayer.isServiceRunning();
+    const isSetup = await isPlayerServiceRunning();
 
     if (isSetup) {
       return true;
@@ -21,7 +23,7 @@ export async function setupPlayer(): Promise<boolean> {
 
     // 新規セットアップ
     await TrackPlayer.setupPlayer({
-      autoHandleInterruptions: true, // 電話などの割り込みを自動処理
+      autoHandleInterruptions: true,
     });
 
     await TrackPlayer.updateOptions({
@@ -48,6 +50,19 @@ export async function setupPlayer(): Promise<boolean> {
   } catch (error) {
     console.error("プレイヤーのセットアップに失敗しました:", error);
     throw new Error("プレイヤーのセットアップに失敗しました");
+  }
+}
+
+/**
+ * プレイヤーのサービスが実行中かどうかをチェックする
+ * @returns {Promise<boolean>} サービスが実行中かどうか
+ */
+async function isPlayerServiceRunning(): Promise<boolean> {
+  try {
+    const playbackState = await TrackPlayer.getPlaybackState();
+    return playbackState.state !== State.None;
+  } catch (error) {
+    return false;
   }
 }
 
