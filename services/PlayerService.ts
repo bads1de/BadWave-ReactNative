@@ -12,10 +12,8 @@ import TrackPlayer, {
  */
 export async function setupPlayer(): Promise<boolean> {
   try {
-    // すでにセットアップされているかチェック
-    const isSetup = await TrackPlayer.getActiveTrackIndex()
-      .then(() => true)
-      .catch(() => false);
+    // サービスがすでに実行されているかチェック
+    const isSetup = await TrackPlayer.isServiceRunning();
 
     if (isSetup) {
       return true;
@@ -61,12 +59,6 @@ export async function setupPlayer(): Promise<boolean> {
 export function playbackService() {
   return async () => {
     try {
-      TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
-      TrackPlayer.addEventListener(Event.RemotePause, () =>
-        TrackPlayer.pause()
-      );
-      // ...
-      // 他のイベントリスナーもここに追加できます
       await TrackPlayer.addEventListener(Event.RemotePlay, () =>
         TrackPlayer.play()
       );

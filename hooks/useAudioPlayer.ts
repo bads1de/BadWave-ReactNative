@@ -62,9 +62,7 @@ export function useAudioPlayer(songs: Song[]) {
             }
           }
         }
-      } catch (error) {
-        console.error("Error handling track change:", error);
-      }
+      } catch (error) {}
     };
 
     // 初期トラックの設定

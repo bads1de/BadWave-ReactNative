@@ -190,7 +190,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 4,
   },
-  // 削除ボタンのスタイル
   deleteButton: {
     position: "absolute",
     top: 10,
