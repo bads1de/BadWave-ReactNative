@@ -11,6 +11,7 @@ import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
 import { playbackService } from "@/services/PlayerService";
 import TrackPlayer from "react-native-track-player";
+import { usePlayerInitialization } from "@/hooks/TrackPlayer/initialization";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,26 +42,17 @@ persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 
 export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
-  const isPlaybackServiceRegistered = useRef(false);
-
-  useEffect(() => {
-    if (!isPlaybackServiceRegistered.current) {
-      TrackPlayer.registerPlaybackService(playbackService);
-      isPlaybackServiceRegistered.current = true;
-      console.log("再生サービスが登録されました");
-    }
-  }, []);
-
+  usePlayerInitialization();
   return (
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <View style={{ flex: 1, backgroundColor: "#000" }}>
-            <StatusBar style="light" />
-            {showAuthModal && <AuthModal />}
-            <Stack screenOptions={{ headerShown: false }} />
-            <ToastComponent />
-          </View>
-        </AuthProvider>
-      </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <View style={{ flex: 1, backgroundColor: "#000" }}>
+          <StatusBar style="light" />
+          {showAuthModal && <AuthModal />}
+          <Stack screenOptions={{ headerShown: false }} />
+          <ToastComponent />
+        </View>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

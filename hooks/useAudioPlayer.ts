@@ -8,23 +8,20 @@ import TrackPlayer, {
 } from "react-native-track-player";
 import type Song from "@/types";
 import { usePlayerStore } from "./usePlayerStore";
-import { usePlayerInitialization } from "./AudioPlayer/initialization";
-import { usePlayerEvents } from "./AudioPlayer/events";
-import { usePlayerState, calculateProgress } from "./AudioPlayer/state";
+import { usePlayerEvents } from "./TrackPlayer/events";
+import { usePlayerState, calculateProgress } from "./TrackPlayer/state";
 import {
   useSafeStateUpdate,
   useErrorHandler,
   useCleanup,
-} from "./AudioPlayer/utils";
-import { useQueueOperations, queueManager } from "./AudioPlayer/queue";
+} from "./TrackPlayer/utils";
+import { useQueueOperations, queueManager } from "./TrackPlayer/queue";
 
 /**
  * オーディオプレイヤーのカスタムフック
  * @param songs 再生可能な曲のリスト
  */
 export function useAudioPlayer(songs: Song[]) {
-  const { isPlayerInitialized, isQueueInitialized } = usePlayerInitialization();
-
   // コンポーネントがマウントされているかを追跡
   const isMounted = useRef(true);
 
