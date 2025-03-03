@@ -17,7 +17,7 @@ export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
 
   const {
-    data: songs,
+    data: playlistSongs = [],
     isLoading,
     error,
   } = useQuery({
@@ -36,7 +36,7 @@ export default function PlaylistDetailScreen() {
     enabled: !!playlistId,
   });
 
-  const { playSong } = useAudioPlayer(songs ?? []);
+  const { playSong } = useAudioPlayer(playlistSongs);
 
   const renderSongs = useCallback(
     ({ item }: { item: Song }) => (
@@ -62,9 +62,9 @@ export default function PlaylistDetailScreen() {
         <Text style={styles.title}>{playlist?.title}</Text>
         <DeletePlaylistButton playlistId={playlistId} />
       </View>
-      {songs && songs.length > 0 ? (
+      {playlistSongs && playlistSongs.length > 0 ? (
         <FlatList
-          data={songs}
+          data={playlistSongs}
           keyExtractor={(item: Song) => item.id}
           numColumns={2}
           renderItem={renderSongs}

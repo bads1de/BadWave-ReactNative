@@ -32,7 +32,7 @@ export default function LibraryScreen() {
   const router = useRouter();
 
   const {
-    data: likedSongs,
+    data: likedSongs = [],
     isLoading: isLikedLoading,
     error: likedError,
   } = useQuery({
@@ -51,7 +51,7 @@ export default function LibraryScreen() {
     enabled: !!session,
   });
 
-  const { playSong } = useAudioPlayer(likedSongs ?? []);
+  const { playSong } = useAudioPlayer(likedSongs);
 
   const renderLikedSongs = useCallback(
     ({ item }: { item: Song }) => {
