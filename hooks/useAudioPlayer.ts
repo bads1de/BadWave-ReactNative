@@ -9,11 +9,12 @@ import TrackPlayer, {
 import type Song from "@/types";
 import { usePlayerStore } from "./usePlayerStore";
 import { usePlayerEvents } from "./TrackPlayer/events";
-import { usePlayerState, calculateProgress } from "./TrackPlayer/state";
+import { usePlayerState } from "./TrackPlayer/state";
 import {
   useSafeStateUpdate,
   useErrorHandler,
   useCleanup,
+  calculateProgress,
 } from "./TrackPlayer/utils";
 import { useQueueOperations, queueManager } from "./TrackPlayer/queue";
 

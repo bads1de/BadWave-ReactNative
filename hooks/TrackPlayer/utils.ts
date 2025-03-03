@@ -7,6 +7,16 @@ type ErrorHandlerProps = {
 };
 
 /**
+ * プレイヤーの進行状態を計算するユーティリティ関数
+ */
+export function calculateProgress(rawPosition: number, rawDuration: number) {
+  return {
+    progressPosition: rawPosition * 1000,
+    progressDuration: rawDuration * 1000,
+  };
+}
+
+/**
  * 安全な状態更新を行うためのカスタムフック
  */
 export function useSafeStateUpdate(isMounted: React.MutableRefObject<boolean>) {

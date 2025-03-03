@@ -37,13 +37,3 @@ export function usePlayerState({ songs }: UsePlayerStateProps): PlayerState {
     trackMap,
   };
 }
-
-/**
- * プレイヤーの進行状態を計算するユーティリティ関数
- */
-export function calculateProgress(rawPosition: number, rawDuration: number) {
-  return {
-    progressPosition: rawPosition * 1000,
-    progressDuration: rawDuration * 1000,
-  };
-}
