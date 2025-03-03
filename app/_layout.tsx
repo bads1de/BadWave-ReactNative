@@ -9,8 +9,6 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
-import { playbackService } from "@/services/PlayerService";
-import TrackPlayer from "react-native-track-player";
 import { usePlayerInitialization } from "@/hooks/TrackPlayer/initialization";
 
 const queryClient = new QueryClient({
@@ -42,7 +40,9 @@ persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 
 export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
+
   usePlayerInitialization();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

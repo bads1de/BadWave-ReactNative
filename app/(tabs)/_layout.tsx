@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs } from "expo-router";
@@ -7,7 +7,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import getSongs from "@/actions/getSongs";
 import Header from "@/components/Header";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer, RepeatMode } from "@/hooks/useAudioPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
 import { CACHED_QUERIES } from "@/constants";
@@ -15,27 +15,28 @@ import { useHeaderStore } from "@/hooks/useHeaderStore";
 import Loading from "@/components/Loading";
 
 export default function TabLayout() {
-  const { showPlayer, setShowPlayer, currentSong } = usePlayerStore();
+  const { showPlayer, setShowPlayer } = usePlayerStore();
   const { data: songs = [], isLoading } = useQuery({
     queryKey: [CACHED_QUERIES.songs],
     queryFn: getSongs,
   });
 
   const {
-    sound,
+    currentSong,
     isPlaying,
-    position,
-    duration,
+    progressPosition: position,
+    progressDuration: duration,
     togglePlayPause,
     playNextSong,
     playPrevSong,
     seekTo,
-    repeat,
     repeatMode,
-    setRepeat,
+    setRepeatMode: setRepeat,
     shuffle,
     setShuffle,
   } = useAudioPlayer(songs);
+
+  console.log(currentSong);
 
   const { showHeader } = useHeaderStore();
 
@@ -178,11 +179,9 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-
       {showPlayer && currentSong && (
         <View style={styles.fullPlayerContainer}>
           <Player
-            sound={sound}
             isPlaying={isPlaying}
             currentSong={currentSong}
             position={position}
@@ -192,9 +191,15 @@ export default function TabLayout() {
             onPrev={playPrevSong}
             onSeek={seekTo}
             onClose={() => setShowPlayer(false)}
-            repeat={repeat}
-            repeatMode={repeatMode}
-            setRepeat={setRepeat}
+            repeat={repeatMode !== RepeatMode.Off}
+            repeatMode={
+              repeatMode === RepeatMode.Off
+                ? "off"
+                : repeatMode === RepeatMode.Track
+                ? "track"
+                : "queue"
+            }
+            setRepeat={(value) => setRepeat(value ? RepeatMode.Track : RepeatMode.Off)}
             shuffle={shuffle}
             setShuffle={setShuffle}
           />

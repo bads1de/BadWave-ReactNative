@@ -20,7 +20,7 @@ import Error from "@/components/Error";
 import Song from "@/types";
 
 export default function HomeScreen() {
-  const { currentSong, showPlayer } = usePlayerStore();
+  const { showPlayer } = usePlayerStore();
   const {
     data: songs = [],
     isLoading,
@@ -30,19 +30,19 @@ export default function HomeScreen() {
     queryFn: getSongs,
   });
 
-  const { playSong } = useAudioPlayer(songs);
+  const { togglePlayPause, currentSong } = useAudioPlayer(songs);
 
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (
       <SongItem
         song={item}
         onClick={async () => {
-          await playSong(item);
+          await togglePlayPause(item);
         }}
         dynamicSize={false}
       />
     ),
-    [playSong]
+    [togglePlayPause]
   );
 
   if (error) {

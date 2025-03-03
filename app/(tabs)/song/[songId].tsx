@@ -36,7 +36,7 @@ export default function SongDetailScreen() {
     enabled: !!songId,
   });
 
-  const { playSong, isPlaying, currentSong, togglePlayPause } = useAudioPlayer(
+  const { isPlaying, currentSong, togglePlayPause } = useAudioPlayer(
     song ? [song] : []
   );
 
@@ -50,12 +50,11 @@ export default function SongDetailScreen() {
   );
 
   const handlePlayPause = useCallback(() => {
-    if (currentSong?.id === song?.id) {
-      togglePlayPause(song);
-    } else {
-      playSong(song!);
-    }
-  }, [currentSong, song, togglePlayPause, playSong]);
+    if (!song) return;
+    
+    // 新しい曲の場合も、現在の曲の場合もtogglePlayPauseを使用
+    togglePlayPause(song);
+  }, [song, togglePlayPause]);
 
   if (isLoading) {
     return <Loading />;

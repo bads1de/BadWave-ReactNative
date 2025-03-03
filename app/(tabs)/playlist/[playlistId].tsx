@@ -36,21 +36,21 @@ export default function PlaylistDetailScreen() {
     enabled: !!playlistId,
   });
 
-  const { playSong } = useAudioPlayer(playlistSongs);
+  const { togglePlayPause } = useAudioPlayer(playlistSongs);
 
   const renderSongs = useCallback(
     ({ item }: { item: Song }) => (
       <SongItem
         song={item}
         onClick={async () => {
-          await playSong(item, playlistId);
+          await togglePlayPause(item, playlistId);
         }}
         dynamicSize={true}
         showDeleteButton={true}
         playlistId={playlistId}
       />
     ),
-    [playSong]
+    [togglePlayPause, playlistId]
   );
 
   if (isLoading) return <Loading />;

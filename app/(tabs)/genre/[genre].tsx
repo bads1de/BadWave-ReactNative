@@ -46,7 +46,7 @@ export default function GenreSongsScreen() {
     router.back();
   };
 
-  const { playSong } = useAudioPlayer(songs);
+  const { togglePlayPause } = useAudioPlayer(songs);
 
   if (isLoading) {
     return <Loading />;
@@ -71,7 +71,7 @@ export default function GenreSongsScreen() {
             <ListItem
               song={item}
               onPress={async (song) => {
-                await playSong(song);
+                await togglePlayPause(song);
               }}
             />
           )}

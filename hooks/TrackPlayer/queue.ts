@@ -1,9 +1,8 @@
 import { useCallback, MutableRefObject, useRef } from "react";
-import TrackPlayer, { Track } from "react-native-track-player";
+import TrackPlayer, { Track, Event } from "react-native-track-player";
 import type Song from "@/types";
 import { convertToTracks } from "./track";
 import { useSafeStateUpdate, useErrorHandler } from "./utils";
-import useOnPlay from "../useOnPlay";
 
 /**
  * キューの状態を表す型
@@ -11,9 +10,11 @@ import useOnPlay from "../useOnPlay";
 interface QueueState {
   isShuffleEnabled: boolean;
   originalQueue: Track[];
+  currentQueue: { id: string }[];
+  lastProcessedTrackId: string | null;
   context: {
     type: "playlist" | "liked" | null;
-    id?: string;
+    id: string | undefined;
   };
 }
 
@@ -28,306 +29,185 @@ export class QueueManagerError extends Error {
 }
 
 /**
- * キュー管理を担当するシングルトンクラス
+ * キュー操作に関するフック
  */
-export class QueueManager {
-  private static instance: QueueManager;
-  private state: QueueState;
-
-  private constructor() {
-    this.state = {
-      isShuffleEnabled: false,
-      originalQueue: [],
-      context: {
-        type: null,
-      },
-    };
-  }
-
-  /**
-   * シングルトンインスタンスを取得
-   */
-  static getInstance(): QueueManager {
-    if (!QueueManager.instance) {
-      QueueManager.instance = new QueueManager();
-    }
-    return QueueManager.instance;
-  }
-
-  /**
-   * 現在のシャッフル状態を取得
-   */
-  getShuffleState(): boolean {
-    return this.state.isShuffleEnabled;
-  }
-
-  /**
-   * シャッフル状態を設定
-   * @param state 新しいシャッフル状態
-   */
-  setShuffleState(state: boolean): void {
-    this.state = {
-      ...this.state,
-      isShuffleEnabled: state,
-    };
-  }
-
-  /**
-   * 元のキューを取得
-   */
-  getOriginalQueue(): Track[] {
-    return [...this.state.originalQueue];
-  }
-
-  /**
-   * 元のキューを設定
-   * @param queue 新しいキュー
-   * @throws {QueueManagerError} キューが無効な場合
-   */
-  setOriginalQueue(queue: Track[]): void {
-    if (!Array.isArray(queue)) {
-      throw new QueueManagerError("Invalid queue format");
-    }
-
-    this.state = {
-      ...this.state,
-      originalQueue: [...queue],
-    };
-  }
-
-  /**
-   * キューをクリア
-   */
-  clearOriginalQueue(): void {
-    this.state = {
-      ...this.state,
-      originalQueue: [],
-    };
-  }
-
-  /**
-   * キューをシャッフル
-   * @param currentTrack 現在再生中のトラック（先頭に固定）
-   * @param queue シャッフルするキュー
-   * @returns シャッフルされたトラックの配列
-   * @throws {QueueManagerError} シャッフル処理に失敗した場合
-   */
-  shuffleQueue(currentTrack: Track | null, queue: Track[]): Track[] {
-    try {
-      if (!Array.isArray(queue)) {
-        throw new QueueManagerError("Invalid queue format");
-      }
-
-      if (queue.length === 0) {
-        return [];
-      }
-
-      if (!currentTrack) {
-        // 現在のトラックがない場合は全体をシャッフル
-        return this.fisherYatesShuffle([...queue]);
-      }
-
-      // 現在のトラックを除外してシャッフル
-      const remainingTracks = queue.filter(
-        (track) => track.id !== currentTrack.id
-      );
-      const shuffledTracks = this.fisherYatesShuffle(remainingTracks);
-
-      return [currentTrack, ...shuffledTracks];
-    } catch (error) {
-      if (error instanceof QueueManagerError) {
-        throw error;
-      }
-      throw new QueueManagerError(
-        error instanceof Error
-          ? error.message
-          : "Unknown error occurred during shuffle"
-      );
-    }
-  }
-
-  /**
-   * Fisher-Yatesアルゴリズムによる配列のシャッフル
-   * @param array シャッフルする配列
-   * @returns シャッフルされた新しい配列
-   */
-  private fisherYatesShuffle<T>(array: T[]): T[] {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }
-
-  /**
-   * 現在の状態をリセット
-   */
-  /**
-   * 現在の再生コンテキストを取得
-   */
-  getContext() {
-    return { ...this.state.context };
-  }
-
-  /**
-   * 再生コンテキストを設定
-   */
-  setContext(type: "playlist" | "liked" | null, id?: string) {
-    this.state = {
-      ...this.state,
-      context: { type, id },
-    };
-  }
-
-  /**
-   * 現在の状態をリセット
-   */
-  reset(): void {
-    this.state = {
-      isShuffleEnabled: false,
-      originalQueue: [],
-      context: {
-        type: null,
-      },
-    };
-  }
-}
-
-// シングルトンインスタンスをエクスポート
-export const queueManager = QueueManager.getInstance();
-
-// 型定義をエクスポート
-export type { QueueState };
-
-interface UseQueueOperationsProps {
-  songs: Song[];
-  trackMap: Record<string, any>;
-  setCurrentSong: (song: Song | null) => void;
-  setIsPlaying: (isPlaying: boolean) => void;
-  shuffle: boolean;
-  isMounted: MutableRefObject<boolean>;
-  queueManager: QueueManager;
-}
-
-export function useQueueOperations({
-  songs,
-  trackMap,
-  setCurrentSong,
-  setIsPlaying,
-  shuffle,
-  isMounted,
-  queueManager,
-}: UseQueueOperationsProps) {
-  // キュー操作中フラグ
-  const isQueueOperationInProgress = useRef(false);
-
-  // 最適化: 前回のトラックIDを追跡して、重複更新を防止
-  const lastProcessedTrackId = useRef<string | null>(null);
-
-  // ユーティリティ関数の初期化
+export function useQueueOperations(
+  isMounted: MutableRefObject<boolean>,
+  setIsPlaying: (isPlaying: boolean) => void,
+  songMap: Record<string, Song>,
+  trackMap: Record<string, Track>
+) {
   const safeStateUpdate = useSafeStateUpdate(isMounted);
   const handleError = useErrorHandler({ safeStateUpdate, setIsPlaying });
-
-  // 再生回数更新関数を初期化
-  const onPlay = useOnPlay();
+  const queueContext = useRef<QueueState>({
+    isShuffleEnabled: false,
+    originalQueue: [],
+    currentQueue: [],
+    lastProcessedTrackId: null,
+    context: {
+      type: null,
+      id: undefined,
+    },
+  });
 
   /**
-   * 指定された曲を再生する (最適化版)
+   * キューをシャッフルする
    */
-  const playSong = useCallback(
-    async (song: Song, playlistId?: string) => {
-      if (!song || isQueueOperationInProgress.current) return;
+  const shuffleQueue = useCallback(async () => {
+    try {
+      const currentTrack = await TrackPlayer.getActiveTrack();
+      const queue = await TrackPlayer.getQueue();
 
-      isQueueOperationInProgress.current = true;
+      // 現在の曲を除外してシャッフル
+      const remainingTracks = queue.filter(
+        (track) => track.id !== currentTrack?.id
+      );
+      const shuffledTracks = [...remainingTracks].sort(
+        () => Math.random() - 0.5
+      );
 
+      // 現在の曲を先頭に、シャッフルした曲を後ろに追加
+      await TrackPlayer.removeUpcomingTracks();
+      if (currentTrack) {
+        await TrackPlayer.add([currentTrack, ...shuffledTracks]);
+      } else {
+        await TrackPlayer.add(shuffledTracks);
+      }
+
+      // キューの状態を更新
+      queueContext.current.currentQueue = queue.map((track) => ({
+        id: track.id as string,
+      }));
+    } catch (error) {
+      handleError(error, "キューのシャッフル中にエラーが発生しました");
+    }
+  }, [handleError]);
+
+  /**
+   * キューに曲を追加する
+   */
+  const addToQueue = useCallback(
+    async (songs: Song[], insertBeforeIndex?: number) => {
       try {
-        // 最適化: 即座に UI 状態を更新して体感速度を改善
-        safeStateUpdate(() => {
-          setCurrentSong(song);
-          setIsPlaying(true);
-        });
+        const tracks = convertToTracks(songs);
 
-        // 最適化: 最後に処理されたトラックIDを更新
-        lastProcessedTrackId.current = song.id;
-
-        // 再生回数を更新
-        await onPlay(song.id);
-
-        // コンテキスト設定
-        queueManager.setContext(playlistId ? "playlist" : "liked", playlistId);
-
-        // 現在のキュー情報を確認
-        const currentQueue = await TrackPlayer.getQueue();
-        const selectedTrackIndex = currentQueue.findIndex(
-          (track) => track.id === song.id
-        );
-
-        if (selectedTrackIndex !== -1) {
-          // キューにすでに存在する場合は直接スキップ
-          await TrackPlayer.skip(selectedTrackIndex);
-          await TrackPlayer.play();
-          isQueueOperationInProgress.current = false;
-          return;
+        if (insertBeforeIndex !== undefined) {
+          await TrackPlayer.add(tracks, insertBeforeIndex);
+        } else {
+          await TrackPlayer.add(tracks);
         }
 
-        // キューに存在しない場合
-        const track = trackMap[song.id];
-        if (!track) {
-          throw new Error("曲が見つかりません");
+        // キューの状態を更新
+        const queue = await TrackPlayer.getQueue();
+        queueContext.current.currentQueue = queue.map((track) => ({
+          id: track.id as string,
+        }));
+        queueContext.current.originalQueue = [...queue];
+
+        // 現在の曲のメタデータを更新
+        const currentTrack = await TrackPlayer.getActiveTrack();
+        if (currentTrack) {
+          await TrackPlayer.updateNowPlayingMetadata(currentTrack);
         }
-
-        // キューをリセットして現在の曲を追加（UI応答性向上のため）
-        await TrackPlayer.reset();
-        await TrackPlayer.add([track]);
-
-        // 再生開始
-        const playPromise = TrackPlayer.play();
-
-        // 非同期で残りの曲を追加（UIブロックを防止）
-        setTimeout(() => {
-          const remainingSongs = songs.filter((s) => s.id !== song.id);
-          let remainingTracks;
-
-          if (shuffle) {
-            remainingTracks = queueManager.shuffleQueue(
-              null,
-              convertToTracks(remainingSongs)
-            );
-          } else {
-            remainingTracks = convertToTracks(remainingSongs);
-          }
-
-          TrackPlayer.add(remainingTracks)
-            .catch((e) => console.error("残りの曲の追加エラー:", e))
-            .finally(() => {
-              isQueueOperationInProgress.current = false;
-            });
-        }, 300);
-
-        // 再生開始を待つ
-        await playPromise;
       } catch (error) {
-        handleError(error, "再生エラー");
-        isQueueOperationInProgress.current = false;
+        handleError(error, "キューへの追加中にエラーが発生しました");
       }
     },
-    [
-      songs,
-      trackMap,
-      setCurrentSong,
-      setIsPlaying,
-      shuffle,
-      handleError,
-      safeStateUpdate,
-      onPlay,
-      queueManager,
-    ]
+    [handleError]
+  );
+
+  /**
+   * 新しい曲をキューに追加して再生する
+   */
+  const playNewQueue = useCallback(
+    async (song: Song, songs: Song[], playlistId?: string) => {
+      try {
+        await TrackPlayer.reset();
+        const track = trackMap[song.id];
+
+        if (!track) {
+          throw new Error("トラックが見つかりません");
+        }
+
+        // コンテキストの更新
+        queueContext.current = {
+          ...queueContext.current,
+          context: {
+            type: playlistId ? "playlist" : "liked",
+            id: playlistId,
+          },
+          lastProcessedTrackId: song.id,
+        };
+
+        // 曲の追加とメタデータの更新
+        await TrackPlayer.add(track);
+        await TrackPlayer.updateNowPlayingMetadata({
+          ...track,
+          title: song.title,
+          artist: song.author,
+        });
+
+        // キューの状態を更新
+        const newQueue = songs.map((s) => ({ id: s.id }));
+        queueContext.current.currentQueue = newQueue;
+        queueContext.current.originalQueue = convertToTracks(songs);
+
+        await TrackPlayer.play();
+
+        // シャッフルモードの場合はキューをシャッフル
+        if (queueContext.current.isShuffleEnabled) {
+          await shuffleQueue();
+        }
+
+        return true;
+      } catch (error) {
+        handleError(error, "新しいキューの再生中にエラーが発生しました");
+        return false;
+      }
+    },
+    [handleError, trackMap, shuffleQueue]
+  );
+
+  /**
+   * キューの状態を取得する
+   */
+  const getQueueState = useCallback(() => {
+    return queueContext.current;
+  }, []);
+
+  /**
+   * シャッフルモードを設定する
+   */
+  const setShuffleMode = useCallback(
+    async (enabled: boolean) => {
+      try {
+        // プレイヤーの初期化を確認
+        const state = await TrackPlayer.getState();
+
+        queueContext.current.isShuffleEnabled = enabled;
+        if (enabled) {
+          await shuffleQueue();
+        } else {
+          await TrackPlayer.removeUpcomingTracks();
+          await TrackPlayer.add(queueContext.current.originalQueue);
+        }
+      } catch (error: any) {
+        // プレイヤーが初期化されていない場合は状態のみ更新
+        if (error.message?.includes("player is not initialized")) {
+          queueContext.current.isShuffleEnabled = enabled;
+          return;
+        }
+        handleError(error, "シャッフルモードの設定中にエラーが発生しました");
+      }
+    },
+    [handleError, shuffleQueue]
   );
 
   return {
-    playSong,
-    isQueueOperationInProgress,
-    lastProcessedTrackId,
+    shuffleQueue,
+    addToQueue,
+    playNewQueue,
+    getQueueState,
+    setShuffleMode,
   };
 }

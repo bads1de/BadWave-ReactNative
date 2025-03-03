@@ -16,20 +16,17 @@ type PlayerState = {
  * プレイヤーの状態管理を行うカスタムフック
  */
 export function usePlayerState({ songs }: UsePlayerStateProps): PlayerState {
-  // 曲のIDをキーとする曲データマップを作成
-  const songMap = useMemo(() => {
-    return songs.reduce((acc, song) => {
-      acc[song.id] = song;
-      return acc;
-    }, {} as Record<string, Song>);
-  }, [songs]);
+  // 曲のIDをキーとする曲データマップとトラックマップを作成
+  const { songMap, trackMap } = useMemo(() => {
+    const songMap: Record<string, Song> = {};
+    const trackMap: Record<string, Track> = {};
 
-  // キャッシュされたトラックマップ
-  const trackMap = useMemo(() => {
-    return songs.reduce((acc, song) => {
-      acc[song.id] = convertSongToTrack(song);
-      return acc;
-    }, {} as Record<string, Track>);
+    songs.forEach((song) => {
+      songMap[song.id] = song;
+      trackMap[song.id] = convertSongToTrack(song);
+    });
+
+    return { songMap, trackMap };
   }, [songs]);
 
   return {

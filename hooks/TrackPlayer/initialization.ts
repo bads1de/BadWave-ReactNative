@@ -1,35 +1,37 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import TrackPlayer from "react-native-track-player";
+import { getPlaybackState } from "react-native-track-player/lib/src/trackPlayer";
 
 /**
  * プレイヤーの初期化を管理するカスタムフック
  *
  * `usePlayerInitialization` は、プレイヤーの初期化を管理するカスタムフックです。
- * このフックは、プレイヤーの初期化が完了したかどうかを示す `isPlayerInitialized` を返します。
+ * このフックは、プレイヤーの初期化が完了したかどうかを示す `isInitialized` を返します。
  *
- * @returns プレイヤーの初期化が完了したかどうかを示す `isPlayerInitialized`
+ * @returns プレイヤーの初期化状態を含むオブジェクト
  */
 export function usePlayerInitialization() {
-  // プレイヤーの初期化状態を追跡するref
-  const isPlayerInitialized = useRef(false);
+  // プレイヤーの初期化状態を追跡するstate
+  const [isInitialized, setIsInitialized] = useState(false);
+  const initializationAttempted = useRef(false);
 
   useEffect(() => {
     // プレイヤーを初期化する非同期関数
     const initializePlayer = async () => {
+      if (initializationAttempted.current) return;
+
       try {
-        if (!isPlayerInitialized.current) {
-          // プレイヤーのセットアップ
-          await TrackPlayer.setupPlayer();
-          isPlayerInitialized.current = true;
-          console.log("プレイヤーのセットアップが完了しました");
-        }
+        initializationAttempted.current = true;
+        await TrackPlayer.setupPlayer();
+        setIsInitialized(true);
+        console.log("プレイヤーのセットアップが完了しました");
       } catch (error) {
-        // エラーハンドリング
         console.error(
           "プレイヤーのセットアップ中にエラーが発生しました:",
           error
         );
-        isPlayerInitialized.current = false;
+        setIsInitialized(false);
+        initializationAttempted.current = false;
       }
     };
 
@@ -37,8 +39,20 @@ export function usePlayerInitialization() {
     initializePlayer();
   }, []);
 
-  // 現在のプレイヤー初期化状態を返す
   return {
-    isPlayerInitialized: isPlayerInitialized.current,
+    isInitialized,
   };
+}
+
+// プレイヤーの初期化状態を確認するユーティリティ関数
+export async function ensurePlayerInitialized() {
+  try {
+    const state = (await getPlaybackState()).state;
+    return true;
+  } catch (error: any) {
+    if (error.message?.includes("player is not initialized")) {
+      await TrackPlayer.setupPlayer();
+    }
+    return false;
+  }
 }
