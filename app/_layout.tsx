@@ -9,7 +9,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
-import { playbackService, setupPlayer } from "@/services/PlayerService";
+import { playbackService } from "@/services/PlayerService";
 import TrackPlayer from "react-native-track-player";
 
 const queryClient = new QueryClient({
@@ -41,34 +41,15 @@ persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 
 export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
-  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const isPlaybackServiceRegistered = useRef(false);
 
   useEffect(() => {
-    const setup = async () => {
-      try {
-        const isSetup = await setupPlayer();
-        setIsPlayerReady(isSetup);
-        console.log("プレイヤーのセットアップが完了しました:", isSetup);
-      } catch (error) {
-        console.error(
-          "プレイヤーのセットアップ中にエラーが発生しました:",
-          error
-        );
-      }
-    };
-
     if (!isPlaybackServiceRegistered.current) {
       TrackPlayer.registerPlaybackService(playbackService);
       isPlaybackServiceRegistered.current = true;
       console.log("再生サービスが登録されました");
     }
-
-    if (!isPlayerReady) {
-      console.log("プレイヤーのセットアップを開始します");
-      setup();
-    }
-  }, [isPlayerReady]);
+  }, []);
 
   return (
       <QueryClientProvider client={queryClient}>

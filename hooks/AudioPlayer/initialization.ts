@@ -3,36 +3,42 @@ import TrackPlayer from "react-native-track-player";
 
 /**
  * プレイヤーの初期化を管理するカスタムフック
+ *
+ * `usePlayerInitialization` は、プレイヤーの初期化を管理するカスタムフックです。
+ * このフックは、プレイヤーの初期化が完了したかどうかを示す `isPlayerInitialized` を返します。
+ *
+ * @returns プレイヤーの初期化が完了したかどうかを示す `isPlayerInitialized`
  */
 export function usePlayerInitialization() {
+  // プレイヤーの初期化状態を追跡するref
   const isPlayerInitialized = useRef(false);
-  const isQueueInitialized = useRef(false);
 
-  // プレイヤーの初期化
   useEffect(() => {
+    // プレイヤーを初期化する非同期関数
     const initializePlayer = async () => {
       try {
-        const setupNeeded = (await TrackPlayer.getState()) === null;
-        if (setupNeeded && !isPlayerInitialized.current) {
+        if (!isPlayerInitialized.current) {
+          // プレイヤーのセットアップ
           await TrackPlayer.setupPlayer();
           isPlayerInitialized.current = true;
+          console.log("プレイヤーのセットアップが完了しました");
         }
       } catch (error) {
-        // 初期化エラーは無視
+        // エラーハンドリング
+        console.error(
+          "プレイヤーのセットアップ中にエラーが発生しました:",
+          error
+        );
+        isPlayerInitialized.current = false;
       }
     };
 
+    // コンポーネントのマウント時にプレイヤーを初期化
     initializePlayer();
   }, []);
 
-  // キューの初期化（プレイヤーの初期化後に実行）
-  useEffect(() => {
-    // 自動的なキューの初期化は行わない
-    isQueueInitialized.current = true;
-  }, []);
-
+  // 現在のプレイヤー初期化状態を返す
   return {
-    isPlayerInitialized,
-    isQueueInitialized,
+    isPlayerInitialized: isPlayerInitialized.current,
   };
 }
