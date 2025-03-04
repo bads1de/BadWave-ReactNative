@@ -19,6 +19,7 @@ import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
+import MarqueeText from "./MarqueeText";
 
 interface PlayerProps {
   isPlaying: boolean;
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
+    width: "100%",
   },
   author: {
     color: "#999",
@@ -357,6 +358,8 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     alignItems: "flex-start",
+    width: "55%",
+    overflow: "hidden",
   },
   repeatButton: {
     position: "relative",
