@@ -1,7 +1,6 @@
 import { useCallback, MutableRefObject, useRef } from "react";
 import TrackPlayer, { Track } from "react-native-track-player";
 import type Song from "@/types";
-import { QueueManagerError } from "./errors";
 import { convertToTracks } from "./track";
 import { useSafeStateUpdate, useErrorHandler } from "./utils";
 
@@ -32,7 +31,7 @@ interface QueueState {
  */
 export function useQueueOperations(
   isMounted: MutableRefObject<boolean>,
-  setIsPlaying: (isPlaying: boolean) => void,
+  setIsPlaying: any,
   songMap: Record<string, Song>,
   trackMap: Record<string, Track>
 ) {

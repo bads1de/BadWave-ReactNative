@@ -4,9 +4,9 @@ import TrackPlayer, {
   usePlaybackState,
   useProgress,
   RepeatMode,
-  Event,
+  useActiveTrack,
 } from "react-native-track-player";
-import { calculateProgress, useCleanup } from "./TrackPlayer/utils";
+import { useCleanup } from "./TrackPlayer/utils";
 import Song from "../types";
 import useOnPlay from "./useOnPlay";
 import { usePlayerState } from "./TrackPlayer/state";
@@ -39,78 +39,43 @@ export function useAudioPlayer(songs: Song[]) {
   const { songMap, trackMap } = usePlayerState({ songs });
   const onPlay = useOnPlay();
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const isMounted = useRef(true);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>(RepeatMode.Off);
   const [shuffle, setShuffle] = useState<boolean>(false);
-  const [isPlayingState, setIsPlayingState] = useState<boolean>(false);
+
+  const isMounted = useRef(true);
+  const activeTrack = useActiveTrack();
+  const playbackState = usePlaybackState();
+  const { position, duration } = useProgress();
 
   useCleanup(isMounted);
 
-  const playbackState = usePlaybackState();
   const isPlaying = playbackState.state === State.Playing;
-  const { position: rawPosition, duration: rawDuration } = useProgress();
-  const { progressPosition, progressDuration } = calculateProgress(
-    rawPosition,
-    rawDuration
-  );
-
-  // isPlayingの状態が変わったらsetIsPlayingStateを呼び出す
-  useEffect(() => {
-    setIsPlayingState(isPlaying);
-  }, [isPlaying]);
+  const progressPosition = position * 1000;
+  const progressDuration = duration * 1000;
 
   const { playNewQueue, setShuffleMode, getQueueState } = useQueueOperations(
     isMounted,
-    setIsPlayingState,
+    isPlaying,
     songMap,
     trackMap
   );
 
-  // トラック変更イベントの監視
+  // アクティブトラックが変更されたときの処理
   useEffect(() => {
-    const handleTrackChange = async () => {
-      // コンポーネントがアンマウントされている場合は処理を中止
-      if (!isMounted.current) return;
+    // コンポーネントがアンマウントされている場合は処理を中止
+    if (!isMounted.current || !activeTrack?.id) return;
 
-      try {
-        // 現在アクティブなトラックのインデックスを取得
-        const trackIndex = await TrackPlayer.getActiveTrackIndex();
-        if (trackIndex == null) return;
+    // トラックIDに対応する曲情報を取得
+    const song = songMap[activeTrack.id];
+    if (!song) return;
 
-        // 現在のキューを取得
-        const queue = await TrackPlayer.getQueue();
-        const track = queue[trackIndex];
-        if (!track?.id) return;
+    // 現在の曲を更新
+    setCurrentSong(song);
 
-        // トラックIDに対応する曲情報を取得
-        const song = songMap[track.id];
-        if (!song) return;
-
-        // 現在の曲を更新
-        setCurrentSong(song);
-
-        // キューの状態を更新
-        const queueState = getQueueState();
-        queueState.lastProcessedTrackId = song.id;
-      } catch (error) {
-        // エラーハンドリング（必要に応じて実装）
-      }
-    };
-
-    // 初期トラックの設定
-    handleTrackChange();
-
-    // イベントリスナーを追加
-    const unsubscribe = TrackPlayer.addEventListener(
-      Event.PlaybackActiveTrackChanged,
-      handleTrackChange
-    );
-
-    // クリーンアップ関数
-    return () => {
-      unsubscribe.remove();
-    };
-  }, [songMap, getQueueState]);
+    // キューの状態を更新
+    const queueState = getQueueState();
+    queueState.lastProcessedTrackId = song.id;
+  }, [activeTrack, songMap, getQueueState]);
 
   // シャッフルモードの変更を監視
   useEffect(() => {

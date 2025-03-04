@@ -8,19 +8,6 @@ type ErrorHandlerProps = {
 };
 
 /**
- * プレイヤーの進行状態を計算するユーティリティ関数
- * @param rawPosition - 生の再生位置（秒）
- * @param rawDuration - 生の再生時間（秒）
- * @returns 計算された進行状態（ミリ秒単位）
- */
-export function calculateProgress(rawPosition: number, rawDuration: number) {
-  return {
-    progressPosition: rawPosition * 1000, // 秒からミリ秒に変換
-    progressDuration: rawDuration * 1000, // 秒からミリ秒に変換
-  };
-}
-
-/**
  * 安全な状態更新を行うためのカスタムフック
  * @param isMounted - コンポーネントがマウントされているかを示すref
  * @returns 安全に状態を更新する関数
