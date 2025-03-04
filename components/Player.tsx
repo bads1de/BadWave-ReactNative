@@ -65,6 +65,7 @@ interface ControlButtonProps {
   icon: keyof typeof Ionicons.glyphMap;
   isActive?: boolean;
   onPress: () => void;
+  repeatMode?: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
 }
 
 interface PlayPauseButtonProps {
@@ -146,17 +147,41 @@ const Controls: FC<ControlsProps> = memo(
               break;
           }
         }}
+        repeatMode={repeatMode}
       />
     </View>
   )
 );
 
 const ControlButton: FC<ControlButtonProps> = memo(
-  ({ icon, isActive, onPress }) => (
-    <TouchableOpacity onPress={onPress}>
-      <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
-    </TouchableOpacity>
-  )
+  ({ icon, isActive, onPress, repeatMode }) => {
+    // リピートボタンの場合、モードに応じて異なるアイコンを表示
+    if (icon === "repeat") {
+      return (
+        <View>
+          <TouchableOpacity onPress={onPress} style={styles.repeatButton}>
+            <Ionicons
+              name={isActive ? "repeat" : "repeat-outline"}
+              size={25}
+              color={isActive ? "#4c1d95" : "#fff"}
+            />
+            {isActive && (
+              <Text style={[styles.repeatModeIndicator, { color: "#4c1d95" }]}>
+                {repeatMode === RepeatMode.Track ? "1" : ""}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // 通常のコントロールボタン
+    return (
+      <TouchableOpacity onPress={onPress}>
+        <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
+      </TouchableOpacity>
+    );
+  }
 );
 
 const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
@@ -332,5 +357,16 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     alignItems: "flex-start",
+  },
+  repeatButton: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  repeatModeIndicator: {
+    position: "absolute",
+    bottom: -8,
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });
