@@ -31,7 +31,7 @@ export default function TabLayout() {
     playPrevSong,
     seekTo,
     repeatMode,
-    setRepeatMode: setRepeat,
+    setRepeat,
     shuffle,
     setShuffle,
   } = useAudioPlayer(songs);
@@ -189,17 +189,8 @@ export default function TabLayout() {
             onPrev={playPrevSong}
             onSeek={seekTo}
             onClose={() => setShowPlayer(false)}
-            repeat={repeatMode !== RepeatMode.Off}
-            repeatMode={
-              repeatMode === RepeatMode.Off
-                ? "off"
-                : repeatMode === RepeatMode.Track
-                ? "track"
-                : "queue"
-            }
-            setRepeat={(value) =>
-              setRepeat(value ? RepeatMode.Track : RepeatMode.Off)
-            }
+            repeatMode={repeatMode}
+            setRepeatMode={setRepeat}
             shuffle={shuffle}
             setShuffle={setShuffle}
           />

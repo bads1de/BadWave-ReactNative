@@ -10,8 +10,6 @@ type PlayerActions = {
 
 export const usePlayerStore = create<PlayerState & PlayerActions>((set) => ({
   showPlayer: false,
-  currentSong: null,
 
-  // Actions
   setShowPlayer: (value) => set({ showPlayer: value }),
 }));

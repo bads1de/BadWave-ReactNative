@@ -248,7 +248,7 @@ export function useAudioPlayer(songs: Song[]) {
     playPrevSong,
     stop,
     repeatMode,
-    setRepeatMode: handleSetRepeat,
+    setRepeat: handleSetRepeat,
     shuffle,
     setShuffle,
   };

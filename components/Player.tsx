@@ -18,6 +18,7 @@ import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
+import { RepeatMode } from "react-native-track-player";
 
 interface PlayerProps {
   isPlaying: boolean;
@@ -29,9 +30,10 @@ interface PlayerProps {
   onPrev: () => void;
   onSeek: (millis: number) => void;
   onClose: () => void;
-  repeat: boolean;
-  repeatMode: "off" | "track" | "queue";
-  setRepeat: (value: boolean) => void;
+  repeatMode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
+  setRepeatMode: (
+    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue
+  ) => void;
   shuffle: boolean;
   setShuffle: (value: boolean) => void;
 }
@@ -53,8 +55,10 @@ interface ControlsProps {
   onPrev: () => void;
   shuffle: boolean;
   setShuffle: (value: boolean) => void;
-  repeat: boolean;
-  setRepeat: (value: boolean) => void;
+  repeatMode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
+  setRepeatMode: (
+    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue
+  ) => void;
 }
 
 interface ControlButtonProps {
@@ -114,8 +118,8 @@ const Controls: FC<ControlsProps> = memo(
     onPrev,
     shuffle,
     setShuffle,
-    repeat,
-    setRepeat,
+    repeatMode,
+    setRepeatMode,
   }) => (
     <View style={styles.controls}>
       <ControlButton
@@ -128,8 +132,20 @@ const Controls: FC<ControlsProps> = memo(
       <ControlButton icon="play-skip-forward" onPress={onNext} />
       <ControlButton
         icon="repeat"
-        isActive={repeat}
-        onPress={() => setRepeat(!repeat)}
+        isActive={repeatMode !== RepeatMode.Off}
+        onPress={() => {
+          switch (repeatMode) {
+            case RepeatMode.Off:
+              setRepeatMode(RepeatMode.Track);
+              break;
+            case RepeatMode.Track:
+              setRepeatMode(RepeatMode.Queue);
+              break;
+            case RepeatMode.Queue:
+              setRepeatMode(RepeatMode.Off);
+              break;
+          }
+        }}
       />
     </View>
   )
@@ -192,8 +208,8 @@ const PlayerControls: FC<PlayerProps> = memo(
     onSeek,
     shuffle,
     setShuffle,
-    repeat,
-    setRepeat,
+    repeatMode,
+    setRepeatMode,
     currentSong,
   }) => (
     <>
@@ -206,8 +222,8 @@ const PlayerControls: FC<PlayerProps> = memo(
         onPrev={onPrev}
         shuffle={shuffle}
         setShuffle={setShuffle}
-        repeat={repeat}
-        setRepeat={setRepeat}
+        repeatMode={repeatMode}
+        setRepeatMode={setRepeatMode}
       />
     </>
   )
