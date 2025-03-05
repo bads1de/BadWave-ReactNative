@@ -46,9 +46,7 @@ export default function PlaylistDetailScreen() {
     ({ item }: { item: Song }) => (
       <SongItem
         song={item}
-        onClick={async () => {
-          await togglePlayPause(item);
-        }}
+        onClick={async () => await togglePlayPause(item)}
         dynamicSize={true}
         showDeleteButton={true}
         playlistId={playlistId}

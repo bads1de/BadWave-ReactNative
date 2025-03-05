@@ -64,9 +64,7 @@ export default function GenreSongsScreen() {
           renderItem={({ item }) => (
             <ListItem
               song={item}
-              onPress={async (song) => {
-                await togglePlayPause(song);
-              }}
+              onPress={async () => await togglePlayPause(item)}
             />
           )}
           keyExtractor={(item) => item.id}

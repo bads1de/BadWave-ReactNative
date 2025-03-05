@@ -37,9 +37,7 @@ export default function HomeScreen() {
       <SongItem
         song={item}
         key={item.id}
-        onClick={async () => {
-          await togglePlayPause(item);
-        }}
+        onClick={async () => await togglePlayPause(item)}
         dynamicSize={false}
       />
     ),
