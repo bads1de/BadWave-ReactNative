@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, FC } from "react";
+import React, { memo, FC } from "react";
 import {
   View,
   Text,
@@ -14,12 +14,12 @@ import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
 import { ResizeMode, Video } from "expo-av";
 import Song from "@/types";
+import NextSong from "./NextSong";
 import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
-import MarqueeText from "./MarqueeText";
 
 interface PlayerProps {
   isPlaying: boolean;
@@ -283,11 +283,13 @@ const Player: FC<PlayerProps> = (props) => {
       </View>
 
       {currentSong?.lyrics && <Lyric lyrics={currentSong.lyrics} />}
+      <NextSong />
     </ScrollView>
   );
 };
 
 const MemoizedPlayer = memo(Player);
+
 export default MemoizedPlayer;
 
 const styles = StyleSheet.create({

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from "react";
-import { QueueManagerError } from "./errors";
 
 // エラーハンドラーの引数の型定義
 type ErrorHandlerProps = {
@@ -39,7 +38,7 @@ export function useErrorHandler({
       console.error(`${context}:`, error);
 
       // エラーの種類に応じて適切なログを出力
-      if (error instanceof QueueManagerError) {
+      if (error && typeof error === "object" && "message" in error) {
         console.error("キュー管理エラー:", error.message);
       } else if (error instanceof Error) {
         console.error("エラー:", error.message);
