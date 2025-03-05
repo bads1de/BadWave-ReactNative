@@ -14,7 +14,7 @@ export default function SearchScreen() {
   const debouncedQuery = useDebounce(searchQuery, 500);
 
   const {
-    data: songs = [],
+    data: searchSongs = [],
     isLoading,
     error,
   } = useQuery({
@@ -23,7 +23,7 @@ export default function SearchScreen() {
     enabled: debouncedQuery.length > 0,
   });
 
-  const { togglePlayPause } = useAudioPlayer(songs);
+  const { togglePlayPause } = useAudioPlayer(searchSongs, "search");
 
   if (error) {
     return <Error message={error.message} />;
@@ -43,7 +43,7 @@ export default function SearchScreen() {
         <Loading />
       ) : (
         <FlatList
-          data={songs}
+          data={searchSongs}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <ListItem

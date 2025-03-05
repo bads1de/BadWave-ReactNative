@@ -30,7 +30,7 @@ export default function HomeScreen() {
     queryFn: getSongs,
   });
 
-  const { togglePlayPause, currentSong } = useAudioPlayer(songs);
+  const { togglePlayPause, currentSong } = useAudioPlayer(songs, "home");
 
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (

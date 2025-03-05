@@ -10,7 +10,7 @@ import { useCleanup } from "./TrackPlayer/utils";
 import Song from "../types";
 import useOnPlay from "./useOnPlay";
 import { usePlayerState } from "./TrackPlayer/state";
-import { useQueueOperations } from "./TrackPlayer/queue";
+import { useQueueOperations, PlayContextType } from "./TrackPlayer/queue";
 
 /**
  * オーディオプレイヤーの状態管理と操作を行うカスタムフック
@@ -22,7 +22,12 @@ import { useQueueOperations } from "./TrackPlayer/queue";
  *
  * @returns {Object} プレイヤーの状態と操作関数
  */
-export function useAudioPlayer(songs: Song[]) {
+export function useAudioPlayer(
+  songs: Song[] = [],
+  contextType: PlayContextType = null,
+  contextId?: string,
+  sectionId?: string
+) {
   const { songMap, trackMap } = usePlayerState({ songs });
   const onPlay = useOnPlay();
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
@@ -40,9 +45,18 @@ export function useAudioPlayer(songs: Song[]) {
   const progressPosition = position * 1000;
   const progressDuration = duration * 1000;
 
-  const { playNewQueue, setShuffleMode, getQueueState } = useQueueOperations(
+  // isPlayingを設定する関数
+  const setIsPlaying = useCallback((playing: boolean) => {
+    if (playing && playbackState.state !== State.Playing) {
+      TrackPlayer.play();
+    } else if (!playing && playbackState.state === State.Playing) {
+      TrackPlayer.pause();
+    }
+  }, [playbackState.state]);
+
+  const { updateQueueWithContext, toggleShuffle, queueState } = useQueueOperations(
     isMounted,
-    isPlaying,
+    setIsPlaying,
     songMap,
     trackMap
   );
@@ -60,22 +74,25 @@ export function useAudioPlayer(songs: Song[]) {
     setCurrentSong(song);
 
     // キューの状態を更新
-    const queueState = getQueueState();
-    queueState.lastProcessedTrackId = song.id;
-  }, [activeTrack, songMap, getQueueState]);
+    const currentQueueState = queueState.current;
+    currentQueueState.lastProcessedTrackId = song.id;
+  }, [activeTrack, songMap, queueState]);
 
-  // シャッフルモードの変更を監視
-  useEffect(() => {
-    setShuffleMode(shuffle);
-  }, [shuffle, setShuffleMode]);
+  // シャッフルトグル処理用ハンドラー
+  const handleToggleShuffle = useCallback(async () => {
+    const isShuffled = await toggleShuffle();
+    setShuffle(isShuffled);
+  }, [toggleShuffle]);
 
   /**
    * 再生/一時停止を切り替える
+   *
    * @param {Song} song - 再生する曲
-   * @param {string} playlistId - プレイリストID
+   * @param {string} contextId - コンテキストID（プレイリストIDなど）
+   * @param {PlayContextType} contextType - コンテキストタイプ
    */
   const togglePlayPause = useCallback(
-    async (song?: Song, playlistId?: string) => {
+    async (song?: Song, contextId?: string, contextType: PlayContextType = "home") => {
       try {
         if (!song && !currentSong) return;
 
@@ -90,21 +107,26 @@ export function useAudioPlayer(songs: Song[]) {
 
         // songが指定されている場合はキューを更新
         if (song) {
-          // キューを更新
-          const success = await playNewQueue(song, songs, playlistId);
+          // 曲のインデックスを取得
+          const songIndex = songs.findIndex(s => s.id === song.id);
+          if (songIndex === -1) return;
 
-          // キュー更新が成功した場合は再生
-          if (success) {
-            setCurrentSong(song);
-            await onPlay(song.id);
-            await TrackPlayer.play();
-          }
+          // コンテキスト情報を作成
+          const context = {
+            type: contextType,
+            id: contextId,
+          };
+
+          // キューを更新して再生開始
+          await updateQueueWithContext(songs, context, songIndex);
+          setCurrentSong(song);
+          await onPlay(song.id);
         }
       } catch (error) {
         console.error("Error in togglePlayPause:", error);
       }
     },
-    [currentSong, isPlaying, playNewQueue, onPlay, songs]
+    [currentSong, isPlaying, updateQueueWithContext, onPlay, songs]
   );
 
   /**
@@ -181,7 +203,7 @@ export function useAudioPlayer(songs: Song[]) {
     repeatMode,
     setRepeat: handleSetRepeatMode,
     shuffle,
-    setShuffle,
+    setShuffle: handleToggleShuffle,
   };
 }
 

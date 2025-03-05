@@ -36,7 +36,11 @@ export default function PlaylistDetailScreen() {
     enabled: !!playlistId,
   });
 
-  const { togglePlayPause } = useAudioPlayer(playlistSongs);
+  const { togglePlayPause } = useAudioPlayer(
+    playlistSongs,
+    "playlist",
+    playlistId
+  );
 
   const renderSongs = useCallback(
     ({ item }: { item: Song }) => (

@@ -34,7 +34,7 @@ export default function TabLayout() {
     setRepeat,
     shuffle,
     setShuffle,
-  } = useAudioPlayer(songs);
+  } = useAudioPlayer(songs, "home");
 
   const { showHeader } = useHeaderStore();
 

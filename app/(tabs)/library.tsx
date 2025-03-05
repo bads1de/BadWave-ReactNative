@@ -51,7 +51,7 @@ export default function LibraryScreen() {
     enabled: !!session,
   });
 
-  const { togglePlayPause } = useAudioPlayer(likedSongs);
+  const { togglePlayPause } = useAudioPlayer(likedSongs, "liked");
 
   const renderLikedSongs = useCallback(
     ({ item }: { item: Song }) => {

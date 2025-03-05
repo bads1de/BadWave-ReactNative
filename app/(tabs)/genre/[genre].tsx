@@ -46,7 +46,7 @@ export default function GenreSongsScreen() {
     router.back();
   };
 
-  const { togglePlayPause } = useAudioPlayer(genreSongs);
+  const { togglePlayPause } = useAudioPlayer(genreSongs, "genre", genre);
 
   if (isLoading) {
     return <Loading />;
