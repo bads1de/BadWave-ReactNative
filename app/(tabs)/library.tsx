@@ -67,13 +67,9 @@ export default function LibraryScreen() {
     [togglePlayPause]
   );
 
-  if (isLikedLoading || isPlaylistsLoading) {
-    return <Loading />;
-  }
-
-  if (likedError || playlistsError) {
-    return <Error message={(likedError || playlistsError)!.message} />;
-  }
+  if (isLikedLoading || isPlaylistsLoading) return <Loading />;
+  if (likedError || playlistsError)
+    return <Error message={likedError?.message || playlistsError?.message} />;
 
   return (
     <View style={styles.container}>

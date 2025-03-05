@@ -13,10 +13,15 @@ import Player from "@/components/Player";
 import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
 import Loading from "@/components/Loading";
+import Error from "@/components/Error";
 
 export default function TabLayout() {
   const { showPlayer, setShowPlayer } = usePlayerStore();
-  const { data: songs = [], isLoading } = useQuery({
+  const {
+    data: songs = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: [CACHED_QUERIES.songs],
     queryFn: getSongs,
   });
@@ -39,6 +44,7 @@ export default function TabLayout() {
   const { showHeader } = useHeaderStore();
 
   if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
 
   return (
     <>

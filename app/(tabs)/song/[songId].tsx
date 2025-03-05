@@ -56,17 +56,9 @@ export default function SongDetailScreen() {
     togglePlayPause(song);
   }, [song, togglePlayPause]);
 
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <Error message={error.message} />;
-  }
-
-  if (!song) {
-    return <Text>Song not found</Text>;
-  }
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
+  if (!song) return <Text>Song not found</Text>;
 
   return (
     <SafeAreaView style={styles.container}>

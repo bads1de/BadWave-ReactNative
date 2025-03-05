@@ -36,6 +36,7 @@ export default function HomeScreen() {
     ({ item }: { item: Song }) => (
       <SongItem
         song={item}
+        key={item.id}
         onClick={async () => {
           await togglePlayPause(item);
         }}
@@ -45,9 +46,8 @@ export default function HomeScreen() {
     [togglePlayPause]
   );
 
-  if (error) {
-    return <Error message={error.message} />;
-  }
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
 
   return (
     <SafeAreaView style={styles.container}>

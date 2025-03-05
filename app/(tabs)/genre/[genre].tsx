@@ -42,25 +42,19 @@ export default function GenreSongsScreen() {
     }, [setShowHeader])
   );
 
-  const routerBack = () => {
-    router.back();
-  };
-
   const { togglePlayPause } = useAudioPlayer(genreSongs, "genre", genre);
 
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <Error message={error.message} />;
-  }
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={routerBack}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
             <Ionicons name="chevron-back" size={28} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.title}>{genre}</Text>

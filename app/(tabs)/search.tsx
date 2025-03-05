@@ -25,9 +25,8 @@ export default function SearchScreen() {
 
   const { togglePlayPause } = useAudioPlayer(searchSongs, "search");
 
-  if (error) {
-    return <Error message={error.message} />;
-  }
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
 
   return (
     <View style={styles.container}>
@@ -38,24 +37,19 @@ export default function SearchScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
-
-      {isLoading ? (
-        <Loading />
-      ) : (
-        <FlatList
-          data={searchSongs}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ListItem
-              song={item}
-              onPress={async (song) => {
-                await togglePlayPause(song);
-              }}
-            />
-          )}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
+      <FlatList
+        data={searchSongs}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ListItem
+            song={item}
+            onPress={async (song) => {
+              await togglePlayPause(song);
+            }}
+          />
+        )}
+        contentContainerStyle={styles.listContainer}
+      />
     </View>
   );
 }

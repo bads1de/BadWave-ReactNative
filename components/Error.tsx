@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 interface ErrorProps {
-  message: string;
+  message?: string;
 }
 
 export default function Error({ message }: ErrorProps) {

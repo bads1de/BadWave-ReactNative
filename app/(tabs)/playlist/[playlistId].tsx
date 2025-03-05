@@ -47,7 +47,7 @@ export default function PlaylistDetailScreen() {
       <SongItem
         song={item}
         onClick={async () => {
-          await togglePlayPause(item, playlistId);
+          await togglePlayPause(item);
         }}
         dynamicSize={true}
         showDeleteButton={true}
@@ -57,8 +57,9 @@ export default function PlaylistDetailScreen() {
     [togglePlayPause, playlistId]
   );
 
-  if (isLoading) return <Loading />;
-  if (error) return <Error message={error.message} />;
+  if (isLoading || isLoadingPlaylist) return <Loading />;
+  if (error || playlistError)
+    return <Error message={error?.message || playlistError?.message} />;
 
   return (
     <SafeAreaView style={styles.container}>
