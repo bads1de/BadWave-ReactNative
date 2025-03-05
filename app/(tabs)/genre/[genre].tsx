@@ -24,7 +24,7 @@ export default function GenreSongsScreen() {
   const { genre } = useLocalSearchParams<{ genre: string }>();
   const { setShowHeader } = useHeaderStore();
   const {
-    data: songs = [],
+    data: genreSongs = [],
     isLoading,
     error,
   } = useQuery({
@@ -46,7 +46,7 @@ export default function GenreSongsScreen() {
     router.back();
   };
 
-  const { togglePlayPause } = useAudioPlayer(songs);
+  const { togglePlayPause } = useAudioPlayer(genreSongs);
 
   if (isLoading) {
     return <Loading />;
@@ -66,7 +66,7 @@ export default function GenreSongsScreen() {
           <Text style={styles.title}>{genre}</Text>
         </View>
         <FlatList
-          data={songs}
+          data={genreSongs}
           renderItem={({ item }) => (
             <ListItem
               song={item}

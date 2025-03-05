@@ -18,22 +18,9 @@ import { useQueueOperations } from "./TrackPlayer/queue";
  * このフックは以下の機能を提供します：
  * - オーディオの再生・一時停止・停止
  * - 再生位置のシーク
- * - 音量と再生速度の制御
  * - トラックの変更とキュー管理
  *
  * @returns {Object} プレイヤーの状態と操作関数
- * @property {boolean} isPlaying - 再生中かどうか
- * @property {number} progressPosition - 現在の再生位置（秒）
- * @property {number} progressDuration - トラックの総再生時間（秒）
- * @property {Function} togglePlayPause - 再生/一時停止を切り替える
- * @property {Function} seekTo - 指定した位置にシークする
- * @property {Function} playNextSong - 次の曲を再生する
- * @property {Function} playPrevSong - 前の曲を再生する
- * @property {Function} stop - 再生を停止する
- * @property {RepeatMode} repeatMode - リピートモード
- * @property {Function} setRepeatMode - リピートモードを設定する
- * @property {boolean} shuffle - シャッフルモード
- * @property {Function} setShuffle - シャッフルモードを設定する
  */
 export function useAudioPlayer(songs: Song[]) {
   const { songMap, trackMap } = usePlayerState({ songs });
@@ -137,80 +124,24 @@ export function useAudioPlayer(songs: Song[]) {
    */
   const playNextSong = useCallback(async () => {
     try {
-      const queue = await TrackPlayer.getQueue();
-      const currentIndex = await TrackPlayer.getActiveTrackIndex();
-
-      if (currentIndex === null) {
-        return;
-      }
-
-      // リピートモードがトラックの場合
-      if (repeatMode === RepeatMode.Track) {
-        await TrackPlayer.seekTo(0);
-        await TrackPlayer.play();
-        return;
-      }
-
-      // 最後の曲の場合
-      if (currentIndex === queue.length - 1) {
-        // リピートモードがキューの場合
-        if (repeatMode === RepeatMode.Queue) {
-          await TrackPlayer.skip(0);
-          await TrackPlayer.play();
-        } else {
-          // リピートモードがオフの場合
-          await TrackPlayer.seekTo(0);
-          await TrackPlayer.pause();
-        }
-      } else {
-        // 次の曲を再生
-        await TrackPlayer.skipToNext();
-        await TrackPlayer.play();
-      }
+      await TrackPlayer.skipToNext();
+      await TrackPlayer.play();
     } catch (error) {
       console.error("Error in playNextSong:", error);
     }
-  }, [repeatMode]);
+  }, []);
 
   /**
    * 前の曲を再生する
    */
   const playPrevSong = useCallback(async () => {
     try {
-      const currentIndex = await TrackPlayer.getActiveTrackIndex();
-      const queue = await TrackPlayer.getQueue();
-
-      if (currentIndex === null) {
-        return;
-      }
-
-      // リピートモードがトラックの場合
-      if (repeatMode === RepeatMode.Track) {
-        await TrackPlayer.seekTo(0);
-        await TrackPlayer.play();
-        return;
-      }
-
-      // 最初の曲の場合
-      if (currentIndex === 0) {
-        // リピートモードがキューの場合
-        if (repeatMode === RepeatMode.Queue) {
-          await TrackPlayer.skip(queue.length - 1);
-          await TrackPlayer.play();
-        } else {
-          // リピートモードがオフの場合
-          await TrackPlayer.seekTo(0);
-          await TrackPlayer.play();
-        }
-      } else {
-        // 前の曲を再生
-        await TrackPlayer.skipToPrevious();
-        await TrackPlayer.play();
-      }
+      await TrackPlayer.skipToPrevious();
+      await TrackPlayer.play();
     } catch (error) {
       console.error("Error in playPrevSong:", error);
     }
-  }, [repeatMode]);
+  }, []);
 
   /**
    * 再生を停止する
@@ -228,7 +159,7 @@ export function useAudioPlayer(songs: Song[]) {
    * リピートモードを設定する
    * @param {RepeatMode} mode - リピートモード
    */
-  const handleSetRepeat = useCallback(async (mode: RepeatMode) => {
+  const handleSetRepeatMode = useCallback(async (mode: RepeatMode) => {
     try {
       await TrackPlayer.setRepeatMode(mode);
       setRepeatMode(mode);
@@ -248,7 +179,7 @@ export function useAudioPlayer(songs: Song[]) {
     playPrevSong,
     stop,
     repeatMode,
-    setRepeat: handleSetRepeat,
+    setRepeat: handleSetRepeatMode,
     shuffle,
     setShuffle,
   };
