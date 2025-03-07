@@ -5,15 +5,33 @@ import TrackPlayer, {
   Event,
   Track,
   useActiveTrack,
+  RepeatMode,
 } from "react-native-track-player";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const NextSong = () => {
+interface NextSongProps {
+  repeatMode: RepeatMode;
+  shuffle: boolean;
+}
+
+/**
+ * 次の曲を表示するコンポーネント
+ * @param {RepeatMode} repeatMode - リピートモード
+ * @param {boolean} shuffle - シャッフルモード
+ * @returns {React.ReactElement} 次の曲の表示
+ */
+const NextSong: React.FC<NextSongProps> = ({ repeatMode, shuffle }) => {
   const activeTrack = useActiveTrack();
   const [nextSong, setNextSong] = useState<Track | null>(null);
 
   useEffect(() => {
     const fetchNextTrack = async () => {
       try {
+        // シャッフルモード時は次の曲を表示しない
+        if (shuffle && repeatMode !== RepeatMode.Track) {
+          return setNextSong(null);
+        }
+
         const queue = await TrackPlayer.getQueue();
         const currentIndex = await TrackPlayer.getActiveTrackIndex();
 
@@ -24,27 +42,43 @@ const NextSong = () => {
         )
           return;
 
-        let nextTrackIndex = currentIndex + 1;
+        let nextTrackIndex: number;
 
-        // キューの最後の曲の場合
-        if (nextTrackIndex >= queue.length) {
-          nextTrackIndex = -1;
+        // リピートモードに応じた次の曲の決定
+        switch (repeatMode) {
+          case RepeatMode.Track:
+            // 単曲リピートの場合は現在の曲
+            nextTrackIndex = currentIndex;
+            break;
+
+          case RepeatMode.Queue:
+            // キューリピートの場合
+            nextTrackIndex = currentIndex + 1;
+            if (nextTrackIndex >= queue.length) {
+              nextTrackIndex = 0; // 最初に戻る
+            }
+            break;
+
+          case RepeatMode.Off:
+          default:
+            // リピートなしの場合
+            nextTrackIndex = currentIndex + 1;
+            if (nextTrackIndex >= queue.length) {
+              return setNextSong(null); // 次の曲なし
+            }
+            break;
         }
 
-        if (nextTrackIndex !== -1) {
-          return setNextSong(queue[nextTrackIndex]);
-        }
-
-        setNextSong(null);
+        setNextSong(queue[nextTrackIndex]);
       } catch (error) {
         console.error("次の曲の取得中にエラーが発生しました:", error);
       }
     };
 
     fetchNextTrack();
-  }, [activeTrack]);
+  }, [activeTrack, repeatMode, shuffle]);
 
-  // 曲変更イベントの監視も維持
+  // 曲変更イベントの監視
   useTrackPlayerEvents([Event.PlaybackTrackChanged], async (event) => {
     if (event.nextTrack !== null) {
       const track = await TrackPlayer.getTrack(event.nextTrack);
@@ -54,23 +88,37 @@ const NextSong = () => {
     }
   });
 
-  if (!nextSong) {
+  if (!nextSong && !shuffle) {
     return null;
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Next Song:</Text>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Image
-          source={{ uri: nextSong.artwork }}
-          style={{ width: 80, height: 80, borderRadius: 8 }}
-        />
-        <View style={{ marginLeft: 40 }}>
-          <Text style={styles.songName}>{nextSong.title}</Text>
-          <Text style={styles.artist}>{nextSong.artist}</Text>
+      <Text style={styles.title}>
+        {repeatMode === RepeatMode.Track
+          ? "Repeating:"
+          : shuffle
+          ? "Shuffle Mode"
+          : "Next Song:"}
+      </Text>
+      {shuffle && repeatMode !== RepeatMode.Track ? (
+        <View style={styles.shuffleContainer}>
+          <MaterialCommunityIcons
+            name="shuffle-variant"
+            size={24}
+            color="#fff"
+          />
+          <Text style={styles.shuffleText}>?</Text>
         </View>
-      </View>
+      ) : (
+        <View style={styles.songContainer}>
+          <Image source={{ uri: nextSong?.artwork }} style={styles.artwork} />
+          <View style={styles.songInfo}>
+            <Text style={styles.songName}>{nextSong?.title}</Text>
+            <Text style={styles.artist}>{nextSong?.artist}</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -87,6 +135,30 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     marginBottom: 8,
+  },
+  songContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  shuffleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    gap: 12,
+  },
+  shuffleText: {
+    fontSize: 24,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  artwork: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  songInfo: {
+    marginLeft: 40,
   },
   songName: {
     fontSize: 18,

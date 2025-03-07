@@ -256,7 +256,7 @@ const PlayerControls: FC<PlayerProps> = memo(
 );
 
 const Player: FC<PlayerProps> = (props) => {
-  const { currentSong, onClose, onNext, onPrev } = props;
+  const { currentSong, onClose, shuffle, repeatMode } = props;
 
   return (
     <ScrollView
@@ -283,7 +283,7 @@ const Player: FC<PlayerProps> = (props) => {
       </View>
 
       {currentSong?.lyrics && <Lyric lyrics={currentSong.lyrics} />}
-      <NextSong />
+      <NextSong repeatMode={repeatMode} shuffle={shuffle} />
     </ScrollView>
   );
 };
