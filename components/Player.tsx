@@ -20,6 +20,7 @@ import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
+import TopPlayedSongsList from "./TopPlayedSongsList";
 
 /**
  * @fileoverview 音楽プレーヤーのUIコンポーネント
@@ -337,6 +338,7 @@ const Player: FC<PlayerProps> = (props) => {
 
       {currentSong?.lyrics && <Lyric lyrics={currentSong.lyrics} />}
       <NextSong repeatMode={repeatMode} shuffle={shuffle} />
+      <TopPlayedSongsList />
     </ScrollView>
   );
 };

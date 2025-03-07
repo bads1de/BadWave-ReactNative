@@ -20,7 +20,7 @@ interface NextSongProps {
  * @param {boolean} shuffle - シャッフルモード
  * @returns {React.ReactElement} 次の曲の表示
  */
-const NextSong: React.FC<NextSongProps> = ({ repeatMode, shuffle }) => {
+export default function NextSong({ repeatMode, shuffle }: NextSongProps) {
   const activeTrack = useActiveTrack();
   const [nextSong, setNextSong] = useState<Track | null>(null);
 
@@ -121,7 +121,7 @@ const NextSong: React.FC<NextSongProps> = ({ repeatMode, shuffle }) => {
       )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -170,5 +170,3 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 });
-
-export default NextSong;

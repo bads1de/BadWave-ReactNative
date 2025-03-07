@@ -315,6 +315,16 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     justifyContent: "center",
     alignItems: "center",
+    /**
+     * The color of the shadow that is cast by the button.
+     * This is a dark blue color that is used to create a subtle shadow effect.
+     * The shadow is used to give the button some depth and to make it stand out from the background.
+     */
+    /**
+     * The color used for the shadow effect of the button.
+     * This hexadecimal color value represents a deep purple shade,
+     * giving a distinct shadow that enhances the button's visual appearance.
+     */
     shadowColor: "#4c1d95",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
