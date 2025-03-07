@@ -1,3 +1,14 @@
+/**
+ * @fileoverview 音楽プレーヤーのコアサービス
+ * このモジュールは、アプリケーション全体の音楽再生機能を管理します。
+ * react-native-track-playerを使用して、以下の機能を提供します：
+ * - プレーヤーの初期化と設定
+ * - 再生制御
+ * - キュー管理
+ * - バックグラウンド再生
+ * - メディアコントロール
+ */
+
 import TrackPlayer, {
   Event,
   Capability,
@@ -7,10 +18,28 @@ import TrackPlayer, {
 } from "react-native-track-player";
 
 /**
- * プレイヤーの初期設定を行う
- * プレイヤーのセットアップと基本的な設定を行います
+ * プレーヤーの初期設定を行う
+ * @description
+ * プレーヤーのセットアップと基本的な設定を行います。
+ * 以下の処理を実行します：
+ * 1. プレーヤーサービスの実行状態確認
+ * 2. 新規セットアップ（未実行の場合）
+ * 3. 基本設定の適用（自動割り込み処理、キャパビリティなど）
+ *
  * @returns {Promise<boolean>} 初期設定が成功したかどうか
  * @throws {Error} セットアップに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   const isSetup = await setupPlayer();
+ *   if (isSetup) {
+ *     console.log('プレーヤーの準備完了');
+ *   }
+ * } catch (error) {
+ *   console.error('プレーヤーのセットアップに失敗:', error);
+ * }
+ * ```
  */
 export async function setupPlayer(): Promise<boolean> {
   try {
@@ -67,9 +96,18 @@ async function isPlayerServiceRunning(): Promise<boolean> {
 }
 
 /**
- * プレイバックサービスのイベントリスナーを設定
- * TrackPlayerのリモート制御イベントに対するハンドラーを登録します
- * @returns {Promise<void>}
+ * プレーヤーサービスのイベントハンドラー
+ * @description
+ * バックグラウンド実行時も含めた以下のイベントを処理します：
+ * - リモート再生制御（再生、一時停止、次へ、前へ）
+ * - 再生状態の変更
+ * - エラー発生時の処理
+ *
+ * @example
+ * ```typescript
+ * // アプリケーションのエントリーポイントで登録
+ * TrackPlayer.registerPlaybackService(() => playbackService);
+ * ```
  */
 export function playbackService() {
   return async () => {

@@ -4,6 +4,16 @@ import Svg, { Polygon } from "react-native-svg";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
+/**
+ * @fileoverview ジャンルカードコンポーネント
+ * このモジュールは、ジャンルを視覚的に表示するカードUIを提供します。
+ */
+
+/**
+ * ジャンルカードのプロパティ
+ * @interface GenreCardProps
+ * @property {string} genre - 表示するジャンル名
+ */
 interface GenreCardProps {
   genre: string;
 }
@@ -13,7 +23,15 @@ const cardHeight = 160;
 const shapeWidth = cardWidth * 0.75; // 240
 const shapeHeight = cardHeight * 0.75; // 120
 
-const getPolygonPoints = (genre: string): string => {
+/**
+ * ジャンルに応じたSVGパスを生成
+ * @description
+ * 各ジャンルに固有の装飾的なSVGパスを生成します。
+ *
+ * @param {string} genre - ジャンル名
+ * @returns {string} SVGパス文字列
+ */
+const getGenrePath = (genre: string): string => {
   switch (genre) {
     case "Retro Wave":
       return "0,100 20,100 20,0 40,0 40,50 60,50 60,100 100,100 100,80 0,80";
@@ -34,6 +52,11 @@ const getPolygonPoints = (genre: string): string => {
   }
 };
 
+/**
+ * ジャンルカードで使用する色のパレット
+ * @description
+ * カードのバックグラウンドに使用するカラーコードの配列
+ */
 const COLORS = [
   "#a855f7",
   "#3b82f6",
@@ -45,6 +68,20 @@ const COLORS = [
   "#f97316",
 ];
 
+/**
+ * ジャンルカードコンポーネント
+ * @description
+ * ジャンルを視覚的に表示するカードUIコンポーネント。
+ * 以下の特徴があります：
+ * - ランダムな背景色
+ * - ジャンルに応じた装飾的なSVGパターン
+ * - タップ時のナビゲーション機能
+ *
+ * @example
+ * ```tsx
+ * <GenreCard genre="Jazz" />
+ * ```
+ */
 const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
   const router = useRouter();
 
@@ -67,7 +104,7 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
         <View style={styles.card}>
           <View style={styles.shapeContainer}>
             <Svg width={shapeWidth} height={shapeHeight} viewBox="0 0 100 100">
-              <Polygon points={getPolygonPoints(genre)} fill={randomColor} />
+              <Polygon points={getGenrePath(genre)} fill={randomColor} />
             </Svg>
           </View>
           <View style={styles.textContainer}>

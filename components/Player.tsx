@@ -21,6 +21,29 @@ import AddPlaylist from "./AddPlaylist";
 import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
 
+/**
+ * @fileoverview 音楽プレーヤーのUIコンポーネント
+ * このモジュールは、アプリケーションのメインプレーヤーUIを提供します。
+ */
+
+/**
+ * プレーヤーコンポーネントのプロパティ
+ * @interface PlayerProps
+ * @property {boolean} isPlaying - 現在の再生状態
+ * @property {Song} currentSong - 現在再生中の曲情報
+ * @property {number} position - 現在の再生位置（秒）
+ * @property {number} duration - 曲の総再生時間（秒）
+ * @property {Function} onPlayPause - 再生/一時停止時のコールバック
+ * @property {Function} onNext - 次の曲へ移動時のコールバック
+ * @property {Function} onPrev - 前の曲へ移動時のコールバック
+ * @property {Function} onSeek - シーク時のコールバック
+ * @property {Function} onClose - プレーヤーを閉じる時のコールバック
+ * @property {RepeatMode} repeatMode - リピートモードの状態
+ * @property {Function} setRepeatMode - リピートモード変更時のコールバック
+ * @property {boolean} shuffle - シャッフルモードの状態
+ * @property {Function} setShuffle - シャッフルモード変更時のコールバック
+ */
+
 interface PlayerProps {
   isPlaying: boolean;
   currentSong: Song;
@@ -255,6 +278,36 @@ const PlayerControls: FC<PlayerProps> = memo(
   )
 );
 
+/**
+ * メインプレーヤーコンポーネント
+ * @description
+ * 以下の機能を提供するUIコンポーネントです：
+ * - 曲情報の表示（タイトル、アーティスト、アートワーク）
+ * - 再生コントロール（再生/一時停止、次へ、前へ）
+ * - シークバーによる再生位置制御
+ * - リピート/シャッフルモードの切り替え
+ * - プレイリストへの追加
+ * - いいね機能
+ *
+ * @example
+ * ```tsx
+ * <Player
+ *   isPlaying={isPlaying}
+ *   currentSong={currentSong}
+ *   position={position}
+ *   duration={duration}
+ *   onPlayPause={handlePlayPause}
+ *   onNext={handleNext}
+ *   onPrev={handlePrev}
+ *   onSeek={handleSeek}
+ *   onClose={handleClose}
+ *   repeatMode={repeatMode}
+ *   setRepeatMode={setRepeatMode}
+ *   shuffle={shuffle}
+ *   setShuffle={setShuffle}
+ * />
+ * ```
+ */
 const Player: FC<PlayerProps> = (props) => {
   const { currentSong, onClose, shuffle, repeatMode } = props;
 

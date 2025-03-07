@@ -13,14 +13,54 @@ import { usePlayerState } from "./TrackPlayer/state";
 import { useQueueOperations, PlayContextType } from "./TrackPlayer/queue";
 
 /**
- * オーディオプレイヤーの状態管理と操作を行うカスタムフック
- *
+ * @fileoverview オーディオプレーヤーのカスタムフック
+ * このモジュールは、アプリケーションの音楽再生機能のフロントエンド部分を管理します。
+ */
+
+/**
+ * オーディオプレーヤーの状態管理と操作を行うカスタムフック
+ * @description
  * このフックは以下の機能を提供します：
- * - オーディオの再生・一時停止・停止
- * - 再生位置のシーク
- * - トラックの変更とキュー管理
+ * - 再生制御（再生、一時停止、停止）
+ * - トラック操作（次へ、前へ、シーク）
+ * - キュー管理（追加、削除、並べ替え）
+ * - 再生状態の監視
+ * - プレイリスト管理
  *
- * @returns {Object} プレイヤーの状態と操作関数
+ * @param {Song[]} songs - 再生対象の曲リスト
+ * @param {PlayContextType} contextType - 再生コンテキストの種類（ホーム、プレイリスト等）
+ * @param {string} [contextId] - コンテキストの一意識別子
+ * @param {string} [sectionId] - セクションの一意識別子
+ *
+ * @returns {Object} プレーヤーの状態と操作関数
+ * @property {boolean} isPlaying - 現在の再生状態
+ * @property {Song | null} currentSong - 現在再生中の曲
+ * @property {number} position - 現在の再生位置（秒）
+ * @property {number} duration - 曲の総再生時間（秒）
+ * @property {Function} togglePlayPause - 再生/一時停止を切り替える関数
+ * @property {Function} seekTo - 指定位置にシークする関数
+ * @property {Function} playNext - 次の曲を再生する関数
+ * @property {Function} playPrevious - 前の曲を再生する関数
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   isPlaying,
+ *   currentSong,
+ *   togglePlayPause,
+ *   seekTo
+ * } = useAudioPlayer(songs, "playlist", "playlist-123");
+ *
+ * // 再生/一時停止
+ * const handlePlayPause = () => {
+ *   togglePlayPause();
+ * };
+ *
+ * // 特定位置にシーク
+ * const handleSeek = (position: number) => {
+ *   seekTo(position);
+ * };
+ * ```
  */
 export function useAudioPlayer(
   songs: Song[] = [],
@@ -46,20 +86,19 @@ export function useAudioPlayer(
   const progressDuration = duration * 1000;
 
   // isPlayingを設定する関数
-  const setIsPlaying = useCallback((playing: boolean) => {
-    if (playing && playbackState.state !== State.Playing) {
-      TrackPlayer.play();
-    } else if (!playing && playbackState.state === State.Playing) {
-      TrackPlayer.pause();
-    }
-  }, [playbackState.state]);
-
-  const { updateQueueWithContext, toggleShuffle, queueState } = useQueueOperations(
-    isMounted,
-    setIsPlaying,
-    songMap,
-    trackMap
+  const setIsPlaying = useCallback(
+    (playing: boolean) => {
+      if (playing && playbackState.state !== State.Playing) {
+        TrackPlayer.play();
+      } else if (!playing && playbackState.state === State.Playing) {
+        TrackPlayer.pause();
+      }
+    },
+    [playbackState.state]
   );
+
+  const { updateQueueWithContext, toggleShuffle, queueState } =
+    useQueueOperations(isMounted, setIsPlaying, songMap, trackMap);
 
   // アクティブトラックが変更されたときの処理
   useEffect(() => {
@@ -92,7 +131,11 @@ export function useAudioPlayer(
    * @param {PlayContextType} contextType - コンテキストタイプ
    */
   const togglePlayPause = useCallback(
-    async (song?: Song, contextId?: string, contextType: PlayContextType = "home") => {
+    async (
+      song?: Song,
+      contextId?: string,
+      contextType: PlayContextType = "home"
+    ) => {
       try {
         if (!song && !currentSong) return;
 
@@ -108,7 +151,7 @@ export function useAudioPlayer(
         // songが指定されている場合はキューを更新
         if (song) {
           // 曲のインデックスを取得
-          const songIndex = songs.findIndex(s => s.id === song.id);
+          const songIndex = songs.findIndex((s) => s.id === song.id);
           if (songIndex === -1) return;
 
           // コンテキスト情報を作成

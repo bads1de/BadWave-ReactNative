@@ -6,12 +6,21 @@ import { useErrorHandler, useSafeStateUpdate } from "./utils";
 import { convertToTracks } from "./track";
 
 /**
+ * @fileoverview 再生キュー管理モジュール
+ * このモジュールは、TrackPlayerの再生キューを管理し、
+ * 再生コンテキストに応じた曲の追加・削除・並び替えを行います。
+ */
+
+/**
  * 再生コンテキストタイプ
- * - home: ホーム画面の各セクション
- * - playlist: プレイリスト
- * - liked: いいね済み曲
- * - search: 検索結果
- * - genre: ジャンル
+ * @description
+ * アプリケーション内の各再生コンテキストを定義します
+ *
+ * @property {string} home - ホーム画面の各セクションからの再生
+ * @property {string} playlist - プレイリストからの再生
+ * @property {string} liked - いいね済み曲からの再生
+ * @property {string} search - 検索結果からの再生
+ * @property {string} genre - ジャンルページからの再生
  */
 export type PlayContextType =
   | "home"
@@ -23,11 +32,18 @@ export type PlayContextType =
 
 /**
  * 再生コンテキスト情報
+ * @interface PlayContext
+ * @description
+ * 現在の再生コンテキストを特定するための情報を保持します
+ *
+ * @property {PlayContextType} type - コンテキストタイプ
+ * @property {string} [id] - コンテキストID（プレイリストIDなど）
+ * @property {string} [sectionId] - ホーム画面のセクションID
  */
 interface PlayContext {
-  type: PlayContextType; // コンテキストタイプ
-  id?: string; // コンテキストID（プレイリストIDなど）
-  sectionId?: string; // ホーム画面のセクションID
+  type: PlayContextType;
+  id?: string;
+  sectionId?: string;
 }
 
 /**
@@ -43,7 +59,35 @@ interface QueueState {
 }
 
 /**
- * キュー操作に関するフック
+ * キュー操作フック
+ * @description
+ * TrackPlayerのキュー操作に関する機能を提供するカスタムフック
+ *
+ * @param {MutableRefObject<boolean>} isMounted - コンポーネントのマウント状態
+ * @param {Function} setIsPlaying - 再生状態を設定する関数
+ * @param {Record<string, Song>} songMap - 曲IDと曲情報のマップ
+ * @param {Record<string, Track>} trackMap - 曲IDとトラック情報のマップ
+ *
+ * @returns {Object} キュー操作関数と状態
+ * @property {Function} updateQueueWithContext - コンテキストに基づきキューを更新
+ * @property {Function} toggleShuffle - シャッフルモードの切り替え
+ * @property {MutableRefObject} queueState - キューの状態
+ *
+ * @example
+ * ```typescript
+ * const { updateQueueWithContext, toggleShuffle, queueState } = useQueueOperations(
+ *   isMounted,
+ *   setIsPlaying,
+ *   songMap,
+ *   trackMap
+ * );
+ *
+ * // コンテキストに基づきキューを更新
+ * await updateQueueWithContext(songs, {
+ *   type: "playlist",
+ *   id: "playlist-123"
+ * }, 0);
+ * ```
  */
 export function useQueueOperations(
   isMounted: MutableRefObject<boolean>,
