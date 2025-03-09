@@ -14,7 +14,7 @@ export default function Header() {
         source={require("../assets/images/logo.png")}
         style={styles.logo}
       />
-      <Text style={styles.title}>BadMusicApp</Text>
+      <Text style={styles.title}>BadWave</Text>
       {session ? (
         <TouchableOpacity
           onPress={() => setShowAuthModal(true)}
