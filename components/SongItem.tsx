@@ -11,7 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import deletePlaylistSong from "@/actions/deletePlaylistSong"; // これをインポート
+import deletePlaylistSong from "@/actions/deletePlaylistSong";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";

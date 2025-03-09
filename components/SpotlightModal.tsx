@@ -4,14 +4,13 @@ import {
   View,
   Text,
   StyleSheet,
-  Pressable,
   Dimensions,
   StatusBar,
   Animated,
   TouchableOpacity,
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 interface SpotlightModalProps {

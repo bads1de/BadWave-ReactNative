@@ -5,8 +5,7 @@ export const genreCards = [
   { id: 4, name: "City Pop" },
   { id: 5, name: "Tropical House" },
   { id: 6, name: "Vapor Wave" },
-  { id: 7, name: "Trance" },
-  { id: 8, name: "Drum and Bass" },
+  { id: 7, name: "Electronic" },
 ];
 
 export const CACHE_PREFIX = "@query-cache";

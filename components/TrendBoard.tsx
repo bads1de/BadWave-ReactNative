@@ -81,13 +81,9 @@ export default function TrendBoard() {
     await togglePlayPause(song);
   };
 
-  if (isLoading) {
-    return <Loading />;
-  }
+  if (isLoading) return <Loading />;
 
-  if (error) {
-    return <Error message={error.message} />;
-  }
+  if (error) return <Error message={error.message} />;
 
   return (
     <View style={styles.container}>
