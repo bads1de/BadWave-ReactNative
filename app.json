@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "BadWave",
-    "slug": "BadWave",
+    "name": "badmusicapp-mobile",
+    "slug": "badmusicapp-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

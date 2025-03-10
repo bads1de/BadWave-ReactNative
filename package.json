@@ -1,5 +1,5 @@
 {
-  "name": "badwave",
+  "name": "badmusicapp-mobile",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -28,6 +28,7 @@
     "@expo/vector-icons": "^14.0.2",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/slider": "^4.5.5",
+    "@react-native-google-signin/google-signin": "^13.2.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@supabase/supabase-js": "^2.48.1",
