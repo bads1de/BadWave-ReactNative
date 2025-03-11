@@ -1,95 +1,96 @@
 import React, { useMemo } from "react";
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
-import Svg, { Polygon } from "react-native-svg";
+import { TouchableOpacity, View, Text, StyleSheet, Image } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 
-/**
- * @fileoverview ジャンルカードコンポーネント
- * このモジュールは、ジャンルを視覚的に表示するカードUIを提供します。
- */
-
-/**
- * ジャンルカードのプロパティ
- * @interface GenreCardProps
- * @property {string} genre - 表示するジャンル名
- */
 interface GenreCardProps {
   genre: string;
 }
 
 const cardWidth = 320;
 const cardHeight = 160;
-const shapeWidth = cardWidth * 0.75; // 240
-const shapeHeight = cardHeight * 0.75; // 120
 
-/**
- * ジャンルに応じたSVGパスを生成
- * @description
- * 各ジャンルに固有の装飾的なSVGパスを生成します。
- *
- * @param {string} genre - ジャンル名
- * @returns {string} SVGパス文字列
- */
-const getGenrePath = (genre: string): string => {
+const getGradientColors = (
+  genre: string
+): readonly [string, string, ...string[]] => {
   switch (genre) {
     case "Retro Wave":
-      return "0,100 20,100 20,0 40,0 40,50 60,50 60,100 100,100 100,80 0,80";
+      return ["#FF0080", "#7928CA", "#4A00E0"] as const;
     case "Electro House":
-      return "0,0 80,0 80,20 100,20 100,100 60,100 60,40 0,40";
+      return ["#00F5A0", "#00D9F5"] as const;
     case "Nu Disco":
-      return "0,20 80,20 80,0 100,0 100,100 80,100 80,40 0,40";
+      return ["#FFD700", "#FF6B6B", "#FF1493"] as const;
     case "City Pop":
-      return "0,0 100,0 100,30 70,30 70,70 30,70 30,30 0,30";
+      return ["#6366F1", "#A855F7", "#EC4899"] as const;
     case "Tropical House":
-      return "0,100 100,100 100,70 70,70 70,30 30,30 30,70 0,70";
+      return ["#00B4DB", "#0083B0"] as const;
     case "Vapor Wave":
-      return "0,0 50,0 50,50 100,50 100,100 50,100 50,50 0,50";
-    case "Trance":
-      return "0,100 30,100 30,0 70,0 70,100 100,100 100,70 0,70";
+      return ["#FF61D2", "#FE9090", "#FF9C7D"] as const;
+    case "r&b":
+      return ["#6A0DAD", "#9370DB", "#D4AF37"] as const;
+    case "Chill House":
+      return ["#43cea2", "#185a9d", "#6DD5FA"] as const;
     default:
-      return "0,0 30,0 30,70 70,70 70,0 100,0 100,30 0,30";
+      return ["#374151", "#1F2937", "#111827"] as const;
   }
 };
 
-/**
- * ジャンルカードで使用する色のパレット
- * @description
- * カードのバックグラウンドに使用するカラーコードの配列
- */
-const COLORS = [
-  "#a855f7",
-  "#3b82f6",
-  "#ef4444",
-  "#10b981",
-  "#f59e0b",
-  "#6366f1",
-  "#ec4899",
-  "#f97316",
-];
+const getGenreIcon = (genre: string): string => {
+  switch (genre) {
+    case "Retro Wave":
+      return "🌆";
+    case "Electro House":
+      return "⚡";
+    case "Nu Disco":
+      return "💿";
+    case "City Pop":
+      return "🏙️";
+    case "Tropical House":
+      return "🌴";
+    case "Vapor Wave":
+      return "📼";
+    case "r&b":
+      return "🎤";
+    case "Chill House":
+      return "🎧";
+    default:
+      return "🎵";
+  }
+};
 
-/**
- * ジャンルカードコンポーネント
- * @description
- * ジャンルを視覚的に表示するカードUIコンポーネント。
- * 以下の特徴があります：
- * - ランダムな背景色
- * - ジャンルに応じた装飾的なSVGパターン
- * - タップ時のナビゲーション機能
- *
- * @example
- * ```tsx
- * <GenreCard genre="Jazz" />
- * ```
- */
+const backgroundImages = {
+  "Retro Wave": require("../assets/images/RetroWave.jpg"),
+  "Electro House": require("../assets/images/ElectroHouse.jpg"),
+  "Nu Disco": require("../assets/images/NuDisco.jpg"),
+  "City Pop": require("../assets/images/CityPop.jpg"),
+  "Tropical House": require("../assets/images/TropicalHouse.jpg"),
+  "Vapor Wave": require("../assets/images/VaporWave.jpg"),
+  "r&b": require("../assets/images/RnB.jpg"),
+  "Chill House": require("../assets/images/ChillHouse.jpg"),
+} as const;
+
 const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
   const router = useRouter();
+  const scale = useSharedValue(1);
 
-  // 初回レンダリング時にランダムなカラーを決定
-  const randomColor = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * COLORS.length);
-    return COLORS[randomIndex];
-  }, []);
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1);
+  };
 
   const handlePress = () => {
     router.push({
@@ -99,74 +100,114 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
   };
 
   return (
-    <View style={styles.pageContainer}>
-      <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <Animated.View style={[styles.container, animatedStyle]}>
+      <TouchableOpacity
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.9}
+      >
         <View style={styles.card}>
-          <View style={styles.shapeContainer}>
-            <Svg width={shapeWidth} height={shapeHeight} viewBox="0 0 100 100">
-              <Polygon points={getGenrePath(genre)} fill={randomColor} />
-            </Svg>
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.genreText}>{genre}</Text>
+          <Image
+            source={backgroundImages[genre as keyof typeof backgroundImages]}
+            style={styles.backgroundImage}
+          />
+
+          <LinearGradient
+            colors={getGradientColors(genre)}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradient}
+          />
+
+          <View style={styles.glassEffect} />
+
+          <View style={styles.content}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.icon}>{getGenreIcon(genre)}</Text>
+              <Text style={styles.genreText}>{genre}</Text>
+            </View>
+
+            <View style={styles.decorativeContainer}>
+              <View style={styles.decorativeLine} />
+              <Animated.View style={styles.decorativeCircle} />
+            </View>
           </View>
         </View>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  pageContainer: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  backButton: {
-    position: "absolute",
-    top: 48,
-    left: 16,
-    zIndex: 1,
-    padding: 8,
-  },
   container: {
-    marginHorizontal: 8,
-    marginVertical: 8,
+    margin: 8,
   },
   card: {
     width: cardWidth,
     height: cardHeight,
-    backgroundColor: "#000",
+    borderRadius: 16,
     overflow: "hidden",
-    position: "relative",
-    borderRadius: 12,
-    shadowColor: "#fff",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    backgroundColor: "#000",
   },
-  shapeContainer: {
+  backgroundImage: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
+    opacity: 0.9,
+    resizeMode: "cover",
+    width: "100%",
+    height: "100%",
   },
-  textContainer: {
-    position: "absolute",
-    left: 16,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
+  gradient: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.3,
+  },
+  glassEffect: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    backdropFilter: "blur(2px)",
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "space-between",
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  icon: {
+    fontSize: 32,
+    textShadowColor: "rgba(0,0,0,0.75)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   genreText: {
     color: "#fff",
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowColor: "rgba(0,0,0,0.75)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
+  },
+  decorativeContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  decorativeLine: {
+    width: 80,
+    height: 4,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 2,
+  },
+  decorativeCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
