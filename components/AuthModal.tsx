@@ -20,7 +20,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
 
 GoogleSignin.configure({
-  scopes: ["https://www.googleapis.com/auth/drive"],
   webClientId:
     "412901923265-4rek27if7dg41i3pl5ap0idho61th752.apps.googleusercontent.com",
 });

@@ -55,9 +55,9 @@ export default function HomeScreen() {
           currentSong && !showPlayer && { paddingBottom: 130 },
         ]}
       >
-        <Text style={styles.sectionTitle}>Trend</Text>
+        <Text style={styles.sectionTitle}>Trends</Text>
         <TrendBoard />
-        <Text style={styles.sectionTitle}>Spotlight</Text>
+        <Text style={styles.sectionTitle}>Spotlights</Text>
         <SpotlightBoard />
 
         <Text style={styles.sectionTitle}>Genres</Text>
