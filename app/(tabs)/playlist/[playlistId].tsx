@@ -7,14 +7,12 @@ import {
   Image,
   Dimensions,
   Animated,
-  StatusBar,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import getPlaylistSongs from "@/actions/getPlaylistSongs";
 import ListItem from "@/components/ListItem";
 import Loading from "@/components/Loading";
@@ -26,13 +24,39 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import getPlaylistById from "@/actions/getPlaylistById";
 import { useAuth } from "@/providers/AuthProvider";
 import PlaylistOptionsMenu from "@/components/PlaylistOptionsMenu";
+import Toast from "react-native-toast-message";
+import deletePlaylistSong from "@/actions/deletePlaylistSong";
 
 const { width } = Dimensions.get("window");
 
 export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
   const { session } = useAuth();
-  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // 削除のミューテーションを追加
+  const { mutate: handleDeleteSong } = useMutation({
+    mutationFn: ({ songId, songType }: { songId: string; songType: string }) =>
+      deletePlaylistSong(playlistId, songId, songType),
+    onSuccess: () => {
+      // キャッシュを更新
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "曲を削除しました",
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: "error",
+        text1: "エラーが発生しました",
+        text2: error.message,
+      });
+    },
+  });
 
   const scrollY = new Animated.Value(0);
   const headerOpacity = scrollY.interpolate({
@@ -80,9 +104,14 @@ export default function PlaylistDetailScreen() {
         onPress={async () => await togglePlayPause(item)}
         imageSize="medium"
         showStats={true}
+        onDelete={
+          session?.user.id === playlist?.user_id
+            ? () => handleDeleteSong({ songId: item.id, songType: "regular" })
+            : undefined
+        }
       />
     ),
-    [togglePlayPause]
+    [togglePlayPause, session?.user.id, playlist?.user_id, handleDeleteSong]
   );
 
   const renderHeader = () => (
@@ -95,11 +124,6 @@ export default function PlaylistDetailScreen() {
         },
       ]}
     >
-      <StatusBar barStyle="light-content" />
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </TouchableOpacity>
-
       <View style={styles.thumbnailContainer}>
         <View style={styles.decorativeCard1} />
         <View style={styles.decorativeCard2} />

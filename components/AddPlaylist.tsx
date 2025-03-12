@@ -20,7 +20,6 @@ import getPlaylists from "@/actions/getPlaylists";
 import addPlaylistSong from "@/actions/addPlaylistSong";
 import usePlaylistStatus from "@/hooks/usePlaylistStatus";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 
 interface AddPlaylistProps {
   songId: string;
@@ -212,7 +211,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
         onRequestClose={() => setModalOpen(false)}
       >
         <TouchableWithoutFeedback onPress={() => setModalOpen(false)}>
-          <BlurView intensity={60} style={styles.modalOverlay} tint="dark">
+          <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <Animated.View
                 style={[
@@ -225,7 +224,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
                 ]}
               >
                 <LinearGradient
-                  colors={["rgba(30, 30, 40, 0.95)", "rgba(15, 15, 25, 0.97)"]}
+                  colors={["#1e1e28", "#15151b"]}
                   style={styles.modalGradient}
                 >
                   <View style={styles.header}>
@@ -297,7 +296,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
                 </LinearGradient>
               </Animated.View>
             </TouchableWithoutFeedback>
-          </BlurView>
+          </View>
         </TouchableWithoutFeedback>
       </Modal>
     </>
@@ -315,36 +314,15 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     justifyContent: "center",
     alignItems: "center",
-    /**
-     * The color of the shadow that is cast by the button.
-     * This is a dark blue color that is used to create a subtle shadow effect.
-     * The shadow is used to give the button some depth and to make it stand out from the background.
-     */
-    /**
-     * The color used for the shadow effect of the button.
-     * This hexadecimal color value represents a deep purple shade,
-     * giving a distinct shadow that enhances the button's visual appearance.
-     */
-    shadowColor: "#4c1d95",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
   },
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
     borderRadius: 24,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
   },
   modalGradient: {
     padding: 0,

@@ -10,12 +10,14 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
+import ListItemOptionsMenu from "./ListItemOptionsMenu";
 
 interface ListItemProps {
   song: Song;
   onPress: (song: Song) => void;
   showStats?: boolean;
   imageSize?: "small" | "medium" | "large";
+  onDelete?: () => void; // 追加
 }
 
 const { width } = Dimensions.get("window");
@@ -25,6 +27,7 @@ export default function ListItem({
   onPress,
   showStats = true,
   imageSize = "medium",
+  onDelete, // 追加
 }: ListItemProps) {
   const getImageSize = () => {
     switch (imageSize) {
@@ -66,23 +69,26 @@ export default function ListItem({
           </Text>
         </View>
 
-        {showStats && (
-          <View style={styles.statsContainer}>
-            <View style={styles.statsItem}>
-              <Ionicons name="play" size={14} color="#fff" />
-              <Text style={styles.statsText}>
-                {Number(song.count).toLocaleString()}
-              </Text>
+        <View style={styles.rightContainer}>
+          {showStats && (
+            <View style={styles.statsContainer}>
+              <View style={styles.statsItem}>
+                <Ionicons name="play" size={14} color="#fff" />
+                <Text style={styles.statsText}>
+                  {Number(song.count).toLocaleString()}
+                </Text>
+              </View>
+              <View style={styles.statsItem}>
+                <Ionicons name="heart" size={14} color="#fff" />
+                <Text style={styles.statsText}>
+                  {Number(song.like_count).toLocaleString()}
+                </Text>
+              </View>
             </View>
-            <View style={styles.statsItem}>
-              <Ionicons name="heart" size={14} color="#fff" />
-              <Text style={styles.statsText}>
-                {Number(song.like_count).toLocaleString()}
-              </Text>
-            </View>
-          </View>
-        )}
+          )}
+        </View>
       </View>
+      {onDelete && <ListItemOptionsMenu onDelete={onDelete} />}
     </TouchableOpacity>
   );
 }
@@ -140,5 +146,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
     marginLeft: 4,
+  },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });
