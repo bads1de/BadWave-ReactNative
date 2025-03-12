@@ -10,7 +10,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Song from "@/types";
 import { CACHED_QUERIES } from "@/constants";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import DeletePlaylistButton from "@/components/DeletePlaylistButton";
 import getPlaylistById from "@/actions/getPlaylistById";
 import { useAuth } from "@/providers/AuthProvider";
 import PlaylistOptionsMenu from "@/components/PlaylistOptionsMenu";
@@ -72,6 +71,8 @@ export default function PlaylistDetailScreen() {
           <PlaylistOptionsMenu
             playlistId={playlistId}
             userId={playlist?.user_id}
+            currentTitle={playlist?.title}
+            isPublic={playlist?.is_public}
           />
         )}
       </View>

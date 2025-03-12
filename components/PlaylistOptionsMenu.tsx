@@ -13,6 +13,7 @@ import CustomAlertDialog from "./CustomAlertDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylist from "@/actions/deletePlaylist";
 import renamePlaylist from "@/actions/renamePlaylist";
+import togglePublicPlaylist from "@/actions/togglePublicPlaylist";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
@@ -21,12 +22,14 @@ interface PlaylistOptionsMenuProps {
   playlistId: string;
   userId?: string;
   currentTitle?: string;
+  isPublic?: boolean;
 }
 
 export default function PlaylistOptionsMenu({
   playlistId,
   userId,
   currentTitle,
+  isPublic = false,
 }: PlaylistOptionsMenuProps) {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -37,6 +40,34 @@ export default function PlaylistOptionsMenu({
   const router = useRouter();
 
   const isOwner = session?.user.id === userId;
+
+  const { mutate: togglePublicMutation } = useMutation({
+    mutationFn: (newPublicState: boolean) =>
+      togglePublicPlaylist(playlistId, session?.user.id!, newPublicState),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlistById, playlistId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.getPublicPlaylists],
+      });
+      Toast.show({
+        type: "success",
+        text1: isPublic
+          ? "プレイリストを非公開にしました"
+          : "プレイリストを公開しました",
+      });
+      setShowOptionsModal(false);
+    },
+    onError: (err: Error) => {
+      Toast.show({
+        type: "error",
+        text1: "通信エラーが発生しました",
+        text2: err.message,
+      });
+    },
+  });
 
   const { mutate: deleteMutation } = useMutation({
     mutationFn: () => deletePlaylist(playlistId, session?.user.id!),
@@ -126,6 +157,19 @@ export default function PlaylistOptionsMenu({
                 >
                   <Ionicons name="pencil-outline" size={24} color="#fff" />
                   <Text style={styles.menuText}>プレイリスト名を変更</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => togglePublicMutation(!isPublic)}
+                >
+                  <Ionicons
+                    name={isPublic ? "eye-off-outline" : "eye-outline"}
+                    size={24}
+                    color="#fff"
+                  />
+                  <Text style={styles.menuText}>
+                    {isPublic ? "非公開にする" : "公開する"}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.menuItem}
