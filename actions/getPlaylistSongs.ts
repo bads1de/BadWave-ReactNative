@@ -1,5 +1,6 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { Playlist } from "@/types";
 
 type PlaylistSong = Song & { songType: "regular" };
 
@@ -15,20 +16,40 @@ const getPlaylistSongs = async (
     data: { session },
   } = await supabase.auth.getSession();
 
-  if (!session?.user.id) {
-    console.error("User not authenticated");
+  // プレイリストの公開設定を確認
+  const { data: playlistData, error: playlistError } = await supabase
+    .from("playlists")
+    .select("is_public")
+    .eq("id", playlistId)
+    .single();
+
+  if (playlistError) {
+    console.error("Failed to fetch playlist:", playlistError);
     return [];
   }
 
-  const { data, error } = await supabase
+  // 非公開プレイリストの場合は認証チェック
+  if (!playlistData.is_public && !session?.user.id) {
+    console.error("User not authenticated for private playlist");
+    return [];
+  }
+
+  let query = supabase
     .from("playlist_songs")
     .select("*, songs(*)")
     .eq("playlist_id", playlistId)
-    .eq("user_id", session.user.id)
     .eq("song_type", "regular")
     .order("created_at", { ascending: false });
 
+  // 非公開プレイリストの場合のみユーザーIDでフィルタリング
+  if (!playlistData.is_public) {
+    query = query.eq("user_id", session!.user.id);
+  }
+
+  const { data, error } = await query;
+
   if (error) {
+    console.error("Failed to fetch playlist songs:", error);
     return [];
   }
 

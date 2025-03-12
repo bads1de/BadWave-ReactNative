@@ -18,6 +18,7 @@ import TrendBoard from "@/components/TrendBoard";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 import Song from "@/types";
+import PlaylistBoard from "@/components/PlaylistBoard";
 
 export default function HomeScreen() {
   const { showPlayer } = usePlayerStore();
@@ -59,6 +60,8 @@ export default function HomeScreen() {
         <TrendBoard />
         <Text style={styles.sectionTitle}>Spotlights</Text>
         <SpotlightBoard />
+        <Text style={styles.sectionTitle}>Playlists</Text>
+        <PlaylistBoard />
 
         <Text style={styles.sectionTitle}>Genres</Text>
         <ScrollView

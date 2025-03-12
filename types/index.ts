@@ -21,6 +21,9 @@ export interface Playlist {
   image_path?: string;
   title: string;
   songs?: Song[];
+  is_public: boolean;
+  created_at: string;
+  user_name?: string;
 }
 
 export interface PlaylistSong {
