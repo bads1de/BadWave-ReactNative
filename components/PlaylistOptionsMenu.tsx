@@ -73,10 +73,18 @@ export default function PlaylistOptionsMenu({
     mutationFn: () => deletePlaylist(playlistId, session?.user.id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
+
+      if (isPublic) {
+        queryClient.invalidateQueries({
+          queryKey: [CACHED_QUERIES.getPublicPlaylists],
+        });
+      }
+
       Toast.show({
         type: "success",
         text1: "プレイリストを削除しました",
       });
+
       router.push({ pathname: "/library" });
     },
     onError: (err: Error) => {
@@ -243,7 +251,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#000",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 16,

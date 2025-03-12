@@ -10,18 +10,13 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import deletePlaylistSong from "@/actions/deletePlaylistSong";
-import { CACHED_QUERIES } from "@/constants";
-import Toast from "react-native-toast-message";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
 interface SongItemProps {
   song: Song;
   onClick: (id: string) => void;
   dynamicSize?: boolean;
-  showDeleteButton?: boolean;
-  playlistId?: string;
   songType?: string;
 }
 
@@ -30,8 +25,6 @@ const SongItem = memo(
     song,
     onClick,
     dynamicSize = false,
-    showDeleteButton,
-    playlistId,
     songType = "regular",
   }: SongItemProps) => {
     const router = useRouter();
@@ -50,29 +43,6 @@ const SongItem = memo(
     };
 
     const dynamicStyle = calculateItemSize();
-
-    const { mutate: deleteSong } = useMutation({
-      mutationFn: () => deletePlaylistSong(playlistId!, song.id, songType),
-      onSuccess: () => {
-        // 成功したらキャッシュを更新し、トーストを表示
-        queryClient.invalidateQueries({
-          queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
-        });
-
-        Toast.show({
-          type: "success",
-          text1: "曲を削除しました",
-        });
-      },
-      onError: (error: any) => {
-        // エラーハンドリング
-        Toast.show({
-          type: "error",
-          text1: "エラーが発生しました",
-          text2: error.message,
-        });
-      },
-    });
 
     const handleTitlePress = () => {
       router.push({
@@ -117,15 +87,6 @@ const SongItem = memo(
               </View>
             </View>
           </View>
-          {/* 削除ボタンの追加 */}
-          {showDeleteButton && playlistId && (
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => deleteSong()}
-            >
-              <Ionicons name="trash-outline" size={20} color="red" />
-            </TouchableOpacity>
-          )}
         </View>
       </TouchableOpacity>
     );
