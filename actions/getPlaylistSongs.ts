@@ -28,7 +28,7 @@ const getPlaylistSongs = async (
     return [];
   }
 
-  // 非公開プレイリストの場合は認証チェック
+  // 非公開プレイリストで未認証の場合のみ早期リターン
   if (!playlistData.is_public && !session?.user.id) {
     console.error("User not authenticated for private playlist");
     return [];
@@ -42,8 +42,8 @@ const getPlaylistSongs = async (
     .order("created_at", { ascending: false });
 
   // 非公開プレイリストの場合のみユーザーIDでフィルタリング
-  if (!playlistData.is_public) {
-    query = query.eq("user_id", session!.user.id);
+  if (!playlistData.is_public && session?.user.id) {
+    query = query.eq("user_id", session.user.id);
   }
 
   const { data, error } = await query;

@@ -11,6 +11,7 @@ import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
 import TrackPlayer from "react-native-track-player";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,15 +71,17 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <View style={{ flex: 1, backgroundColor: "#000" }}>
-          <StatusBar style="light" />
-          {showAuthModal && <AuthModal />}
-          <Stack screenOptions={{ headerShown: false }} />
-          <ToastComponent />
-        </View>
-      </AuthProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <View style={{ flex: 1, backgroundColor: "#000" }}>
+            <StatusBar style="light" />
+            {showAuthModal && <AuthModal />}
+            <Stack screenOptions={{ headerShown: false }} />
+            <ToastComponent />
+          </View>
+        </AuthProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

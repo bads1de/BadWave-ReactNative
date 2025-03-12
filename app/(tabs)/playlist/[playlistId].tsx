@@ -12,9 +12,12 @@ import { CACHED_QUERIES } from "@/constants";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import DeletePlaylistButton from "@/components/DeletePlaylistButton";
 import getPlaylistById from "@/actions/getPlaylistById";
+import { useAuth } from "@/providers/AuthProvider";
+import PlaylistOptionsMenu from "@/components/PlaylistOptionsMenu";
 
 export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
+  const { session } = useAuth();
 
   const {
     data: playlistSongs = [],
@@ -59,11 +62,18 @@ export default function PlaylistDetailScreen() {
   if (error || playlistError)
     return <Error message={error?.message || playlistError?.message} />;
 
+  const showDeleteButton = session?.user.id === playlist?.user_id;
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{playlist?.title}</Text>
-        <DeletePlaylistButton playlistId={playlistId} />
+        {showDeleteButton && (
+          <PlaylistOptionsMenu
+            playlistId={playlistId}
+            userId={playlist?.user_id}
+          />
+        )}
       </View>
       {playlistSongs && playlistSongs.length > 0 ? (
         <FlatList
