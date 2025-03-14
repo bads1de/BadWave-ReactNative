@@ -125,7 +125,6 @@ export default function SpotlightBoard() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#000",
     paddingVertical: 16,
   },
   header: {

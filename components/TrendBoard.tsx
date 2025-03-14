@@ -150,7 +150,6 @@ export default function TrendBoard() {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 24,
-    backgroundColor: "#000",
   },
   listContent: {
     paddingHorizontal: 8,
