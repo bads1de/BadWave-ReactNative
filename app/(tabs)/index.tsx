@@ -8,9 +8,11 @@ import {
   View,
   StatusBar,
   Dimensions,
+  Animated,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import getSongs from "@/actions/getSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
@@ -52,24 +54,38 @@ export default function HomeScreen() {
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
 
-  const renderSectionTitle = (title: string, icon: React.ComponentProps<typeof Ionicons>["name"]) => (
+  const renderSectionTitle = (
+    title: string,
+    icon: React.ComponentProps<typeof Ionicons>["name"]
+  ) => (
     <View style={styles.sectionTitleContainer}>
-      <View style={styles.titleRow}>
+      <LinearGradient
+        colors={["#4C1D95", "#7C3AED"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.titleGradient}
+      >
         <Ionicons
           name={icon}
           size={22}
-          color="#4C1D95"
+          color="#FFFFFF"
           style={styles.titleIcon}
         />
+      </LinearGradient>
+      <View style={styles.titleTextContainer}>
         <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.titleUnderline} />
       </View>
-      <View style={styles.titleUnderline} />
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <LinearGradient
+        colors={["#0F0F0F", "#050505"]}
+        style={styles.backgroundGradient}
+      />
       <ScrollView
         contentContainerStyle={[
           styles.listWrapper,
@@ -133,7 +149,14 @@ const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0A0A0A", // 深い黒だが純粋な黒よりも少し明るい
+    backgroundColor: "#050505",
+  },
+  backgroundGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   listWrapper: {
     padding: 16,
@@ -141,6 +164,24 @@ const styles = StyleSheet.create({
   sectionTitleContainer: {
     marginBottom: 16,
     marginTop: 24,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  titleGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  titleTextContainer: {
+    flex: 1,
   },
   titleRow: {
     flexDirection: "row",
@@ -148,30 +189,39 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   titleIcon: {
-    marginRight: 8,
+    shadowColor: "#fff",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   sectionTitle: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
     letterSpacing: 0.5,
+    textShadowColor: "rgba(124, 58, 237, 0.5)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 10,
   },
   titleUnderline: {
     height: 2,
     width: 40,
-    backgroundColor: "#4C1D95",
+    backgroundColor: "#7C3AED",
     marginTop: 4,
+    borderRadius: 1,
   },
   sectionContent: {
     marginBottom: 24,
-    backgroundColor: "#111",
-    borderRadius: 12,
-    padding: 12,
-    shadowColor: "#4C1D95",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    backgroundColor: "rgba(20, 20, 20, 0.8)",
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: "rgba(124, 58, 237, 0.1)",
   },
   horizontalScroll: {
     paddingVertical: 8,
@@ -204,8 +254,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   author: {
-    color: "#A78BFA", // 薄い紫色
+    color: "#ccc",
     fontSize: 14,
-    marginTop: 2,
+  },
+  duration: {
+    color: "#999",
+    fontSize: 12,
+    marginTop: 4,
+  },
+  playButton: {
+    marginLeft: 10,
   },
 });

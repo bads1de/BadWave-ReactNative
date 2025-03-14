@@ -15,7 +15,7 @@ const usePlayHistory = () => {
    */
   const recordPlay = useCallback(
     async (songId: string) => {
-      if (!user?.id) return;
+      if (!user?.id || !songId) return;
 
       const { error } = await supabase
         .from("play_history")
