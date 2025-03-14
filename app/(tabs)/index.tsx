@@ -83,7 +83,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       <LinearGradient
-        colors={["#0F0F0F", "#050505"]}
+        colors={["#000", "#050505"]}
         style={styles.backgroundGradient}
       />
       <ScrollView
