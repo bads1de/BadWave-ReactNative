@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef } from "react";
 import TrackPlayer, {
   State,
   usePlaybackState,
-  useProgress,
   RepeatMode,
   useActiveTrack,
+  useProgress,
 } from "react-native-track-player";
 import { useCleanup } from "./TrackPlayer/utils";
 import Song from "../types";
@@ -86,13 +86,12 @@ export function useAudioPlayer(
 
   // 複合アクションを取得
   const { updateCurrentSongAndState } = useAudioActions();
+  // TrackPlayer から直接進捗情報を取得
+  const { position, duration } = useProgress();
 
   const isMounted = useRef(true);
   const activeTrack = useActiveTrack();
   const playbackState = usePlaybackState();
-
-  // TrackPlayer から直接進捗情報を取得
-  const { position, duration } = useProgress();
 
   useCleanup(isMounted);
 
@@ -256,7 +255,7 @@ export function useAudioPlayer(
     [setStoreRepeatMode]
   );
 
-  // 進捗情報を計算
+  // 進捗情報を計算（秒からミリ秒に変換）
   const progressPosition = position * 1000;
   const progressDuration = duration * 1000;
 
@@ -266,8 +265,10 @@ export function useAudioPlayer(
     isPlaying: storeIsPlaying,
     repeatMode,
     shuffle,
+    // 進捗情報
     progressPosition,
     progressDuration,
+    // 操作関数
     togglePlayPause,
     seekTo,
     playNextSong,

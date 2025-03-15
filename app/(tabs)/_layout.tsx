@@ -5,27 +5,14 @@ import { FontAwesome } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Header from "@/components/Header";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import MiniPlayer from "@/components/MiniPlayer";
-import Player from "@/components/Player";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
 import { useAudioStore } from "@/hooks/useAudioStore";
+import PlayerContainer from "@/components/PlayerContainer";
 
 export default function TabLayout() {
-  const { showPlayer, setShowPlayer } = usePlayerStore();
+  const { showPlayer } = usePlayerStore();
   const { showHeader } = useHeaderStore();
-  const { currentSong, isPlaying, repeatMode, shuffle } = useAudioStore();
-
-  const {
-    togglePlayPause,
-    playNextSong,
-    playPrevSong,
-    seekTo,
-    setRepeat,
-    setShuffle,
-    progressPosition,
-    progressDuration,
-  } = useAudioPlayer();
+  const { currentSong } = useAudioStore();
 
   return (
     <>
@@ -164,35 +151,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      {showPlayer && currentSong && (
-        <View style={styles.fullPlayerContainer}>
-          <Player
-            isPlaying={isPlaying}
-            currentSong={currentSong}
-            position={progressPosition}
-            duration={progressDuration}
-            onPlayPause={() => togglePlayPause()}
-            onNext={playNextSong}
-            onPrev={playPrevSong}
-            onSeek={seekTo}
-            onClose={() => setShowPlayer(false)}
-            repeatMode={repeatMode}
-            setRepeatMode={setRepeat}
-            shuffle={shuffle}
-            setShuffle={setShuffle}
-          />
-        </View>
-      )}
-      {currentSong && !showPlayer && (
-        <View style={styles.miniPlayerContainer}>
-          <MiniPlayer
-            currentSong={currentSong}
-            isPlaying={isPlaying}
-            onPlayPause={togglePlayPause}
-            onPress={() => setShowPlayer(true)}
-          />
-        </View>
-      )}
+      {currentSong && <PlayerContainer />}
     </>
   );
 }
@@ -203,22 +162,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#000",
-  },
-  fullPlayerContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#000",
-    zIndex: 10,
-  },
-  miniPlayerContainer: {
-    position: "absolute",
-    bottom: 60,
-    left: 0,
-    right: 0,
-    zIndex: 5,
   },
   iconContainer: {
     alignItems: "center",

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, memo } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ interface MiniPlayerProps {
   onPress: () => void;
 }
 
-export default function ModernMiniPlayer({
+function ModernMiniPlayer({
   currentSong,
   isPlaying,
   onPlayPause,
@@ -148,4 +148,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+});
+
+// メモ化してコンポーネントの不要な再レンダリングを防止
+// カスタム比較関数を使用して、必要な変更がある場合のみ再レンダリングする
+export default memo(ModernMiniPlayer, (prevProps, nextProps) => {
+  // currentSongが変わった場合は再レンダリングする
+  if (prevProps.currentSong.id !== nextProps.currentSong.id) {
+    return false;
+  }
+
+  // isPlayingの状態が変わった場合は再レンダリングする
+  if (prevProps.isPlaying !== nextProps.isPlaying) {
+    return false;
+  }
+
+  // それ以外の変更は再レンダリングしない
+  return true;
 });
