@@ -28,6 +28,7 @@ export type PlayContextType =
   | "liked"
   | "search"
   | "genre"
+  | "forYou"
   | null;
 
 /**

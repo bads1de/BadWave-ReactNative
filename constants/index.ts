@@ -25,6 +25,7 @@ export const CACHED_QUERIES = {
   user: "user",
   topPlayedSongs: "topPlayedSongs",
   getPublicPlaylists: "getPublicPlaylists",
+  getRecommendations: "getRecommendations",
 } as const;
 
 export const CACHE_CONFIG = {

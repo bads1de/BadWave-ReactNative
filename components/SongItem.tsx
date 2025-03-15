@@ -12,7 +12,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import { useRouter } from "expo-router";
-import { BlurView } from "expo-blur";
 
 interface SongItemProps {
   song: Song;
@@ -30,11 +29,11 @@ const SongItem = memo(
   }: SongItemProps) => {
     const router = useRouter();
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    
+
     // useRefを使用してAnimated.Valueを保持
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
-    
+
     // 初回マウント時のみ実行されるフラグ
     const isFirstRender = useRef(true);
 

@@ -25,6 +25,7 @@ import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 import Song from "@/types";
 import PlaylistBoard from "@/components/PlaylistBoard";
+import ForYouBoard from "@/components/ForYouBoard";
 
 export default function HomeScreen() {
   const { showPlayer } = usePlayerStore();
@@ -96,6 +97,11 @@ export default function HomeScreen() {
         {renderSectionTitle("Trends", "trending-up")}
         <View style={styles.sectionContent}>
           <TrendBoard />
+        </View>
+
+        {renderSectionTitle("For You", "heart")}
+        <View style={styles.sectionContent}>
+          <ForYouBoard />
         </View>
 
         {renderSectionTitle("Spotlights", "flash")}
