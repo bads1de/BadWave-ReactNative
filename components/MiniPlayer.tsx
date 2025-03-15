@@ -1,5 +1,3 @@
-"use client";
-
 import { useRef, useEffect } from "react";
 import {
   View,
@@ -12,7 +10,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
-import Song from "../types";
+import Song from "@/types";
 
 interface MiniPlayerProps {
   currentSong: Song;
@@ -44,8 +42,6 @@ export default function ModernMiniPlayer({
       }),
     ]).start();
   }, [opacity, translateY]);
-
-  console.log("レンダリング MiniPlayer");
 
   return (
     <Animated.View

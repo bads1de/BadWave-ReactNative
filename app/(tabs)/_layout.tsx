@@ -1,50 +1,31 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { StyleSheet, View } from "react-native";
-import { useQuery } from "@tanstack/react-query";
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import getSongs from "@/actions/getSongs";
 import Header from "@/components/Header";
-import { usePlayerStore } from "../../hooks/usePlayerStore";
+import { usePlayerStore } from "@/hooks/usePlayerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
-import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
-import Loading from "@/components/Loading";
-import Error from "@/components/Error";
+import { useAudioStore } from "@/hooks/useAudioStore";
 
 export default function TabLayout() {
   const { showPlayer, setShowPlayer } = usePlayerStore();
-  const {
-    data: songs = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.songs],
-    queryFn: getSongs,
-  });
+  const { showHeader } = useHeaderStore();
+  const { currentSong, isPlaying, repeatMode, shuffle } = useAudioStore();
 
   const {
-    currentSong,
-    isPlaying,
-    progressPosition: position,
-    progressDuration: duration,
     togglePlayPause,
     playNextSong,
     playPrevSong,
     seekTo,
-    repeatMode,
     setRepeat,
-    shuffle,
     setShuffle,
-  } = useAudioPlayer(songs, "home");
-
-  const { showHeader } = useHeaderStore();
-
-  if (isLoading) return <Loading />;
-  if (error) return <Error message={error.message} />;
+    progressPosition,
+    progressDuration,
+  } = useAudioPlayer();
 
   return (
     <>
@@ -188,8 +169,8 @@ export default function TabLayout() {
           <Player
             isPlaying={isPlaying}
             currentSong={currentSong}
-            position={position}
-            duration={duration}
+            position={progressPosition}
+            duration={progressDuration}
             onPlayPause={() => togglePlayPause()}
             onNext={playNextSong}
             onPrev={playPrevSong}
@@ -202,7 +183,6 @@ export default function TabLayout() {
           />
         </View>
       )}
-
       {currentSong && !showPlayer && (
         <View style={styles.miniPlayerContainer}>
           <MiniPlayer

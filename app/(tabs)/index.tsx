@@ -8,7 +8,6 @@ import {
   View,
   StatusBar,
   Dimensions,
-  Animated,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
