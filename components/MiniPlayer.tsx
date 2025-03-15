@@ -45,6 +45,8 @@ export default function ModernMiniPlayer({
     ]).start();
   }, [opacity, translateY]);
 
+  console.log("レンダリング MiniPlayer");
+
   return (
     <Animated.View
       style={[

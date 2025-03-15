@@ -7,7 +7,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import getSongs from "@/actions/getSongs";
 import Header from "@/components/Header";
 import { usePlayerStore } from "../../hooks/usePlayerStore";
-import { useAudioPlayer, RepeatMode } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
 import { CACHED_QUERIES } from "@/constants";

@@ -40,7 +40,6 @@ export default function ForYouBoard() {
   );
 
   if (isLoading) return <Loading />;
-
   if (error) return <Error message={error.message} />;
 
   if (recommendations.length === 0) {

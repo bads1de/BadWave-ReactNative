@@ -133,10 +133,7 @@ export default function PlaylistOptionsMenu({
   return (
     <>
       <TouchableOpacity
-        onPress={() => {
-          console.log("オプションメニューを開きます");
-          setShowOptionsModal(true);
-        }}
+        onPress={() => setShowOptionsModal(true)}
         style={styles.menuButton}
       >
         <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />

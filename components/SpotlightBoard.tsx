@@ -61,13 +61,8 @@ export default function SpotlightBoard() {
     setIsMuted((prev) => !prev);
   };
 
-  if (isLoading) {
-    <Loading />;
-  }
-
-  if (isError) {
-    return <Error message={"Something went wrong"} />;
-  }
+  if (isLoading) return <Loading />;
+  if (isError) return <Error message={"Something went wrong"} />;
 
   return (
     <View style={styles.container}>
