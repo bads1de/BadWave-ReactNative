@@ -15,10 +15,15 @@ import {
   PlayContextType,
   PlayContext,
   logError,
+  safeAsyncOperation,
 } from "./TrackPlayer";
 
 /**
  * オーディオプレイヤーの状態管理と操作を行うカスタムフック
+ * @param songs 再生可能な曲リスト
+ * @param contextType 再生コンテキストタイプ
+ * @param contextId コンテキストID
+ * @param sectionId セクションID
  */
 export function useAudioPlayer(
   songs: Song[] = [],
@@ -59,7 +64,9 @@ export function useAudioPlayer(
     };
   }, []);
 
-  // TrackPlayer の再生状態を設定する関数
+  /**
+   * TrackPlayer の再生状態を設定する関数
+   */
   const setTrackPlayerIsPlaying = useCallback(
     (playing: boolean) => {
       if (playing && playbackState.state !== State.Playing) {
@@ -71,26 +78,38 @@ export function useAudioPlayer(
     [playbackState.state]
   );
 
-  const { updateQueueWithContext, toggleShuffle, queueState } =
-    useQueueOperations(setTrackPlayerIsPlaying, songMap, trackMap);
+  const {
+    updateQueueWithContext,
+    toggleShuffle,
+    queueState,
+    getQueueState,
+    updateQueueState,
+  } = useQueueOperations(setTrackPlayerIsPlaying, songMap, trackMap);
 
-  // アクティブトラックが変更されたときの処理
+  /**
+   * アクティブトラックが変更されたときの処理
+   */
   useEffect(() => {
     if (!isMounted.current || !activeTrack?.id) return;
 
     // トラックIDに対応する曲情報を取得
     const song = songMap[activeTrack.id];
+
     if (!song) return;
 
     // 現在の曲を更新
     setCurrentSong(song);
 
     // キューの状態を更新
-    const currentQueueState = queueState.current;
-    currentQueueState.lastProcessedTrackId = song.id;
-  }, [activeTrack, songMap, queueState, setCurrentSong]);
+    updateQueueState((state) => ({
+      lastProcessedTrackId: song.id,
+      currentSongId: song.id,
+    }));
+  }, [activeTrack, songMap, updateQueueState, setCurrentSong]);
 
-  // シャッフルトグル処理用ハンドラー
+  /**
+   * シャッフルトグル処理用ハンドラー
+   */
   const handleToggleShuffle = useCallback(async () => {
     const isShuffled = await toggleShuffle();
     setStoreShuffle(isShuffled);
@@ -99,6 +118,9 @@ export function useAudioPlayer(
 
   /**
    * 再生/一時停止を切り替える
+   * @param song 再生する曲（オプション、指定されない場合は現在の曲に対して操作）
+   * @param contextId コンテキストID（オプション）
+   * @param contextType 再生コンテキストタイプ（デフォルト: "home"）
    */
   const togglePlayPause = useCallback(
     async (
@@ -106,22 +128,23 @@ export function useAudioPlayer(
       contextId?: string,
       contextType: PlayContextType = "home"
     ) => {
-      try {
-        // 再生可能な曲がない場合は何もしない
-        if (!song && !currentSong) return;
+      // 再生可能な曲がない場合は何もしない
+      if (!song && !currentSong) return;
 
-        // 現在再生中の曲と同じ曲が指定された場合、または曲が指定されていない場合は
-        // 再生/一時停止を切り替える
+      return safeAsyncOperation(async () => {
+        // ケース1: 同じ曲の再生/一時停止切り替え
         if (song?.id === currentSong?.id || (!song && currentSong)) {
           await (isPlaying ? TrackPlayer.pause() : TrackPlayer.play());
-          return;
+          return true;
         }
 
-        // 新しい曲が指定された場合
+        // ケース2: 新しい曲の再生開始
         if (song) {
           const songIndex = songs.findIndex((s) => s.id === song.id);
 
-          if (songIndex === -1) return;
+          if (songIndex === -1) {
+            return false;
+          }
 
           const context = { type: contextType, id: contextId };
 
@@ -129,10 +152,11 @@ export function useAudioPlayer(
           await updateQueueWithContext(songs, context, songIndex);
           updateCurrentSongAndState(song);
           await onPlay(song.id);
+          return true;
         }
-      } catch (error) {
-        logError(error, "再生/一時停止の切り替え中にエラーが発生しました");
-      }
+
+        return false;
+      }, "再生/一時停止の切り替え中にエラーが発生しました");
     },
     [
       currentSong,
@@ -146,50 +170,48 @@ export function useAudioPlayer(
 
   /**
    * 指定された位置にシークする
+   * @param millis シーク位置（ミリ秒）
    */
   const seekTo = useCallback(async (millis: number) => {
-    try {
+    return safeAsyncOperation(async () => {
       await TrackPlayer.seekTo(millis / 1000);
-    } catch (error) {
-      logError(error, "シーク中にエラーが発生しました");
-    }
+      return true;
+    }, "シーク中にエラーが発生しました");
   }, []);
 
   /**
    * 次の曲を再生する
    */
   const playNextSong = useCallback(async () => {
-    try {
+    return safeAsyncOperation(async () => {
       await TrackPlayer.skipToNext();
       await TrackPlayer.play();
-    } catch (error) {
-      logError(error, "次の曲の再生中にエラーが発生しました");
-    }
+      return true;
+    }, "次の曲の再生中にエラーが発生しました");
   }, []);
 
   /**
    * 前の曲を再生する
    */
   const playPrevSong = useCallback(async () => {
-    try {
+    return safeAsyncOperation(async () => {
       await TrackPlayer.skipToPrevious();
       await TrackPlayer.play();
-    } catch (error) {
-      logError(error, "前の曲の再生中にエラーが発生しました");
-    }
+      return true;
+    }, "前の曲の再生中にエラーが発生しました");
   }, []);
 
   /**
    * リピートモードを設定する
+   * @param mode リピートモード
    */
   const setRepeat = useCallback(
     async (mode: RepeatMode) => {
-      try {
+      return safeAsyncOperation(async () => {
         await TrackPlayer.setRepeatMode(mode);
         setStoreRepeatMode(mode);
-      } catch (error) {
-        logError(error, "リピートモードの設定中にエラーが発生しました");
-      }
+        return true;
+      }, "リピートモードの設定中にエラーが発生しました");
     },
     [setStoreRepeatMode]
   );

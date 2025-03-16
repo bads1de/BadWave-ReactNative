@@ -33,3 +33,11 @@ export interface QueueState {
   currentSongId: string | null;
   context: PlayContext;
 }
+
+/**
+ * キュー操作の結果型
+ */
+export interface QueueOperationResult {
+  success: boolean;
+  errorMessage?: string;
+}

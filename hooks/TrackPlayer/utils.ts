@@ -34,3 +34,27 @@ export function logError(error: unknown, context: string): void {
     console.error("エラー:", error.message);
   }
 }
+
+/**
+ * 非同期操作を安全に実行するヘルパー関数
+ * @param operation 実行する非同期操作
+ * @param errorContext エラー時のコンテキスト情報
+ * @returns 操作の結果またはundefined（エラー時）
+ */
+export async function safeAsyncOperation<T>(
+  operation: () => Promise<T>,
+  errorContext: string,
+  onError?: (error: unknown) => void
+): Promise<T | undefined> {
+  try {
+    return await operation();
+  } catch (error) {
+    logError(error, errorContext);
+
+    if (onError) {
+      onError(error);
+    }
+
+    return undefined;
+  }
+}
