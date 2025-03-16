@@ -42,26 +42,6 @@ import { useAudioStore, useAudioActions } from "./useAudioStore";
  * @property {Function} seekTo - 指定位置にシークする関数
  * @property {Function} playNext - 次の曲を再生する関数
  * @property {Function} playPrevious - 前の曲を再生する関数
- *
- * @example
- * ```typescript
- * const {
- *   isPlaying,
- *   currentSong,
- *   togglePlayPause,
- *   seekTo
- * } = useAudioPlayer(songs, "playlist", "playlist-123");
- *
- * // 再生/一時停止
- * const handlePlayPause = () => {
- *   togglePlayPause();
- * };
- *
- * // 特定位置にシーク
- * const handleSeek = (position: number) => {
- *   seekTo(position);
- * };
- * ```
  */
 export function useAudioPlayer(
   songs: Song[] = [],
@@ -75,18 +55,15 @@ export function useAudioPlayer(
   // Zustand ストアから状態を取得
   const {
     currentSong,
-    isPlaying: storeIsPlaying,
     repeatMode,
     shuffle,
     setCurrentSong,
-    setIsPlaying,
     setRepeatMode: setStoreRepeatMode,
     setShuffle: setStoreShuffle,
   } = useAudioStore();
 
   // 複合アクションを取得
   const { updateCurrentSongAndState } = useAudioActions();
-  // TrackPlayer から直接進捗情報を取得
   const { position, duration } = useProgress();
 
   const isMounted = useRef(true);
@@ -95,13 +72,8 @@ export function useAudioPlayer(
 
   useCleanup(isMounted);
 
-  // playbackState から実際の再生状態を取得し、ストアと同期
-  useEffect(() => {
-    const actualIsPlaying = playbackState.state === State.Playing;
-    if (actualIsPlaying !== storeIsPlaying) {
-      setIsPlaying(actualIsPlaying);
-    }
-  }, [playbackState.state, storeIsPlaying, setIsPlaying]);
+  // TrackPlayerの状態を監視
+  const isPlaying = playbackState.state === State.Playing;
 
   // TrackPlayer の再生状態を設定する関数
   const setTrackPlayerIsPlaying = useCallback(
@@ -163,9 +135,7 @@ export function useAudioPlayer(
 
         // 再生状態を更新
         if (shouldToggleCurrentSong) {
-          const newIsPlaying = !storeIsPlaying;
-          await (storeIsPlaying ? TrackPlayer.pause() : TrackPlayer.play());
-          setIsPlaying(newIsPlaying);
+          await (isPlaying ? TrackPlayer.pause() : TrackPlayer.play());
           return;
         }
 
@@ -183,7 +153,7 @@ export function useAudioPlayer(
 
           // キューを更新して再生開始
           await updateQueueWithContext(songs, context, songIndex);
-          updateCurrentSongAndState(song, true);
+          updateCurrentSongAndState(song);
           await onPlay(song.id);
         }
       } catch (error) {
@@ -192,11 +162,10 @@ export function useAudioPlayer(
     },
     [
       currentSong,
-      storeIsPlaying,
+      isPlaying,
       updateQueueWithContext,
       onPlay,
       songs,
-      setIsPlaying,
       updateCurrentSongAndState,
     ]
   );
@@ -220,11 +189,10 @@ export function useAudioPlayer(
     try {
       await TrackPlayer.skipToNext();
       await TrackPlayer.play();
-      setIsPlaying(true);
     } catch (error) {
       console.error("Error in playNextSong:", error);
     }
-  }, [setIsPlaying]);
+  }, []);
 
   /**
    * 前の曲を再生する
@@ -233,11 +201,10 @@ export function useAudioPlayer(
     try {
       await TrackPlayer.skipToPrevious();
       await TrackPlayer.play();
-      setIsPlaying(true);
     } catch (error) {
       console.error("Error in playPrevSong:", error);
     }
-  }, [setIsPlaying]);
+  }, []);
 
   /**
    * リピートモードを設定する
@@ -261,7 +228,7 @@ export function useAudioPlayer(
 
   return {
     currentSong,
-    isPlaying: storeIsPlaying,
+    isPlaying,
     repeatMode,
     shuffle,
     progressPosition,

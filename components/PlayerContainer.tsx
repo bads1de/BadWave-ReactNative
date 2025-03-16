@@ -5,6 +5,7 @@ import Player from "@/components/Player";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useAudioStore } from "@/hooks/useAudioStore";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
+import { State, usePlaybackState } from "react-native-track-player";
 
 /**
  * プレーヤーコンテナコンポーネント
@@ -14,7 +15,9 @@ import { usePlayerStore } from "@/hooks/usePlayerStore";
  */
 export default function PlayerContainer() {
   const { showPlayer, setShowPlayer } = usePlayerStore();
-  const { currentSong, isPlaying, repeatMode, shuffle } = useAudioStore();
+  const { currentSong, repeatMode, shuffle } = useAudioStore();
+  const playbackState = usePlaybackState();
+  const isPlaying = playbackState.state === State.Playing;
 
   // 再生コントロール関数と進捗情報を取得
   const {
