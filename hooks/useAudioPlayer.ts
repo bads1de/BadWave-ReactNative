@@ -130,28 +130,23 @@ export function useAudioPlayer(
       contextType: PlayContextType = "home"
     ) => {
       try {
+        // 再生可能な曲がない場合は何もしない
         if (!song && !currentSong) return;
 
-        const isSameSong = song && currentSong?.id === song.id;
-        const shouldToggleCurrentSong = isSameSong || (!song && currentSong);
-
-        // 再生状態を更新
-        if (shouldToggleCurrentSong) {
+        // 現在再生中の曲と同じ曲が指定された場合、または曲が指定されていない場合は
+        // 再生/一時停止を切り替える
+        if (song?.id === currentSong?.id || (!song && currentSong)) {
           await (isPlaying ? TrackPlayer.pause() : TrackPlayer.play());
           return;
         }
 
-        // songが指定されている場合はキューを更新
+        // 新しい曲が指定された場合
         if (song) {
-          // 曲のインデックスを取得
           const songIndex = songs.findIndex((s) => s.id === song.id);
+
           if (songIndex === -1) return;
 
-          // コンテキスト情報を作成
-          const context = {
-            type: contextType,
-            id: contextId,
-          };
+          const context = { type: contextType, id: contextId };
 
           // キューを更新して再生開始
           await updateQueueWithContext(songs, context, songIndex);

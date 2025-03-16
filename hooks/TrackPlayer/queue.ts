@@ -73,22 +73,6 @@ interface QueueState {
  * @property {Function} updateQueueWithContext - コンテキストに基づきキューを更新
  * @property {Function} toggleShuffle - シャッフルモードの切り替え
  * @property {MutableRefObject} queueState - キューの状態
- *
- * @example
- * ```typescript
- * const { updateQueueWithContext, toggleShuffle, queueState } = useQueueOperations(
- *   isMounted,
- *   setIsPlaying,
- *   songMap,
- *   trackMap
- * );
- *
- * // コンテキストに基づきキューを更新
- * await updateQueueWithContext(songs, {
- *   type: "playlist",
- *   id: "playlist-123"
- * }, 0);
- * ```
  */
 export function useQueueOperations(
   isMounted: MutableRefObject<boolean>,
