@@ -1,81 +1,43 @@
-// hooks/TrackPlayer/queue.ts
-import { MutableRefObject, useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import TrackPlayer, { Track } from "react-native-track-player";
 import Song from "../../types";
-import { useErrorHandler, useSafeStateUpdate } from "./utils";
-import { convertToTracks } from "./track";
+import { PlayContext, PlayContextType, QueueState } from "./types";
+import { convertToTracks, useErrorHandler, useSafeStateUpdate } from "./utils";
 
 /**
- * @fileoverview 再生キュー管理モジュール
- * このモジュールは、TrackPlayerの再生キューを管理し、
- * 再生コンテキストに応じた曲の追加・削除・並び替えを行います。
+ * プレイヤーの状態管理を行うカスタムフック
  */
+export function usePlayerState({ songs }: { songs: Song[] }) {
+  // 曲のIDをキーとする曲データマップとトラックマップを作成
+  const { songMap, trackMap } = useMemo(() => {
+    const songMap: Record<string, Song> = {};
+    const trackMap: Record<string, Track> = {};
 
-/**
- * 再生コンテキストタイプ
- * @description
- * アプリケーション内の各再生コンテキストを定義します
- *
- * @property {string} home - ホーム画面の各セクションからの再生
- * @property {string} playlist - プレイリストからの再生
- * @property {string} liked - いいね済み曲からの再生
- * @property {string} search - 検索結果からの再生
- * @property {string} genre - ジャンルページからの再生
- */
-export type PlayContextType =
-  | "home"
-  | "playlist"
-  | "liked"
-  | "search"
-  | "genre"
-  | "forYou"
-  | null;
+    songs.forEach((song) => {
+      songMap[song.id] = song;
+      trackMap[song.id] = {
+        id: song.id,
+        url: song.song_path,
+        title: song.title,
+        artist: song.author,
+        artwork: song.image_path,
+      };
+    });
 
-/**
- * 再生コンテキスト情報
- * @interface PlayContext
- * @description
- * 現在の再生コンテキストを特定するための情報を保持します
- *
- * @property {PlayContextType} type - コンテキストタイプ
- * @property {string} [id] - コンテキストID（プレイリストIDなど）
- * @property {string} [sectionId] - ホーム画面のセクションID
- */
-interface PlayContext {
-  type: PlayContextType;
-  id?: string;
-  sectionId?: string;
-}
+    return { songMap, trackMap };
+  }, [songs]);
 
-/**
- * キューの状態を表す型
- */
-interface QueueState {
-  isShuffleEnabled: boolean;
-  originalQueue: Track[];
-  currentQueue: { id: string }[];
-  lastProcessedTrackId: string | null;
-  currentSongId: string | null;
-  context: PlayContext;
+  return {
+    songMap,
+    trackMap,
+  };
 }
 
 /**
  * キュー操作フック
- * @description
- * TrackPlayerのキュー操作に関する機能を提供するカスタムフック
- *
- * @param {MutableRefObject<boolean>} isMounted - コンポーネントのマウント状態
- * @param {Function} setIsPlaying - 再生状態を設定する関数
- * @param {Record<string, Song>} songMap - 曲IDと曲情報のマップ
- * @param {Record<string, Track>} trackMap - 曲IDとトラック情報のマップ
- *
- * @returns {Object} キュー操作関数と状態
- * @property {Function} updateQueueWithContext - コンテキストに基づきキューを更新
- * @property {Function} toggleShuffle - シャッフルモードの切り替え
- * @property {MutableRefObject} queueState - キューの状態
  */
 export function useQueueOperations(
-  isMounted: MutableRefObject<boolean>,
+  isMounted: React.MutableRefObject<boolean>,
   setIsPlaying: (isPlaying: boolean) => void,
   songMap: Record<string, Song>,
   trackMap: Record<string, Track>
@@ -143,8 +105,9 @@ export function useQueueOperations(
     try {
       const currentTrack = await TrackPlayer.getActiveTrack();
 
-      if (!currentTrack || queueContext.current.originalQueue.length === 0)
+      if (!currentTrack || queueContext.current.originalQueue.length === 0) {
         return;
+      }
 
       // 現在の曲のインデックスを取得
       const currentIndex = queueContext.current.originalQueue.findIndex(

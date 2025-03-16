@@ -1,3 +1,4 @@
+// hooks/useAudioPlayer.ts
 import { useCallback, useEffect, useRef } from "react";
 import TrackPlayer, {
   State,
@@ -6,42 +7,19 @@ import TrackPlayer, {
   useActiveTrack,
   useProgress,
 } from "react-native-track-player";
-import { useCleanup } from "./TrackPlayer/utils";
 import Song from "../types";
 import useOnPlay from "./useOnPlay";
-import { usePlayerState } from "./TrackPlayer/state";
-import { useQueueOperations, PlayContextType } from "./TrackPlayer/queue";
 import { useAudioStore, useAudioActions } from "./useAudioStore";
+import {
+  usePlayerState,
+  useQueueOperations,
+  useCleanup,
+  PlayContextType,
+  PlayContext,
+} from "./TrackPlayer";
 
 /**
- * @fileoverview オーディオプレーヤーのカスタムフック
- * このモジュールは、アプリケーションの音楽再生機能のフロントエンド部分を管理します。
- */
-
-/**
- * オーディオプレーヤーの状態管理と操作を行うカスタムフック
- * @description
- * このフックは以下の機能を提供します：
- * - 再生制御（再生、一時停止、停止）
- * - トラック操作（次へ、前へ、シーク）
- * - キュー管理（追加、削除、並べ替え）
- * - 再生状態の監視
- * - プレイリスト管理
- *
- * @param {Song[]} songs - 再生対象の曲リスト
- * @param {PlayContextType} contextType - 再生コンテキストの種類（ホーム、プレイリスト等）
- * @param {string} [contextId] - コンテキストの一意識別子
- * @param {string} [sectionId] - セクションの一意識別子
- *
- * @returns {Object} プレーヤーの状態と操作関数
- * @property {boolean} isPlaying - 現在の再生状態
- * @property {Song | null} currentSong - 現在再生中の曲
- * @property {number} position - 現在の再生位置（秒）
- * @property {number} duration - 曲の総再生時間（秒）
- * @property {Function} togglePlayPause - 再生/一時停止を切り替える関数
- * @property {Function} seekTo - 指定位置にシークする関数
- * @property {Function} playNext - 次の曲を再生する関数
- * @property {Function} playPrevious - 前の曲を再生する関数
+ * オーディオプレイヤーの状態管理と操作を行うカスタムフック
  */
 export function useAudioPlayer(
   songs: Song[] = [],
@@ -118,10 +96,6 @@ export function useAudioPlayer(
 
   /**
    * 再生/一時停止を切り替える
-   *
-   * @param {Song} song - 再生する曲
-   * @param {string} contextId - コンテキストID（プレイリストIDなど）
-   * @param {PlayContextType} contextType - コンテキストタイプ
    */
   const togglePlayPause = useCallback(
     async (
@@ -169,7 +143,6 @@ export function useAudioPlayer(
 
   /**
    * 指定された位置にシークする
-   * @param {number} millis - シークする位置（ミリ秒）
    */
   const seekTo = useCallback(async (millis: number) => {
     try {
@@ -205,7 +178,6 @@ export function useAudioPlayer(
 
   /**
    * リピートモードを設定する
-   * @param {RepeatMode} mode - 設定するリピートモード
    */
   const setRepeat = useCallback(
     async (mode: RepeatMode) => {
