@@ -72,13 +72,7 @@ function ModernMiniPlayer({
               {currentSong.author}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.playButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              onPlayPause();
-            }}
-          >
+          <TouchableOpacity style={styles.playButton} onPress={onPlayPause}>
             <Feather
               name={isPlaying ? "pause" : "play"}
               size={24}

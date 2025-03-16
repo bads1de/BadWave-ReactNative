@@ -16,11 +16,10 @@ import { State, usePlaybackState } from "react-native-track-player";
 export default function PlayerContainer() {
   const { showPlayer, setShowPlayer } = usePlayerStore();
   const { currentSong, repeatMode, shuffle } = useAudioStore();
-  const playbackState = usePlaybackState();
-  const isPlaying = playbackState.state === State.Playing;
 
   // 再生コントロール関数と進捗情報を取得
   const {
+    isPlaying,
     togglePlayPause,
     playNextSong,
     playPrevSong,
@@ -59,7 +58,7 @@ export default function PlayerContainer() {
           <MiniPlayer
             currentSong={currentSong}
             isPlaying={isPlaying}
-            onPlayPause={togglePlayPause}
+            onPlayPause={() => togglePlayPause()}
             onPress={() => setShowPlayer(true)}
           />
         </View>
