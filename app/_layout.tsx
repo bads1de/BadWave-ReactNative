@@ -71,17 +71,15 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <View style={{ flex: 1, backgroundColor: "#000" }}>
-            <StatusBar style="light" />
-            {showAuthModal && <AuthModal />}
-            <Stack screenOptions={{ headerShown: false }} />
-            <ToastComponent />
-          </View>
-        </AuthProvider>
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <View style={{ flex: 1, backgroundColor: "#000" }}>
+          <StatusBar style="light" />
+          {showAuthModal && <AuthModal />}
+          <Stack screenOptions={{ headerShown: false }} />
+          <ToastComponent />
+        </View>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

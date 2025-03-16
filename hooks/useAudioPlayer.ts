@@ -260,15 +260,12 @@ export function useAudioPlayer(
   const progressDuration = duration * 1000;
 
   return {
-    // Zustand ストアから取得した状態
     currentSong,
     isPlaying: storeIsPlaying,
     repeatMode,
     shuffle,
-    // 進捗情報
     progressPosition,
     progressDuration,
-    // 操作関数
     togglePlayPause,
     seekTo,
     playNextSong,

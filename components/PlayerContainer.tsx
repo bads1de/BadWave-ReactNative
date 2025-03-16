@@ -12,7 +12,7 @@ import { usePlayerStore } from "@/hooks/usePlayerStore";
  * このコンポーネントは、MiniPlayerとPlayerコンポーネントを管理し、
  * 再生状態の更新による不要な再レンダリングを防ぎます。
  */
-function PlayerContainer() {
+export default function PlayerContainer() {
   const { showPlayer, setShowPlayer } = usePlayerStore();
   const { currentSong, isPlaying, repeatMode, shuffle } = useAudioStore();
 
@@ -82,10 +82,4 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 5,
   },
-});
-
-// メモ化してコンポーネントの不要な再レンダリングを防止
-export default memo(PlayerContainer, (prevProps, nextProps) => {
-  // プロパティがないので常に同じと見なす
-  return true;
 });
