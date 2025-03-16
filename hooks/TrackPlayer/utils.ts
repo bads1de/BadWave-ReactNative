@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef } from "react";
-import TrackPlayer, { Track } from "react-native-track-player";
+// hooks/TrackPlayer/utils.ts
+import { Track } from "react-native-track-player";
 import Song from "../../types";
-import { ErrorHandlerProps } from "./types";
 
 /**
  * 曲データをTrackPlayerのトラック形式に変換
@@ -24,57 +23,14 @@ export function convertToTracks(songs: Song[]): Track[] {
 }
 
 /**
- * 安全な状態更新を行うためのカスタムフック
+ * エラーをログに記録する単純なユーティリティ
  */
-export function useSafeStateUpdate(isMounted: React.MutableRefObject<boolean>) {
-  return useCallback(
-    (callback: () => void) => {
-      if (isMounted.current) {
-        callback();
-      }
-    },
-    [isMounted]
-  );
-}
+export function logError(error: unknown, context: string): void {
+  console.error(`${context}:`, error);
 
-/**
- * エラーハンドリングを行うカスタムフック
- */
-export function useErrorHandler({
-  safeStateUpdate,
-  setIsPlaying,
-}: ErrorHandlerProps) {
-  return useCallback(
-    (error: unknown, context: string) => {
-      console.error(`${context}:`, error);
-
-      if (error && typeof error === "object" && "message" in error) {
-        console.error("キュー管理エラー:", error.message);
-      } else if (error instanceof Error) {
-        console.error("エラー:", error.message);
-      }
-
-      safeStateUpdate(() => setIsPlaying(false));
-    },
-    [safeStateUpdate, setIsPlaying]
-  );
-}
-
-/**
- * クリーンアップ関数を管理するカスタムフック
- */
-export function useCleanup(isMounted: React.MutableRefObject<boolean>) {
-  const cleanupFns = useRef<(() => void)[]>([]);
-
-  useEffect(() => {
-    isMounted.current = true;
-
-    return () => {
-      isMounted.current = false;
-      cleanupFns.current.forEach((cleanup) => cleanup());
-      cleanupFns.current = [];
-    };
-  }, [isMounted]);
-
-  return cleanupFns;
+  if (error && typeof error === "object" && "message" in error) {
+    console.error("エラー詳細:", error.message);
+  } else if (error instanceof Error) {
+    console.error("エラー:", error.message);
+  }
 }

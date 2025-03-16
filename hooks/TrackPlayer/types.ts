@@ -1,6 +1,5 @@
 // hooks/TrackPlayer/types.ts
 import { Track } from "react-native-track-player";
-import Song from "../../types";
 
 /**
  * 再生コンテキストタイプ
@@ -33,20 +32,4 @@ export interface QueueState {
   lastProcessedTrackId: string | null;
   currentSongId: string | null;
   context: PlayContext;
-}
-
-/**
- * プレイヤーの状態
- */
-export interface PlayerState {
-  songMap: Record<string, Song>;
-  trackMap: Record<string, Track>;
-}
-
-/**
- * エラーハンドラーのプロパティ
- */
-export interface ErrorHandlerProps {
-  safeStateUpdate: (callback: () => void) => void;
-  setIsPlaying: (isPlaying: boolean) => void;
 }

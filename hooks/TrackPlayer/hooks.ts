@@ -1,15 +1,16 @@
+// hooks/TrackPlayer/hooks.ts
 import { useCallback, useMemo, useRef } from "react";
 import TrackPlayer, { Track } from "react-native-track-player";
 import Song from "../../types";
 import { PlayContext, PlayContextType, QueueState } from "./types";
-import { convertToTracks, useErrorHandler, useSafeStateUpdate } from "./utils";
+import { convertToTracks, logError } from "./utils";
 
 /**
  * プレイヤーの状態管理を行うカスタムフック
  */
 export function usePlayerState({ songs }: { songs: Song[] }) {
   // 曲のIDをキーとする曲データマップとトラックマップを作成
-  const { songMap, trackMap } = useMemo(() => {
+  return useMemo(() => {
     const songMap: Record<string, Song> = {};
     const trackMap: Record<string, Track> = {};
 
@@ -26,25 +27,16 @@ export function usePlayerState({ songs }: { songs: Song[] }) {
 
     return { songMap, trackMap };
   }, [songs]);
-
-  return {
-    songMap,
-    trackMap,
-  };
 }
 
 /**
  * キュー操作フック
  */
 export function useQueueOperations(
-  isMounted: React.MutableRefObject<boolean>,
   setIsPlaying: (isPlaying: boolean) => void,
   songMap: Record<string, Song>,
   trackMap: Record<string, Track>
 ) {
-  const safeStateUpdate = useSafeStateUpdate(isMounted);
-  const handleError = useErrorHandler({ safeStateUpdate, setIsPlaying });
-
   // キューの状態管理
   const queueContext = useRef<QueueState>({
     isShuffleEnabled: false,
@@ -94,9 +86,10 @@ export function useQueueOperations(
       // シャッフル状態を更新
       queueContext.current.isShuffleEnabled = true;
     } catch (error) {
-      handleError(error, "キューのシャッフル中にエラーが発生しました");
+      logError(error, "キューのシャッフル中にエラーが発生しました");
+      setIsPlaying(false);
     }
-  }, [handleError]);
+  }, [setIsPlaying]);
 
   /**
    * シャッフルを解除して元のキュー順序に戻す
@@ -135,9 +128,10 @@ export function useQueueOperations(
       // シャッフル状態を更新
       queueContext.current.isShuffleEnabled = false;
     } catch (error) {
-      handleError(error, "シャッフル解除中にエラーが発生しました");
+      logError(error, "シャッフル解除中にエラーが発生しました");
+      setIsPlaying(false);
     }
-  }, [handleError]);
+  }, [setIsPlaying]);
 
   /**
    * シャッフル状態を切り替える
@@ -187,10 +181,11 @@ export function useQueueOperations(
         await TrackPlayer.play();
         setIsPlaying(true);
       } catch (error) {
-        handleError(error, "キューの更新中にエラーが発生しました");
+        logError(error, "キューの更新中にエラーが発生しました");
+        setIsPlaying(false);
       }
     },
-    [handleError, setIsPlaying]
+    [setIsPlaying]
   );
 
   /**
@@ -214,10 +209,10 @@ export function useQueueOperations(
         }));
         queueContext.current.originalQueue = [...queue];
       } catch (error) {
-        handleError(error, "キューに曲を追加中にエラーが発生しました");
+        logError(error, "キューに曲を追加中にエラーが発生しました");
       }
     },
-    [handleError]
+    []
   );
 
   /**
@@ -244,9 +239,9 @@ export function useQueueOperations(
         },
       };
     } catch (error) {
-      handleError(error, "キューのリセット中にエラーが発生しました");
+      logError(error, "キューのリセット中にエラーが発生しました");
     }
-  }, [handleError]);
+  }, []);
 
   return {
     shuffleQueue,

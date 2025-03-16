@@ -1,4 +1,3 @@
-// hooks/useAudioPlayer.ts
 import { useCallback, useEffect, useRef } from "react";
 import TrackPlayer, {
   State,
@@ -13,9 +12,9 @@ import { useAudioStore, useAudioActions } from "./useAudioStore";
 import {
   usePlayerState,
   useQueueOperations,
-  useCleanup,
   PlayContextType,
   PlayContext,
+  logError,
 } from "./TrackPlayer";
 
 /**
@@ -53,7 +52,12 @@ export function useAudioPlayer(
   const progressPosition = position * 1000;
   const progressDuration = duration * 1000;
 
-  useCleanup(isMounted);
+  // コンポーネントのアンマウント時の処理
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // TrackPlayer の再生状態を設定する関数
   const setTrackPlayerIsPlaying = useCallback(
@@ -68,11 +72,10 @@ export function useAudioPlayer(
   );
 
   const { updateQueueWithContext, toggleShuffle, queueState } =
-    useQueueOperations(isMounted, setTrackPlayerIsPlaying, songMap, trackMap);
+    useQueueOperations(setTrackPlayerIsPlaying, songMap, trackMap);
 
   // アクティブトラックが変更されたときの処理
   useEffect(() => {
-    // コンポーネントがアンマウントされている場合は処理を中止
     if (!isMounted.current || !activeTrack?.id) return;
 
     // トラックIDに対応する曲情報を取得
@@ -128,7 +131,7 @@ export function useAudioPlayer(
           await onPlay(song.id);
         }
       } catch (error) {
-        console.error("Error in togglePlayPause:", error);
+        logError(error, "再生/一時停止の切り替え中にエラーが発生しました");
       }
     },
     [
@@ -148,7 +151,7 @@ export function useAudioPlayer(
     try {
       await TrackPlayer.seekTo(millis / 1000);
     } catch (error) {
-      console.error("Error seeking to position:", error);
+      logError(error, "シーク中にエラーが発生しました");
     }
   }, []);
 
@@ -160,7 +163,7 @@ export function useAudioPlayer(
       await TrackPlayer.skipToNext();
       await TrackPlayer.play();
     } catch (error) {
-      console.error("Error in playNextSong:", error);
+      logError(error, "次の曲の再生中にエラーが発生しました");
     }
   }, []);
 
@@ -172,7 +175,7 @@ export function useAudioPlayer(
       await TrackPlayer.skipToPrevious();
       await TrackPlayer.play();
     } catch (error) {
-      console.error("Error in playPrevSong:", error);
+      logError(error, "前の曲の再生中にエラーが発生しました");
     }
   }, []);
 
@@ -185,7 +188,7 @@ export function useAudioPlayer(
         await TrackPlayer.setRepeatMode(mode);
         setStoreRepeatMode(mode);
       } catch (error) {
-        console.error("Error setting repeat mode:", error);
+        logError(error, "リピートモードの設定中にエラーが発生しました");
       }
     },
     [setStoreRepeatMode]
