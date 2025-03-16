@@ -1,11 +1,10 @@
-import React, { memo } from "react";
+import React from "react";
 import { View, StyleSheet } from "react-native";
 import MiniPlayer from "@/components/MiniPlayer";
 import Player from "@/components/Player";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useAudioStore } from "@/hooks/useAudioStore";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
-import { State, usePlaybackState } from "react-native-track-player";
 
 /**
  * プレーヤーコンテナコンポーネント

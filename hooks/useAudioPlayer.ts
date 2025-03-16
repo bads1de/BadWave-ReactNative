@@ -69,11 +69,13 @@ export function useAudioPlayer(
   const isMounted = useRef(true);
   const activeTrack = useActiveTrack();
   const playbackState = usePlaybackState();
+  const isPlaying = playbackState.state === State.Playing;
+
+  // 進捗情報を計算（秒からミリ秒に変換）
+  const progressPosition = position * 1000;
+  const progressDuration = duration * 1000;
 
   useCleanup(isMounted);
-
-  // TrackPlayerの状態を監視
-  const isPlaying = playbackState.state === State.Playing;
 
   // TrackPlayer の再生状態を設定する関数
   const setTrackPlayerIsPlaying = useCallback(
@@ -221,10 +223,6 @@ export function useAudioPlayer(
     },
     [setStoreRepeatMode]
   );
-
-  // 進捗情報を計算（秒からミリ秒に変換）
-  const progressPosition = position * 1000;
-  const progressDuration = duration * 1000;
 
   return {
     currentSong,
