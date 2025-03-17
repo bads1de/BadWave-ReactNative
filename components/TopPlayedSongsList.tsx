@@ -42,13 +42,13 @@ export default function TopPlayedSongsList() {
     if (isPlaying) {
       await TrackPlayer.pause();
     }
-    
+
     // 選択曲のインデックスを保存し、スワイプ可能なプレイヤーを表示
     setActiveSongIndex(index);
     setShowSwipeablePlayer(true);
-    
+
     // 選択した曲を再生
-    await togglePlayPause(topSongs[index], undefined, "search");
+    await togglePlayPause(topSongs[index], "topPlayedSongs");
   };
 
   return (

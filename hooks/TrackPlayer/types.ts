@@ -10,6 +10,7 @@ export type PlayContextType =
   | "liked"
   | "search"
   | "genre"
+  | "topPlayedSongs"
   | "forYou"
   | null;
 
