@@ -104,5 +104,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
+    paddingBottom: 96,
   },
 });

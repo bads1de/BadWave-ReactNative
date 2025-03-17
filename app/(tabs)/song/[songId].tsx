@@ -62,7 +62,7 @@ export default function SongDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.imageContainer}>
           <TouchableOpacity
             style={styles.backButton}
@@ -131,6 +131,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  scrollViewContent: {
+    paddingBottom: 96,
   },
   imageContainer: {
     position: "relative",

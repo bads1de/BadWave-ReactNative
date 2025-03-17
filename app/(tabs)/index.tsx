@@ -86,10 +86,7 @@ export default function HomeScreen() {
         style={styles.backgroundGradient}
       />
       <ScrollView
-        contentContainerStyle={[
-          styles.listWrapper,
-          currentSong && !showPlayer && { paddingBottom: 130 },
-        ]}
+        contentContainerStyle={[styles.listWrapper, { paddingBottom: 96 }]}
         showsVerticalScrollIndicator={false}
       >
         {renderSectionTitle("Trends", "trending-up")}

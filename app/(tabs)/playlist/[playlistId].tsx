@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   listContent: {
-    paddingBottom: 100,
+    paddingBottom: 96,
   },
   emptyContainer: {
     flex: 1,
