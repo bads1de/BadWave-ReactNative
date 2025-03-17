@@ -51,7 +51,12 @@ export function useAudioPlayer(
   const isMounted = useRef(true);
   const activeTrack = useActiveTrack();
   const playbackState = usePlaybackState();
-  const isPlaying = playbackState.state === State.Playing;
+
+  // isPlayingの値をメモ化して不要な再計算を防止
+  const isPlaying = useMemo(
+    () => playbackState.state === State.Playing,
+    [playbackState.state]
+  );
 
   // 進捗情報を計算（秒からミリ秒に変換）
   const progressPosition = position * 1000;
@@ -225,20 +230,39 @@ export function useAudioPlayer(
     [setStoreRepeatMode]
   );
 
-  return {
-    currentSong,
-    isPlaying,
-    repeatMode,
-    shuffle,
-    progressPosition,
-    progressDuration,
-    togglePlayPause,
-    seekTo,
-    playNextSong,
-    playPrevSong,
-    setRepeat,
-    setShuffle: handleToggleShuffle,
-  };
+  // 返却値をメモ化して不要な再計算を防止
+  const returnValues = useMemo(
+    () => ({
+      currentSong,
+      isPlaying,
+      repeatMode,
+      shuffle,
+      progressPosition,
+      progressDuration,
+      togglePlayPause,
+      seekTo,
+      playNextSong,
+      playPrevSong,
+      setRepeat,
+      setShuffle: handleToggleShuffle,
+    }),
+    [
+      currentSong,
+      isPlaying,
+      repeatMode,
+      shuffle,
+      progressPosition,
+      progressDuration,
+      togglePlayPause,
+      seekTo,
+      playNextSong,
+      playPrevSong,
+      setRepeat,
+      handleToggleShuffle,
+    ]
+  );
+
+  return returnValues;
 }
 
 export { RepeatMode, State };

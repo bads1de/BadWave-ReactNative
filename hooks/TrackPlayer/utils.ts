@@ -19,6 +19,10 @@ export function convertSongToTrack(song: Song): Track {
  * 複数の曲をトラック形式に変換
  */
 export function convertToTracks(songs: Song[]): Track[] {
+  if (!songs || songs.length === 0) {
+    return [];
+  }
+
   return songs.map(convertSongToTrack);
 }
 

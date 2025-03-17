@@ -101,10 +101,15 @@ export function useQueueOperations(
           (track) => track.id !== currentTrack.id
         );
 
-        // シャッフルする
-        const shuffledTracks = [...remainingTracks].sort(
-          () => Math.random() - 0.5
-        );
+        // シャッフルする - Fisher-Yatesアルゴリズムを使用して最適化
+        const shuffledTracks = [...remainingTracks];
+        for (let i = shuffledTracks.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledTracks[i], shuffledTracks[j]] = [
+            shuffledTracks[j],
+            shuffledTracks[i],
+          ];
+        }
 
         // キューをクリアして再構築
         await TrackPlayer.removeUpcomingTracks();
@@ -250,6 +255,10 @@ export function useQueueOperations(
   const addToQueue = useCallback(
     async (songs: Song[], insertBeforeIndex?: number) => {
       return safeAsyncOperation(async () => {
+        if (songs.length === 0) {
+          return false;
+        }
+
         const tracks = convertToTracks(songs);
 
         if (insertBeforeIndex !== undefined) {
@@ -301,16 +310,33 @@ export function useQueueOperations(
     }, "キューのリセット中にエラーが発生しました");
   }, [updateQueueState]);
 
-  return {
-    shuffleQueue,
-    unshuffleQueue,
-    toggleShuffle,
-    addToQueue,
-    updateQueueWithContext,
-    getCurrentContext,
-    resetQueue,
-    queueState: queueContext,
-    getQueueState,
-    updateQueueState,
-  };
+  // 返却値をメモ化して不要な再計算を防止
+  const returnValues = useMemo(
+    () => ({
+      shuffleQueue,
+      unshuffleQueue,
+      toggleShuffle,
+      addToQueue,
+      updateQueueWithContext,
+      getCurrentContext,
+      resetQueue,
+      queueState: queueContext,
+      getQueueState,
+      updateQueueState,
+    }),
+    [
+      shuffleQueue,
+      unshuffleQueue,
+      toggleShuffle,
+      addToQueue,
+      updateQueueWithContext,
+      getCurrentContext,
+      resetQueue,
+      queueContext,
+      getQueueState,
+      updateQueueState,
+    ]
+  );
+
+  return returnValues;
 }
