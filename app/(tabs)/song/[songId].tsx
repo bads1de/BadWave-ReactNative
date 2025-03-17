@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -36,9 +36,10 @@ export default function SongDetailScreen() {
     enabled: !!songId,
   });
 
-  const { isPlaying, currentSong, togglePlayPause } = useAudioPlayer(
-    song ? [song] : []
-  );
+  const songsArray = useMemo(() => (song ? [song] : []), [song?.id]);
+
+  const { isPlaying, currentSong, togglePlayPause } =
+    useAudioPlayer(songsArray);
 
   useFocusEffect(
     useCallback(() => {

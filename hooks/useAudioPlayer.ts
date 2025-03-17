@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useMemo } from "react";
 import TrackPlayer, {
   State,
   usePlaybackState,
@@ -97,6 +97,9 @@ export function useAudioPlayer(
 
     if (!song) return;
 
+    // 現在の曲と同じなら更新しない
+    if (currentSong?.id === song.id) return;
+
     // 現在の曲を更新
     setCurrentSong(song);
 
@@ -105,7 +108,13 @@ export function useAudioPlayer(
       lastProcessedTrackId: song.id,
       currentSongId: song.id,
     }));
-  }, [activeTrack, songMap, updateQueueState, setCurrentSong]);
+  }, [
+    activeTrack?.id,
+    songMap,
+    updateQueueState,
+    setCurrentSong,
+    currentSong?.id,
+  ]);
 
   /**
    * シャッフルトグル処理用ハンドラー

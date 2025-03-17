@@ -60,8 +60,20 @@ export function useQueueOperations(
    */
   const updateQueueState = useCallback(
     (updater: (state: QueueState) => Partial<QueueState>) => {
-      const newState = updater(queueContext.current);
-      queueContext.current = { ...queueContext.current, ...newState };
+      // 新しい状態を計算
+      const newPartialState = updater(queueContext.current);
+
+      // 現在の曲IDが変わる場合のみ更新を行う特別な処理
+      // これは最も頻繁に起こる更新なので、特別に最適化
+      if (
+        "currentSongId" in newPartialState &&
+        newPartialState.currentSongId === queueContext.current.currentSongId
+      ) {
+        return; // 同じ曲IDなら更新しない
+      }
+
+      // 状態を更新
+      queueContext.current = { ...queueContext.current, ...newPartialState };
     },
     []
   );
