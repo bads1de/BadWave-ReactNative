@@ -13,6 +13,9 @@ import { Ionicons } from "@expo/vector-icons";
 import getTopPlayedSongs from "@/actions/getTopPlayedSongs";
 import { CACHED_QUERIES } from "@/constants";
 import { useUser } from "@/actions/getUser";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import TrackPlayer from "react-native-track-player";
+import { usePlayerStore } from "@/hooks/usePlayerStore";
 
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = (width - 48) / 3;
@@ -28,17 +31,35 @@ export default function TopPlayedSongsList() {
     enabled: !!userId,
   });
 
+  const { togglePlayPause, isPlaying } = useAudioPlayer(topSongs);
+  const { setShowSwipeablePlayer, setActiveSongIndex } = usePlayerStore();
+
   if (topSongs.length === 0) return null;
+
+  // 曲をクリックしたときの処理
+  const handleSongPress = async (index: number) => {
+    // 現在再生中の曲があれば停止
+    if (isPlaying) {
+      await TrackPlayer.pause();
+    }
+    
+    // 選択曲のインデックスを保存し、スワイプ可能なプレイヤーを表示
+    setActiveSongIndex(index);
+    setShowSwipeablePlayer(true);
+    
+    // 選択した曲を再生
+    await togglePlayPause(topSongs[index], undefined, "search");
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Your Top Played Songs</Text>
       <View style={styles.songsContainer}>
-        {topSongs.map((song) => (
+        {topSongs.map((song, index) => (
           <TouchableOpacity
             key={song.id}
             style={styles.songItem}
-            onPress={() => {}}
+            onPress={() => handleSongPress(index)}
           >
             <ImageBackground
               source={{ uri: song.image_path }}
@@ -49,12 +70,6 @@ export default function TopPlayedSongsList() {
                 colors={["transparent", "rgba(0,0,0,0.8)"]}
                 style={styles.gradient}
               />
-              <View style={styles.playCount}>
-                <Ionicons name="play" size={12} color="#fff" />
-                <Text style={styles.playCountText}>
-                  {Number(song.play_count).toLocaleString()}
-                </Text>
-              </View>
             </ImageBackground>
             <View style={styles.songInfo}>
               <Text numberOfLines={1} style={styles.songTitle}>
@@ -115,20 +130,5 @@ const styles = StyleSheet.create({
   songAuthor: {
     color: "#999",
     fontSize: 10,
-  },
-  playCount: {
-    flexDirection: "row",
-    alignItems: "center",
-    position: "absolute",
-    bottom: 8,
-    right: 8,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 4,
-    borderRadius: 4,
-  },
-  playCountText: {
-    color: "#fff",
-    fontSize: 10,
-    marginLeft: 2,
   },
 });
