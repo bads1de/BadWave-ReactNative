@@ -31,26 +31,6 @@ export default function TopPlayedSongsList() {
     enabled: !!userId,
   });
 
-  const { togglePlayPause, isPlaying } = useAudioPlayer(topSongs);
-  const { setShowSwipeablePlayer, setActiveSongIndex } = usePlayerStore();
-
-  if (topSongs.length === 0) return null;
-
-  // 曲をクリックしたときの処理
-  const handleSongPress = async (index: number) => {
-    // 現在再生中の曲があれば停止
-    if (isPlaying) {
-      await TrackPlayer.pause();
-    }
-
-    // 選択曲のインデックスを保存し、スワイプ可能なプレイヤーを表示
-    setActiveSongIndex(index);
-    setShowSwipeablePlayer(true);
-
-    // 選択した曲を再生
-    await togglePlayPause(topSongs[index], "topPlayedSongs");
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Your Top Played Songs</Text>
@@ -59,7 +39,7 @@ export default function TopPlayedSongsList() {
           <TouchableOpacity
             key={song.id}
             style={styles.songItem}
-            onPress={() => handleSongPress(index)}
+            onPress={() => {}}
           >
             <ImageBackground
               source={{ uri: song.image_path }}
