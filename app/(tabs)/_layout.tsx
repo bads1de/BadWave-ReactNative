@@ -8,6 +8,7 @@ import { usePlayerStore } from "@/hooks/usePlayerStore";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
 import { useAudioStore } from "@/hooks/useAudioStore";
 import PlayerContainer from "@/components/PlayerContainer";
+import SubPlayerContainer from "@/components/SubPlayerContainer";
 
 export default function TabLayout() {
   const { showPlayer } = usePlayerStore();
@@ -151,6 +152,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+      <SubPlayerContainer />
       {currentSong && <PlayerContainer />}
     </>
   );

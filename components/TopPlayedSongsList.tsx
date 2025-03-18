@@ -16,6 +16,7 @@ import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
+import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = (width - 48) / 3;
@@ -24,12 +25,27 @@ const ITEM_HEIGHT = ITEM_WIDTH * 1.5; // 縦長比率を1.5倍に設定
 export default function TopPlayedSongsList() {
   const { data: user } = useUser();
   const userId = user?.id;
+  const { isPlaying } = useAudioPlayer();
+  const { setShowSubPlayer, setSongs, setCurrentSongIndex } =
+    useSubPlayerStore();
 
   const { data: topSongs = [] } = useQuery({
     queryKey: [CACHED_QUERIES.topPlayedSongs, userId],
     queryFn: () => getTopPlayedSongs(userId),
     enabled: !!userId,
   });
+
+  const handleSongPress = async (songIndex: number) => {
+    // 既存の再生中の曲を一時停止
+    if (isPlaying) {
+      await TrackPlayer.pause();
+    }
+
+    // サブプレイヤーに曲リストをセット
+    setSongs(topSongs);
+    setCurrentSongIndex(songIndex);
+    setShowSubPlayer(true);
+  };
 
   return (
     <View style={styles.container}>
@@ -39,7 +55,7 @@ export default function TopPlayedSongsList() {
           <TouchableOpacity
             key={song.id}
             style={styles.songItem}
-            onPress={() => {}}
+            onPress={() => handleSongPress(index)}
           >
             <ImageBackground
               source={{ uri: song.image_path }}
