@@ -15,7 +15,9 @@ import Song from "@/types";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 
 const { width, height } = Dimensions.get("window");
-const PREVIEW_HEIGHT = 80; // 前後の曲のプレビュー表示の高さ
+const PREVIEW_HEIGHT = 100;
+const BORDER_RADIUS = 20;
+const VISIBLE_OFFSET = 40;
 
 interface SubPlayerProps {
   onClose: () => void;
@@ -31,11 +33,21 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
   const progressDuration = 100;
 
   const renderSong = (song: Song, index: number) => {
+    const isActive = index === currentSongIndex;
     return (
-      <View style={styles.slide} key={song.id}>
+      <View
+        style={[
+          styles.slide,
+          isActive ? styles.activeSlide : styles.inactiveSlide,
+        ]}
+        key={song.id}
+      >
         <ImageBackground
           source={{ uri: song.image_path }}
-          style={styles.songImage}
+          style={[
+            styles.songImage,
+            isActive ? styles.activeSongImage : styles.inactiveSongImage,
+          ]}
           resizeMode="cover"
         >
           <LinearGradient
@@ -47,7 +59,33 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
               <Text style={styles.songAuthor}>{song.author}</Text>
             </View>
 
+            {/* アクションアイコン */}
+            <View style={styles.actionIcons}>
+              <TouchableOpacity style={styles.actionButton}>
+                <Ionicons name="play-outline" size={28} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <Ionicons name="heart-outline" size={28} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <Ionicons name="chatbubble-outline" size={28} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <Ionicons name="share-social-outline" size={28} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <Ionicons name="ellipsis-horizontal" size={28} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.playerControls}>
+              <TouchableOpacity style={styles.playButton}>
+                <Ionicons
+                  name={isPlaying ? "pause" : "play"}
+                  size={24}
+                  color="#fff"
+                />
+              </TouchableOpacity>
               <View style={styles.seekBarContainer}>
                 <Slider
                   style={styles.seekBar}
@@ -60,14 +98,6 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
                 />
                 <Text style={styles.timeText}>00:00</Text>
               </View>
-
-              <TouchableOpacity style={styles.playButton}>
-                <Ionicons
-                  name={isPlaying ? "pause" : "play"}
-                  size={30}
-                  color="#fff"
-                />
-              </TouchableOpacity>
             </View>
           </LinearGradient>
         </ImageBackground>
@@ -78,7 +108,7 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <Ionicons name="chevron-down" size={30} color="#fff" />
+        <Ionicons name="arrow-back" size={30} color="#fff" />
       </TouchableOpacity>
 
       <Swiper
@@ -126,12 +156,33 @@ const styles = StyleSheet.create({
     height: height,
     overflow: "visible",
   },
+  cardStyle: {
+    overflow: "visible",
+    borderRadius: BORDER_RADIUS,
+  },
+  activeSlide: {
+    opacity: 1,
+    transform: [{ scale: 1 }],
+    zIndex: 2,
+  },
+  inactiveSlide: {
+    opacity: 0.7,
+    transform: [{ scale: 0.95 }],
+    zIndex: 1,
+  },
+  activeSongImage: {
+    borderRadius: BORDER_RADIUS,
+  },
+  inactiveSongImage: {
+    borderRadius: BORDER_RADIUS / 2,
+  },
   slide: {
-    height: height - PREVIEW_HEIGHT * 2,
-    marginTop: PREVIEW_HEIGHT,
-    marginBottom: PREVIEW_HEIGHT,
+    height: height - (PREVIEW_HEIGHT * 2 - VISIBLE_OFFSET * 2),
+    marginTop: PREVIEW_HEIGHT - VISIBLE_OFFSET,
+    marginBottom: PREVIEW_HEIGHT - VISIBLE_OFFSET,
     overflow: "visible",
     position: "relative",
+    borderRadius: BORDER_RADIUS,
   },
   songImage: {
     height: height,
@@ -140,7 +191,8 @@ const styles = StyleSheet.create({
     top: -PREVIEW_HEIGHT,
     left: 0,
     justifyContent: "space-between",
-    borderRadius: 0,
+    borderRadius: BORDER_RADIUS,
+    overflow: "hidden",
   },
   gradient: {
     flex: 1,
@@ -148,6 +200,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: PREVIEW_HEIGHT + 20,
     paddingBottom: PREVIEW_HEIGHT + 20,
+    borderRadius: BORDER_RADIUS,
   },
   songInfo: {
     alignItems: "center",
@@ -165,31 +218,50 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
   },
+  actionIcons: {
+    position: "absolute",
+    right: 15,
+    bottom: 220,
+    alignItems: "center",
+  },
+  actionButton: {
+    alignItems: "center",
+    marginBottom: 35,
+  },
+  actionText: {
+    color: "#fff",
+    fontSize: 12,
+    marginTop: 5,
+  },
   playerControls: {
-    width: "100%",
+    width: "90%",
+    flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+    alignSelf: "center",
+  },
+  playButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
   },
   seekBarContainer: {
-    width: "100%",
-    marginBottom: 20,
+    flex: 1,
+    padding: 10,
+    justifyContent: "center",
   },
   seekBar: {
-    width: "100%",
-    height: 40,
+    width: "90%",
+    height: 30,
   },
   timeText: {
     color: "#fff",
     fontSize: 12,
     alignSelf: "flex-start",
-    marginTop: 5,
-  },
-  playButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
+    marginTop: 2,
   },
 });
