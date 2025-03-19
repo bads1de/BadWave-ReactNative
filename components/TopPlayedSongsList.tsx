@@ -19,7 +19,7 @@ import { usePlayerStore } from "@/hooks/usePlayerStore";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 
 const { width } = Dimensions.get("window");
-const ITEM_WIDTH = (width - 48) / 3;
+const ITEM_WIDTH = (width - 104) / 3; // 左右のマージンとアイテム間の隙間を考慮して調整
 const ITEM_HEIGHT = ITEM_WIDTH * 1.5; // 縦長比率を1.5倍に設定
 
 export default function TopPlayedSongsList() {
@@ -49,34 +49,36 @@ export default function TopPlayedSongsList() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Your Top Played Songs</Text>
-      <View style={styles.songsContainer}>
-        {topSongs.map((song, index) => (
-          <TouchableOpacity
-            key={song.id}
-            style={styles.songItem}
-            onPress={() => handleSongPress(index)}
-          >
-            <ImageBackground
-              source={{ uri: song.image_path }}
-              style={styles.songImage}
-              imageStyle={{ borderRadius: 8 }}
+      <View style={styles.cardContainer}>
+        <Text style={styles.sectionTitle}>Top Played Songs</Text>
+        <View style={styles.songsContainer}>
+          {topSongs.map((song, index) => (
+            <TouchableOpacity
+              key={song.id}
+              style={styles.songItem}
+              onPress={() => handleSongPress(index)}
             >
-              <LinearGradient
-                colors={["transparent", "rgba(0,0,0,0.8)"]}
-                style={styles.gradient}
-              />
-            </ImageBackground>
-            <View style={styles.songInfo}>
-              <Text numberOfLines={1} style={styles.songTitle}>
-                {song.title}
-              </Text>
-              <Text numberOfLines={1} style={styles.songAuthor}>
-                {song.author}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+              <ImageBackground
+                source={{ uri: song.image_path }}
+                style={styles.songImage}
+                imageStyle={{ borderRadius: 8 }}
+              >
+                <LinearGradient
+                  colors={["transparent", "rgba(0,0,0,0.8)"]}
+                  style={styles.gradient}
+                />
+              </ImageBackground>
+              <View style={styles.songInfo}>
+                <Text numberOfLines={1} style={styles.songTitle}>
+                  {song.title}
+                </Text>
+                <Text numberOfLines={1} style={styles.songAuthor}>
+                  {song.author}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -86,17 +88,28 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 16,
   },
+  cardContainer: {
+    backgroundColor: "#1e1e24",
+    borderRadius: 16,
+    padding: 20,
+    margin: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#fff",
-    marginBottom: 12,
-    paddingHorizontal: 16,
+    marginBottom: 16,
+    marginLeft: 0,
   },
   songsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    gap: 16,
   },
   songItem: {
     width: ITEM_WIDTH,
