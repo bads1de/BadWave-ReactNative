@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -13,11 +13,12 @@ import Slider from "@react-native-community/slider";
 import Swiper from "react-native-swiper";
 import Song from "@/types";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useSubPlayerAudio } from "@/hooks/useSubPlayerAudio";
 
 const { width, height } = Dimensions.get("window");
-const PREVIEW_HEIGHT = 100;
+const PREVIEW_HEIGHT = 80;
 const BORDER_RADIUS = 20;
-const VISIBLE_OFFSET = 40;
+const VISIBLE_OFFSET = 30;
 
 interface SubPlayerProps {
   onClose: () => void;
@@ -27,10 +28,34 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
   const { songs, currentSongIndex, setCurrentSongIndex } = useSubPlayerStore();
   const swiperRef = useRef(null);
 
-  // ダミーの状態（後で実際の再生機能と置き換え）
-  const isPlaying = false;
-  const progressPosition = 0;
-  const progressDuration = 100;
+  // useSubPlayerAudio フックを使用して再生機能を統合
+  const {
+    isPlaying,
+    currentPosition,
+    duration,
+    randomStartPosition,
+    isLoading,
+    playNextSong,
+    playPrevSong,
+    togglePlayPause,
+    stopAndUnloadCurrentSound,
+  } = useSubPlayerAudio();
+
+  // プレーヤーが閉じられるときに音声を停止
+  const handleClose = () => {
+    stopAndUnloadCurrentSound()
+      .then(() => {
+        onClose();
+      })
+      .catch((error) => {
+        console.error("Error stopping audio on close:", error);
+        onClose();
+      });
+  };
+
+  // 進捗情報（ミリ秒）
+  const progressPosition = currentPosition;
+  const progressDuration = duration;
 
   const renderSong = (song: Song, index: number) => {
     const isActive = index === currentSongIndex;
@@ -62,7 +87,13 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
             {/* アクションアイコン */}
             <View style={styles.actionIcons}>
               <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="play-outline" size={28} color="#fff" />
+                <View style={styles.userIconContainer}>
+                  <Ionicons
+                    name="person-circle-outline"
+                    size={36}
+                    color="#fff"
+                  />
+                </View>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionButton}>
                 <Ionicons name="heart-outline" size={28} color="#fff" />
@@ -79,9 +110,19 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
             </View>
 
             <View style={styles.playerControls}>
-              <TouchableOpacity style={styles.playButton}>
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={togglePlayPause}
+                disabled={isLoading}
+              >
                 <Ionicons
-                  name={isPlaying ? "pause" : "play"}
+                  name={
+                    isLoading
+                      ? "hourglass-outline"
+                      : isPlaying
+                      ? "pause"
+                      : "play"
+                  }
                   size={24}
                   color="#fff"
                 />
@@ -96,7 +137,6 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
                   maximumTrackTintColor="rgba(255,255,255,0.3)"
                   thumbTintColor="#fff"
                 />
-                <Text style={styles.timeText}>00:00</Text>
               </View>
             </View>
           </LinearGradient>
@@ -107,7 +147,7 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+      <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
         <Ionicons name="arrow-back" size={30} color="#fff" />
       </TouchableOpacity>
 
@@ -120,7 +160,8 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
         index={currentSongIndex}
         onIndexChanged={(index) => {
           setCurrentSongIndex(index);
-          // 後で実際の再生機能を追加
+          // インデックスが変更されたときは自動的に曲が切り替わる
+          // useSubPlayerAudio 内の useEffect で処理される
         }}
         containerStyle={styles.swiperContainer}
         scrollEnabled={true}
@@ -198,13 +239,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
     padding: 20,
-    paddingTop: PREVIEW_HEIGHT + 20,
-    paddingBottom: PREVIEW_HEIGHT + 20,
+    paddingTop: PREVIEW_HEIGHT + 10,
+    paddingBottom: PREVIEW_HEIGHT - 40,
     borderRadius: BORDER_RADIUS,
   },
   songInfo: {
     alignItems: "center",
-    marginTop: 60 + PREVIEW_HEIGHT,
+    marginTop: height * 0.15,
   },
   songTitle: {
     color: "#fff",
@@ -221,12 +262,21 @@ const styles = StyleSheet.create({
   actionIcons: {
     position: "absolute",
     right: 15,
-    bottom: 220,
+    bottom: height * 0.25,
     alignItems: "center",
   },
   actionButton: {
     alignItems: "center",
-    marginBottom: 35,
+    marginBottom: 25,
+  },
+  userIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 5,
   },
   actionText: {
     color: "#fff",
@@ -237,8 +287,11 @@ const styles = StyleSheet.create({
     width: "90%",
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 30,
     alignSelf: "center",
+    position: "absolute",
+    bottom: 50,
+    left: "5%",
   },
   playButton: {
     width: 40,
@@ -255,8 +308,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   seekBar: {
-    width: "90%",
-    height: 30,
+    width: "100%",
+    height: 40,
+  },
+  sliderTrack: {
+    height: 8,
+    borderRadius: 4,
   },
   timeText: {
     color: "#fff",
