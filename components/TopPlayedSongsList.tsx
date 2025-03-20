@@ -9,18 +9,16 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useQuery } from "@tanstack/react-query";
-import { Ionicons } from "@expo/vector-icons";
 import getTopPlayedSongs from "@/actions/getTopPlayedSongs";
 import { CACHED_QUERIES } from "@/constants";
 import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
-import { usePlayerStore } from "@/hooks/usePlayerStore";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 
 const { width } = Dimensions.get("window");
-const ITEM_WIDTH = (width - 104) / 3; // 左右のマージンとアイテム間の隙間を考慮して調整
-const ITEM_HEIGHT = ITEM_WIDTH * 1.5; // 縦長比率を1.5倍に設定
+const ITEM_WIDTH = (width - 104) / 3;
+const ITEM_HEIGHT = ITEM_WIDTH * 1.5;
 
 export default function TopPlayedSongsList() {
   const { data: user } = useUser();

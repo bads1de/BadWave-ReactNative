@@ -103,6 +103,7 @@ export function useSubPlayerAudio() {
       if (soundRef.current && isMounted.current && !isChangingSong.current) {
         try {
           const status = await soundRef.current.getStatusAsync();
+
           if (status.isLoaded) {
             setCurrentPosition(status.positionMillis);
           }
@@ -130,9 +131,6 @@ export function useSubPlayerAudio() {
           // 曲が1曲しかない場合でも、同じ曲を再度再生する
           const nextIndex =
             songs.length === 1 ? 0 : (currentSongIndex + 1) % songs.length;
-          console.log(
-            `Moving to next song: ${currentSongIndex} -> ${nextIndex}`
-          );
           setCurrentSongIndex(nextIndex);
         }
       }, 300);
@@ -148,7 +146,6 @@ export function useSubPlayerAudio() {
       setIsPlaying(status.isPlaying);
 
       if (status.didJustFinish) {
-        console.log("Song finished, moving to next song");
         // 曲が終了したら確実に次の曲へ移動
         playNextSong();
       }
@@ -166,23 +163,12 @@ export function useSubPlayerAudio() {
         isChangingSong.current ||
         loadingLock.current
       ) {
-        console.log(
-          "Cannot load song, invalid state or missing path",
-          song?.title
-        );
         return;
       }
 
       // ロック状態にして複数の読み込みを防止
       loadingLock.current = true;
       setIsLoading(true);
-      console.log(
-        "Starting to load song:",
-        song.title,
-        "Path:",
-        song.song_path
-      );
-
       try {
         // 既存のサウンドを確実に解放
         if (soundRef.current) {
@@ -199,13 +185,11 @@ export function useSubPlayerAudio() {
 
         // 参照を保存
         soundRef.current = sound;
-        console.log("Successfully created sound object for:", song.title);
 
         // サウンドの総再生時間を取得
         const status = await sound.getStatusAsync();
         const totalDuration = status.isLoaded ? status.durationMillis || 0 : 0;
         setDuration(totalDuration);
-        console.log("Song duration:", totalDuration);
 
         // ランダムな開始位置を計算（曲の長さの20%〜80%の範囲）
         const randomPosition = Math.floor(
@@ -220,7 +204,6 @@ export function useSubPlayerAudio() {
         // 再生開始
         await sound.playAsync();
         setIsPlaying(true);
-        console.log("Started playing song:", song.title);
 
         // 位置更新タイマーを開始
         startPositionUpdateTimer();
@@ -268,9 +251,6 @@ export function useSubPlayerAudio() {
             songs.length === 1
               ? 0
               : (currentSongIndex - 1 + songs.length) % songs.length;
-          console.log(
-            `Moving to previous song: ${currentSongIndex} -> ${prevIndex}`
-          );
           setCurrentSongIndex(prevIndex);
         }
       }, 300);
@@ -407,20 +387,14 @@ export function useSubPlayerAudio() {
   useEffect(() => {
     // 曲が変わったときに必ず処理を実行
     if (currentSong && isMounted.current && currentSongIndex >= 0) {
-      console.log(
-        "Song index changed to:",
-        currentSongIndex,
-        "Song:",
-        currentSong.title
-      );
-
       // 現在の音声を確実に停止
       stopAndUnloadSound()
         .then(() => {
           // 少し待ってから新しい曲を読み込む
           setTimeout(() => {
             if (isMounted.current) {
-              console.log("Loading new song:", currentSong.title);
+              // 新しい曲を読み込み
+
               loadAndPlaySong(currentSong);
             }
           }, 300); // タイミングを少し長めに設定

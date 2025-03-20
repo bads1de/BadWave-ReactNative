@@ -29,17 +29,8 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
   const swiperRef = useRef(null);
 
   // useSubPlayerAudio フックを使用して再生機能を統合
-  const {
-    isPlaying,
-    currentPosition,
-    duration,
-    randomStartPosition,
-    isLoading,
-    playNextSong,
-    playPrevSong,
-    togglePlayPause,
-    stopAndUnloadCurrentSound,
-  } = useSubPlayerAudio();
+  const { currentPosition, duration, stopAndUnloadCurrentSound } =
+    useSubPlayerAudio();
 
   // プレーヤーが閉じられるときに音声を停止
   const handleClose = () => {
@@ -314,7 +305,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     zIndex: 2,
-    opacity: 0.01, // ほぼ透明だが、タッチイベントを受け取るために少し不透明に
+    opacity: 0.01,
   },
   progressBarBackground: {
     width: "100%",
