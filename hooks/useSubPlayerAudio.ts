@@ -10,8 +10,17 @@ import Song from "@/types";
 
 /**
  * SubPlayer用の独立したオーディオ再生管理フック
- * TrackPlayerを使わず、expo-avを直接使用して実装
- * 音声の重複再生を防ぐための厳格な制御を実装
+ *
+ * このフックはサブプレイヤーコンポーネント専用の音声再生機能を提供します。
+ * メインプレイヤーとは独立して動作し、expo-avを直接使用して実装しています。
+ * 主な機能:
+ * - 曲のプレビュー再生（ランダムな位置から指定秒数）
+ * - 自動再生と手動再生の切り替え
+ * - スワイプによる曲の切り替え
+ * - 音声の重複再生を防止するための厳格な制御
+ * - 無限ループ再生（最後の曲の後は最初に戻る）
+ *
+ * @returns {Object} 再生状態と制御関数を含むオブジェクト
  */
 export function useSubPlayerAudio() {
   // Zustand ストアから状態を取得
@@ -24,39 +33,48 @@ export function useSubPlayerAudio() {
   } = useSubPlayerStore();
 
   // 再生状態の管理
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentPosition, setCurrentPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [randomStartPosition, setRandomStartPosition] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false); // 再生中かどうか
+  const [currentPosition, setCurrentPosition] = useState(0); // 現在の再生位置（ミリ秒）
+  const [duration, setDuration] = useState(0); // 曲の総再生時間（ミリ秒）
+  const [randomStartPosition, setRandomStartPosition] = useState(0); // ランダム開始位置（ミリ秒）
+  const [isLoading, setIsLoading] = useState(false); // 読み込み中かどうか
 
-  // Audio Sound オブジェクトの参照
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const positionUpdateRef = useRef<NodeJS.Timeout | null>(null);
-  const isMounted = useRef(true);
-  const isChangingSong = useRef(false);
-  const loadingLock = useRef(false);
+  // 参照オブジェクト（コンポーネントのライフサイクル間で保持される値）
+  const soundRef = useRef<Audio.Sound | null>(null); // Audio.Sound インスタンス
+  const timerRef = useRef<NodeJS.Timeout | null>(null); // 自動再生用タイマー
+  const positionUpdateRef = useRef<NodeJS.Timeout | null>(null); // 位置更新用タイマー
+  const isMounted = useRef(true); // コンポーネントがマウントされているか
+  const isChangingSong = useRef(false); // 曲の切り替え中かどうか
+  const loadingLock = useRef(false); // 読み込みロック（同時読み込み防止）
 
   // 現在の曲
   const currentSong = songs[currentSongIndex];
 
-  // すべてのタイマーをクリア
+  /**
+   * すべてのタイマーをクリアする関数
+   * 自動再生用タイマーと位置更新用タイマーを停止し、参照をクリアする
+   */
   const clearAllTimers = useCallback(() => {
+    // 自動再生用タイマーをクリア
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
 
+    // 位置更新用タイマーをクリア
     if (positionUpdateRef.current) {
       clearInterval(positionUpdateRef.current);
       positionUpdateRef.current = null;
     }
   }, []);
 
-  // 音声を完全に停止して解放する
+  /**
+   * 音声を完全に停止して解放する関数
+   * 再生中の音声を停止し、メモリからアンロードしてリソースを解放する
+   * @returns {Promise<void>} 処理の完了を表すPromise
+   */
   const stopAndUnloadSound = useCallback(async () => {
-    // 状態をリセット
+    // 再生状態をリセット
     setIsPlaying(false);
     isChangingSong.current = true;
     loadingLock.current = true;
@@ -65,14 +83,14 @@ export function useSubPlayerAudio() {
     clearAllTimers();
 
     try {
-      // 既存のサウンドを停止してアンロード
+      // 既存のサウンドオブジェクトがあれば停止してアンロード
       if (soundRef.current) {
         try {
-          // 再生を停止
+          // 再生を停止（エラーを無視して続行）
           await soundRef.current.pauseAsync().catch(() => {});
           await soundRef.current.stopAsync().catch(() => {});
 
-          // アンロードしてメモリを解放
+          // メモリからアンロードしてリソースを解放
           await soundRef.current.unloadAsync().catch(() => {});
         } catch (e) {
           console.error("Error during sound cleanup:", e);
@@ -84,7 +102,8 @@ export function useSubPlayerAudio() {
     } catch (error) {
       console.error("Error in stopAndUnloadSound:", error);
     } finally {
-      // 少し待ってから状態をリセット
+      // 少し待ってから状態ロックを解除
+      // 即時に解除するとレースコンディションが発生する可能性がある
       setTimeout(() => {
         isChangingSong.current = false;
         loadingLock.current = false;
@@ -92,18 +111,26 @@ export function useSubPlayerAudio() {
     }
   }, [clearAllTimers]);
 
-  // 位置更新タイマーを開始
+  /**
+   * 再生位置更新タイマーを開始する関数
+   * 定期的に現在の再生位置を取得して状態を更新する
+   */
   const startPositionUpdateTimer = useCallback(() => {
+    // 既存のタイマーがあればクリア
     if (positionUpdateRef.current) {
       clearInterval(positionUpdateRef.current);
       positionUpdateRef.current = null;
     }
 
+    // 新しいタイマーを開始
     positionUpdateRef.current = setInterval(async () => {
+      // 有効な状態の場合のみ処理を実行
       if (soundRef.current && isMounted.current && !isChangingSong.current) {
         try {
+          // 現在の再生状態を取得
           const status = await soundRef.current.getStatusAsync();
 
+          // 音声が読み込まれていれば位置を更新
           if (status.isLoaded) {
             setCurrentPosition(status.positionMillis);
           }
@@ -111,51 +138,74 @@ export function useSubPlayerAudio() {
           console.error("Error getting position:", error);
         }
       }
-    }, 200); // 200msごとに更新（負荷軽減のため間隔を広げる）
+    }, 200); // 200msごとに更新（パフォーマンスを考慮した間隔）
   }, []);
 
-  // 次の曲を再生（無限ループ）
+  /**
+   * 次の曲を再生する関数（無限ループ対応）
+   * 現在の曲を停止し、次の曲に移動する
+   * 最後の曲の場合は最初の曲に戻る
+   */
   const playNextSong = useCallback(() => {
-    // マウント状態のみチェックし、曲数はチェックしない
-    if (!isMounted.current || isChangingSong.current || loadingLock.current)
+    // 無効な状態の場合は処理を中止
+    if (!isMounted.current || isChangingSong.current || loadingLock.current) {
       return;
+    }
 
-    // 曲が1曲しかない場合でも、同じ曲を再度再生する
+    // 現在の曲を停止して解放
     stopAndUnloadSound().then(() => {
-      // 少し待ってから次の曲に移動
+      // 少し待ってから次の曲に移動（リソース解放の時間を確保）
       setTimeout(() => {
         if (isMounted.current) {
           // 曲がない場合は何もしない
           if (songs.length === 0) return;
 
-          // 曲が1曲しかない場合でも、同じ曲を再度再生する
+          // 次の曲のインデックスを計算
+          // 曲が1曲しかない場合は同じ曲を再度再生
+          // 最後の曲の場合は最初に戻る（無限ループ）
           const nextIndex =
             songs.length === 1 ? 0 : (currentSongIndex + 1) % songs.length;
+
+          // ストアの曲インデックスを更新
           setCurrentSongIndex(nextIndex);
         }
       }, 300);
     });
   }, [songs.length, currentSongIndex, setCurrentSongIndex, stopAndUnloadSound]);
 
-  // 再生状態の更新ハンドラ
+  /**
+   * 再生状態の更新ハンドラ
+   * expo-avからのコールバックで、再生状態の変化を処理する
+   * @param {AVPlaybackStatus} status - 音声の再生状態
+   */
   const onPlaybackStatusUpdate = useCallback(
     (status: AVPlaybackStatus) => {
-      if (!status.isLoaded || !isMounted.current || isChangingSong.current)
+      // 無効な状態の場合は処理を中止
+      if (!status.isLoaded || !isMounted.current || isChangingSong.current) {
         return;
+      }
 
+      // 再生状態を更新
       setIsPlaying(status.isPlaying);
 
+      // 曲が終了した場合の処理
       if (status.didJustFinish) {
-        // 曲が終了したら確実に次の曲へ移動
+        // 確実に次の曲へ移動
         playNextSong();
       }
     },
     [playNextSong]
   );
 
-  // 曲の読み込みと再生
+  /**
+   * 曲を読み込み、再生する関数
+   * 指定された曲をメモリに読み込み、ランダムな位置から再生を開始する
+   * @param {Song} song - 再生する曲のデータ
+   * @returns {Promise<void>} 処理の完了を表すPromise
+   */
   const loadAndPlaySong = useCallback(
     async (song: Song) => {
+      // 無効な状態や入力の場合は処理を中止
       if (
         !song ||
         !song.song_path ||
@@ -169,18 +219,19 @@ export function useSubPlayerAudio() {
       // ロック状態にして複数の読み込みを防止
       loadingLock.current = true;
       setIsLoading(true);
+
       try {
-        // 既存のサウンドを確実に解放
+        // 既存のサウンドがあれば確実に解放
         if (soundRef.current) {
           await soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
         }
 
-        // 新しいサウンドを作成
+        // 新しいサウンドオブジェクトを作成
         const { sound } = await Audio.Sound.createAsync(
           { uri: song.song_path },
-          { shouldPlay: false },
-          onPlaybackStatusUpdate
+          { shouldPlay: false }, // 初期状態は再生停止
+          onPlaybackStatusUpdate // 状態変化時のコールバック
         );
 
         // 参照を保存
@@ -208,17 +259,18 @@ export function useSubPlayerAudio() {
         // 位置更新タイマーを開始
         startPositionUpdateTimer();
 
-        // 自動再生タイマーをセット
+        // 自動再生モードが有効な場合、指定時間後に次の曲に移動するタイマーを設定
         if (autoPlay && previewDuration > 0) {
           timerRef.current = setTimeout(() => {
             if (isMounted.current && !isChangingSong.current) {
               playNextSong();
             }
-          }, previewDuration * 1000);
+          }, previewDuration * 1000); // 秒をミリ秒に変換
         }
       } catch (error) {
         console.error("Error loading sound:", error, "Song:", song.title);
       } finally {
+        // 読み込み状態をリセット
         setIsLoading(false);
         loadingLock.current = false;
       }
@@ -232,70 +284,93 @@ export function useSubPlayerAudio() {
     ]
   );
 
-  // 前の曲を再生（無限ループ）
+  /**
+   * 前の曲を再生する関数（無限ループ対応）
+   * 現在の曲を停止し、前の曲に移動する
+   * 最初の曲の場合は最後の曲に移動する
+   */
   const playPrevSong = useCallback(() => {
-    // マウント状態のみチェックし、曲数はチェックしない
-    if (!isMounted.current || isChangingSong.current || loadingLock.current)
+    // 無効な状態の場合は処理を中止
+    if (!isMounted.current || isChangingSong.current || loadingLock.current) {
       return;
+    }
 
-    // 曲が1曲しかない場合でも、同じ曲を再度再生する
+    // 現在の曲を停止して解放
     stopAndUnloadSound().then(() => {
-      // 少し待ってから前の曲に移動
+      // 少し待ってから前の曲に移動（リソース解放の時間を確保）
       setTimeout(() => {
         if (isMounted.current) {
           // 曲がない場合は何もしない
           if (songs.length === 0) return;
 
-          // 曲が1曲しかない場合でも、同じ曲を再度再生する
+          // 前の曲のインデックスを計算
+          // 曲が1曲しかない場合は同じ曲を再度再生
+          // 最初の曲の場合は最後に移動（無限ループ）
           const prevIndex =
             songs.length === 1
               ? 0
               : (currentSongIndex - 1 + songs.length) % songs.length;
+
+          // ストアの曲インデックスを更新
           setCurrentSongIndex(prevIndex);
         }
       }, 300);
     });
   }, [songs.length, currentSongIndex, setCurrentSongIndex, stopAndUnloadSound]);
 
-  // 再生/一時停止の切り替え
+  /**
+   * 再生/一時停止を切り替える関数
+   * 現在の再生状態に応じて再生または一時停止を切り替える
+   * @returns {Promise<void>} 処理の完了を表すPromise
+   */
   const togglePlayPause = useCallback(async () => {
+    // 無効な状態の場合は処理を中止
     if (
       !soundRef.current ||
       isChangingSong.current ||
       isLoading ||
       loadingLock.current
-    )
+    ) {
       return;
+    }
 
     try {
+      // 現在再生中なら一時停止する
       if (isPlaying) {
         await soundRef.current.pauseAsync();
         setIsPlaying(false);
 
-        // タイマーを一時停止
+        // 自動再生タイマーを一時停止
         if (timerRef.current) {
           clearTimeout(timerRef.current);
           timerRef.current = null;
         }
-      } else {
+      }
+      // 現在停止中なら再生を開始する
+      else {
         await soundRef.current.playAsync();
         setIsPlaying(true);
 
-        // 自動再生タイマーを再設定
+        // 自動再生モードが有効な場合、残り時間を計算してタイマーを再設定
         if (autoPlay && previewDuration > 0) {
           const status = await soundRef.current.getStatusAsync();
+
           if (status.isLoaded) {
+            // 残りの再生時間を計算（プレビュー時間 - 経過時間）
             const remainingTime =
               previewDuration * 1000 -
               (status.positionMillis - randomStartPosition);
 
+            // 残り時間があればタイマーを設定
             if (remainingTime > 0) {
               timerRef.current = setTimeout(() => {
                 if (isMounted.current && !isChangingSong.current) {
                   playNextSong();
                 }
               }, remainingTime);
-            } else {
+            }
+            // 残り時間がない場合はすぐに次の曲に移動
+            else {
               playNextSong();
             }
           }
@@ -313,29 +388,41 @@ export function useSubPlayerAudio() {
     isLoading,
   ]);
 
-  // シーク
+  /**
+   * 指定位置にシークする関数
+   * 再生位置を指定の時間（ミリ秒）に移動する
+   * @param {number} position - シークする位置（ミリ秒）
+   * @returns {Promise<void>} 処理の完了を表すPromise
+   */
   const seekTo = useCallback(
     async (position: number) => {
+      // 無効な状態の場合は処理を中止
       if (
         !soundRef.current ||
         isChangingSong.current ||
         isLoading ||
         loadingLock.current
-      )
+      ) {
         return;
+      }
 
       try {
+        // 指定位置にシーク
         await soundRef.current.setPositionAsync(position);
         setCurrentPosition(position);
 
-        // タイマーを再設定
+        // 再生中で自動再生モードが有効な場合、タイマーを再設定
         if (isPlaying && autoPlay && previewDuration > 0) {
+          // 既存のタイマーがあればクリア
           if (timerRef.current) {
             clearTimeout(timerRef.current);
           }
 
+          // 残りの再生時間を計算（プレビュー時間 - 経過時間）
           const remainingTime =
             previewDuration * 1000 - (position - randomStartPosition);
+
+          // 残り時間があればタイマーを設定
           if (remainingTime > 0) {
             timerRef.current = setTimeout(() => {
               if (isMounted.current && !isChangingSong.current) {
@@ -358,48 +445,54 @@ export function useSubPlayerAudio() {
     ]
   );
 
-  // 初期化
+  /**
+   * 初期化処理を行うフック
+   * コンポーネントのマウント時に実行される
+   */
   useEffect(() => {
-    // Audio モードを設定
+    // Audio モードを設定（他の音声との共存方法を定義）
     Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-      shouldDuckAndroid: true,
+      playsInSilentModeIOS: true, // iOSのサイレントモードでも再生する
+      staysActiveInBackground: true, // バックグラウンドでも再生を継続する
+      interruptionModeIOS: InterruptionModeIOS.DoNotMix, // iOSで他の音声と混合しない
+      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix, // Androidで他の音声と混合しない
+      shouldDuckAndroid: true, // Androidで他の音声が再生されたときは音量を下げる
     }).catch((error) => {
       console.error("Error setting audio mode:", error);
     });
 
-    // コンポーネントのマウント状態を追跡
-    isMounted.current = true;
-    isChangingSong.current = false;
-    loadingLock.current = false;
+    // コンポーネントの状態管理用の参照を初期化
+    isMounted.current = true; // マウント状態をアクティブに設定
+    isChangingSong.current = false; // 曲の切り替え状態をリセット
+    loadingLock.current = false; // 読み込みロックを解除
 
-    // クリーンアップ
+    // クリーンアップ処理（コンポーネントのアンマウント時に実行）
     return () => {
-      isMounted.current = false;
-      stopAndUnloadSound();
+      isMounted.current = false; // マウント状態を非アクティブに設定
+      stopAndUnloadSound(); // 音声を停止してリソースを解放
     };
   }, [stopAndUnloadSound]);
 
-  // 曲が変わったときに再読み込み
+  /**
+   * 曲が変わったときに再読み込みを行うフック
+   * currentSongIndexが変更されたときに実行される
+   */
   useEffect(() => {
-    // 曲が変わったときに必ず処理を実行
+    // 有効な状態の場合のみ処理を実行
     if (currentSong && isMounted.current && currentSongIndex >= 0) {
-      // 現在の音声を確実に停止
+      // 現在の音声を確実に停止して解放
       stopAndUnloadSound()
         .then(() => {
-          // 少し待ってから新しい曲を読み込む
+          // 少し待ってから新しい曲を読み込む（リソース解放の時間を確保）
           setTimeout(() => {
             if (isMounted.current) {
-              // 新しい曲を読み込み
-
+              // 新しい曲を読み込んで再生開始
               loadAndPlaySong(currentSong);
             }
-          }, 300); // タイミングを少し長めに設定
+          }, 300); // タイミングを少し長めに設定して安定性を確保
         })
         .catch((error) => {
+          // エラーが発生しても再度読み込みを試行
           setTimeout(() => {
             if (isMounted.current) {
               loadAndPlaySong(currentSong);
@@ -409,16 +502,23 @@ export function useSubPlayerAudio() {
     }
   }, [currentSongIndex, loadAndPlaySong, currentSong, stopAndUnloadSound]);
 
+  /**
+   * フックの返り値
+   * 再生状態と制御関数を含むオブジェクト
+   */
   return {
-    isPlaying,
-    currentPosition,
-    duration,
-    randomStartPosition,
-    isLoading,
-    playNextSong,
-    playPrevSong,
-    togglePlayPause,
-    seekTo,
-    stopAndUnloadCurrentSound: stopAndUnloadSound,
+    // 再生状態
+    isPlaying, // 再生中かどうか
+    currentPosition, // 現在の再生位置（ミリ秒）
+    duration, // 曲の総再生時間（ミリ秒）
+    randomStartPosition, // ランダムな開始位置（ミリ秒）
+    isLoading, // 読み込み中かどうか
+
+    // 制御関数
+    playNextSong, // 次の曲を再生する関数
+    playPrevSong, // 前の曲を再生する関数
+    togglePlayPause, // 再生/一時停止を切り替える関数
+    seekTo, // 指定位置にシークする関数
+    stopAndUnloadCurrentSound: stopAndUnloadSound, // 音声を停止して解放する関数
   };
 }
