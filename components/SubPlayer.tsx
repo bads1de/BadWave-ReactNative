@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Text,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,11 +15,9 @@ import Swiper from "react-native-swiper";
 import Song from "@/types";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 import { useSubPlayerAudio } from "@/hooks/useSubPlayerAudio";
+import { BlurView } from "expo-blur";
 
 const { width, height } = Dimensions.get("window");
-const PREVIEW_HEIGHT = 80;
-const BORDER_RADIUS = 20;
-const VISIBLE_OFFSET = 30;
 
 interface SubPlayerProps {
   onClose: () => void;
@@ -60,46 +59,27 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
       >
         <ImageBackground
           source={{ uri: song.image_path }}
-          style={[
-            styles.songImage,
-            isActive ? styles.activeSongImage : styles.inactiveSongImage,
-          ]}
+          style={styles.songImage}
           resizeMode="cover"
         >
+          {/* 上部のグラデーション */}
           <LinearGradient
-            colors={["rgba(0,0,0,0.3)", "rgba(0,0,0,0.8)"]}
-            style={styles.gradient}
+            colors={["rgba(0,0,0,0.7)", "transparent"]}
+            style={styles.topGradient}
+          />
+
+          {/* 下部のグラデーション */}
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
+            locations={[0.6, 0.8, 1]}
+            style={styles.bottomGradient}
           >
             <View style={styles.songInfo}>
               <Text style={styles.songTitle}>{song.title}</Text>
               <Text style={styles.songAuthor}>{song.author}</Text>
             </View>
 
-            {/* アクションアイコン */}
-            <View style={styles.actionIcons}>
-              <TouchableOpacity style={styles.actionButton}>
-                <View style={styles.userIconContainer}>
-                  <Ionicons
-                    name="person-circle-outline"
-                    size={36}
-                    color="#fff"
-                  />
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="heart-outline" size={28} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="chatbubble-outline" size={28} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="share-social-outline" size={28} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="ellipsis-horizontal" size={28} color="#fff" />
-              </TouchableOpacity>
-            </View>
-
+            {/* プログレスバー */}
             <View style={styles.playerControls}>
               <View style={styles.seekBarContainer}>
                 <View style={styles.progressBarBackground}>
@@ -126,6 +106,67 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
               </View>
             </View>
           </LinearGradient>
+
+          {/* アクションアイコン */}
+          <View style={styles.actionIcons}>
+            <TouchableOpacity style={styles.actionButton}>
+              <BlurView
+                intensity={30}
+                style={styles.blurIconContainer}
+                tint="dark"
+              >
+                <Ionicons
+                  name="person-circle-outline"
+                  size={28}
+                  color="#FF69B4"
+                />
+              </BlurView>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <BlurView
+                intensity={30}
+                style={styles.blurIconContainer}
+                tint="dark"
+              >
+                <Ionicons name="heart-outline" size={28} color="#FF0080" />
+              </BlurView>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <BlurView
+                intensity={30}
+                style={styles.blurIconContainer}
+                tint="dark"
+              >
+                <Ionicons name="chatbubble-outline" size={28} color="#00dbde" />
+              </BlurView>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <BlurView
+                intensity={30}
+                style={styles.blurIconContainer}
+                tint="dark"
+              >
+                <Ionicons
+                  name="share-social-outline"
+                  size={28}
+                  color="#7C3AED"
+                />
+              </BlurView>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <BlurView
+                intensity={30}
+                style={styles.blurIconContainer}
+                tint="dark"
+              >
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  size={28}
+                  color="#00F5A0"
+                />
+              </BlurView>
+            </TouchableOpacity>
+          </View>
         </ImageBackground>
       </View>
     );
@@ -133,16 +174,23 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-        <Ionicons name="arrow-back" size={30} color="#fff" />
-      </TouchableOpacity>
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
+      <BlurView intensity={30} style={styles.closeButtonContainer} tint="dark">
+        <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+      </BlurView>
 
       <Swiper
         ref={swiperRef}
         style={styles.wrapper}
         showsPagination={false}
-        loop={false}
         horizontal={false}
+        loop={false}
         index={currentSongIndex}
         onIndexChanged={(index) => {
           stopAndUnloadCurrentSound()
@@ -172,13 +220,20 @@ const styles = StyleSheet.create({
     height,
     backgroundColor: "#000",
     zIndex: 1000,
+  },
+  closeButtonContainer: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 1001,
+    borderRadius: 20,
     overflow: "hidden",
   },
   closeButton: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    zIndex: 1001,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   wrapper: {
     overflow: "visible",
@@ -186,10 +241,6 @@ const styles = StyleSheet.create({
   swiperContainer: {
     height: height,
     overflow: "visible",
-  },
-  cardStyle: {
-    overflow: "visible",
-    borderRadius: BORDER_RADIUS,
   },
   activeSlide: {
     opacity: 1,
@@ -201,99 +252,86 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.95 }],
     zIndex: 1,
   },
-  activeSongImage: {
-    borderRadius: BORDER_RADIUS,
-  },
-  inactiveSongImage: {
-    borderRadius: BORDER_RADIUS / 2,
-  },
   slide: {
-    height: height - (PREVIEW_HEIGHT * 2 - VISIBLE_OFFSET * 2),
-    marginTop: PREVIEW_HEIGHT - VISIBLE_OFFSET,
-    marginBottom: PREVIEW_HEIGHT - VISIBLE_OFFSET,
-    overflow: "visible",
+    height: height,
+    width: width,
+    overflow: "hidden",
     position: "relative",
-    borderRadius: BORDER_RADIUS,
   },
   songImage: {
     height: height,
     width: width,
-    position: "absolute",
-    top: -PREVIEW_HEIGHT,
-    left: 0,
     justifyContent: "space-between",
-    borderRadius: BORDER_RADIUS,
-    overflow: "hidden",
   },
-  gradient: {
-    flex: 1,
-    justifyContent: "space-between",
-    padding: 20,
-    paddingTop: PREVIEW_HEIGHT + 10,
-    paddingBottom: PREVIEW_HEIGHT - 40,
-    borderRadius: BORDER_RADIUS,
+  topGradient: {
+    height: 120,
+    width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+  },
+  bottomGradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.4,
+    justifyContent: "flex-end",
+    paddingBottom: 50,
+    paddingHorizontal: 20,
   },
   songInfo: {
     alignItems: "center",
-    marginTop: height * 0.15,
+    marginBottom: 30,
   },
   songTitle: {
     color: "#fff",
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 8,
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 5,
   },
   songAuthor: {
-    color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 18,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: 20,
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   actionIcons: {
     position: "absolute",
     right: 15,
-    bottom: height * 0.25,
+    bottom: height * 0.3,
     alignItems: "center",
+    zIndex: 10,
   },
   actionButton: {
     alignItems: "center",
-    marginBottom: 25,
+    marginBottom: 20,
   },
-  userIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  blurIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 5,
-  },
-  actionText: {
-    color: "#fff",
-    fontSize: 12,
-    marginTop: 5,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   playerControls: {
-    width: "90%",
-    flexDirection: "row",
+    width: "100%",
     alignItems: "center",
-    marginBottom: 30,
-    alignSelf: "center",
-    position: "absolute",
-    bottom: 50,
-    left: "5%",
-  },
-  playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 15,
+    marginBottom: 20,
   },
   seekBarContainer: {
-    flex: 1,
+    width: "90%",
     padding: 10,
     justifyContent: "center",
     position: "relative",
@@ -309,20 +347,14 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     width: "100%",
-    height: 12,
+    height: 4,
     backgroundColor: "rgba(255,255,255,0.3)",
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 6,
-  },
-  timeText: {
-    color: "#fff",
-    fontSize: 12,
-    alignSelf: "flex-start",
-    marginTop: 2,
+    backgroundColor: "#4c1d95",
+    borderRadius: 2,
   },
 });
