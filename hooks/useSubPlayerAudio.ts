@@ -113,18 +113,48 @@ export function useSubPlayerAudio() {
     }, 200); // 200msごとに更新（負荷軽減のため間隔を広げる）
   }, []);
 
-  // 再生状態の更新ハンドラ
-  const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
-    if (!status.isLoaded || !isMounted.current || isChangingSong.current)
+  // 次の曲を再生（無限ループ）
+  const playNextSong = useCallback(() => {
+    // マウント状態のみチェックし、曲数はチェックしない
+    if (!isMounted.current || isChangingSong.current || loadingLock.current)
       return;
 
-    setIsPlaying(status.isPlaying);
+    // 曲が1曲しかない場合でも、同じ曲を再度再生する
+    stopAndUnloadSound().then(() => {
+      // 少し待ってから次の曲に移動
+      setTimeout(() => {
+        if (isMounted.current) {
+          // 曲がない場合は何もしない
+          if (songs.length === 0) return;
 
-    if (status.didJustFinish) {
-      // 曲が終了したら次の曲へ
-      playNextSong();
-    }
-  }, []);
+          // 曲が1曲しかない場合でも、同じ曲を再度再生する
+          const nextIndex =
+            songs.length === 1 ? 0 : (currentSongIndex + 1) % songs.length;
+          console.log(
+            `Moving to next song: ${currentSongIndex} -> ${nextIndex}`
+          );
+          setCurrentSongIndex(nextIndex);
+        }
+      }, 300);
+    });
+  }, [songs.length, currentSongIndex, setCurrentSongIndex, stopAndUnloadSound]);
+
+  // 再生状態の更新ハンドラ
+  const onPlaybackStatusUpdate = useCallback(
+    (status: AVPlaybackStatus) => {
+      if (!status.isLoaded || !isMounted.current || isChangingSong.current)
+        return;
+
+      setIsPlaying(status.isPlaying);
+
+      if (status.didJustFinish) {
+        console.log("Song finished, moving to next song");
+        // 曲が終了したら確実に次の曲へ移動
+        playNextSong();
+      }
+    },
+    [playNextSong]
+  );
 
   // 曲の読み込みと再生
   const loadAndPlaySong = useCallback(
@@ -196,65 +226,37 @@ export function useSubPlayerAudio() {
       autoPlay,
       onPlaybackStatusUpdate,
       startPositionUpdateTimer,
+      playNextSong,
     ]
   );
 
-  // 次の曲を再生
-  const playNextSong = useCallback(() => {
-    if (
-      !isMounted.current ||
-      songs.length <= 1 ||
-      isChangingSong.current ||
-      isLoading ||
-      loadingLock.current
-    )
-      return;
-
-    stopAndUnloadSound().then(() => {
-      // 少し待ってから次の曲に移動
-      setTimeout(() => {
-        if (isMounted.current) {
-          const nextIndex = (currentSongIndex + 1) % songs.length;
-          setCurrentSongIndex(nextIndex);
-        }
-      }, 300);
-    });
-  }, [
-    songs.length,
-    currentSongIndex,
-    setCurrentSongIndex,
-    stopAndUnloadSound,
-    isLoading,
-  ]);
-
-  // 前の曲を再生
+  // 前の曲を再生（無限ループ）
   const playPrevSong = useCallback(() => {
-    if (
-      !isMounted.current ||
-      songs.length <= 1 ||
-      isChangingSong.current ||
-      isLoading ||
-      loadingLock.current
-    )
+    // マウント状態のみチェックし、曲数はチェックしない
+    if (!isMounted.current || isChangingSong.current || loadingLock.current)
       return;
 
+    // 曲が1曲しかない場合でも、同じ曲を再度再生する
     stopAndUnloadSound().then(() => {
       // 少し待ってから前の曲に移動
       setTimeout(() => {
         if (isMounted.current) {
+          // 曲がない場合は何もしない
+          if (songs.length === 0) return;
+
+          // 曲が1曲しかない場合でも、同じ曲を再度再生する
           const prevIndex =
-            (currentSongIndex - 1 + songs.length) % songs.length;
+            songs.length === 1
+              ? 0
+              : (currentSongIndex - 1 + songs.length) % songs.length;
+          console.log(
+            `Moving to previous song: ${currentSongIndex} -> ${prevIndex}`
+          );
           setCurrentSongIndex(prevIndex);
         }
       }, 300);
     });
-  }, [
-    songs.length,
-    currentSongIndex,
-    setCurrentSongIndex,
-    stopAndUnloadSound,
-    isLoading,
-  ]);
+  }, [songs.length, currentSongIndex, setCurrentSongIndex, stopAndUnloadSound]);
 
   // 再生/一時停止の切り替え
   const togglePlayPause = useCallback(async () => {
@@ -384,27 +386,35 @@ export function useSubPlayerAudio() {
 
   // 曲が変わったときに再読み込み
   useEffect(() => {
-    // 曲が変わったときだけ処理を実行
-    if (
-      currentSong &&
-      isMounted.current &&
-      !isChangingSong.current &&
-      !loadingLock.current
-    ) {
+    // 曲が変わったときに必ず処理を実行
+    if (currentSong && isMounted.current) {
+      console.log("Song index changed to:", currentSongIndex);
+
       // 少し待ってから新しい曲を読み込む
       const timer = setTimeout(() => {
-        if (
-          isMounted.current &&
-          !isChangingSong.current &&
-          !loadingLock.current
-        ) {
-          loadAndPlaySong(currentSong);
+        if (isMounted.current) {
+          // 現在の音声を確実に停止してから新しい曲を読み込む
+          stopAndUnloadSound()
+            .then(() => {
+              // 少し待ってから新しい曲を読み込む
+              setTimeout(() => {
+                if (isMounted.current) {
+                  loadAndPlaySong(currentSong);
+                }
+              }, 200);
+            })
+            .catch((error) => {
+              console.error(
+                "Error stopping sound before loading new song:",
+                error
+              );
+            });
         }
-      }, 300);
+      }, 100);
 
       return () => clearTimeout(timer);
     }
-  }, [currentSongIndex, loadAndPlaySong, currentSong]);
+  }, [currentSongIndex, loadAndPlaySong, currentSong, stopAndUnloadSound]);
 
   return {
     isPlaying,

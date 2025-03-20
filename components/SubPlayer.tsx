@@ -110,32 +110,27 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
             </View>
 
             <View style={styles.playerControls}>
-              <TouchableOpacity
-                style={styles.playButton}
-                onPress={togglePlayPause}
-                disabled={isLoading}
-              >
-                <Ionicons
-                  name={
-                    isLoading
-                      ? "hourglass-outline"
-                      : isPlaying
-                      ? "pause"
-                      : "play"
-                  }
-                  size={24}
-                  color="#fff"
-                />
-              </TouchableOpacity>
               <View style={styles.seekBarContainer}>
+                <View style={styles.progressBarBackground}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${
+                          (progressPosition / (progressDuration || 1)) * 100
+                        }%`,
+                      },
+                    ]}
+                  />
+                </View>
                 <Slider
                   style={styles.seekBar}
                   minimumValue={0}
                   maximumValue={progressDuration || 1}
                   value={progressPosition}
-                  minimumTrackTintColor="#fff"
-                  maximumTrackTintColor="rgba(255,255,255,0.3)"
-                  thumbTintColor="#fff"
+                  minimumTrackTintColor="transparent"
+                  maximumTrackTintColor="transparent"
+                  thumbTintColor="transparent"
                 />
               </View>
             </View>
@@ -155,13 +150,21 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
         ref={swiperRef}
         style={styles.wrapper}
         showsPagination={false}
-        loop={false}
+        loop={true}
         horizontal={false}
         index={currentSongIndex}
         onIndexChanged={(index) => {
-          setCurrentSongIndex(index);
-          // インデックスが変更されたときは自動的に曲が切り替わる
-          // useSubPlayerAudio 内の useEffect で処理される
+          console.log("Swiper index changed to:", index);
+          // スワイプ時に確実に曲を切り替える
+          stopAndUnloadCurrentSound()
+            .then(() => {
+              setCurrentSongIndex(index);
+            })
+            .catch((error) => {
+              console.error("Error during swipe:", error);
+              // エラーが発生してもインデックスは更新する
+              setCurrentSongIndex(index);
+            });
         }}
         containerStyle={styles.swiperContainer}
         scrollEnabled={true}
@@ -306,14 +309,28 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     justifyContent: "center",
+    position: "relative",
   },
   seekBar: {
     width: "100%",
     height: 40,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    opacity: 0.01, // ほぼ透明だが、タッチイベントを受け取るために少し不透明に
   },
-  sliderTrack: {
-    height: 8,
-    borderRadius: 4,
+  progressBarBackground: {
+    width: "100%",
+    height: 12,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 6,
   },
   timeText: {
     color: "#fff",
