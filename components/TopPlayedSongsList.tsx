@@ -41,10 +41,19 @@ export default function TopPlayedSongsList() {
       await TrackPlayer.pause();
     }
 
-    // サブプレイヤーに曲リストをセット
-    setSongs(topSongs);
-    setCurrentSongIndex(songIndex);
-    setShowSubPlayer(true);
+    // 一度サブプレイヤーの曲情報をリセットしてから設定することで同期を確保
+    await new Promise((resolve) => {
+      setCurrentSongIndex(-1); // 一度無効なインデックスをセット
+      setSongs([]); // 曲リストをクリア
+
+      // 状態更新が確実に反映されるよう少し待機
+      setTimeout(() => {
+        setSongs(topSongs); // 曲リストを設定
+        setCurrentSongIndex(songIndex); // 選択した曲のインデックスを設定
+        setShowSubPlayer(true); // サブプレイヤーを表示
+        resolve(null);
+      }, 50);
+    });
   };
 
   return (

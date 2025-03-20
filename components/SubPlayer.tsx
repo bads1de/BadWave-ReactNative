@@ -150,19 +150,15 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
         ref={swiperRef}
         style={styles.wrapper}
         showsPagination={false}
-        loop={true}
+        loop={false}
         horizontal={false}
         index={currentSongIndex}
         onIndexChanged={(index) => {
-          console.log("Swiper index changed to:", index);
-          // スワイプ時に確実に曲を切り替える
           stopAndUnloadCurrentSound()
             .then(() => {
               setCurrentSongIndex(index);
             })
             .catch((error) => {
-              console.error("Error during swipe:", error);
-              // エラーが発生してもインデックスは更新する
               setCurrentSongIndex(index);
             });
         }}
