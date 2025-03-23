@@ -71,44 +71,71 @@ export function useSubPlayerAudio() {
   /**
    * 音声を完全に停止して解放する関数
    * 再生中の音声を停止し、メモリからアンロードしてリソースを解放する
+   *
+   * 改善点:
+   * - タイマー依存を減らし、より確実なリソース解放を実装
+   * - エラーハンドリングの強化
+   * - 状態管理の改善
+   *
    * @returns {Promise<void>} 処理の完了を表すPromise
    */
   const stopAndUnloadSound = useCallback(async () => {
-    // 再生状態をリセット
+    // 再生状態を即度にリセット
     setIsPlaying(false);
+
+    // 状態フラグを設定
     isChangingSong.current = true;
     loadingLock.current = true;
 
-    // すべてのタイマーをクリア
+    // すべてのタイマーを確実にクリア
     clearAllTimers();
 
-    try {
-      // 既存のサウンドオブジェクトがあれば停止してアンロード
-      if (soundRef.current) {
+    // 音声リソースの解放処理
+    if (soundRef.current) {
+      try {
+        // 再生を確実に停止するための処理順序
+        // 1. 一時停止
         try {
-          // 再生を停止（エラーを無視して続行）
-          await soundRef.current.pauseAsync().catch(() => {});
-          await soundRef.current.stopAsync().catch(() => {});
-
-          // メモリからアンロードしてリソースを解放
-          await soundRef.current.unloadAsync().catch(() => {});
-        } catch (e) {
-          console.error("Error during sound cleanup:", e);
-        } finally {
-          // 参照をクリア
-          soundRef.current = null;
+          await soundRef.current.pauseAsync();
+        } catch (pauseError) {
+          console.debug("Pause failed, continuing cleanup", pauseError);
+          // エラーが発生しても続行
         }
+
+        // 2. 完全停止
+        try {
+          await soundRef.current.stopAsync();
+        } catch (stopError) {
+          console.debug("Stop failed, continuing cleanup", stopError);
+          // エラーが発生しても続行
+        }
+
+        // 3. メモリからアンロードしてリソースを解放
+        try {
+          await soundRef.current.unloadAsync();
+        } catch (unloadError) {
+          console.warn(
+            "Unload failed, resource may not be fully released",
+            unloadError
+          );
+          // エラーが発生しても続行
+        }
+      } catch (error) {
+        // 予期しないエラーのログ記録
+        console.error("Critical error during sound cleanup:", error);
+      } finally {
+        // 参照を確実にクリア
+        soundRef.current = null;
       }
-    } catch (error) {
-      console.error("Error in stopAndUnloadSound:", error);
-    } finally {
-      // 少し待ってから状態ロックを解除
-      // 即時に解除するとレースコンディションが発生する可能性がある
-      setTimeout(() => {
-        isChangingSong.current = false;
-        loadingLock.current = false;
-      }, 300);
     }
+
+    // 状態ロックを解除
+    // タイマーを使わずに即時に解除するよう改善
+    isChangingSong.current = false;
+    loadingLock.current = false;
+
+    // 処理完了を通知
+    return Promise.resolve();
   }, [clearAllTimers]);
 
   /**

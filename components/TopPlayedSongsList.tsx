@@ -33,25 +33,38 @@ export default function TopPlayedSongsList() {
     enabled: !!userId,
   });
 
+  /**
+   * 曲がタップされたときの処理
+   * 改善点: 状態更新の確実性向上とリソース管理の改善
+   * @param songIndex 選択された曲のインデックス
+   */
   const handleSongPress = async (songIndex: number) => {
-    // 既存の再生中の曲を一時停止
-    if (isPlaying) {
-      await TrackPlayer.pause();
-    }
+    try {
+      // 既存の再生中の曲を一時停止
+      if (isPlaying) {
+        await TrackPlayer.pause();
+      }
 
-    // 一度サブプレイヤーの曲情報をリセットしてから設定することで同期を確保
-    await new Promise((resolve) => {
+      // サブプレイヤーの状態をリセット
+      // バッチ処理で状態更新を最適化
       setCurrentSongIndex(-1); // 一度無効なインデックスをセット
       setSongs([]); // 曲リストをクリア
 
       // 状態更新が確実に反映されるよう少し待機
-      setTimeout(() => {
-        setSongs(topSongs); // 曲リストを設定
-        setCurrentSongIndex(songIndex); // 選択した曲のインデックスを設定
-        setShowSubPlayer(true); // サブプレイヤーを表示
-        resolve(null);
-      }, 50);
-    });
+      // Reactのバッチ更新を利用するために非同期処理を使用
+      await new Promise<void>((resolve) => {
+        // 次のレンダリングサイクルで確実に実行されるようにする
+        requestAnimationFrame(() => {
+          // 新しい状態を設定
+          setSongs(topSongs);
+          setCurrentSongIndex(songIndex);
+          setShowSubPlayer(true);
+          resolve();
+        });
+      });
+    } catch (error) {
+      console.error("Error handling song press:", error);
+    }
   };
 
   return (

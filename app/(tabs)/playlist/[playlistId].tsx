@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -8,7 +9,7 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
@@ -26,13 +27,25 @@ import { useAuth } from "@/providers/AuthProvider";
 import PlaylistOptionsMenu from "@/components/PlaylistOptionsMenu";
 import Toast from "react-native-toast-message";
 import deletePlaylistSong from "@/actions/deletePlaylistSong";
+import { useHeaderStore } from "@/hooks/useHeaderStore";
 
 const { width } = Dimensions.get("window");
 
 export default function PlaylistDetailScreen() {
+  const router = useRouter();
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
   const { session } = useAuth();
   const queryClient = useQueryClient();
+  const { setShowHeader } = useHeaderStore();
+
+  useFocusEffect(
+    useCallback(() => {
+      setShowHeader(false);
+      return () => {
+        setShowHeader(true);
+      };
+    }, [setShowHeader])
+  );
 
   // 削除のミューテーションを追加
   const { mutate: handleDeleteSong } = useMutation({

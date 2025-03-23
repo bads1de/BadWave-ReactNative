@@ -29,6 +29,6 @@ export const CACHED_QUERIES = {
 } as const;
 
 export const CACHE_CONFIG = {
-  staleTime: 1000 * 60 * 30, // 30分間
-  gcTime: 1000 * 60 * 60, // 60分間
+  staleTime: 1000 * 60 * 10, // 10分間
+  gcTime: 1000 * 60 * 30, // 30分間
 } as const;

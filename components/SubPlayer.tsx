@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -31,16 +31,21 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
   const { currentPosition, duration, stopAndUnloadCurrentSound } =
     useSubPlayerAudio();
 
-  // プレーヤーが閉じられるときに音声を停止
-  const handleClose = () => {
-    stopAndUnloadCurrentSound()
-      .then(() => {
-        onClose();
-      })
-      .catch((error) => {
-        console.error("Error stopping audio on close:", error);
-        onClose();
-      });
+  /**
+   * プレーヤーが閉じられるときに音声を確実に停止する処理
+   * 改善点: エラーハンドリングの強化とリソース解放の確実性向上
+   */
+  const handleClose = async () => {
+    try {
+      // 音声を確実に停止して解放
+      await stopAndUnloadCurrentSound();
+    } catch (error) {
+      // エラーが発生してもクローズ処理を続行
+      console.error("Error stopping audio on close:", error);
+    } finally {
+      // 確実にクローズ処理を実行
+      onClose();
+    }
   };
 
   // 進捗情報（ミリ秒）
@@ -192,14 +197,16 @@ export default function SubPlayer({ onClose }: SubPlayerProps) {
         horizontal={false}
         loop={false}
         index={currentSongIndex}
-        onIndexChanged={(index) => {
-          stopAndUnloadCurrentSound()
-            .then(() => {
-              setCurrentSongIndex(index);
-            })
-            .catch((error) => {
-              setCurrentSongIndex(index);
-            });
+        onIndexChanged={async (index) => {
+          try {
+            // 音声を確実に停止して解放
+            await stopAndUnloadCurrentSound();
+          } catch (error) {
+            console.error("Error stopping audio on index change:", error);
+          } finally {
+            // 確実にインデックスを更新
+            setCurrentSongIndex(index);
+          }
         }}
         containerStyle={styles.swiperContainer}
         scrollEnabled={true}
