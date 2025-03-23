@@ -11,7 +11,6 @@ import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
 import TrackPlayer from "react-native-track-player";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const queryClient = new QueryClient({
   defaultOptions: {
