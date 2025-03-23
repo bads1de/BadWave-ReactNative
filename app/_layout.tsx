@@ -1,16 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { onlineManager } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
-import { QueryPersistenceManager } from "@/lib/query-persistence-manager";
+import { CACHE_CONFIG } from "@/constants";
+import { mmkvPersister } from "@/lib/mmkv-persister";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
 import TrackPlayer from "react-native-track-player";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
+import NetInfo from "@react-native-community/netinfo";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,21 +26,12 @@ const queryClient = new QueryClient({
   },
 });
 
-const persistenceManager = new QueryPersistenceManager(queryClient);
-
-// キャッシュの監視と保存
-queryClient.getQueryCache().subscribe(async (event) => {
-  if (event?.query.state.data) {
-    const queryKey = event.query.queryKey[0] as keyof typeof CACHED_QUERIES;
-
-    if (Object.values(CACHED_QUERIES).includes(queryKey)) {
-      await persistenceManager.saveCache(queryKey, event.query.state.data);
-    }
-  }
+// オンライン状態の監視を設定
+onlineManager.setEventListener((setOnline) => {
+  return NetInfo.addEventListener((state) => {
+    setOnline(!!state.isConnected);
+  });
 });
-
-// 初期ロード時にキャッシュを復元
-persistenceManager.initializeCache(Object.values(CACHED_QUERIES));
 
 export default function RootLayout() {
   const { showAuthModal } = useAuthStore();
@@ -70,7 +64,21 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: mmkvPersister,
+        maxAge: 1000 * 60 * 60 * 24, // 24時間
+      }}
+      // キャッシュが復元された後の処理
+      onSuccess={async () => {
+        // オンラインの場合、一時停止されたミューテーションを再開し、クエリを再取得
+        if (onlineManager.isOnline()) {
+          await queryClient.resumePausedMutations();
+          await queryClient.invalidateQueries();
+        }
+      }}
+    >
       <AuthProvider>
         <View style={{ flex: 1, backgroundColor: "#000" }}>
           <StatusBar style="light" />
@@ -79,6 +87,6 @@ export default function RootLayout() {
           <ToastComponent />
         </View>
       </AuthProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
