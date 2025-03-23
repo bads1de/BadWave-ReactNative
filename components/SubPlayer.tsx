@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, memo } from "react";
 import {
   View,
   StyleSheet,
@@ -23,7 +23,7 @@ interface SubPlayerProps {
   onClose: () => void;
 }
 
-export default function SubPlayer({ onClose }: SubPlayerProps) {
+function SubPlayer({ onClose }: SubPlayerProps) {
   const { songs, currentSongIndex, setCurrentSongIndex } = useSubPlayerStore();
   const swiperRef = useRef(null);
 
@@ -365,3 +365,5 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 });
+
+export default memo(SubPlayer);
