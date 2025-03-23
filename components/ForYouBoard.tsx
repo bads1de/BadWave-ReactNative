@@ -45,6 +45,9 @@ export default function ForYouBoard() {
     [handleSongClick]
   );
 
+  // keyExtractor関数をメモ化
+  const keyExtractor = useCallback((item: Song) => item.id, []);
+
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
 
@@ -63,7 +66,7 @@ export default function ForYouBoard() {
       <FlatList
         data={recommendations}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}

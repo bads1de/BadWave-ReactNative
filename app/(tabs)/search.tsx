@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   TextInput,
@@ -72,6 +72,44 @@ export default function SearchScreen() {
     },
     [router]
   );
+
+  // FlatListのrenderItem関数をメモ化
+  const renderSongItem = useCallback(
+    ({ item }: { item: Song }) => (
+      <ListItem song={item} onPress={togglePlayPause} />
+    ),
+    [togglePlayPause]
+  );
+
+  // プレイリストのrenderItem関数をメモ化
+  const renderPlaylistItem = useCallback(
+    ({ item }: { item: Playlist }) => (
+      <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
+    ),
+    [handlePlaylistPress]
+  );
+
+  // keyExtractor関数をメモ化
+  const keyExtractor = useCallback((item: Song | Playlist) => item.id, []);
+
+  // ListEmptyComponentをメモ化
+  const songsEmptyComponent = useMemo(() => {
+    return debouncedQuery.length === 0 ? (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="search" size={64} color="#666" />
+        <Text style={styles.emptyText}>Search for songs</Text>
+      </View>
+    ) : null;
+  }, [debouncedQuery.length]);
+
+  const playlistsEmptyComponent = useMemo(() => {
+    return debouncedQuery.length === 0 ? (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="list" size={64} color="#666" />
+        <Text style={styles.emptyText}>Search for playlists</Text>
+      </View>
+    ) : null;
+  }, [debouncedQuery.length]);
 
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
@@ -148,19 +186,10 @@ export default function SearchScreen() {
             <FlatList
               key="songs-list"
               data={searchSongs}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <ListItem song={item} onPress={togglePlayPause} />
-              )}
+              keyExtractor={keyExtractor}
+              renderItem={renderSongItem}
               contentContainerStyle={styles.listContainer}
-              ListEmptyComponent={
-                debouncedQuery.length === 0 ? (
-                  <View style={styles.emptyContainer}>
-                    <Ionicons name="search" size={64} color="#666" />
-                    <Text style={styles.emptyText}>Search for songs</Text>
-                  </View>
-                ) : null
-              }
+              ListEmptyComponent={songsEmptyComponent}
               windowSize={5}
               maxToRenderPerBatch={10}
               updateCellsBatchingPeriod={50}
@@ -171,23 +200,14 @@ export default function SearchScreen() {
             <FlatList
               key="playlists-list"
               data={searchPlaylists}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
-              )}
+              keyExtractor={keyExtractor}
+              renderItem={renderPlaylistItem}
               contentContainerStyle={[
                 styles.listContainer,
                 styles.playlistContainer,
               ]}
               numColumns={2}
-              ListEmptyComponent={
-                debouncedQuery.length === 0 ? (
-                  <View style={styles.emptyContainer}>
-                    <Ionicons name="list" size={64} color="#666" />
-                    <Text style={styles.emptyText}>Search for playlists</Text>
-                  </View>
-                ) : null
-              }
+              ListEmptyComponent={playlistsEmptyComponent}
               // パフォーマンス最適化
               windowSize={5}
               maxToRenderPerBatch={8}

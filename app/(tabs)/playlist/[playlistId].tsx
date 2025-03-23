@@ -1,5 +1,4 @@
 import React, { useCallback } from "react";
-import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -8,32 +7,26 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedScrollHandler,
-  interpolate,
-  Extrapolation,
-} from "react-native-reanimated";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+
+import { CACHED_QUERIES } from "@/constants";
+import Song from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useHeaderStore } from "@/hooks/useHeaderStore";
 import getPlaylistSongs from "@/actions/getPlaylistSongs";
+import getPlaylistById from "@/actions/getPlaylistById";
+import deletePlaylistSong from "@/actions/deletePlaylistSong";
 import ListItem from "@/components/ListItem";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Song from "@/types";
-import { CACHED_QUERIES } from "@/constants";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import getPlaylistById from "@/actions/getPlaylistById";
-import { useAuth } from "@/providers/AuthProvider";
 import PlaylistOptionsMenu from "@/components/PlaylistOptionsMenu";
-import Toast from "react-native-toast-message";
-import deletePlaylistSong from "@/actions/deletePlaylistSong";
-import { useHeaderStore } from "@/hooks/useHeaderStore";
 
 const { width } = Dimensions.get("window");
 
@@ -77,28 +70,7 @@ export default function PlaylistDetailScreen() {
     },
   });
 
-  const scrollY = useSharedValue(0);
-
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    const headerOpacity = interpolate(
-      scrollY.value,
-      [0, 100],
-      [1, 0.2],
-      Extrapolation.CLAMP
-    );
-
-    const headerScale = interpolate(
-      scrollY.value,
-      [0, 100],
-      [1, 0.95],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      opacity: headerOpacity,
-      transform: [{ scale: headerScale }],
-    };
-  });
+  // アニメーション関連の変数と関数を削除
 
   const {
     data: playlistSongs = [],
@@ -143,83 +115,90 @@ export default function PlaylistDetailScreen() {
     [togglePlayPause, session?.user.id, playlist?.user_id, handleDeleteSong]
   );
 
-  const renderHeader = () => (
-    <Animated.View style={[styles.header, headerAnimatedStyle]}>
-      <View style={styles.thumbnailContainer}>
-        <View style={styles.decorativeCard1} />
-        <View style={styles.decorativeCard2} />
-        <View style={styles.decorativeCard3} />
+  // keyExtractor関数をメモ化
+  const keyExtractor = useCallback((item: Song) => item.id, []);
 
-        <Image
-          source={{ uri: playlist?.image_path }}
-          style={styles.thumbnail}
-        />
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.8)"]}
-          style={styles.thumbnailGradient}
-        />
-        <LinearGradient
-          colors={["#fc00ff", "#00dbde"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.neonGradient}
-        />
+  // renderHeader関数をメモ化
+  const renderHeader = useCallback(
+    () => (
+      <View style={styles.header}>
+        <View style={styles.thumbnailContainer}>
+          <View style={styles.decorativeCard1} />
+          <View style={styles.decorativeCard2} />
+          <View style={styles.decorativeCard3} />
+
+          <Image
+            source={{ uri: playlist?.image_path }}
+            style={styles.thumbnail}
+          />
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.8)"]}
+            style={styles.thumbnailGradient}
+          />
+          <LinearGradient
+            colors={["#fc00ff", "#00dbde"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.neonGradient}
+          />
+        </View>
+
+        <BlurView intensity={30} tint="dark" style={styles.infoContainer}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+              {playlist?.title}
+            </Text>
+            {playlist?.is_public && (
+              <View style={styles.privacyBadge}>
+                <Ionicons name="globe-outline" size={16} color="#fff" />
+                <Text style={styles.privacyText}>Public</Text>
+              </View>
+            )}
+            {!playlist?.is_public && (
+              <View style={[styles.privacyBadge, styles.privateBadge]}>
+                <Ionicons name="lock-closed" size={16} color="#fff" />
+                <Text style={styles.privacyText}>Private</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.metaContainer}>
+            <View style={styles.metaItem}>
+              <Ionicons name="musical-notes" size={18} color="#fc00ff" />
+              <Text style={styles.metaText}>{playlistSongs.length} songs</Text>
+            </View>
+            <View style={styles.metaDot} />
+            <View style={styles.metaItem}>
+              <Ionicons name="person" size={18} color="#00dbde" />
+              <Text style={styles.metaText}>
+                {playlist?.user_id === session?.user.id
+                  ? "Created by you"
+                  : "Created by others"}
+              </Text>
+            </View>
+            <View style={styles.metaDot} />
+            <View style={styles.metaItem}>
+              <Ionicons name="calendar" size={18} color="#fc00ff" />
+              <Text style={styles.metaText}>
+                {new Date(playlist?.created_at! || "").toLocaleDateString()}
+              </Text>
+            </View>
+          </View>
+
+          {session?.user.id === playlist?.user_id && (
+            <View style={styles.optionsContainer}>
+              <PlaylistOptionsMenu
+                playlistId={playlistId}
+                userId={playlist?.user_id}
+                currentTitle={playlist?.title}
+                isPublic={playlist?.is_public}
+              />
+            </View>
+          )}
+        </BlurView>
       </View>
-
-      <BlurView intensity={30} tint="dark" style={styles.infoContainer}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-            {playlist?.title}
-          </Text>
-          {playlist?.is_public && (
-            <View style={styles.privacyBadge}>
-              <Ionicons name="globe-outline" size={16} color="#fff" />
-              <Text style={styles.privacyText}>Public</Text>
-            </View>
-          )}
-          {!playlist?.is_public && (
-            <View style={[styles.privacyBadge, styles.privateBadge]}>
-              <Ionicons name="lock-closed" size={16} color="#fff" />
-              <Text style={styles.privacyText}>Private</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.metaContainer}>
-          <View style={styles.metaItem}>
-            <Ionicons name="musical-notes" size={18} color="#fc00ff" />
-            <Text style={styles.metaText}>{playlistSongs.length} songs</Text>
-          </View>
-          <View style={styles.metaDot} />
-          <View style={styles.metaItem}>
-            <Ionicons name="person" size={18} color="#00dbde" />
-            <Text style={styles.metaText}>
-              {playlist?.user_id === session?.user.id
-                ? "Created by you"
-                : "Created by others"}
-            </Text>
-          </View>
-          <View style={styles.metaDot} />
-          <View style={styles.metaItem}>
-            <Ionicons name="calendar" size={18} color="#fc00ff" />
-            <Text style={styles.metaText}>
-              {new Date(playlist?.created_at! || "").toLocaleDateString()}
-            </Text>
-          </View>
-        </View>
-
-        {session?.user.id === playlist?.user_id && (
-          <View style={styles.optionsContainer}>
-            <PlaylistOptionsMenu
-              playlistId={playlistId}
-              userId={playlist?.user_id}
-              currentTitle={playlist?.title}
-              isPublic={playlist?.is_public}
-            />
-          </View>
-        )}
-      </BlurView>
-    </Animated.View>
+    ),
+    [playlist, playlistSongs.length, session?.user.id]
   );
 
   if (isLoading || isLoadingPlaylist) return <Loading />;
@@ -231,16 +210,12 @@ export default function PlaylistDetailScreen() {
       {playlistSongs && playlistSongs.length > 0 ? (
         <FlatList
           data={playlistSongs}
-          keyExtractor={(item: Song) => item.id}
+          keyExtractor={keyExtractor}
           renderItem={renderSongs}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
           numColumns={1}
-          key="playlist-songs-list"
-          onScroll={useAnimatedScrollHandler((event) => {
-            scrollY.value = event.contentOffset.y;
-          })}
-          scrollEventThrottle={16}
+          key={"playlist-songs-list"}
         />
       ) : (
         <>

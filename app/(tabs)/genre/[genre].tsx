@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   FlatList,
@@ -18,6 +18,7 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useLocalSearchParams } from "expo-router";
 import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
+import Song from "@/types";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
@@ -44,6 +45,17 @@ export default function GenreSongsScreen() {
 
   const { togglePlayPause } = useAudioPlayer(genreSongs, "genre", genre);
 
+  // renderItem関数をメモ化
+  const renderItem = useCallback(
+    ({ item }: { item: Song }) => (
+      <ListItem song={item} onPress={async () => await togglePlayPause(item)} />
+    ),
+    [togglePlayPause]
+  );
+
+  // keyExtractor関数をメモ化
+  const keyExtractor = useCallback((item: Song) => item.id, []);
+
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
 
@@ -61,13 +73,8 @@ export default function GenreSongsScreen() {
         </View>
         <FlatList
           data={genreSongs}
-          renderItem={({ item }) => (
-            <ListItem
-              song={item}
-              onPress={async () => await togglePlayPause(item)}
-            />
-          )}
-          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContainer}
           windowSize={5}
           maxToRenderPerBatch={10}

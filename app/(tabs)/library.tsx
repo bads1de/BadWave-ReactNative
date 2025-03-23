@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import getLikedSongs from "@/actions/getLikedSongs";
@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import CreatePlaylist from "@/components/CreatePlaylist";
+import { Playlist } from "@/types";
 
 type LibraryType = "liked" | "playlists";
 
@@ -46,6 +47,20 @@ export default function LibraryScreen() {
 
   const { togglePlayPause } = useAudioPlayer(likedSongs, "liked");
 
+  // プレイリストをクリックしたときのハンドラをメモ化
+  const handlePlaylistPress = useCallback(
+    (playlist: Playlist) => {
+      router.push({
+        pathname: "/playlist/[playlistId]",
+        params: { playlistId: playlist.id },
+      });
+    },
+    [router]
+  );
+
+  // keyExtractor関数をメモ化
+  const keyExtractor = useCallback((item: Song | Playlist) => item.id, []);
+
   const renderLikedSongs = useCallback(
     ({ item }: { item: Song }) => {
       return (
@@ -58,6 +73,14 @@ export default function LibraryScreen() {
       );
     },
     [togglePlayPause]
+  );
+
+  // プレイリストのrenderItem関数をメモ化
+  const renderPlaylistItem = useCallback(
+    ({ item }: { item: Playlist }) => (
+      <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
+    ),
+    [handlePlaylistPress]
   );
 
   if (isLikedLoading || isPlaylistsLoading) return <Loading />;
@@ -135,21 +158,10 @@ export default function LibraryScreen() {
             <FlatList
               key={"playlists"}
               data={playlists}
-              renderItem={({ item }) => (
-                <PlaylistItem
-                  playlist={item}
-                  onPress={(playlist) =>
-                    router.push({
-                      pathname: "/playlist/[playlistId]",
-                      params: { playlistId: playlist.id },
-                    })
-                  }
-                />
-              )}
+              renderItem={renderPlaylistItem}
               numColumns={2}
-              keyExtractor={(item) => item.id}
+              keyExtractor={keyExtractor}
               contentContainerStyle={styles.listContainer}
-              // パフォーマンス最適化
               windowSize={5}
               maxToRenderPerBatch={8}
               updateCellsBatchingPeriod={50}
