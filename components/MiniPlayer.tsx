@@ -1,12 +1,16 @@
-import { useRef, useEffect, memo } from "react";
+import { useEffect, memo } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Animated,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
@@ -25,32 +29,22 @@ function ModernMiniPlayer({
   onPlayPause,
   onPress,
 }: MiniPlayerProps) {
-  const translateY = useRef(new Animated.Value(60)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useSharedValue(60);
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [opacity, translateY]);
+    translateY.value = withTiming(0, { duration: 300 });
+    opacity.value = withTiming(1, { duration: 300 });
+  }, []);
 
   return (
     <Animated.View
       style={[
         styles.container,
-        {
-          transform: [{ translateY }],
-          opacity,
-        },
+        useAnimatedStyle(() => ({
+          transform: [{ translateY: translateY.value }],
+          opacity: opacity.value,
+        })),
       ]}
     >
       <LinearGradient

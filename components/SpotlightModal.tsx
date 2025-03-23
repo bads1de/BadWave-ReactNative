@@ -6,9 +6,16 @@ import {
   StyleSheet,
   Dimensions,
   StatusBar,
-  Animated,
   TouchableOpacity,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+  Extrapolation,
+  runOnJS,
+} from "react-native-reanimated";
 import { Video, ResizeMode } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -32,25 +39,19 @@ export default function SpotlightModal({
 }: SpotlightModalProps) {
   const windowWidth = Dimensions.get("window").width;
   const windowHeight = Dimensions.get("window").height;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useSharedValue(0);
 
   const videoRef = useRef(null);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    fadeAnim.value = withTiming(1, { duration: 300 });
   }, []);
 
   const handleClose = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      onClose();
+    fadeAnim.value = withTiming(0, { duration: 200 }, (finished) => {
+      if (finished) {
+        runOnJS(onClose)();
+      }
     });
   };
 
@@ -67,17 +68,19 @@ export default function SpotlightModal({
         <Animated.View
           style={[
             styles.modalContainer,
-            {
-              opacity: fadeAnim,
-              transform: [
-                {
-                  scale: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.9, 1],
-                  }),
-                },
-              ],
-            },
+            useAnimatedStyle(() => {
+              const scale = interpolate(
+                fadeAnim.value,
+                [0, 1],
+                [0.9, 1],
+                Extrapolation.CLAMP
+              );
+
+              return {
+                opacity: fadeAnim.value,
+                transform: [{ scale }],
+              };
+            }),
           ]}
         >
           <View style={styles.videoContainer}>

@@ -7,8 +7,14 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  Animated,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedScrollHandler,
+  interpolate,
+  Extrapolation,
+} from "react-native-reanimated";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
@@ -71,17 +77,27 @@ export default function PlaylistDetailScreen() {
     },
   });
 
-  const scrollY = new Animated.Value(0);
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [1, 0.2],
-    extrapolate: "clamp",
-  });
+  const scrollY = useSharedValue(0);
 
-  const headerScale = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [1, 0.95],
-    extrapolate: "clamp",
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const headerOpacity = interpolate(
+      scrollY.value,
+      [0, 100],
+      [1, 0.2],
+      Extrapolation.CLAMP
+    );
+
+    const headerScale = interpolate(
+      scrollY.value,
+      [0, 100],
+      [1, 0.95],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      opacity: headerOpacity,
+      transform: [{ scale: headerScale }],
+    };
   });
 
   const {
@@ -128,15 +144,7 @@ export default function PlaylistDetailScreen() {
   );
 
   const renderHeader = () => (
-    <Animated.View
-      style={[
-        styles.header,
-        {
-          opacity: headerOpacity,
-          transform: [{ scale: headerScale }],
-        },
-      ]}
-    >
+    <Animated.View style={[styles.header, headerAnimatedStyle]}>
       <View style={styles.thumbnailContainer}>
         <View style={styles.decorativeCard1} />
         <View style={styles.decorativeCard2} />
@@ -229,10 +237,9 @@ export default function PlaylistDetailScreen() {
           contentContainerStyle={styles.listContent}
           numColumns={1}
           key="playlist-songs-list"
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: false }
-          )}
+          onScroll={useAnimatedScrollHandler((event) => {
+            scrollY.value = event.contentOffset.y;
+          })}
           scrollEventThrottle={16}
         />
       ) : (

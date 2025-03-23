@@ -7,9 +7,17 @@ import {
   StyleSheet,
   ScrollView,
   TouchableWithoutFeedback,
-  Animated,
   Dimensions,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withSequence,
+  interpolate,
+  Extrapolation,
+} from "react-native-reanimated";
 import { useAuth } from "@/providers/AuthProvider";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,7 +39,7 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const { session } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [isAdded, setIsAdded] = useState<Record<string, boolean>>({});
-  const [animation] = useState(new Animated.Value(0));
+  const animation = useSharedValue(0);
   const { width } = Dimensions.get("window");
 
   const { data: playlists = [] } = useQuery({
@@ -54,20 +62,14 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
 
   useEffect(() => {
     if (modalOpen) {
-      Animated.spring(animation, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 50,
-        friction: 8,
-      }).start();
+      animation.value = withSpring(1, {
+        damping: 8,
+        stiffness: 50,
+      });
     } else {
-      Animated.timing(animation, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+      animation.value = withTiming(0, { duration: 200 });
     }
-  }, [modalOpen, animation]);
+  }, [modalOpen]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (playlistId: string) => {
@@ -148,30 +150,31 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
     }
 
     // アニメーション効果付きで追加
-    Animated.sequence([
-      Animated.timing(new Animated.Value(0), {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(new Animated.Value(1), {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // 注: このアニメーションは実際には効果がありません（新しいAnimated.Valueを作成しているため）
+    // 必要に応じて、別の方法でアニメーション効果を実装してください
 
     mutate(playlistId);
   };
 
-  const modalScale = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.8, 1],
-  });
+  const animatedStyle = useAnimatedStyle(() => {
+    const modalScale = interpolate(
+      animation.value,
+      [0, 1],
+      [0.8, 1],
+      Extrapolation.CLAMP
+    );
 
-  const modalOpacity = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
+    const modalOpacity = interpolate(
+      animation.value,
+      [0, 1],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      transform: [{ scale: modalScale }],
+      opacity: modalOpacity,
+    };
   });
 
   return (
@@ -216,9 +219,8 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
               <Animated.View
                 style={[
                   styles.modalContent,
+                  animatedStyle,
                   {
-                    transform: [{ scale: modalScale }],
-                    opacity: modalOpacity,
                     width: width * 0.85,
                   },
                 ]}

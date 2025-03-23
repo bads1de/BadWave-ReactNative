@@ -5,8 +5,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Animated,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+} from "react-native-reanimated";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,9 +35,9 @@ const SongItem = memo(
     const router = useRouter();
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-    // useRefを使用してAnimated.Valueを保持
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-    const opacityAnim = useRef(new Animated.Value(0)).current;
+    // Reanimatedの共有値を使用
+    const scaleAnim = useSharedValue(1);
+    const opacityAnim = useSharedValue(0);
 
     // 初回マウント時のみ実行されるフラグ
     const isFirstRender = useRef(true);
@@ -53,31 +58,23 @@ const SongItem = memo(
     useEffect(() => {
       // 初回レンダリング時のみ、または画像がロードされた時のみ実行
       if (isImageLoaded && isFirstRender.current) {
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }).start();
+        opacityAnim.value = withTiming(1, { duration: 500 });
         isFirstRender.current = false;
       }
     }, [isImageLoaded]);
 
     const handlePressIn = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        friction: 8,
-        tension: 100,
-        useNativeDriver: true,
-      }).start();
+      scaleAnim.value = withSpring(0.95, {
+        damping: 8,
+        stiffness: 100,
+      });
     };
 
     const handlePressOut = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 5,
-        tension: 40,
-        useNativeDriver: true,
-      }).start();
+      scaleAnim.value = withSpring(1, {
+        damping: 5,
+        stiffness: 40,
+      });
     };
 
     const handleTitlePress = () => {
@@ -92,7 +89,10 @@ const SongItem = memo(
         style={[
           styles.containerWrapper,
           dynamicStyle,
-          { transform: [{ scale: scaleAnim }], opacity: opacityAnim },
+          useAnimatedStyle(() => ({
+            transform: [{ scale: scaleAnim.value }],
+            opacity: opacityAnim.value,
+          })),
         ]}
       >
         <TouchableOpacity
