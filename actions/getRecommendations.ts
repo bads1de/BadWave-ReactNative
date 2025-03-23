@@ -8,6 +8,7 @@ const getRecommendations = async (limit: number = 10): Promise<Song[]> => {
   } = await supabase.auth.getSession();
 
   if (!session?.user?.id) {
+    console.log("No user session found for recommendations");
     return [];
   }
 
@@ -25,6 +26,7 @@ const getRecommendations = async (limit: number = 10): Promise<Song[]> => {
 
     // データがない場合は空配列を返す
     if (!data || !Array.isArray(data) || data.length === 0) {
+      console.log("No recommendation data found for user", session.user.id);
       return [];
     }
 

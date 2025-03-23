@@ -28,10 +28,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
-      // 認証状態が変更されたら、ユーザー情報のキャッシュを無効化
+      // 認証状態が変更されたら、関連するキャッシュを無効化
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.user] });
+
+      // ログイン時にはレコメンデーションのキャッシュも無効化
+      if (event === "SIGNED_IN") {
+        queryClient.invalidateQueries({
+          queryKey: [CACHED_QUERIES.getRecommendations],
+        });
+      }
     });
     return () => subscription.unsubscribe();
   }, [queryClient]);

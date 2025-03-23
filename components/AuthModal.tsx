@@ -18,6 +18,7 @@ import { useAuthStore } from "@/hooks/useAuthStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
+import { CACHED_QUERIES } from "@/constants";
 
 GoogleSignin.configure({
   webClientId:
@@ -47,6 +48,12 @@ export default function AuthModal() {
       });
 
       if (error) throw error;
+
+      // レコメンデーションのキャッシュを無効化
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.getRecommendations],
+      });
+      setShowAuthModal(false);
     } catch (error: any) {
       Alert.alert("エラー", error.message);
     } finally {
@@ -96,6 +103,11 @@ export default function AuthModal() {
       }
 
       if (error) throw error;
+
+      // レコメンデーションのキャッシュを無効化
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.getRecommendations],
+      });
 
       // 成功時にモーダルを閉じる
       setShowAuthModal(false);
