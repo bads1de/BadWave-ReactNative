@@ -3,19 +3,19 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   StyleSheet,
   Dimensions,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import Song from "@/types";
 import { useQuery } from "@tanstack/react-query";
-import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES } from "@/constants";
 import getTrendSongs, { TrendPeriod } from "@/actions/useGetTrendSongs";
 import CustomButton from "./CustomButton";
 import Loading from "./Loading";
@@ -37,11 +37,12 @@ const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
       onPress={() => onPlay(song)}
       activeOpacity={0.7}
     >
-      <Image source={{ uri: song.image_path }} style={styles.image} />
-      <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.9)"]}
-        style={styles.gradient}
-      />
+      <ImageBackground source={{ uri: song.image_path }} style={styles.image}>
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.9)"]}
+          style={styles.gradient}
+        />
+      </ImageBackground>
       <BlurView intensity={20} style={styles.blurContainer}>
         <View style={styles.rankContainer}>
           <Text style={styles.rankText}>#{index + 1}</Text>

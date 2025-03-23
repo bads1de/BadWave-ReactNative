@@ -1,5 +1,6 @@
-import React, { useMemo } from "react";
-import { TouchableOpacity, View, Text, StyleSheet, Image } from "react-native";
+import React from "react";
+import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import Animated, {
@@ -7,11 +8,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  withSequence,
-  withDelay,
-  Easing,
 } from "react-native-reanimated";
-import { BlurView } from "expo-blur";
 
 interface GenreCardProps {
   genre: string;
@@ -88,10 +85,7 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        { scale: scale.value },
-        { translateY: translateY.value },
-      ],
+      transform: [{ scale: scale.value }, { translateY: translateY.value }],
     };
   });
 
@@ -129,17 +123,17 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
         activeOpacity={0.9}
       >
         <View style={styles.card}>
-          <Image
+          <ImageBackground
             source={backgroundImages[genre as keyof typeof backgroundImages]}
             style={styles.backgroundImage}
-          />
-
-          <LinearGradient
-            colors={getGradientColors(genre)}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradient}
-          />
+          >
+            <LinearGradient
+              colors={getGradientColors(genre)}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.gradient}
+            />
+          </ImageBackground>
 
           <Animated.View style={[styles.glow, glowStyle]}>
             <LinearGradient
@@ -165,7 +159,7 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
               <Animated.View style={styles.decorativeCircle} />
             </View>
           </View>
-          
+
           <View style={styles.cardBorder}>
             <LinearGradient
               colors={getGradientColors(genre)}

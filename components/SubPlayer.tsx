@@ -28,8 +28,14 @@ function SubPlayer({ onClose }: SubPlayerProps) {
   const swiperRef = useRef(null);
 
   // useSubPlayerAudio フックを使用して再生機能を統合
-  const { currentPosition, duration, stopAndUnloadCurrentSound } =
-    useSubPlayerAudio();
+  const {
+    currentPosition,
+    duration,
+    stopAndUnloadCurrentSound,
+    isPlaying,
+    togglePlayPause,
+    seekTo,
+  } = useSubPlayerAudio();
 
   /**
    * プレーヤーが閉じられるときに音声を確実に停止する処理
@@ -67,111 +73,122 @@ function SubPlayer({ onClose }: SubPlayerProps) {
           style={styles.songImage}
           resizeMode="cover"
         >
-          {/* 上部のグラデーション */}
-          <LinearGradient
-            colors={["rgba(0,0,0,0.7)", "transparent"]}
-            style={styles.topGradient}
-          />
-
-          {/* 下部のグラデーション */}
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
-            locations={[0.6, 0.8, 1]}
-            style={styles.bottomGradient}
+          <TouchableOpacity
+            style={styles.imageOverlay}
+            activeOpacity={1}
+            onPress={togglePlayPause}
           >
-            <View style={styles.songInfo}>
-              <Text style={styles.songTitle}>{song.title}</Text>
-              <Text style={styles.songAuthor}>{song.author}</Text>
-            </View>
+            {/* 上部のグラデーション */}
+            <LinearGradient
+              colors={["rgba(0,0,0,0.7)", "transparent"]}
+              style={styles.topGradient}
+            />
 
-            {/* プログレスバー */}
-            <View style={styles.playerControls}>
-              <View style={styles.seekBarContainer}>
-                <View style={styles.progressBarBackground}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      {
-                        width: `${
-                          (progressPosition / (progressDuration || 1)) * 100
-                        }%`,
-                      },
-                    ]}
+            {/* 下部のグラデーション */}
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
+              locations={[0.6, 0.8, 1]}
+              style={styles.bottomGradient}
+            >
+              <View style={styles.songInfo}>
+                <Text style={styles.songTitle}>{song.title}</Text>
+                <Text style={styles.songAuthor}>{song.author}</Text>
+              </View>
+
+              {/* プログレスバー */}
+              <View style={styles.playerControls}>
+                <View style={styles.seekBarContainer}>
+                  <View style={styles.progressBarBackground}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        {
+                          width: `${
+                            (progressPosition / (progressDuration || 1)) * 100
+                          }%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Slider
+                    style={styles.seekBar}
+                    minimumValue={0}
+                    maximumValue={progressDuration || 1}
+                    value={progressPosition}
+                    minimumTrackTintColor="transparent"
+                    maximumTrackTintColor="transparent"
+                    thumbTintColor="transparent"
+                    onSlidingComplete={seekTo}
                   />
                 </View>
-                <Slider
-                  style={styles.seekBar}
-                  minimumValue={0}
-                  maximumValue={progressDuration || 1}
-                  value={progressPosition}
-                  minimumTrackTintColor="transparent"
-                  maximumTrackTintColor="transparent"
-                  thumbTintColor="transparent"
-                />
               </View>
-            </View>
-          </LinearGradient>
+            </LinearGradient>
 
-          {/* アクションアイコン */}
-          <View style={styles.actionIcons}>
-            <TouchableOpacity style={styles.actionButton}>
-              <BlurView
-                intensity={30}
-                style={styles.blurIconContainer}
-                tint="dark"
-              >
-                <Ionicons
-                  name="person-circle-outline"
-                  size={28}
-                  color="#FF69B4"
-                />
-              </BlurView>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <BlurView
-                intensity={30}
-                style={styles.blurIconContainer}
-                tint="dark"
-              >
-                <Ionicons name="heart-outline" size={28} color="#FF0080" />
-              </BlurView>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <BlurView
-                intensity={30}
-                style={styles.blurIconContainer}
-                tint="dark"
-              >
-                <Ionicons name="chatbubble-outline" size={28} color="#00dbde" />
-              </BlurView>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <BlurView
-                intensity={30}
-                style={styles.blurIconContainer}
-                tint="dark"
-              >
-                <Ionicons
-                  name="share-social-outline"
-                  size={28}
-                  color="#7C3AED"
-                />
-              </BlurView>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <BlurView
-                intensity={30}
-                style={styles.blurIconContainer}
-                tint="dark"
-              >
-                <Ionicons
-                  name="ellipsis-horizontal"
-                  size={28}
-                  color="#00F5A0"
-                />
-              </BlurView>
-            </TouchableOpacity>
-          </View>
+            {/* アクションアイコン */}
+            <View style={styles.actionIcons}>
+              <TouchableOpacity style={styles.actionButton}>
+                <BlurView
+                  intensity={30}
+                  style={styles.blurIconContainer}
+                  tint="dark"
+                >
+                  <Ionicons
+                    name="person-circle-outline"
+                    size={28}
+                    color="#FF69B4"
+                  />
+                </BlurView>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <BlurView
+                  intensity={30}
+                  style={styles.blurIconContainer}
+                  tint="dark"
+                >
+                  <Ionicons name="heart-outline" size={28} color="#FF0080" />
+                </BlurView>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <BlurView
+                  intensity={30}
+                  style={styles.blurIconContainer}
+                  tint="dark"
+                >
+                  <Ionicons
+                    name="chatbubble-outline"
+                    size={28}
+                    color="#00dbde"
+                  />
+                </BlurView>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <BlurView
+                  intensity={30}
+                  style={styles.blurIconContainer}
+                  tint="dark"
+                >
+                  <Ionicons
+                    name="share-social-outline"
+                    size={28}
+                    color="#7C3AED"
+                  />
+                </BlurView>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionButton}>
+                <BlurView
+                  intensity={30}
+                  style={styles.blurIconContainer}
+                  tint="dark"
+                >
+                  <Ionicons
+                    name="ellipsis-horizontal"
+                    size={28}
+                    color="#00F5A0"
+                  />
+                </BlurView>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </ImageBackground>
       </View>
     );
@@ -363,6 +380,10 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "#4c1d95",
     borderRadius: 2,
+  },
+  imageOverlay: {
+    flex: 1,
+    justifyContent: "space-between",
   },
 });
 

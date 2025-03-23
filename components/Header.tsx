@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Image } from "expo-image";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import { useAuth } from "@/providers/AuthProvider";
 import { useUser } from "@/actions/getUser";

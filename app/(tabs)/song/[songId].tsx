@@ -2,11 +2,11 @@ import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
 } from "react-native";
+import { ImageBackground } from "expo-image";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import getSongById from "@/actions/getSongById";
@@ -70,11 +70,15 @@ export default function SongDetailScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Image source={{ uri: song.image_path! }} style={styles.image} />
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.8)"]}
-            style={styles.gradientOverlay}
-          />
+          <ImageBackground
+            source={{ uri: song.image_path! }}
+            style={styles.image}
+          >
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.8)"]}
+              style={styles.gradientOverlay}
+            />
+          </ImageBackground>
 
           <View style={styles.playButtonContainer}>
             <TouchableOpacity onPress={handlePlayPause}>

@@ -178,36 +178,6 @@ export const safeAudioOperation = async (
 };
 ```
 
-### 3. UI・レンダリングの最適化
-
-#### 3.1 UI コンポーネントの最適化
-
-- **提案**: 重い UI コンポーネントの使用を最適化する
-- **実装方法**:
-  - 複雑なアニメーションの最適化
-  - レンダリングの最適化と不要な再レンダリングの防止
-  - コンポーネントのメモ化を必要に応じて実装
-
-````
-
-#### 3.2 重い UI コンポーネントの最適化
-
-- **提案**: 計算コストの高いコンポーネントの使用を最小限に抑える
-- **実装方法**:
-  - LinearGradient や BlurView の使用を必要な場所のみに限定
-  - 事前計算された画像やキャッシュを活用
-  - メモ化を適切に実装して再レンダリングを防止
-
-```typescript
-// 改善例: 重いコンポーネントのメモ化
-const MemoizedGradientBackground = memo(
-  ({ colors }) => <LinearGradient colors={colors} style={styles.gradient} />,
-  (prevProps, nextProps) =>
-    prevProps.colors[0] === nextProps.colors[0] &&
-    prevProps.colors[1] === nextProps.colors[1]
-);
-````
-
 ### 4. データ管理とネットワーク通信の最適化
 
 #### 4.1 React Query の最適化
@@ -435,7 +405,6 @@ observer.observe({ entryTypes: ["measure"] });
 
 - アプリ起動時間の最適化（初期化処理の遅延読み込み）
 - useSubPlayerAudio の最適化
-- コンポーネントのメモ化
 
 ### 2. 中優先度（短期対応）
 
