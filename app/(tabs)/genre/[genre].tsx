@@ -69,6 +69,11 @@ export default function GenreSongsScreen() {
           )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
+          windowSize={5}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          removeClippedSubviews={true}
+          initialNumToRender={8}
         />
       </View>
     </SafeAreaView>

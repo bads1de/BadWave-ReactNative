@@ -1,12 +1,12 @@
-import React, { memo } from "react";
+import React from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
 } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
@@ -52,7 +52,12 @@ export default function ListItem({
           { width: getImageSize(), height: getImageSize() },
         ]}
       >
-        <Image source={{ uri: song.image_path }} style={styles.image} />
+        <Image
+          source={{ uri: song.image_path }}
+          style={styles.image}
+          contentFit="cover"
+          cachePolicy="disk"
+        />
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.7)"]}
           style={styles.gradient}

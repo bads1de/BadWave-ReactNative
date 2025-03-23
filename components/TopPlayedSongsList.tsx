@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
   Dimensions,
 } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useQuery } from "@tanstack/react-query";
 import getTopPlayedSongs from "@/actions/getTopPlayedSongs";
@@ -78,16 +78,19 @@ export default function TopPlayedSongsList() {
               style={styles.songItem}
               onPress={() => handleSongPress(index)}
             >
-              <ImageBackground
-                source={{ uri: song.image_path }}
-                style={styles.songImage}
-                imageStyle={{ borderRadius: 8 }}
+              <View
+                style={[
+                  styles.songImage,
+                  { borderRadius: 8, overflow: "hidden" },
+                ]}
               >
-                <LinearGradient
-                  colors={["transparent", "rgba(0,0,0,0.8)"]}
-                  style={styles.gradient}
+                <Image
+                  source={{ uri: song.image_path }}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                  cachePolicy="disk"
                 />
-              </ImageBackground>
+              </View>
               <View style={styles.songInfo}>
                 <Text numberOfLines={1} style={styles.songTitle}>
                   {song.title}

@@ -2,12 +2,12 @@ import React, { useState, memo, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
   Animated,
 } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
@@ -107,6 +107,8 @@ const SongItem = memo(
               source={{ uri: song.image_path }}
               style={styles.image}
               onLoad={() => setIsImageLoaded(true)}
+              contentFit="cover"
+              cachePolicy="disk"
             />
             {!isImageLoaded && <View style={styles.imagePlaceholder} />}
             <LinearGradient

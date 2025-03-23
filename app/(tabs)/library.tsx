@@ -127,6 +127,11 @@ export default function LibraryScreen() {
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 contentContainerStyle={styles.listContainer}
+                windowSize={5}
+                maxToRenderPerBatch={8}
+                updateCellsBatchingPeriod={50}
+                removeClippedSubviews={true}
+                initialNumToRender={6}
               />
             ) : (
               <View style={[styles.noSongsContainer, { flex: 1 }]}>
@@ -151,6 +156,12 @@ export default function LibraryScreen() {
               numColumns={2}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.listContainer}
+              // パフォーマンス最適化
+              windowSize={5}
+              maxToRenderPerBatch={8}
+              updateCellsBatchingPeriod={50}
+              removeClippedSubviews={true}
+              initialNumToRender={6}
             />
           ) : (
             <View style={[styles.noSongsContainer, { flex: 1 }]}>

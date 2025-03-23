@@ -153,6 +153,11 @@ export default function SearchScreen() {
                   </View>
                 ) : null
               }
+              windowSize={5}
+              maxToRenderPerBatch={10}
+              updateCellsBatchingPeriod={50}
+              removeClippedSubviews={true}
+              initialNumToRender={8}
             />
           ) : (
             <FlatList
@@ -175,6 +180,12 @@ export default function SearchScreen() {
                   </View>
                 ) : null
               }
+              // パフォーマンス最適化
+              windowSize={5}
+              maxToRenderPerBatch={8}
+              updateCellsBatchingPeriod={50}
+              removeClippedSubviews={true}
+              initialNumToRender={6}
             />
           )}
         </>

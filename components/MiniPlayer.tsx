@@ -3,11 +3,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Dimensions,
   Animated,
 } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import Song from "@/types";
@@ -63,6 +63,9 @@ function ModernMiniPlayer({
           <Image
             source={{ uri: currentSong.image_path }}
             style={styles.image}
+            contentFit="cover"
+            cachePolicy="disk"
+            priority="high"
           />
           <View style={styles.songInfo}>
             <Text style={styles.title} numberOfLines={1}>
