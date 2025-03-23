@@ -6,12 +6,6 @@
 
 ## 現状の問題点
 
-#### 4.3 AsyncStorage の非効率な使用
-
-- AsyncStorage への書き込みが頻繁に行われる可能性
-- キャッシュデータのサイズが大きい可能性
-- キャッシュの有効期限管理が不十分
-
 ### 5. バックグラウンド処理とメモリ管理の問題
 
 #### 5.1 バックグラウンド再生の最適化不足
@@ -184,31 +178,6 @@ const { data, error } = await supabase
   .single();
 ```
 
-#### 4.3 AsyncStorage の最適化
-
-- **提案**: ストレージへの書き込みを最適化する
-- **実装方法**:
-  - AsyncStorage への書き込みを最小限に抑える（バッチ処理の導入）
-  - キャッシュデータのサイズを最適化（必要な情報のみを保存）
-  - MMKV などの高速なストレージライブラリの導入を検討
-
-```typescript
-// 改善例: AsyncStorageのバッチ処理
-const batchSaveCache = async (
-  cacheItems: Array<{ key: string; data: any }>
-) => {
-  const pairs = cacheItems.map((item) => [
-    `${CACHE_PREFIX}:${item.key}`,
-    JSON.stringify({
-      data: item.data,
-      timestamp: Date.now(),
-    }),
-  ]);
-
-  await AsyncStorage.multiSet(pairs);
-};
-```
-
 ### 5. バックグラウンド処理とメモリ管理の最適化
 
 #### 5.1 バックグラウンド再生の最適化
@@ -368,7 +337,6 @@ observer.observe({ entryTypes: ["measure"] });
 - バンドルサイズの最適化
 - アニメーションの最適化
 - エラーハンドリングの強化
-- AsyncStorage の最適化
 
 ### 3. 低優先度（長期対応）
 

@@ -34,6 +34,8 @@ export default function SpotlightModal({
   const windowHeight = Dimensions.get("window").height;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  const videoRef = useRef(null);
+
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -80,6 +82,7 @@ export default function SpotlightModal({
         >
           <View style={styles.videoContainer}>
             <Video
+              ref={videoRef}
               source={{ uri: item.video_path }}
               style={[
                 styles.video,

@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { ResizeMode, Video } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import SpotlightModal from "./SpotlightModal";
 import { CACHED_QUERIES } from "@/constants";
@@ -14,6 +13,7 @@ import getSpotlights from "@/actions/getSpotlights";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "./Loading";
 import Error from "./Error";
+import { Video, ResizeMode } from "expo-av";
 
 export default function SpotlightBoard() {
   const [isMuted, setIsMuted] = useState(true);
