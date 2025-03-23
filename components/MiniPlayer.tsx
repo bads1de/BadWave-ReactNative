@@ -58,7 +58,7 @@ function ModernMiniPlayer({
             source={{ uri: currentSong.image_path }}
             style={styles.image}
             contentFit="cover"
-            cachePolicy="disk"
+            cachePolicy="memory-disk"
             priority="high"
           />
           <View style={styles.songInfo}>

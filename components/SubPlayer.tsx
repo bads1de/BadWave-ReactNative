@@ -4,10 +4,10 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  ImageBackground,
   Text,
   StatusBar,
 } from "react-native";
+import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
@@ -71,7 +71,8 @@ function SubPlayer({ onClose }: SubPlayerProps) {
         <ImageBackground
           source={{ uri: song.image_path }}
           style={styles.songImage}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="memory-disk"
         >
           <TouchableOpacity
             style={styles.imageOverlay}

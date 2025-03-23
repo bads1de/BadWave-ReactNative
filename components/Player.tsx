@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
   Dimensions,
   StyleSheet as RNStyleSheet,
   ScrollView,
 } from "react-native";
+import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
@@ -241,7 +241,8 @@ const MediaBackground: FC<MediaBackgroundProps> = memo(
       <ImageBackground
         source={{ uri: imageUrl! }}
         style={styles.backgroundImage}
-        resizeMode="cover"
+        contentFit="cover"
+        cachePolicy="memory-disk"
       />
     );
   }
