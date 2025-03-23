@@ -20,7 +20,7 @@ const { width } = Dimensions.get("window");
 const ITEM_WIDTH = (width - 104) / 3;
 const ITEM_HEIGHT = ITEM_WIDTH * 1.5;
 
-export default function TopPlayedSongsList() {
+function TopPlayedSongsList() {
   const { data: user } = useUser();
   const userId = user?.id;
   const { isPlaying } = useAudioPlayer();
@@ -164,3 +164,5 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
 });
+
+export default memo(TopPlayedSongsList);

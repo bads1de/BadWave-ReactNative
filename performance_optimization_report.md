@@ -34,26 +34,6 @@
 - 複数の音声が同時に再生される可能性
 - エラーハンドリングが不十分で、例外発生時にリソースが解放されない可能性
 
-### 3. UI・レンダリングの問題
-
-#### 3.1 画像処理の非効率性
-
-- 画像の読み込みが最適化されていない（標準の Image コンポーネントを使用）
-- キャッシュ戦略が不十分
-- 画像のリサイズやフォーマット変換が行われていない
-
-#### 3.2 リスト表示の最適化不足
-
-- FlatList の最適化パラメータが設定されていない
-- 大量のアイテムを表示する際のパフォーマンスが低下する可能性
-- 仮想化の設定が最適化されていない
-
-#### 3.3 重い UI コンポーネントの多用
-
-- LinearGradient や BlurView などの計算コストの高いコンポーネントが多用
-- 複雑なアニメーションが多用されている
-- 不要なレンダリングが発生している可能性
-
 ### 4. データ管理とネットワーク通信の問題
 
 #### 4.1 React Query の設定最適化不足
@@ -200,66 +180,17 @@ export const safeAudioOperation = async (
 
 ### 3. UI・レンダリングの最適化
 
-#### 3.1 画像処理の最適化
+#### 3.1 UI コンポーネントの最適化
 
-- **提案**: 画像の読み込みとキャッシュを最適化する
+- **提案**: 重い UI コンポーネントの使用を最適化する
 - **実装方法**:
-  - react-native-fast-image を導入して画像のキャッシュと読み込みを最適化
-  - 画像のサイズとフォーマットを最適化（WebP 形式の採用など）
-  - 画像の遅延読み込みと事前読み込みを実装
+  - 複雑なアニメーションの最適化
+  - レンダリングの最適化と不要な再レンダリングの防止
+  - コンポーネントのメモ化を必要に応じて実装
 
-```typescript
-// 改善例: FastImageの導入
-import FastImage from 'react-native-fast-image';
+````
 
-// 変更前
-<Image
-  source={{ uri: song.image_path }}
-  style={styles.image}
-  onLoad={() => setIsImageLoaded(true)}
-/>
-
-// 変更後
-<FastImage
-  source={{
-    uri: song.image_path,
-    priority: FastImage.priority.normal,
-    cache: FastImage.cacheControl.immutable
-  }}
-  style={styles.image}
-  onLoad={() => setIsImageLoaded(true)}
-  resizeMode={FastImage.resizeMode.cover}
-/>
-```
-
-#### 3.2 リスト表示の最適化
-
-- **提案**: FlatList の最適化パラメータを調整する
-- **実装方法**:
-  - windowSize、maxToRenderPerBatch、updateCellsBatchingPeriod を最適化
-  - getItemLayout を実装して高さ計算を最適化
-  - keyExtractor を最適化
-
-```typescript
-// 改善例: FlatListの最適化
-<FlatList
-  data={songs}
-  renderItem={renderItem}
-  keyExtractor={(item) => item.id}
-  windowSize={5} // 表示範囲の前後に読み込むアイテム数
-  maxToRenderPerBatch={10} // 一度にレンダリングするアイテム数
-  updateCellsBatchingPeriod={50} // バッチ更新の間隔
-  removeClippedSubviews={true} // 画面外のビューを削除
-  initialNumToRender={4} // 初期表示するアイテム数
-  getItemLayout={(data, index) => ({
-    length: ITEM_HEIGHT,
-    offset: ITEM_HEIGHT * index,
-    index,
-  })}
-/>
-```
-
-#### 3.3 重い UI コンポーネントの最適化
+#### 3.2 重い UI コンポーネントの最適化
 
 - **提案**: 計算コストの高いコンポーネントの使用を最小限に抑える
 - **実装方法**:
@@ -275,7 +206,7 @@ const MemoizedGradientBackground = memo(
     prevProps.colors[0] === nextProps.colors[0] &&
     prevProps.colors[1] === nextProps.colors[1]
 );
-```
+````
 
 ### 4. データ管理とネットワーク通信の最適化
 
@@ -411,19 +342,27 @@ useEffect(() => {
 
 - **提案**: 重複するフックを統合し、責務を明確にする
 - **実装方法**:
-  - useAudioProgress を useAudioPlayer に統合
+  - フックの責務を明確に分割
   - useSubPlayerAudio を複数の小さなフックに分割
   - 依存配列を最小限に保ち、不要な再計算を防止
 
 ```typescript
-// 改善例: フックの統合
-// 変更前: 別々のフック
-const { position, duration } = useProgress();
-const progressPosition = position * 1000;
-const progressDuration = duration * 1000;
+// 改善例: フックの責務分割
+// 変更前: 複数の責務を持つ大きなフック
+function useComplexHook() {
+  // 多くの状態とロジックが混在
+  return {
+    /* 多数の状態や関数 */
+  };
+}
 
-// 変更後: 統合されたフック
-const { progressPosition, progressDuration } = useAudioProgress();
+// 変更後: 責務を分割した小さなフック
+function useSpecificFeature() {
+  // 特定の機能に特化したロジック
+  return {
+    /* 単一責務の状態や関数 */
+  };
+}
 ```
 
 #### 6.2 エラーハンドリングの強化
@@ -495,10 +434,7 @@ observer.observe({ entryTypes: ["measure"] });
 ### 1. 高優先度（即時対応）
 
 - アプリ起動時間の最適化（初期化処理の遅延読み込み）
-- useAudioPlayer と useAudioProgress の統合
 - useSubPlayerAudio の最適化
-- 画像読み込みの最適化（react-native-fast-image の導入）
-- FlatList の最適化パラメータの調整
 - コンポーネントのメモ化
 
 ### 2. 中優先度（短期対応）

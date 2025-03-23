@@ -88,8 +88,14 @@ function PlayerContainer() {
   );
 }
 
-// メモ化してパフォーマンスを向上
-const MemoizedPlayerContainer = memo(PlayerContainer);
+// カスタム比較関数を使用して、必要な場合のみ再レンダリングする
+const MemoizedPlayerContainer = memo(
+  PlayerContainer,
+  (prevProps, nextProps) => {
+    // PlayerContainerはプロップを受け取らないため、常に同じとみなす
+    return true;
+  }
+);
 
 export default MemoizedPlayerContainer;
 

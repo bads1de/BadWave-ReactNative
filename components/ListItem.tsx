@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   View,
   Text,
@@ -17,17 +17,17 @@ interface ListItemProps {
   onPress: (song: Song) => void;
   showStats?: boolean;
   imageSize?: "small" | "medium" | "large";
-  onDelete?: () => void; // 追加
+  onDelete?: () => void;
 }
 
 const { width } = Dimensions.get("window");
 
-export default function ListItem({
+function ListItem({
   song,
   onPress,
   showStats = true,
   imageSize = "medium",
-  onDelete, // 追加
+  onDelete,
 }: ListItemProps) {
   const getImageSize = () => {
     switch (imageSize) {
@@ -156,4 +156,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+});
+
+// カスタム比較関数を使用してメモ化
+export default memo(ListItem, (prevProps, nextProps) => {
+  // 曲のIDと表示オプションが同じ場合は再レンダリングしない
+  return (
+    prevProps.song.id === nextProps.song.id &&
+    prevProps.showStats === nextProps.showStats &&
+    prevProps.imageSize === nextProps.imageSize
+  );
 });
