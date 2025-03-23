@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   TextInput,
@@ -20,6 +20,7 @@ import Error from "@/components/Error";
 import CustomButton from "@/components/CustomButton";
 import { useRouter } from "expo-router";
 import { Playlist } from "@/types";
+import Song from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 
 type SearchType = "songs" | "playlists";
@@ -50,15 +51,27 @@ export default function SearchScreen() {
     enabled: debouncedQuery.length > 0 && searchType === "playlists",
   });
 
-  const { togglePlayPause } = useAudioPlayer(searchSongs, "search");
+  const audioPlayer = useAudioPlayer(searchSongs, "search");
+
+  // 曲の再生/一時停止を切り替えるハンドラをメモ化
+  const togglePlayPause = useCallback(
+    async (song: Song) => {
+      await audioPlayer.togglePlayPause(song);
+    },
+    [audioPlayer]
+  );
 
   const isLoading =
     searchType === "songs" ? isSongsLoading : isPlaylistsLoading;
   const error = searchType === "songs" ? songsError : playlistsError;
 
-  const handlePlaylistPress = (playlist: Playlist) => {
-    router.push(`/playlist/${playlist.id}`);
-  };
+  // プレイリストをクリックしたときのハンドラをメモ化
+  const handlePlaylistPress = useCallback(
+    (playlist: Playlist) => {
+      router.push(`/playlist/${playlist.id}`);
+    },
+    [router]
+  );
 
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
@@ -137,12 +150,7 @@ export default function SearchScreen() {
               data={searchSongs}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <ListItem
-                  song={item}
-                  onPress={async (song) => {
-                    await togglePlayPause(song);
-                  }}
-                />
+                <ListItem song={item} onPress={togglePlayPause} />
               )}
               contentContainerStyle={styles.listContainer}
               ListEmptyComponent={

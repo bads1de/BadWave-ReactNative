@@ -14,10 +14,52 @@ import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import Song from "@/types";
 
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = (width - 104) / 3;
 const ITEM_HEIGHT = ITEM_WIDTH * 1.5;
+
+// 曲アイテムコンポーネントを抽出してメモ化
+interface TopPlayedSongItemProps {
+  song: Song;
+  index: number;
+  onPress: (index: number) => void;
+}
+
+// メモ化された曲アイテムコンポーネント
+const TopPlayedSongItem = memo(
+  ({ song, index, onPress }: TopPlayedSongItemProps) => {
+    return (
+      <TouchableOpacity
+        key={song.id}
+        style={styles.songItem}
+        onPress={() => onPress(index)}
+      >
+        <View
+          style={[styles.songImage, { borderRadius: 8, overflow: "hidden" }]}
+        >
+          <Image
+            source={{ uri: song.image_path }}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            priority="normal"
+            transition={200}
+          />
+        </View>
+        <View style={styles.songInfo}>
+          <Text numberOfLines={1} style={styles.songTitle}>
+            {song.title}
+          </Text>
+          <Text numberOfLines={1} style={styles.songAuthor}>
+            {song.author}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
 
 function TopPlayedSongsList() {
   const { data: user } = useUser();
@@ -72,33 +114,12 @@ function TopPlayedSongsList() {
         <Text style={styles.sectionTitle}>Top Played Songs</Text>
         <View style={styles.songsContainer}>
           {topSongs.map((song, index) => (
-            <TouchableOpacity
+            <TopPlayedSongItem
               key={song.id}
-              style={styles.songItem}
-              onPress={() => handleSongPress(index)}
-            >
-              <View
-                style={[
-                  styles.songImage,
-                  { borderRadius: 8, overflow: "hidden" },
-                ]}
-              >
-                <Image
-                  source={{ uri: song.image_path }}
-                  style={{ width: "100%", height: "100%" }}
-                  contentFit="cover"
-                  cachePolicy="disk"
-                />
-              </View>
-              <View style={styles.songInfo}>
-                <Text numberOfLines={1} style={styles.songTitle}>
-                  {song.title}
-                </Text>
-                <Text numberOfLines={1} style={styles.songAuthor}>
-                  {song.author}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              song={song}
+              index={index}
+              onPress={handleSongPress}
+            />
           ))}
         </View>
       </View>

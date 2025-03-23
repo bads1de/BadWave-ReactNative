@@ -21,16 +21,28 @@ export default function ForYouBoard() {
 
   const { togglePlayPause } = useAudioPlayer(recommendations, "forYou");
 
+  // 曲をクリックしたときのハンドラをメモ化
+  const handleSongClick = useCallback(
+    async (songId: string) => {
+      const song = recommendations.find((s) => s.id === songId);
+      if (song) {
+        await togglePlayPause(song);
+      }
+    },
+    [recommendations, togglePlayPause]
+  );
+
+  // レンダリング関数をメモ化
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (
       <SongItem
         song={item}
         key={item.id}
-        onClick={async () => await togglePlayPause(item)}
+        onClick={handleSongClick}
         dynamicSize={false}
       />
     ),
-    [togglePlayPause]
+    [handleSongClick]
   );
 
   if (isLoading) return <Loading />;

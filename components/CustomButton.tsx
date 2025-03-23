@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   Text,
   TouchableOpacity,
@@ -53,4 +53,11 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomButton;
+// メモ化してエクスポート
+export default memo(CustomButton, (prevProps, nextProps) => {
+  // labelとisActiveが同じ場合は再レンダリングしない
+  return (
+    prevProps.label === nextProps.label &&
+    prevProps.isActive === nextProps.isActive
+  );
+});

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { Text, View, StyleSheet, Image } from "react-native";
 import TrackPlayer, {
   useTrackPlayerEvents,
@@ -20,7 +20,7 @@ interface NextSongProps {
  * @param {boolean} shuffle - シャッフルモード
  * @returns {React.ReactElement} 次の曲の表示
  */
-export default function NextSong({ repeatMode, shuffle }: NextSongProps) {
+function NextSong({ repeatMode, shuffle }: NextSongProps) {
   const activeTrack = useActiveTrack();
   const [nextSong, setNextSong] = useState<Track | null>(null);
 
@@ -174,4 +174,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
   },
+});
+
+// メモ化してエクスポート
+export default memo(NextSong, (prevProps, nextProps) => {
+  // repeatModeとshuffleが同じ場合は再レンダリングしない
+  return (
+    prevProps.repeatMode === nextProps.repeatMode &&
+    prevProps.shuffle === nextProps.shuffle
+  );
 });

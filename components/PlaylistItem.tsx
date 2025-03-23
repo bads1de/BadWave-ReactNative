@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ interface PlaylistItemProps {
   onPress: (playlist: Playlist) => void;
 }
 
-export default function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
+function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
   const { width } = useWindowDimensions();
   const itemWidth = (width - 48) / 2.2;
   const dynamicStyles = { width: itemWidth, height: itemWidth * 1.2 };
@@ -133,4 +133,10 @@ const styles = StyleSheet.create({
       { translateY: 4 },
     ],
   },
+});
+
+// メモ化してエクスポート
+export default memo(PlaylistItem, (prevProps, nextProps) => {
+  // プレイリストのIDが同じ場合は再レンダリングしない
+  return prevProps.playlist.id === nextProps.playlist.id;
 });
