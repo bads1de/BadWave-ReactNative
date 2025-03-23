@@ -6,7 +6,7 @@ interface LoadingProps {
   color?: string;
 }
 
-export default function Loading({ size, color = "4c1d95" }: LoadingProps) {
+export default function Loading({ size, color = "#4c1d95" }: LoadingProps) {
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={color} />

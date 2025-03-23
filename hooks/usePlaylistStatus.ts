@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import Toast from "react-native-toast-message";
@@ -6,11 +6,11 @@ import { Playlist } from "@/types";
 
 /**
  * usePlaylistStatus フックは、プレイリストの状態を管理します。
- * 
+ *
  * @param {Object} props - プレイリストの状態を管理するためのプロパティ。
  * @param {string} props.songId - 曲の ID。
  * @param {Playlist[]} props.playlists - プレイリストのリスト。
- * 
+ *
  * @returns {Object} プレイリストの状態と操作を含むオブジェクト。
  */
 interface UsePlaylistStatusProps {

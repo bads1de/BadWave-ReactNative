@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   View,
-  StatusBar,
   Dimensions,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";

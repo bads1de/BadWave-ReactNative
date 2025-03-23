@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  FlatList,
-  SafeAreaView,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
 import React, { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";

@@ -14,7 +14,6 @@ import TrackPlayer, {
   Capability,
   AppKilledPlaybackBehavior,
   State,
-  PlaybackState,
 } from "react-native-track-player";
 
 /**

@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylistSong from "@/actions/deletePlaylistSong";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
-import Song from "@/types";
 
 interface DeletePlaylistSongsBtnProps {
   songId: string;

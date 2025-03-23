@@ -7,7 +7,6 @@ import {
   Dimensions,
 } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useQuery } from "@tanstack/react-query";
 import getTopPlayedSongs from "@/actions/getTopPlayedSongs";
 import { CACHED_QUERIES } from "@/constants";
