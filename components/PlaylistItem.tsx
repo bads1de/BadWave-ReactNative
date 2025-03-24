@@ -2,11 +2,11 @@ import React, { memo } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Playlist } from "@/types";
 
@@ -31,7 +31,11 @@ function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
       <View style={styles.decorativeCard2} />
 
       <View style={styles.imageContainer}>
-        <Image source={{ uri: playlist.image_path }} style={styles.image} />
+        <Image
+          source={{ uri: playlist.image_path }}
+          style={styles.image}
+          cachePolicy="memory-disk"
+        />
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.9)"]}
           style={styles.gradient}

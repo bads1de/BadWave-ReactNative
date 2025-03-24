@@ -1,12 +1,6 @@
 import React, { useCallback } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Image,
-  Dimensions,
-} from "react-native";
+import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
@@ -130,6 +124,7 @@ export default function PlaylistDetailScreen() {
           <Image
             source={{ uri: playlist?.image_path }}
             style={styles.thumbnail}
+            cachePolicy="disk"
           />
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.8)"]}

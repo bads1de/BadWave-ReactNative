@@ -70,6 +70,7 @@ export async function setupPlayer(): Promise<boolean> {
         Capability.Play,
         Capability.Pause,
         Capability.SkipToNext,
+        Capability.SeekTo,
         Capability.SkipToPrevious,
       ],
     });
@@ -126,6 +127,9 @@ export function playbackService() {
       await TrackPlayer.addEventListener(Event.RemotePrevious, () =>
         TrackPlayer.skipToPrevious()
       );
+      await TrackPlayer.addEventListener(Event.RemoteSeek, (event) => {
+        TrackPlayer.seekTo(event.position);
+      });
       await TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
         console.error("再生エラーが発生しました:", error);
       });

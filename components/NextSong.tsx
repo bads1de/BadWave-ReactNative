@@ -1,5 +1,6 @@
 import React, { useState, useEffect, memo } from "react";
-import { Text, View, StyleSheet, Image } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import TrackPlayer, {
   useTrackPlayerEvents,
   Event,
@@ -112,7 +113,11 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
         </View>
       ) : (
         <View style={styles.songContainer}>
-          <Image source={{ uri: nextSong?.artwork }} style={styles.artwork} />
+          <Image
+            source={{ uri: nextSong?.artwork }}
+            style={styles.artwork}
+            cachePolicy="memory-disk"
+          />
           <View style={styles.songInfo}>
             <Text style={styles.songName}>{nextSong?.title}</Text>
             <Text style={styles.artist}>{nextSong?.artist}</Text>

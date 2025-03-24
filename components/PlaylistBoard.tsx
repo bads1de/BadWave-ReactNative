@@ -1,5 +1,6 @@
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Playlist } from "@/types";
 import { CACHED_QUERIES } from "@/constants";
@@ -26,8 +27,8 @@ const PlaylistBoard = () => {
 
   return (
     <View style={{ marginBottom: 16 }}>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
           gap: 16,
@@ -64,7 +65,8 @@ const PlaylistBoard = () => {
                     width: "100%",
                     height: "100%",
                   }}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  cachePolicy="disk"
                 />
 
                 {/* オーバーレイグラデーション */}
