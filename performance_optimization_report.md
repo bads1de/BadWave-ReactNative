@@ -4,133 +4,126 @@
 
 このレポートでは、音楽アプリのパフォーマンス分析と最適化提案をまとめています。コードベースの詳細な分析に基づき、パフォーマンスのボトルネックを特定し、具体的な改善策を提案します。
 
-## 現状の問題点
+## 現状の分析
 
-### バックグラウンド処理とメモリ管理の問題
+### コンポーネント構造とレンダリングパフォーマンス
 
-#### バックグラウンド再生の最適化不足
+#### プレーヤーコンポーネントの階層
 
-- バックグラウンドでの音楽再生時のリソース管理が最適化されていない
-- AppKilledPlaybackBehavior の設定が最適化されていない可能性
+- PlayerContainer、Player、MiniPlayer、SubPlayer の複雑な階層構造
+- コンポーネント間の状態共有による不要な再レンダリングの可能性
+- メモ化の使用は適切だが、依存配列の最適化の余地あり
 
-#### メモリリークの可能性
+#### 画像処理の最適化
 
-- useRef を使用したリソース参照の管理が不十分
+- expo-image を使用しているが、cachePolicy 設定にばらつきがある
+- 画像のプリロードと遅延読み込みの戦略が不明確
+- 大きな画像リソースのサイズ最適化が不十分
+
+### 状態管理とデータフロー
+
+#### Zustand ストアの分割
+
+- useAudioStore、usePlayerStore、useSubPlayerStore など複数のストアが存在
+- ストア間の依存関係と更新タイミングの管理が複雑
+- 状態の正規化が不十分で、重複データの可能性あり
+
+#### React Query の使用
+
+- キャッシュ戦略の最適化が不十分
+- staleTime と gcTime の設定が明示的でない
+- バックグラウンドでの更新戦略が不明確
+
+### オーディオ処理とリソース管理
+
+#### 複数のオーディオエンジン
+
+- メインプレーヤーは react-native-track-player を使用
+- SubPlayer は expo-av を直接使用
+- 2 つの異なるオーディオエンジン間の連携と競合の可能性
+
+#### リソース解放の問題
+
 - コンポーネントのアンマウント時のクリーンアップが不十分
-- 大きなオブジェクトや配列が不必要に再作成されている可能性
+- 音声リソースの解放タイミングが不明確
+- メモリリークの可能性
 
 ## 最適化提案
 
-### アプリ起動とロード時間の最適化
+### レンダリングパフォーマンスの改善
 
-#### 初期化処理の最適化
+#### コンポーネントの最適化
 
-- **提案**: アプリ起動時の処理を最適化し、必要な処理のみを実行する
+- **提案**: 不要な再レンダリングを削減し、コンポーネント階層を簡素化する
 - **実装方法**:
-  - 初期化処理を非同期化し、必要なときに遅延読み込みする
-  - TrackPlayer の初期化を必要なときのみ行う
-  - キャッシュの復元を必要なデータのみに限定する
+  - React.memo の依存配列を最適化
+  - コンポーネント分割の見直しと責務の明確化
+  - useCallback と useMemo の適切な使用
 
 ```typescript
-// 改善例: 初期化処理の最適化
-const initializeApp = async () => {
-  // 重要なコンポーネントのみを同期的に初期化
-  await Promise.all([
-    // 必須のキャッシュのみを先に復元
-    persistenceManager.loadCache(CACHED_QUERIES.user),
-    // その他の初期化処理
-  ]);
-
-  // 残りのキャッシュは非同期で復元
-  setTimeout(() => {
-    const nonCriticalQueries = Object.values(CACHED_QUERIES).filter(
-      (key) => key !== CACHED_QUERIES.user
-    );
-    persistenceManager.initializeCache(nonCriticalQueries);
-  }, 1000);
-};
+// 改善例: 最適化されたメモ化コンポーネント
+const MemoizedPlayerControls = memo(PlayerControls, (prevProps, nextProps) => {
+  // 必要な変更がある場合のみ再レンダリング
+  return (
+    prevProps.isPlaying === nextProps.isPlaying &&
+    prevProps.repeatMode === nextProps.repeatMode &&
+    prevProps.shuffle === nextProps.shuffle
+  );
+});
 ```
 
-#### バンドルサイズの最適化
+#### 画像処理の最適化
 
-- **提案**: アプリのバンドルサイズを削減し、起動時間を短縮する
+- **提案**: 画像読み込みとキャッシュ戦略を統一し最適化する
 - **実装方法**:
-  - 未使用の依存関係を削除する
-  - 大きなライブラリを必要な部分のみインポートする
-  - 画像アセットを最適化する
+  - cachePolicy を一貫して「memory-disk」に設定
+  - 画像サイズの最適化とリサイズ戦略の導入
+  - 画像のプリロードを重要な画像のみに限定
 
 ```typescript
-// 改善例: 選択的インポート
-// 変更前
-import { LinearGradient } from "expo-linear-gradient";
-
-// 変更後
-import LinearGradient from "expo-linear-gradient/build/LinearGradient";
+// 改善例: 最適化された画像コンポーネント
+<Image
+  source={{ uri: optimizeImageUrl(song.image_path) }} // サイズ最適化関数
+  style={styles.image}
+  contentFit="cover"
+  cachePolicy="memory-disk"
+  transition={200} // フェードイン効果
+  placeholder={blurhash} // ローディングプレースホルダー
+/>
 ```
 
-### オーディオ処理の最適化
+### 状態管理の最適化
 
-#### オーディオエンジンの統一と最適化
+#### Zustand ストアの最適化
 
-- **提案**: TrackPlayer と expo-av の使用を整理し、可能な限り一方に統一する
+- **提案**: ストア設計を見直し、更新頻度に基づいて分割する
 - **実装方法**:
-  - useSubPlayerAudio フックをリファクタリングし、TrackPlayer に統一
-  - 不要な遅延（300ms）を削除し、リソース解放を最適化
-  - 音声バッファリングの戦略を改善
+  - 頻繁に更新される状態と安定した状態を分離
+  - セレクタの使用による不要な再レンダリングの防止
+  - ミドルウェアを活用したデバッグと永続化
 
 ```typescript
-// 改善例: useSubPlayerAudioフックの最適化
-export function useSubPlayerAudio() {
-  // TrackPlayerを使用した実装に統一
-  const playerInstance = useRef<TrackPlayer | null>(null);
+// 改善例: 最適化されたZustandストア
+import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 
-  // リソース解放を確実に行う
-  const cleanupResources = useCallback(async () => {
-    if (playerInstance.current) {
-      await playerInstance.current.stop();
-      playerInstance.current = null;
-    }
-  }, []);
+export const usePlayerStore = create(
+  subscribeWithSelector((set, get) => ({
+    // 状態
+    showPlayer: false,
 
-  // コンポーネントのアンマウント時にクリーンアップ
-  useEffect(() => {
-    return () => {
-      cleanupResources();
-    };
-  }, [cleanupResources]);
+    // アクション
+    setShowPlayer: (value) => set({ showPlayer: value }),
 
-  // ...残りの実装
-}
+    // 複合アクション
+    togglePlayer: () => set({ showPlayer: !get().showPlayer }),
+  }))
+);
+
+// 最適化されたセレクタ
+export const usePlayerVisibility = () =>
+  usePlayerStore((state) => state.showPlayer);
 ```
-
-#### リソース管理の強化
-
-- **提案**: 音声リソースの確実な解放とエラーハンドリングの強化
-- **実装方法**:
-  - 音声リソースの確実な解放のためのユーティリティ関数を作成
-  - 音声の同時再生を防止するためのロック機構を強化
-  - try-catch-finally を適切に使用し、エラー発生時もリソースを確実に解放
-
-```typescript
-// 改善例: 音声リソース管理のユーティリティ関数
-export const safeAudioOperation = async (
-  operation: () => Promise<void>,
-  errorMessage: string,
-  cleanup?: () => Promise<void>
-) => {
-  try {
-    await operation();
-  } catch (error) {
-    console.error(errorMessage, error);
-  } finally {
-    if (cleanup) {
-      await cleanup();
-    }
-  }
-};
-```
-
-### データ管理とネットワーク通信の最適化
 
 #### React Query の最適化
 
@@ -141,7 +134,7 @@ export const safeAudioOperation = async (
   - キャッシュの無効化戦略を改善
 
 ```typescript
-// 改善例: React Queryの最適化
+// 改善例: 最適化されたReact Queryの設定
 const { data: topSongs = [] } = useQuery({
   queryKey: [CACHED_QUERIES.topPlayedSongs, userId],
   queryFn: () => getTopPlayedSongs(userId),
@@ -153,43 +146,150 @@ const { data: topSongs = [] } = useQuery({
 });
 ```
 
-#### Supabase との通信最適化
+### オーディオ処理の最適化
 
-- **提案**: データベースクエリとデータ取得を最適化する
+#### オーディオエンジンの統一
+
+- **提案**: 可能な限りオーディオエンジンを統一し、リソース競合を減らす
 - **実装方法**:
-  - 必要なフィールドのみを選択してデータ量を削減
-  - ページネーションを実装して大量データの取得を分割
-  - バックグラウンドでの通信を最適化
+  - SubPlayer も react-native-track-player を使用するよう検討
+  - または明確な分離戦略を実装し、相互干渉を防止
+  - オーディオセッションの管理を一元化
 
 ```typescript
-// 改善例: Supabaseクエリの最適化
-// 変更前
-const { data, error } = await supabase
-  .from("songs")
-  .select("*")
-  .eq("id", songId)
-  .single();
+// 改善例: オーディオセッション管理の一元化
+const AudioSessionManager = {
+  async configureSession(isSubPlayer = false) {
+    // 共通の設定
+    const baseConfig = {
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+    };
 
-// 変更後
-const { data, error } = await supabase
-  .from("songs")
-  .select("id, title, author, image_path, song_path") // 必要なフィールドのみ選択
-  .eq("id", songId)
-  .single();
+    // プレーヤータイプに応じた設定
+    const config = isSubPlayer
+      ? {
+          ...baseConfig,
+          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+        }
+      : {
+          ...baseConfig,
+          interruptionModeIOS: InterruptionModeIOS.DuckOthers,
+          interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+        };
+
+    await Audio.setAudioModeAsync(config);
+  },
+};
 ```
 
-### バックグラウンド処理とメモリ管理の最適化
+#### リソース管理の改善
+
+- **提案**: 音声リソースの確実な解放とメモリ管理を改善する
+- **実装方法**:
+  - useEffect のクリーンアップ関数を徹底
+  - エラーハンドリングとリソース解放を分離
+  - 明示的なリソース解放タイミングの設定
+
+```typescript
+// 改善例: 適切なリソース解放
+useEffect(() => {
+  let isMounted = true;
+  let sound = null;
+
+  const loadSound = async () => {
+    try {
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: song.song_path },
+        { shouldPlay: false }
+      );
+
+      if (isMounted) {
+        sound = newSound;
+        // 他の初期化処理
+      } else {
+        // コンポーネントがアンマウントされていたら即座に解放
+        await newSound.unloadAsync();
+      }
+    } catch (error) {
+      console.error("Sound loading error:", error);
+    }
+  };
+
+  loadSound();
+
+  return () => {
+    isMounted = false;
+    if (sound) {
+      sound.unloadAsync().catch(() => {});
+    }
+  };
+}, [song.song_path]);
+```
+
+### アニメーションと UI 応答性の改善
+
+#### Reanimated の最適化
+
+- **提案**: アニメーションのパフォーマンスを最適化し、メインスレッドの負荷を軽減
+- **実装方法**:
+  - worklet の活用による JS-ネイティブ間通信の削減
+  - 共有値の適切な使用と依存関係の最小化
+  - 不要なアニメーションの削除または簡素化
+
+```typescript
+// 改善例: 最適化されたアニメーション
+const animatedStyle = useAnimatedStyle(() => {
+  "worklet";
+  return {
+    transform: [
+      { scale: withTiming(pressed.value ? 0.95 : 1, { duration: 100 }) },
+    ],
+    opacity: withTiming(pressed.value ? 0.9 : 1, { duration: 100 }),
+  };
+});
+```
+
+#### ジェスチャー処理の最適化
+
+- **提案**: タッチ応答性を向上させ、ジェスチャー処理を最適化
+- **実装方法**:
+  - Gesture Handler の適切な設定
+  - 複雑なジェスチャーの簡素化
+  - ジェスチャー処理のメインスレッドからの分離
+
+```typescript
+// 改善例: 最適化されたジェスチャー処理
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+
+const tap = Gesture.Tap()
+  .maxDuration(250)
+  .onStart(() => {
+    runOnJS(onPress)();
+  });
+
+return (
+  <GestureDetector gesture={tap}>
+    <Animated.View style={[styles.container, animatedStyle]}>
+      {/* コンテンツ */}
+    </Animated.View>
+  </GestureDetector>
+);
+```
+
+### バックグラウンド処理とメモリ管理
 
 #### バックグラウンド再生の最適化
 
-- **提案**: バックグラウンドでの音楽再生を最適化する
+- **提案**: バックグラウンド再生時のリソース使用を最適化
 - **実装方法**:
-  - TrackPlayer の設定を最適化
-  - バックグラウンド処理の優先度を調整
-  - バッテリー消費を最小限に抑える設定を実装
+  - AppKilledPlaybackBehavior の適切な設定
+  - バックグラウンド時の不要な処理の停止
+  - ロック画面コントロールの最適化
 
 ```typescript
-// 改善例: TrackPlayerのバックグラウンド設定最適化
+// 改善例: 最適化されたバックグラウンド設定
 await TrackPlayer.updateOptions({
   android: {
     appKilledPlaybackBehavior:
@@ -198,158 +298,78 @@ await TrackPlayer.updateOptions({
   capabilities: [
     Capability.Play,
     Capability.Pause,
+    Capability.SeekTo,
     Capability.SkipToNext,
     Capability.SkipToPrevious,
   ],
-  // 必要最小限の機能のみを有効化
-  compactCapabilities: [Capability.Play, Capability.Pause],
-  // バッテリー消費を抑えるための設定
-  stopWithApp: true,
+  compactCapabilities: [
+    Capability.Play,
+    Capability.Pause,
+    Capability.SkipToNext,
+  ],
+  notificationCapabilities: [
+    Capability.Play,
+    Capability.Pause,
+    Capability.SeekTo,
+    Capability.SkipToNext,
+    Capability.SkipToPrevious,
+  ],
+  // ロック画面表示の問題を修正
+  alwaysPauseOnInterruption: true,
 });
 ```
 
 #### メモリリークの防止
 
-- **提案**: メモリリークを防止するためのリソース管理を強化する
+- **提案**: メモリリークを防止し、長時間使用時のパフォーマンス低下を防ぐ
 - **実装方法**:
-  - useEffect のクリーンアップ関数を確実に実装
-  - useRef を使用したリソース参照の管理を改善
-  - 大きなオブジェクトや配列をメモ化して不要な再作成を防止
+  - useRef を使用したリソース参照の適切な管理
+  - コンポーネントのアンマウント時のクリーンアップの徹底
+  - 大きなオブジェクトや配列の不要な再作成の防止
 
 ```typescript
-// 改善例: useEffectのクリーンアップ関数
-useEffect(() => {
-  // リソースの初期化
-  const subscription = someAPI.subscribe();
-  const timerId = setInterval(() => {
-    // 定期的な処理
-  }, 1000);
+// 改善例: メモリリーク防止のためのユーティリティ関数
+export const useSafeAsyncEffect = (effect, deps = []) => {
+  useEffect(() => {
+    const isMounted = { current: true };
+    const runEffect = async () => {
+      try {
+        await effect(isMounted);
+      } catch (error) {
+        if (isMounted.current) {
+          console.error("Async effect error:", error);
+        }
+      }
+    };
 
-  // クリーンアップ関数
-  return () => {
-    subscription.unsubscribe();
-    clearInterval(timerId);
-  };
-}, []);
-```
+    runEffect();
 
-### アーキテクチャとコード品質の改善
-
-#### フックの最適化と統合
-
-- **提案**: 重複するフックを統合し、責務を明確にする
-- **実装方法**:
-  - フックの責務を明確に分割
-  - useSubPlayerAudio を複数の小さなフックに分割
-  - 依存配列を最小限に保ち、不要な再計算を防止
-
-```typescript
-// 改善例: フックの責務分割
-// 変更前: 複数の責務を持つ大きなフック
-function useComplexHook() {
-  // 多くの状態とロジックが混在
-  return {
-    /* 多数の状態や関数 */
-  };
-}
-
-// 変更後: 責務を分割した小さなフック
-function useSpecificFeature() {
-  // 特定の機能に特化したロジック
-  return {
-    /* 単一責務の状態や関数 */
-  };
-}
-```
-
-#### エラーハンドリングの強化
-
-- **提案**: エラーハンドリングを強化し、ユーザー体験を向上させる
-- **実装方法**:
-  - エラーバウンダリを導入して、エラーの影響範囲を限定
-  - エラーログを適切に記録し、デバッグを容易にする
-  - ユーザーに適切なエラーメッセージを表示
-
-```typescript
-// 改善例: エラーバウンダリの導入
-class ErrorBoundary extends React.Component {
-  state = { hasError: false, error: null };
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    // エラーログの記録
-    console.error("Component error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <ErrorFallback error={this.state.error} />;
-    }
-    return this.props.children;
-  }
-}
-```
-
-#### パフォーマンス測定と継続的改善
-
-- **提案**: パフォーマンス測定の仕組みを導入し、継続的に改善する
-- **実装方法**:
-  - React Native Performance Monitor を導入
-  - メモリ使用量、CPU 使用率、フレームレートなどの指標を測定
-  - パフォーマンステストを自動化
-
-```typescript
-// 改善例: パフォーマンス測定
-import { PerformanceObserver } from "perf_hooks";
-
-// パフォーマンス測定の開始
-const startMeasure = (name) => {
-  performance.mark(`${name}-start`);
+    return () => {
+      isMounted.current = false;
+    };
+  }, deps);
 };
-
-// パフォーマンス測定の終了
-const endMeasure = (name) => {
-  performance.mark(`${name}-end`);
-  performance.measure(name, `${name}-start`, `${name}-end`);
-};
-
-// 測定結果の監視
-const observer = new PerformanceObserver((list) => {
-  const entries = list.getEntries();
-  entries.forEach((entry) => {
-    console.log(`${entry.name}: ${entry.duration}ms`);
-  });
-});
-observer.observe({ entryTypes: ["measure"] });
 ```
 
-## 実装の優先順位
+## 実装優先度
 
-### 高優先度（1 週間以内）
+1. **高優先度**
 
-- アプリ起動時間の最適化（初期化処理の遅延読み込み）
+   - メモリリークの修正とリソース解放の改善
+   - バックグラウンド再生の最適化（ロック画面表示問題の解決）
+   - 画像処理の最適化
 
-### 中優先度（1 ヶ月以内）
+2. **中優先度**
 
-- バンドルサイズの最適化
-- アニメーションの最適化
-- エラーハンドリングの強化
+   - React Query のキャッシュ戦略の最適化
+   - コンポーネントの再レンダリング最適化
+   - Zustand ストアの設計改善
 
-### 低優先度（3 ヶ月以上）
+3. **低優先度**
+   - アニメーションとジェスチャー処理の最適化
+   - オーディオエンジンの統一または明確な分離
+   - パフォーマンス測定と監視の導入
 
-- バックグラウンド再生の最適化
-- パフォーマンス測定の導入
-- 継続的な最適化プロセスの確立
-- アーキテクチャの全体的な見直し
-- 型安全性の向上
+## まとめ
 
-## 結論
-
-このアプリケーションは、多くのパフォーマンス最適化の余地があります。特に、アプリ起動時間、オーディオ処理、画像処理、リスト表示、データ管理の分野で改善が必要です。提案した最適化を実施することで、アプリケーションのパフォーマンスを大幅に向上させ、ユーザー体験を改善することができます。
-
-最適化は段階的に行い、各ステップで改善を確認しながら進めることで、リグレッションを防ぎつつ、効果的な最適化が可能になります。また、パフォーマンス測定の仕組みを導入することで、継続的な改善が可能になります。
-
-特に、アプリの起動時間とレスポンス性能の向上は、ユーザー満足度に直結する重要な要素です。初期化処理の最適化とバンドルサイズの削減に優先的に取り組むことで、ユーザーの初期印象を大きく改善できるでしょう。
+この最適化レポートでは、音楽アプリの主要なパフォーマンス問題を特定し、具体的な改善策を提案しました。特に重要なのは、メモリ管理とリソース解放の改善、バックグラウンド再生の最適化、そして画像処理とレンダリングパフォーマンスの向上です。これらの改善を実装することで、アプリの応答性、安定性、およびユーザーエクスペリエンスが大幅に向上することが期待されます。
