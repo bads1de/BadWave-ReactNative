@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo, useCallback } from "react";
 import {
   TouchableOpacity,
   Modal,
@@ -33,7 +33,7 @@ interface AddPlaylistProps {
   children?: React.ReactNode;
 }
 
-export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
+function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
@@ -127,33 +127,36 @@ export default function AddPlaylist({ songId, children }: AddPlaylistProps) {
     },
   });
 
-  const handleAddToPlaylist = (playlistId: string) => {
-    if (!session?.user.id) {
-      Toast.show({
-        type: "error",
-        text1: "ログインが必要です",
-        position: "bottom",
-      });
-      return;
-    }
+  const handleAddToPlaylist = useCallback(
+    (playlistId: string) => {
+      if (!session?.user.id) {
+        Toast.show({
+          type: "error",
+          text1: "ログインが必要です",
+          position: "bottom",
+        });
+        return;
+      }
 
-    // Check if the song is already added to this playlist
-    if (isAdded[playlistId]) {
-      Toast.show({
-        type: "info",
-        text1: "追加済みです",
-        text2: "この曲は既にプレイリストに追加されています",
-        position: "bottom",
-      });
-      return;
-    }
+      // Check if the song is already added to this playlist
+      if (isAdded[playlistId]) {
+        Toast.show({
+          type: "info",
+          text1: "追加済みです",
+          text2: "この曲は既にプレイリストに追加されています",
+          position: "bottom",
+        });
+        return;
+      }
 
-    // アニメーション効果付きで追加
-    // 注: このアニメーションは実際には効果がありません（新しいAnimated.Valueを作成しているため）
-    // 必要に応じて、別の方法でアニメーション効果を実装してください
+      // アニメーション効果付きで追加
+      // 注: このアニメーションは実際には効果がありません（新しいAnimated.Valueを作成しているため）
+      // 必要に応じて、別の方法でアニメーション効果を実装してください
 
-    mutate(playlistId);
-  };
+      mutate(playlistId);
+    },
+    [session, mutate, isAdded]
+  );
 
   const animatedStyle = useAnimatedStyle(() => {
     const modalScale = interpolate(
@@ -421,4 +424,9 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginLeft: 8,
   },
+});
+
+// カスタム比較関数を使用してメモ化
+export default memo(AddPlaylist, (prevProps, nextProps) => {
+  return prevProps.songId === nextProps.songId;
 });

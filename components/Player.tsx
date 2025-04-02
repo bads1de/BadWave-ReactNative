@@ -344,7 +344,17 @@ const Player: FC<PlayerProps> = (props) => {
   );
 };
 
-const MemoizedPlayer = memo(Player);
+// カスタム比較関数を使用してメモ化
+const MemoizedPlayer = memo(Player, (prevProps, nextProps) => {
+  return (
+    prevProps.currentSong.id === nextProps.currentSong.id &&
+    prevProps.isPlaying === nextProps.isPlaying &&
+    prevProps.position === nextProps.position &&
+    prevProps.duration === nextProps.duration &&
+    prevProps.repeatMode === nextProps.repeatMode &&
+    prevProps.shuffle === nextProps.shuffle
+  );
+});
 
 export default MemoizedPlayer;
 
