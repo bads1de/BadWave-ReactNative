@@ -1,5 +1,12 @@
 import React, { useCallback } from "react";
-import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -136,6 +143,15 @@ export default function PlaylistDetailScreen() {
             end={{ x: 1, y: 1 }}
             style={styles.neonGradient}
           />
+
+          {/* 戻るボタン */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push("/library")}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         <BlurView intensity={30} tint="dark" style={styles.infoContainer}>
@@ -193,7 +209,7 @@ export default function PlaylistDetailScreen() {
         </BlurView>
       </View>
     ),
-    [playlist, playlistSongs.length, session?.user.id]
+    [playlist, playlistSongs.length, session?.user.id, router]
   );
 
   if (isLoading || isLoadingPlaylist) return <Loading />;
@@ -239,20 +255,22 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 10,
+    top: 16,
     left: 16,
     zIndex: 10,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#fc00ff",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: "rgba(252, 0, 255, 0.3)",
   },
   thumbnailContainer: {
     width: width,
