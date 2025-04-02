@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -78,9 +78,13 @@ export default function TrendBoard() {
   });
   const { togglePlayPause } = useAudioPlayer(trends);
 
-  const onPlay = async (song: Song) => {
-    await togglePlayPause(song);
-  };
+  // メモ化されたコールバック
+  const onPlay = useCallback(
+    async (song: Song) => {
+      await togglePlayPause(song);
+    },
+    [togglePlayPause]
+  );
 
   if (isLoading) return <Loading />;
 

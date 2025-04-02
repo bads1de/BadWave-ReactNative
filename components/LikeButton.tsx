@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { TouchableOpacity } from "react-native";
 import {
   useQueryClient,
@@ -17,7 +17,7 @@ interface LikeButtonProps {
   size?: number;
 }
 
-export default function LikeButton({ songId, size }: LikeButtonProps) {
+function LikeButton({ songId, size }: LikeButtonProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
@@ -170,3 +170,10 @@ export default function LikeButton({ songId, size }: LikeButtonProps) {
     </TouchableOpacity>
   );
 }
+
+// カスタム比較関数を使用してメモ化
+export default memo(LikeButton, (prevProps, nextProps) => {
+  return (
+    prevProps.songId === nextProps.songId && prevProps.size === nextProps.size
+  );
+});

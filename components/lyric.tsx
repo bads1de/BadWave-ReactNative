@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import {
   ScrollView,
   Text,
@@ -136,4 +136,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Lyric;
+// メモ化してエクスポート
+export default memo(Lyric);

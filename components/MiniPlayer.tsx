@@ -141,4 +141,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(ModernMiniPlayer);
+// カスタム比較関数を使用してメモ化
+export default memo(ModernMiniPlayer, (prevProps, nextProps) => {
+  return (
+    prevProps.currentSong.id === nextProps.currentSong.id &&
+    prevProps.isPlaying === nextProps.isPlaying
+  );
+});

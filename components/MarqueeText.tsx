@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
-import React from "react";
+import React, { memo } from "react";
 
-export default function MarqueeText() {
+function MarqueeText() {
   return (
     <View>
       <Text>MarqueeText</Text>
@@ -10,3 +10,6 @@ export default function MarqueeText() {
 }
 
 const styles = StyleSheet.create({});
+
+// メモ化してエクスポート
+export default memo(MarqueeText);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, Text } from "react-native";
 import Toast, { BaseToastProps } from "react-native-toast-message";
 import { BlurView } from "expo-blur";
@@ -83,7 +83,8 @@ const styles = StyleSheet.create({
   },
 });
 
-export const ToastComponent = () => (
+// メモ化してエクスポート
+export const ToastComponent = memo(() => (
   <Toast
     config={ToastConfig}
     position="top"
@@ -91,4 +92,4 @@ export const ToastComponent = () => (
     visibilityTime={3000}
     bottomOffset={80}
   />
-);
+));

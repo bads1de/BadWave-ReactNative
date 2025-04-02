@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import {
   View,
   TouchableOpacity,
@@ -25,7 +25,7 @@ GoogleSignin.configure({
     "412901923265-4rek27if7dg41i3pl5ap0idho61th752.apps.googleusercontent.com",
 });
 
-export default function AuthModal() {
+function AuthModal() {
   const { session } = useAuth();
   const { setShowAuthModal } = useAuthStore();
   const [email, setEmail] = useState("");
@@ -33,7 +33,7 @@ export default function AuthModal() {
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  const signInWithEmail = async () => {
+  const signInWithEmail = useCallback(async () => {
     if (!email || !password) {
       Alert.alert("エラー", "メールアドレスとパスワードを入力してください");
       return;
@@ -59,9 +59,9 @@ export default function AuthModal() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, password, queryClient, setShowAuthModal]);
 
-  const signUpWithEmail = async () => {
+  const signUpWithEmail = useCallback(async () => {
     if (!email || !password) {
       Alert.alert("エラー", "メールアドレスとパスワードを入力してください");
       return;
@@ -83,9 +83,9 @@ export default function AuthModal() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, password]);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -128,9 +128,9 @@ export default function AuthModal() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [queryClient, setShowAuthModal]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
 
@@ -140,7 +140,7 @@ export default function AuthModal() {
     } catch (error: any) {
       Alert.alert("エラー", error.message);
     }
-  };
+  }, [queryClient]);
 
   return (
     <Modal visible transparent animationType="fade">
@@ -360,3 +360,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#DC2626",
   },
 });
+
+// メモ化してエクスポート
+export default memo(AuthModal);

@@ -3,8 +3,9 @@ import { Image } from "expo-image";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import { useAuth } from "@/providers/AuthProvider";
 import { useUser } from "@/actions/getUser";
+import { memo } from "react";
 
-export default function Header() {
+function Header() {
   const { setShowAuthModal } = useAuthStore();
   const { data: user } = useUser();
   const { session } = useAuth();
@@ -72,3 +73,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
+
+// メモ化してエクスポート
+export default memo(Header);

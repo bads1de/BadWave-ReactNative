@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 
 interface LoadingProps {
@@ -6,7 +6,7 @@ interface LoadingProps {
   color?: string;
 }
 
-export default function Loading({ size, color = "#4c1d95" }: LoadingProps) {
+function Loading({ size, color = "#4c1d95" }: LoadingProps) {
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={color} />
@@ -22,3 +22,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
 });
+
+// メモ化してエクスポート
+export default memo(Loading);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -6,7 +6,7 @@ interface ErrorProps {
   message?: string;
 }
 
-export default function Error({ message }: ErrorProps) {
+function Error({ message }: ErrorProps) {
   return (
     <View style={styles.container}>
       <Ionicons name="alert-circle" size={24} color="#ef4444" />
@@ -28,3 +28,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+
+// メモ化してエクスポート
+export default memo(Error);
