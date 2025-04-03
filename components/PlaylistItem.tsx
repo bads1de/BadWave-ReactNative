@@ -34,6 +34,7 @@ function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
         <Image
           source={{ uri: playlist.image_path }}
           style={styles.image}
+          contentFit="cover"
           cachePolicy="memory-disk"
         />
         <LinearGradient
@@ -76,7 +77,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
     borderRadius: 15,
   },
   gradient: {

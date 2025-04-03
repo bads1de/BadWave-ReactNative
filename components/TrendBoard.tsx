@@ -37,7 +37,11 @@ const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
       onPress={() => onPlay(song)}
       activeOpacity={0.7}
     >
-      <ImageBackground source={{ uri: song.image_path }} style={styles.image}>
+      <ImageBackground
+        source={{ uri: song.image_path }}
+        style={styles.image}
+        contentFit="cover"
+      >
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.9)"]}
           style={styles.gradient}
@@ -175,7 +179,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   gradient: {
     position: "absolute",

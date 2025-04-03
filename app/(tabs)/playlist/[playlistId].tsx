@@ -131,6 +131,7 @@ export default function PlaylistDetailScreen() {
           <Image
             source={{ uri: playlist?.image_path }}
             style={styles.thumbnail}
+            contentFit="cover"
             cachePolicy="disk"
           />
           <LinearGradient

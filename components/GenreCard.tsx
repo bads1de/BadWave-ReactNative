@@ -126,6 +126,7 @@ const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
           <ImageBackground
             source={backgroundImages[genre as keyof typeof backgroundImages]}
             style={styles.backgroundImage}
+            contentFit="cover"
           >
             <LinearGradient
               colors={getGradientColors(genre)}
@@ -194,7 +195,6 @@ const styles = StyleSheet.create({
   backgroundImage: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.9,
-    resizeMode: "cover",
     width: "100%",
     height: "100%",
   },

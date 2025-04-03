@@ -15,6 +15,7 @@ function Header() {
       <Image
         source={require("../assets/images/logo.png")}
         style={styles.logo}
+        contentFit="contain"
       />
       <Text style={styles.title}>BadWave</Text>
       {session ? (
@@ -22,7 +23,11 @@ function Header() {
           onPress={() => setShowAuthModal(true)}
           style={styles.userIcon}
         >
-          <Image source={{ uri: user?.avatar_url! }} style={styles.userIcon} />
+          <Image
+            source={{ uri: user?.avatar_url! }}
+            style={styles.userIcon}
+            contentFit="cover"
+          />
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
@@ -48,7 +53,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 40,
     height: 40,
-    resizeMode: "contain",
   },
   title: {
     color: "#fff",
@@ -59,7 +63,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    resizeMode: "cover",
     overflow: "hidden",
   },
   loginButton: {
