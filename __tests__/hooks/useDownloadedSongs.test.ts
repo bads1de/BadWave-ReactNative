@@ -1,4 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
+
 import { act } from "react-test-renderer";
 import { useDownloadedSongs } from "../../hooks/useDownloadedSongs";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
@@ -80,6 +81,8 @@ describe("useDownloadedSongs", () => {
           author: "Test Artist 3",
           image_path: "https://example.com/image3.jpg",
           song_path: "/local/path/song3.mp3",
+          user_id: "user-1",
+          created_at: "2023-01-01T00:00:00.000Z",
         },
       ]);
 
@@ -99,7 +102,7 @@ describe("useDownloadedSongs", () => {
     // リフレッシュ中はローディング状態
     expect(result.current.isLoading).toBe(true);
 
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     // リフレッシュ後は新しいデータ
     expect(result.current.songs.length).toBe(3);
