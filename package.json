@@ -55,10 +55,12 @@
     "expo-status-bar": "~2.0.1",
     "expo-symbols": "~0.2.2",
     "expo-system-ui": "~4.0.8",
+    "expo-video": "~2.0.6",
     "expo-web-browser": "~14.0.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.7",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-mmkv": "^2.12.2",
     "react-native-reanimated": "~3.16.1",
@@ -70,11 +72,11 @@
     "react-native-track-player": "^4.1.1",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "zustand": "^5.0.3",
-    "expo-video": "~2.0.6"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^13.1.0",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.3.12",

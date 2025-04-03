@@ -8,23 +8,15 @@ import { convertToTracks, logError, safeAsyncOperation } from "./utils";
  * プレイヤーの状態管理を行うカスタムフック
  */
 export function usePlayerState({ songs }: { songs: Song[] }) {
-  // 曲のIDをキーとする曲データマップとトラックマップを作成
+  // 曲のIDをキーとする曲データマップを作成
   return useMemo(() => {
     const songMap: Record<string, Song> = {};
-    const trackMap: Record<string, Track> = {};
 
     songs.forEach((song) => {
       songMap[song.id] = song;
-      trackMap[song.id] = {
-        id: song.id,
-        url: song.song_path,
-        title: song.title,
-        artist: song.author,
-        artwork: song.image_path,
-      };
     });
 
-    return { songMap, trackMap };
+    return { songMap };
   }, [songs]);
 }
 
@@ -215,7 +207,7 @@ export function useQueueOperations(
           await TrackPlayer.reset();
 
           // トラックに変換
-          const tracks = convertToTracks(songs);
+          const tracks = await convertToTracks(songs);
 
           // トラックを追加
           await TrackPlayer.add(tracks);
@@ -259,7 +251,7 @@ export function useQueueOperations(
           return false;
         }
 
-        const tracks = convertToTracks(songs);
+        const tracks = await convertToTracks(songs);
 
         if (insertBeforeIndex !== undefined) {
           await TrackPlayer.add(tracks, insertBeforeIndex);

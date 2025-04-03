@@ -17,6 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import { useRouter } from "expo-router";
+import { DownloadButton } from "./DownloadButton";
 
 interface SongItemProps {
   song: Song;
@@ -134,6 +135,11 @@ const SongItem = memo(
                   <Ionicons name="heart" size={14} color="#fff" />
                   <Text style={styles.statsText}>{song.like_count}</Text>
                 </View>
+                <DownloadButton
+                  song={song}
+                  size={16}
+                  style={styles.downloadButton}
+                />
               </View>
             </View>
           </View>
@@ -233,6 +239,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 15,
     padding: 5,
+  },
+  downloadButton: {
+    marginLeft: "auto",
+    padding: 0,
   },
   cardGlow: {
     position: "absolute",

@@ -1,29 +1,65 @@
 // hooks/TrackPlayer/utils.ts
 import { Track } from "react-native-track-player";
 import Song from "../../types";
+import { OfflineStorageService } from "../../services/OfflineStorageService";
+
+// グローバルインスタンス
+let offlineStorageService: OfflineStorageService;
+
+/**
+ * OfflineStorageServiceのインスタンスを取得
+ * テストではモックされる
+ */
+export function getOfflineStorageService(): OfflineStorageService {
+  if (!offlineStorageService) {
+    console.log("[DEBUG] Creating new OfflineStorageService instance");
+    offlineStorageService = new OfflineStorageService();
+  } else {
+    console.log("[DEBUG] Using existing OfflineStorageService instance");
+  }
+  return offlineStorageService;
+}
 
 /**
  * 曲データをTrackPlayerのトラック形式に変換
+ * ローカルにダウンロードされている場合はローカルパスを使用
  */
-export function convertSongToTrack(song: Song): Track {
-  return {
+export async function convertSongToTrack(song: Song): Promise<Track> {
+  console.log("[DEBUG] Converting song to track:", song.title, song.id);
+  const storage = getOfflineStorageService();
+  const localPath = await storage.getSongLocalPath(song.id);
+
+  console.log(
+    "[DEBUG] Local path for song:",
+    localPath || "Not found, using remote URL"
+  );
+  const track = {
     id: song.id,
-    url: song.song_path,
+    url: localPath || song.song_path, // ローカルパスがあればそれを使用、なければリモートURL
     title: song.title,
     artist: song.author,
     artwork: song.image_path,
   };
+  console.log("[DEBUG] Created track with URL:", track.url);
+  return track;
 }
 
 /**
  * 複数の曲をトラック形式に変換
  */
-export function convertToTracks(songs: Song[]): Track[] {
+export async function convertToTracks(songs: Song[]): Promise<Track[]> {
+  console.log("[DEBUG] Converting songs to tracks, count:", songs?.length || 0);
   if (!songs || songs.length === 0) {
+    console.log("[DEBUG] No songs to convert");
     return [];
   }
 
-  return songs.map(convertSongToTrack);
+  // Promise.allを使用して並列処理
+  const tracks = await Promise.all(
+    songs.map((song) => convertSongToTrack(song))
+  );
+  console.log("[DEBUG] Converted tracks count:", tracks.length);
+  return tracks;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import getLikedSongs from "@/actions/getLikedSongs";
@@ -16,8 +16,9 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import CreatePlaylist from "@/components/CreatePlaylist";
 import { Playlist } from "@/types";
+import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
 
-type LibraryType = "liked" | "playlists";
+type LibraryType = "liked" | "playlists" | "downloads";
 
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
@@ -45,7 +46,39 @@ export default function LibraryScreen() {
     enabled: !!session,
   });
 
-  const { togglePlayPause } = useAudioPlayer(likedSongs, "liked");
+  // ダウンロード済みの曲を取得
+  const {
+    songs: downloadedSongs,
+    isLoading: isDownloadsLoading,
+    error: downloadsError,
+    refresh: refreshDownloads,
+  } = useDownloadedSongs();
+
+  // ダウンロード済みの曲のログ出力
+  useEffect(() => {
+    console.log(
+      "[DEBUG] Library: Downloaded songs count:",
+      downloadedSongs?.length || 0
+    );
+    if (downloadedSongs && downloadedSongs.length > 0) {
+      console.log(
+        "[DEBUG] Library: First downloaded song:",
+        downloadedSongs[0].title
+      );
+    }
+  }, [downloadedSongs]);
+
+  // コンテキストに応じて曲リストを切り替え
+  const currentSongs = useMemo(() => {
+    if (type === "liked") return likedSongs;
+    if (type === "downloads") return downloadedSongs;
+    return [];
+  }, [type, likedSongs, downloadedSongs]);
+
+  const { togglePlayPause } = useAudioPlayer(
+    currentSongs,
+    type === "liked" ? "liked" : "home"
+  );
 
   // プレイリストをクリックしたときのハンドラをメモ化
   const handlePlaylistPress = useCallback(
@@ -83,9 +116,19 @@ export default function LibraryScreen() {
     [handlePlaylistPress]
   );
 
-  if (isLikedLoading || isPlaylistsLoading) return <Loading />;
-  if (likedError || playlistsError)
-    return <Error message={likedError?.message || playlistsError?.message} />;
+  if (isLikedLoading || isPlaylistsLoading || isDownloadsLoading)
+    return <Loading />;
+  if (likedError || playlistsError || downloadsError)
+    return (
+      <Error
+        message={
+          likedError?.message ||
+          playlistsError?.message ||
+          downloadsError ||
+          "An error occurred"
+        }
+      />
+    );
 
   return (
     <View style={styles.container}>
@@ -132,6 +175,20 @@ export default function LibraryScreen() {
                 inactiveTextStyle={styles.typeButtonText}
                 onPress={() => setType("playlists")}
               />
+              <CustomButton
+                label="Downloads"
+                isActive={type === "downloads"}
+                activeStyle={styles.typeButtonActive}
+                inactiveStyle={styles.typeButton}
+                activeTextStyle={styles.typeButtonTextActive}
+                inactiveTextStyle={styles.typeButtonText}
+                onPress={() => {
+                  console.log("[DEBUG] Library: Switching to downloads tab");
+                  setType("downloads");
+                  console.log("[DEBUG] Library: Refreshing downloads");
+                  refreshDownloads();
+                }}
+              />
             </ScrollView>
           </View>
           {type === "liked" ? (
@@ -154,13 +211,33 @@ export default function LibraryScreen() {
                 <Text style={styles.noSongsText}>No songs found.</Text>
               </View>
             )
-          ) : playlists && playlists.length > 0 ? (
+          ) : type === "playlists" ? (
+            playlists && playlists.length > 0 ? (
+              <FlatList
+                key={"playlists"}
+                data={playlists}
+                renderItem={renderPlaylistItem}
+                numColumns={2}
+                keyExtractor={keyExtractor}
+                contentContainerStyle={styles.listContainer}
+                windowSize={5}
+                maxToRenderPerBatch={8}
+                updateCellsBatchingPeriod={50}
+                removeClippedSubviews={true}
+                initialNumToRender={6}
+              />
+            ) : (
+              <View style={[styles.noSongsContainer, { flex: 1 }]}>
+                <Text style={styles.noSongsText}>No playlists found.</Text>
+              </View>
+            )
+          ) : downloadedSongs && downloadedSongs.length > 0 ? (
             <FlatList
-              key={"playlists"}
-              data={playlists}
-              renderItem={renderPlaylistItem}
+              key={"downloads"}
+              data={downloadedSongs}
+              renderItem={renderLikedSongs}
+              keyExtractor={(item) => item.id}
               numColumns={2}
-              keyExtractor={keyExtractor}
               contentContainerStyle={styles.listContainer}
               windowSize={5}
               maxToRenderPerBatch={8}
@@ -170,7 +247,7 @@ export default function LibraryScreen() {
             />
           ) : (
             <View style={[styles.noSongsContainer, { flex: 1 }]}>
-              <Text style={styles.noSongsText}>No playlists found.</Text>
+              <Text style={styles.noSongsText}>No downloaded songs found.</Text>
             </View>
           )}
         </>

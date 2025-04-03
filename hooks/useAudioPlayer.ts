@@ -31,7 +31,7 @@ export function useAudioPlayer(
   contextId?: string,
   sectionId?: string
 ) {
-  const { songMap, trackMap } = usePlayerState({ songs });
+  const { songMap } = usePlayerState({ songs });
   const onPlay = useOnPlay();
 
   // Zustand ストアから状態を取得
@@ -89,7 +89,7 @@ export function useAudioPlayer(
     queueState,
     getQueueState,
     updateQueueState,
-  } = useQueueOperations(setTrackPlayerIsPlaying, songMap, trackMap);
+  } = useQueueOperations(setTrackPlayerIsPlaying, songMap, {});
 
   /**
    * アクティブトラックが変更されたときの処理
