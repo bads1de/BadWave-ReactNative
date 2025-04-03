@@ -32,49 +32,35 @@ export function DownloadButton({
 
   // マウント時に曲がダウンロード済みかチェック
   useEffect(() => {
-    console.log(
-      "[DEBUG] DownloadButton mounted for song:",
-      song.title,
-      song.id
-    );
     checkDownloadStatus();
   }, [song.id]);
 
   // ダウンロード状態をチェック
   const checkDownloadStatus = async () => {
     try {
-      console.log("[DEBUG] Checking download status for song:", song.id);
       const offlineStorageService = getOfflineStorageService();
       const downloaded = await offlineStorageService.isSongDownloaded(song.id);
-      console.log(
-        "[DEBUG] Song download status:",
-        downloaded ? "Downloaded" : "Not downloaded"
-      );
       setIsDownloaded(downloaded);
     } catch (error) {
-      console.error("[ERROR] Failed to check download status:", error);
+      console.error("Failed to check download status:", error);
     }
   };
 
   // 曲をダウンロード
   const handleDownload = async () => {
     try {
-      console.log("[DEBUG] Starting download for song:", song.title, song.id);
       setIsLoading(true);
       const offlineStorageService = getOfflineStorageService();
       const result = await offlineStorageService.downloadSong(song);
 
-      console.log("[DEBUG] Download result:", result);
       if (result.success) {
-        console.log("[DEBUG] Download successful, updating UI");
         setIsDownloaded(true);
       } else {
-        console.error("[ERROR] Download failed:", result.error);
+        console.error("Download failed:", result.error);
       }
     } catch (error) {
-      console.error("[ERROR] Error downloading song:", error);
+      console.error("Error downloading song:", error);
     } finally {
-      console.log("[DEBUG] Download process completed");
       setIsLoading(false);
     }
   };
@@ -82,22 +68,18 @@ export function DownloadButton({
   // ダウンロードした曲を削除
   const handleDelete = async () => {
     try {
-      console.log("[DEBUG] Starting deletion for song:", song.title, song.id);
       setIsLoading(true);
       const offlineStorageService = getOfflineStorageService();
       const result = await offlineStorageService.deleteSong(song.id);
 
-      console.log("[DEBUG] Deletion result:", result);
       if (result.success) {
-        console.log("[DEBUG] Deletion successful, updating UI");
         setIsDownloaded(false);
       } else {
-        console.error("[ERROR] Delete failed:", result.error);
+        console.error("Delete failed:", result.error);
       }
     } catch (error) {
-      console.error("[ERROR] Error deleting song:", error);
+      console.error("Error deleting song:", error);
     } finally {
-      console.log("[DEBUG] Deletion process completed");
       setIsLoading(false);
     }
   };

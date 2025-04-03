@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
  * @returns {Promise<any>} ユーザー情報
  * @throws {Error} セッションが存在しない場合、またはデータ取得時にエラーが発生した場合
  */
-const getUser = async (): Promise<any> => {
+export const getUser = async (): Promise<any> => {
   const {
     data: { session },
   } = await supabase.auth.getSession();

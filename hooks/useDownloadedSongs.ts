@@ -16,35 +16,18 @@ export function useDownloadedSongs() {
    */
   const fetchDownloadedSongs = useCallback(async () => {
     try {
-      console.log(
-        "[DEBUG] useDownloadedSongs: Starting to fetch downloaded songs"
-      );
       setIsLoading(true);
       setError(null);
 
       const offlineStorageService = getOfflineStorageService();
       const downloadedSongs = await offlineStorageService.getDownloadedSongs();
-      console.log(
-        "[DEBUG] useDownloadedSongs: Downloaded songs count:",
-        downloadedSongs.length
-      );
-      if (downloadedSongs.length > 0) {
-        console.log(
-          "[DEBUG] useDownloadedSongs: First song:",
-          downloadedSongs[0].title
-        );
-      }
 
       setSongs(downloadedSongs);
     } catch (err) {
-      console.error(
-        "[ERROR] useDownloadedSongs: Failed to fetch downloaded songs:",
-        err
-      );
+      console.error("Failed to fetch downloaded songs:", err);
       setError(err instanceof Error ? err.message : String(err));
       setSongs([]);
     } finally {
-      console.log("[DEBUG] useDownloadedSongs: Fetch completed");
       setIsLoading(false);
     }
   }, []);
@@ -53,13 +36,11 @@ export function useDownloadedSongs() {
    * 曲一覧を更新する
    */
   const refresh = useCallback(() => {
-    console.log("[DEBUG] useDownloadedSongs: Refreshing downloaded songs");
     fetchDownloadedSongs();
   }, [fetchDownloadedSongs]);
 
   // 初回マウント時に曲一覧を取得
   useEffect(() => {
-    console.log("[DEBUG] useDownloadedSongs: Initial mount, fetching songs");
     fetchDownloadedSongs();
   }, [fetchDownloadedSongs]);
 

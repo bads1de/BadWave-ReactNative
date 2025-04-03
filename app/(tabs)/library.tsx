@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import getLikedSongs from "@/actions/getLikedSongs";
@@ -53,20 +53,6 @@ export default function LibraryScreen() {
     error: downloadsError,
     refresh: refreshDownloads,
   } = useDownloadedSongs();
-
-  // ダウンロード済みの曲のログ出力
-  useEffect(() => {
-    console.log(
-      "[DEBUG] Library: Downloaded songs count:",
-      downloadedSongs?.length || 0
-    );
-    if (downloadedSongs && downloadedSongs.length > 0) {
-      console.log(
-        "[DEBUG] Library: First downloaded song:",
-        downloadedSongs[0].title
-      );
-    }
-  }, [downloadedSongs]);
 
   // コンテキストに応じて曲リストを切り替え
   const currentSongs = useMemo(() => {
@@ -183,9 +169,7 @@ export default function LibraryScreen() {
                 activeTextStyle={styles.typeButtonTextActive}
                 inactiveTextStyle={styles.typeButtonText}
                 onPress={() => {
-                  console.log("[DEBUG] Library: Switching to downloads tab");
                   setType("downloads");
-                  console.log("[DEBUG] Library: Refreshing downloads");
                   refreshDownloads();
                 }}
               />
