@@ -1,6 +1,27 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
 
+/**
+ * @fileoverview お気に入り曲取得モジュール
+ * このモジュールは、認証済みユーザーが「いいね」した曲の一覧を取得する機能を提供します。
+ */
+
+/**
+ * ユーザーが「いいね」した曲の一覧を取得する
+ * @description
+ * 認証済みユーザーが「いいね」した曲を、作成日時の降順で取得します。
+ * エラーが発生した場合やデータがない場合は空配列を返します。
+ *
+ * @returns {Promise<Song[]>} 「いいね」した曲の配列
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * // お気に入り曲を取得
+ * const likedSongs = await getLikedSongs();
+ * console.log(likedSongs); // [{id: "1", title: "Song 1", ...}, ...]
+ * ```
+ */
 const getLikedSongs = async (): Promise<Song[]> => {
   try {
     const {
