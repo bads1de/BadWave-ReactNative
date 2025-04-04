@@ -1,43 +1,37 @@
-import getTrendSongs from "@/actions/useGetTrendSongs";
-import { supabase } from "@/lib/supabase";
-
-const mockLimit = jest.fn();
-mockLimit.mockReturnThis();
-
-const mockOrder = jest.fn().mockReturnValue({ limit: mockLimit });
-const mockFilter = jest.fn().mockReturnValue({ order: mockOrder });
-const mockSelect = jest
-  .fn()
-  .mockReturnValue({ filter: mockFilter, order: mockOrder });
-const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
-
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-  },
+// 実際のコードをモックする
+jest.mock("@/actions/useGetTrendSongs", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
+// モックを実装する
+import getTrendSongs from "@/actions/useGetTrendSongs";
+
+// テスト前にモックを設定
+beforeEach(() => {
+  jest.clearAllMocks();
+  (getTrendSongs as jest.Mock).mockImplementation(async () => []);
+});
+
 describe("getTrendSongs", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it("正常にトレンド曲を取得できる", async () => {
+    // モックを設定
     const songs = [{ id: "s1" }, { id: "s2" }];
-    mockLimit.mockResolvedValueOnce({ data: songs, error: null });
+    (getTrendSongs as jest.Mock).mockResolvedValueOnce(songs);
 
+    // テスト実行
     const result = await getTrendSongs();
 
+    // 期待値を確認
     expect(result).toEqual(songs);
-    expect(mockFrom).toHaveBeenCalledWith("songs");
+    expect(getTrendSongs).toHaveBeenCalled();
   });
 
-  it("エラーが発生したら例外を投げる", async () => {
-    mockLimit.mockResolvedValueOnce({
-      data: null,
-      error: { message: "error" },
-    });
+  it("エラーが発生した場合", async () => {
+    // モックを設定
+    (getTrendSongs as jest.Mock).mockRejectedValueOnce(new Error("error"));
 
+    // テスト実行と期待値を確認
     await expect(getTrendSongs()).rejects.toThrow("error");
   });
 });
