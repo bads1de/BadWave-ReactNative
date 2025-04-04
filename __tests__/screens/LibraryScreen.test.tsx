@@ -46,9 +46,15 @@ jest.mock("../../lib/supabase", () => ({
 // コンポーネントのモック
 jest.mock("../../app/(tabs)/library", () => {
   const React = require("react");
+  const { Text, View } = require("react-native");
   return {
     __esModule: true,
-    default: () => React.createElement("View", null, "Library Screen"),
+    default: () =>
+      React.createElement(
+        View,
+        null,
+        React.createElement(Text, null, "Library Screen")
+      ),
   };
 });
 
@@ -86,9 +92,8 @@ jest.mock("../../components/CreatePlaylist", () => "CreatePlaylist");
 
 describe("LibraryScreen", () => {
   it("ライブラリ画面がレンダリングされる", () => {
-    const { getByText } = render(
-      React.createElement("View", null, "Library Screen")
-    );
+    const LibraryScreen = require("../../app/(tabs)/library").default;
+    const { getByText } = render(<LibraryScreen />);
     expect(getByText("Library Screen")).toBeTruthy();
   });
 });

@@ -1,6 +1,5 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { View } from "react-native";
 
 // AsyncStorageのモック
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -41,18 +40,22 @@ jest.mock("../../lib/supabase", () => ({
 // コンポーネントのモック
 jest.mock("../../app/(tabs)/search", () => {
   const React = require("react");
-  const mockView = "View";
+  const { Text, View } = require("react-native");
   return {
     __esModule: true,
-    default: () => React.createElement(mockView, null, "Search Screen"),
+    default: () =>
+      React.createElement(
+        View,
+        null,
+        React.createElement(Text, null, "Search Screen")
+      ),
   };
 });
 
 describe("SearchScreen", () => {
   it("検索画面がレンダリングされる", () => {
-    const { getByText } = render(
-      React.createElement(View, null, "Search Screen")
-    );
+    const SearchScreen = require("../../app/(tabs)/search").default;
+    const { getByText } = render(<SearchScreen />);
     expect(getByText("Search Screen")).toBeTruthy();
   });
 });

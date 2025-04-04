@@ -1,17 +1,9 @@
 import getRecommendations from "@/actions/getRecommendations";
 import { supabase } from "@/lib/supabase";
 
-const mockRpc = jest.fn();
-const mockGetSession = jest.fn();
-
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    rpc: mockRpc,
-    auth: {
-      getSession: mockGetSession,
-    },
-  },
-}));
+// supabaseのモック関数を取得
+const mockRpc = supabase.rpc as jest.Mock;
+const mockGetSession = supabase.auth.getSession as jest.Mock;
 
 describe("getRecommendations", () => {
   beforeEach(() => {

@@ -15,51 +15,69 @@ jest.mock("expo-constants", () => ({
 }));
 
 // Supabaseのモック
+const mockSingle = jest.fn().mockResolvedValue({ data: [], error: null });
+const mockEq = jest.fn().mockReturnThis();
+const mockNeq = jest.fn().mockReturnThis();
+const mockIlike = jest.fn().mockReturnThis();
+const mockOr = jest.fn().mockReturnThis();
+const mockOrder = jest.fn().mockReturnThis();
+const mockLimit = jest.fn().mockReturnThis();
+const mockSelect = jest.fn().mockReturnValue({
+  eq: mockEq,
+  neq: mockNeq,
+  ilike: mockIlike,
+  or: mockOr,
+  order: mockOrder,
+  limit: mockLimit,
+  single: mockSingle,
+});
+const mockInsert = jest.fn().mockResolvedValue({ data: {}, error: null });
+const mockUpdate = jest.fn().mockResolvedValue({ data: {}, error: null });
+const mockDelete = jest.fn().mockResolvedValue({ data: {}, error: null });
+const mockFrom = jest.fn().mockReturnValue({
+  select: mockSelect,
+  insert: mockInsert,
+  update: mockUpdate,
+  delete: mockDelete,
+});
+const mockRpc = jest.fn().mockResolvedValue({ data: [], error: null });
+const mockGetSession = jest.fn().mockResolvedValue({
+  data: {
+    session: {
+      user: {
+        id: "test-user-id",
+        email: "test@example.com",
+      },
+    },
+  },
+  error: null,
+});
+const mockSignIn = jest.fn().mockResolvedValue({ data: {}, error: null });
+const mockSignOut = jest.fn().mockResolvedValue({ error: null });
+const mockOnAuthStateChange = jest.fn();
+const mockUpload = jest.fn().mockResolvedValue({ data: {}, error: null });
+const mockDownload = jest.fn().mockResolvedValue({ data: {}, error: null });
+const mockGetPublicUrl = jest
+  .fn()
+  .mockReturnValue({ publicUrl: "https://example.com/test.jpg" });
+const mockStorageFrom = jest.fn().mockReturnValue({
+  upload: mockUpload,
+  download: mockDownload,
+  getPublicUrl: mockGetPublicUrl,
+});
+
 jest.mock("@/lib/supabase", () => ({
   supabase: {
-    from: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      neq: jest.fn().mockReturnThis(),
-      ilike: jest.fn().mockReturnThis(),
-      or: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      single: jest.fn().mockReturnThis(),
-      then: jest
-        .fn()
-        .mockImplementation((callback) =>
-          Promise.resolve(callback({ data: [], error: null }))
-        ),
-    }),
-    rpc: jest.fn().mockResolvedValue({ data: [], error: null }),
+    from: mockFrom,
+    rpc: mockRpc,
     auth: {
-      getSession: jest.fn().mockResolvedValue({
-        data: {
-          session: {
-            user: {
-              id: "test-user-id",
-              email: "test@example.com",
-            },
-          },
-        },
-        error: null,
-      }),
-      signIn: jest.fn().mockResolvedValue({ data: {}, error: null }),
-      signOut: jest.fn().mockResolvedValue({ error: null }),
-      onAuthStateChange: jest.fn(),
+      getSession: mockGetSession,
+      signIn: mockSignIn,
+      signOut: mockSignOut,
+      onAuthStateChange: mockOnAuthStateChange,
     },
     storage: {
-      from: jest.fn().mockReturnValue({
-        upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
-        download: jest.fn().mockResolvedValue({ data: {}, error: null }),
-        getPublicUrl: jest
-          .fn()
-          .mockReturnValue({ publicUrl: "https://example.com/test.jpg" }),
-      }),
+      from: mockStorageFrom,
     },
   },
 }));

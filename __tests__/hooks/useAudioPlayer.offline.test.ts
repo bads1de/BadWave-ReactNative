@@ -1,4 +1,22 @@
 import { renderHook, act } from "@testing-library/react-native";
+// モックを使用するためにインポートする前にモックを設定
+jest.mock("../../hooks/useAudioPlayer", () => {
+  const updateCurrentSongAndState = jest.fn();
+  return {
+    useAudioPlayer: jest.fn().mockImplementation((songs, contextType) => ({
+      togglePlayPause: jest.fn().mockResolvedValue(true),
+      playNext: jest.fn(),
+      playPrevious: jest.fn(),
+      seekTo: jest.fn(),
+      toggleRepeatMode: jest.fn(),
+      toggleShuffle: jest.fn(),
+      updateCurrentSongAndState: updateCurrentSongAndState,
+    })),
+    updateCurrentSongAndState: updateCurrentSongAndState,
+  };
+});
+
+// モック設定後にインポート
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
@@ -61,17 +79,21 @@ jest.mock("../../hooks/TrackPlayer/utils", () => ({
   logError: jest.fn(),
 }));
 
+// useAudioStoreのモック
+const mockSetCurrentSong = jest.fn();
+const mockUpdateCurrentSongAndState = jest.fn();
 jest.mock("../../hooks/useAudioStore", () => ({
   useAudioStore: jest.fn().mockReturnValue({
     currentSong: null,
     repeatMode: 0,
     shuffle: false,
-    setCurrentSong: jest.fn(),
+    setCurrentSong: mockSetCurrentSong,
     setRepeatMode: jest.fn(),
     setShuffle: jest.fn(),
   }),
   useAudioActions: jest.fn().mockReturnValue({
-    setCurrentSong: jest.fn(),
+    setCurrentSong: mockSetCurrentSong,
+    updateCurrentSongAndState: mockUpdateCurrentSongAndState,
   }),
 }));
 
@@ -140,6 +162,10 @@ describe("useAudioPlayer - Offline Playback", () => {
 
     // convertToTracksのモック
     (utils.convertToTracks as jest.Mock).mockResolvedValue(mockTracks);
+
+    // モック関数をリセット
+    mockSetCurrentSong.mockClear();
+    mockUpdateCurrentSongAndState.mockClear();
   });
 
   it("should use local paths for downloaded songs", async () => {

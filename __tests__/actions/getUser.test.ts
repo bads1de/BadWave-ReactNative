@@ -1,15 +1,12 @@
-import { getUser } from "@/actions/getUser";
-import { supabase } from "@/lib/supabase";
-
+// モック関数を定義
 const mockSingle = jest.fn();
-mockSingle.mockReturnThis();
-
 const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
 const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
 const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
 const mockGetSession = jest.fn();
 
-jest.mock("@/lib/supabase", () => ({
+// supabaseのモックを設定
+jest.mock("../../lib/supabase", () => ({
   supabase: {
     from: mockFrom,
     auth: {
@@ -17,6 +14,11 @@ jest.mock("@/lib/supabase", () => ({
     },
   },
 }));
+
+// インポート
+import { getUser } from "../../actions/getUser";
+
+// モックの動作を設定
 
 describe("getUser", () => {
   beforeEach(() => {
