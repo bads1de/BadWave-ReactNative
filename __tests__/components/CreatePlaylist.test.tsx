@@ -12,6 +12,10 @@ jest.mock("@tanstack/react-query", () => ({
 
 jest.mock("react-native-toast-message", () => ({
   show: jest.fn(),
+  __esModule: true,
+  default: {
+    show: jest.fn(),
+  },
 }));
 
 jest.mock("../../actions/createPlaylist", () => jest.fn());

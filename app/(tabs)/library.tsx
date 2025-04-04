@@ -151,6 +151,7 @@ export default function LibraryScreen() {
                 activeTextStyle={styles.typeButtonTextActive}
                 inactiveTextStyle={styles.typeButtonText}
                 onPress={() => setType("liked")}
+                testID="button-Liked"
               />
               <CustomButton
                 label="Playlists"
@@ -160,6 +161,7 @@ export default function LibraryScreen() {
                 activeTextStyle={styles.typeButtonTextActive}
                 inactiveTextStyle={styles.typeButtonText}
                 onPress={() => setType("playlists")}
+                testID="button-Playlists"
               />
               <CustomButton
                 label="Downloads"
@@ -172,6 +174,7 @@ export default function LibraryScreen() {
                   setType("downloads");
                   refreshDownloads();
                 }}
+                testID="button-Downloads"
               />
             </ScrollView>
           </View>
@@ -228,6 +231,7 @@ export default function LibraryScreen() {
               updateCellsBatchingPeriod={50}
               removeClippedSubviews={true}
               initialNumToRender={6}
+              testID="downloads-flatlist"
             />
           ) : (
             <View style={[styles.noSongsContainer, { flex: 1 }]}>

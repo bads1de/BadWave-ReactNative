@@ -1,15 +1,14 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { Text, View } from "react-native";
 
 // コンポーネントのモック
-jest.mock("@/components/LibraryDownloads", () => ({
-  LibraryDownloads: () => (
-    <View>
-      <Text>ダウンロード済みの曲</Text>
-    </View>
-  ),
-}));
+jest.mock("@/components/LibraryDownloads", () => {
+  return {
+    LibraryDownloads: function MockLibraryDownloads() {
+      return { type: "div", props: { children: "ダウンロード済みの曲" } };
+    },
+  };
+});
 
 // インポート
 import { LibraryDownloads } from "@/components/LibraryDownloads";

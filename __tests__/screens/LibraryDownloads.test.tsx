@@ -103,44 +103,93 @@ jest.mock("../../hooks/useAuthStore", () => ({
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
-jest.mock("../../components/SongItem", () => ({
-  __esModule: true,
-  default: ({ song, onPress }: { song: any; onPress: () => void }) => (
-    <div data-testid={`song-item-${song.id}`} onClick={onPress}>
-      {song.title}
-    </div>
-  ),
-}));
-jest.mock("../../components/PlaylistItem", () => ({
-  __esModule: true,
-  default: ({ playlist, onPress }: { playlist: any; onPress: () => void }) => (
-    <div data-testid={`playlist-item-${playlist.id}`} onClick={onPress}>
-      {playlist.name}
-    </div>
-  ),
-}));
-jest.mock("../../components/CreatePlaylist", () => ({
-  __esModule: true,
-  default: () => <div data-testid="create-playlist">Create Playlist</div>,
-}));
-jest.mock("../../components/Loading", () => ({
-  __esModule: true,
-  default: () => <div data-testid="loading">Loading...</div>,
-}));
-jest.mock("../../components/Error", () => ({
-  __esModule: true,
-  default: ({ message }: { message?: string }) => (
-    <div data-testid="error">{message}</div>
-  ),
-}));
-jest.mock("../../components/CustomButton", () => ({
-  __esModule: true,
-  default: ({ label, onPress }: { label: string; onPress: () => void }) => (
-    <button data-testid={`button-${label}`} onClick={onPress}>
-      {label}
-    </button>
-  ),
-}));
+jest.mock("../../components/SongItem", () => {
+  return {
+    __esModule: true,
+    default: function MockSongItem({ song, onPress }) {
+      return {
+        type: "div",
+        props: {
+          "data-testid": `song-item-${song.id}`,
+          onClick: onPress,
+          children: song.title,
+        },
+      };
+    },
+  };
+});
+jest.mock("../../components/PlaylistItem", () => {
+  return {
+    __esModule: true,
+    default: function MockPlaylistItem({ playlist, onPress }) {
+      return {
+        type: "div",
+        props: {
+          "data-testid": `playlist-item-${playlist.id}`,
+          onClick: onPress,
+          children: playlist.name,
+        },
+      };
+    },
+  };
+});
+jest.mock("../../components/CreatePlaylist", () => {
+  return {
+    __esModule: true,
+    default: function MockCreatePlaylist() {
+      return {
+        type: "div",
+        props: {
+          "data-testid": "create-playlist",
+          children: "Create Playlist",
+        },
+      };
+    },
+  };
+});
+jest.mock("../../components/Loading", () => {
+  return {
+    __esModule: true,
+    default: function MockLoading() {
+      return {
+        type: "div",
+        props: {
+          "data-testid": "loading",
+          children: "Loading...",
+        },
+      };
+    },
+  };
+});
+jest.mock("../../components/Error", () => {
+  return {
+    __esModule: true,
+    default: function MockError({ message }) {
+      return {
+        type: "div",
+        props: {
+          "data-testid": "error",
+          children: message,
+        },
+      };
+    },
+  };
+});
+jest.mock("../../components/CustomButton", () => {
+  return {
+    __esModule: true,
+    default: function MockCustomButton({ label, onPress, testID }) {
+      return {
+        type: "button",
+        props: {
+          "data-testid": testID || `button-${label}`,
+          onClick: onPress,
+          children: label,
+        },
+      };
+    },
+  };
+});
 
 describe("Library Screen - Downloads Tab", () => {
   const mockDownloadedSongs = [

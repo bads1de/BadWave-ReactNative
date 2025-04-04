@@ -1,32 +1,16 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import SongItem from "../../components/SongItem";
-import { useRouter } from "expo-router";
 
 // モックの設定
 jest.mock("expo-router", () => ({
-  useRouter: jest.fn(),
+  useRouter: jest.fn().mockReturnValue({
+    push: jest.fn(),
+  }),
 }));
 
 jest.mock("expo-image", () => ({
   Image: "Image",
 }));
-
-jest.mock("react-native-reanimated", () => {
-  const Reanimated = require("react-native-reanimated/mock");
-  // アニメーションスタイルのモック
-  Reanimated.useAnimatedStyle = () => ({});
-  Reanimated.useSharedValue = jest.fn().mockReturnValue(0);
-  Reanimated.withTiming = jest.fn().mockReturnValue(1);
-  Reanimated.withSpring = jest.fn().mockReturnValue(1);
-  return {
-    ...Reanimated,
-    default: {
-      ...Reanimated,
-      View: "Animated.View",
-    },
-  };
-});
 
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
@@ -39,6 +23,10 @@ jest.mock("expo-linear-gradient", () => ({
 jest.mock("../../components/DownloadButton", () => ({
   DownloadButton: "DownloadButton",
 }));
+
+// インポート
+import SongItem from "../../components/SongItem";
+import { useRouter } from "expo-router";
 
 describe("SongItem", () => {
   // テスト用のモックデータ
