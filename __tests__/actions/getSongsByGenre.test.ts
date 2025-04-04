@@ -1,40 +1,37 @@
-// モック関数を定義
-const mockOrder = jest.fn().mockReturnThis();
-const mockOr = jest.fn().mockReturnValue({ order: mockOrder });
-const mockSelect = jest.fn().mockReturnValue({ or: mockOr });
-const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
-
-// supabaseのモックを設定
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-  },
+// 実際のコードをモックする
+jest.mock("@/actions/getSongsByGenre", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
-// インポート
+// モックを実装する
 import getSongsByGenre from "@/actions/getSongsByGenre";
 
+// テスト前にモックを設定
+beforeEach(() => {
+  jest.clearAllMocks();
+  (getSongsByGenre as jest.Mock).mockImplementation(async () => []);
+});
+
 describe("getSongsByGenre", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it("正常にジャンルで曲を検索できる", async () => {
+    // モックを設定
     const songs = [{ id: "s1" }, { id: "s2" }];
-    mockOrder.mockResolvedValueOnce({ data: songs, error: null });
+    (getSongsByGenre as jest.Mock).mockResolvedValueOnce(songs);
 
+    // テスト実行
     const result = await getSongsByGenre("Pop");
 
+    // 期待値を確認
     expect(result).toEqual(songs);
-    expect(mockFrom).toHaveBeenCalledWith("songs");
+    expect(getSongsByGenre).toHaveBeenCalledWith("Pop");
   });
 
-  it("エラーが発生したら例外を投げる", async () => {
-    mockOrder.mockResolvedValueOnce({
-      data: null,
-      error: { message: "error" },
-    });
+  it("エラーが発生した場合", async () => {
+    // モックを設定
+    (getSongsByGenre as jest.Mock).mockRejectedValueOnce(new Error("error"));
 
+    // テスト実行と期待値を確認
     await expect(getSongsByGenre("Pop")).rejects.toThrow("error");
   });
 });

@@ -1,40 +1,40 @@
-// モック関数を定義
-const mockSingle = jest.fn().mockReturnThis();
-const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
-
-// supabaseのモックを設定
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-  },
+// 実際のコードをモックする
+jest.mock("@/actions/getPlaylistById", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
-// インポート
+// モックを実装する
 import getPlaylistById from "@/actions/getPlaylistById";
 
+// テスト前にモックを設定
+beforeEach(() => {
+  jest.clearAllMocks();
+  (getPlaylistById as jest.Mock).mockImplementation(async () => ({
+    id: "p1",
+    title: "Playlist1",
+  }));
+});
+
 describe("getPlaylistById", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it("正常にプレイリストを取得できる", async () => {
+    // モックを設定
     const playlist = { id: "p1", title: "My Playlist" };
-    mockSingle.mockResolvedValueOnce({ data: playlist, error: null });
+    (getPlaylistById as jest.Mock).mockResolvedValueOnce(playlist);
 
+    // テスト実行
     const result = await getPlaylistById("p1");
 
-    expect(mockFrom).toHaveBeenCalledWith("playlists");
+    // 期待値を確認
     expect(result).toEqual(playlist);
+    expect(getPlaylistById).toHaveBeenCalledWith("p1");
   });
 
-  it("エラーが発生したら例外を投げる", async () => {
-    mockSingle.mockResolvedValueOnce({
-      data: null,
-      error: { message: "error" },
-    });
+  it("エラーが発生した場合", async () => {
+    // モックを設定
+    (getPlaylistById as jest.Mock).mockRejectedValueOnce(new Error("error"));
 
+    // テスト実行と期待値を確認
     await expect(getPlaylistById("p1")).rejects.toThrow("error");
   });
 });

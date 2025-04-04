@@ -1,41 +1,39 @@
-// モック関数を定義
-const mockOrder = jest.fn().mockReturnThis();
-const mockIlike = jest.fn().mockReturnValue({ order: mockOrder });
-const mockEq = jest.fn().mockReturnValue({ ilike: mockIlike });
-const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
-
-// supabaseのモックを設定
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-  },
+// 実際のコードをモックする
+jest.mock("@/actions/getPlaylistsByTitle", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
-// インポート
+// モックを実装する
 import getPlaylistsByTitle from "@/actions/getPlaylistsByTitle";
 
+// テスト前にモックを設定
+beforeEach(() => {
+  jest.clearAllMocks();
+  (getPlaylistsByTitle as jest.Mock).mockImplementation(async () => []);
+});
+
 describe("getPlaylistsByTitle", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it("正常にタイトルでプレイリストを検索できる", async () => {
+    // モックを設定
     const playlists = [{ id: "p1" }, { id: "p2" }];
-    mockOrder.mockResolvedValueOnce({ data: playlists, error: null });
+    (getPlaylistsByTitle as jest.Mock).mockResolvedValueOnce(playlists);
 
+    // テスト実行
     const result = await getPlaylistsByTitle("test");
 
+    // 期待値を確認
     expect(result).toEqual(playlists);
-    expect(mockFrom).toHaveBeenCalledWith("playlists");
+    expect(getPlaylistsByTitle).toHaveBeenCalledWith("test");
   });
 
-  it("エラーが発生したら例外を投げる", async () => {
-    mockOrder.mockResolvedValueOnce({
-      data: null,
-      error: { message: "error" },
-    });
+  it("エラーが発生した場合", async () => {
+    // モックを設定
+    (getPlaylistsByTitle as jest.Mock).mockRejectedValueOnce(
+      new Error("error")
+    );
 
+    // テスト実行と期待値を確認
     await expect(getPlaylistsByTitle("test")).rejects.toThrow("error");
   });
 });

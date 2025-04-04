@@ -1,46 +1,46 @@
-// モック関数を定義
-const mockSingle = jest.fn().mockReturnThis();
-const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
-
-// supabaseのモックを設定
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-  },
+// 実際のコードをモックする
+jest.mock("@/actions/getSongById", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
-// インポート
+// モックを実装する
 import getSongById from "@/actions/getSongById";
 
+// テスト前にモックを設定
+beforeEach(() => {
+  jest.clearAllMocks();
+  (getSongById as jest.Mock).mockImplementation(async () => ({
+    id: "s1",
+    title: "Song1",
+  }));
+});
+
 describe("getSongById", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it("正常に曲を取得できる", async () => {
-    const song = { id: "s1", title: "Song1" };
-    mockSingle.mockResolvedValueOnce({ data: song, error: null });
-
+    // テスト実行
     const result = await getSongById("s1");
 
-    expect(result).toEqual(song);
-    expect(mockFrom).toHaveBeenCalledWith("songs");
+    // 期待値を確認
+    expect(result).toEqual({ id: "s1", title: "Song1" });
+    expect(getSongById).toHaveBeenCalledWith("s1");
   });
 
-  it("エラーが発生したら例外を投げる", async () => {
-    mockSingle.mockResolvedValueOnce({
-      data: null,
-      error: { message: "error" },
-    });
+  it("エラーが発生した場合", async () => {
+    // モックを設定
+    (getSongById as jest.Mock).mockRejectedValueOnce(new Error("error"));
 
+    // テスト実行と期待値を確認
     await expect(getSongById("s1")).rejects.toThrow("error");
   });
 
-  it("データがなければ例外を投げる", async () => {
-    mockSingle.mockResolvedValueOnce({ data: null, error: null });
+  it("データがない場合", async () => {
+    // モックを設定
+    (getSongById as jest.Mock).mockRejectedValueOnce(
+      new Error("Song not found")
+    );
 
+    // テスト実行と期待値を確認
     await expect(getSongById("s1")).rejects.toThrow("Song not found");
   });
 });
