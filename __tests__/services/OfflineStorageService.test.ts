@@ -41,8 +41,15 @@ describe("OfflineStorageService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    offlineStorageService = new OfflineStorageService();
+    // MMKVのインスタンスを取得
     mockMMKV = new MMKV() as jest.Mocked<MMKV>;
+
+    // OfflineStorageServiceのインスタンスを作成する前にMMKVのモックを設定
+    jest
+      .spyOn(require("react-native-mmkv"), "MMKV")
+      .mockImplementation(() => mockMMKV);
+
+    offlineStorageService = new OfflineStorageService();
   });
 
   describe("downloadSong", () => {
