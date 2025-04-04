@@ -155,4 +155,89 @@ describe("DownloadButton", () => {
       expect(getByTestId("delete-button")).toBeTruthy();
     });
   });
+
+  it("updates button state after successful deletion", async () => {
+    mockOfflineStorageService.isSongDownloaded
+      .mockResolvedValueOnce(true) // 初回チェック時はダウンロード済み
+      .mockResolvedValueOnce(false); // 削除後のチェック
+
+    mockOfflineStorageService.deleteSong.mockResolvedValue({ success: true });
+
+    const { getByTestId, queryByTestId } = render(
+      <DownloadButton song={mockSong} />
+    );
+
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("delete-button"));
+
+    await waitFor(() => {
+      expect(queryByTestId("delete-button")).toBeNull();
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+  });
+
+  it("handles download failure", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    mockOfflineStorageService.downloadSong.mockResolvedValue({
+      success: false,
+      error: new Error("Download failed"),
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("download-button"));
+
+    // ダウンロード失敗後もダウンロードボタンが表示されることを確認
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+  });
+
+  it("handles deletion failure", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
+    mockOfflineStorageService.deleteSong.mockResolvedValue({
+      success: false,
+      error: new Error("Deletion failed"),
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("delete-button"));
+
+    // 削除失敗後も削除ボタンが表示されることを確認
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+  });
+
+  it("shows loading state during deletion", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
+    // 削除が完了する前にローディング状態をチェックするため、解決しないPromiseを返す
+    mockOfflineStorageService.deleteSong.mockImplementation(
+      () => new Promise(() => {})
+    );
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("delete-button"));
+
+    await waitFor(() => {
+      expect(getByTestId("loading-indicator")).toBeTruthy();
+    });
+  });
 });

@@ -124,4 +124,82 @@ describe("useDownloadedSongs", () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe("Failed to fetch");
   });
+
+  it("should handle empty result", async () => {
+    mockOfflineStorageService.getDownloadedSongs.mockResolvedValue([]);
+
+    const { result } = renderHook(() => useDownloadedSongs());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // 空の配列が返されることを確認
+    expect(result.current.songs).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("should handle refresh with error", async () => {
+    // 初回は成功、リフレッシュ時にエラー
+    mockOfflineStorageService.getDownloadedSongs
+      .mockResolvedValueOnce(mockSongs)
+      .mockRejectedValueOnce(new Error("Refresh failed"));
+
+    const { result } = renderHook(() => useDownloadedSongs());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // 初回データ取得
+    expect(result.current.songs).toEqual(mockSongs);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeNull();
+
+    // リフレッシュ
+    act(() => {
+      result.current.refresh();
+    });
+
+    // リフレッシュ中はローディング状態
+    expect(result.current.isLoading).toBe(true);
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // エラー後も前のデータが保持される
+    expect(result.current.songs).toEqual(mockSongs);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe("Refresh failed");
+  });
+
+  it("should handle concurrent refreshes", async () => {
+    mockOfflineStorageService.getDownloadedSongs
+      .mockResolvedValueOnce(mockSongs)
+      .mockResolvedValueOnce([
+        ...mockSongs,
+        {
+          id: "song-3",
+          title: "Test Song 3",
+          author: "Test Artist 3",
+          image_path: "https://example.com/image3.jpg",
+          song_path: "/local/path/song3.mp3",
+          user_id: "user-1",
+          created_at: "2023-01-01T00:00:00.000Z",
+        },
+      ]);
+
+    const { result } = renderHook(() => useDownloadedSongs());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // 複数回リフレッシュを呼ぶ
+    act(() => {
+      result.current.refresh();
+      result.current.refresh(); // 2回目は無視されるはず
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // getDownloadedSongsは1回だけ呼ばれることを確認
+    expect(mockOfflineStorageService.getDownloadedSongs).toHaveBeenCalledTimes(
+      2
+    );
+  });
 });

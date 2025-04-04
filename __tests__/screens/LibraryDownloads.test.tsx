@@ -14,6 +14,16 @@ jest.mock("react-native-fs", () => ({
   mkdir: jest.fn(),
 }));
 
+// NativeEventEmitterのモック
+jest.mock("react-native", () => {
+  const reactNative = jest.requireActual("react-native");
+  reactNative.NativeEventEmitter = jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+  }));
+  return reactNative;
+});
+
 // react-native-track-playerのモック
 jest.mock("react-native-track-player", () => ({
   addEventListener: jest.fn(),
@@ -189,6 +199,78 @@ describe("Library Screen - Downloads Tab", () => {
 
     // refreshDownloadsが呼ばれたことを確認
     expect(mockRefreshDownloads).toHaveBeenCalled();
+  });
+
+  it("should show error message when there is an error", async () => {
+    // エラー状態をモック
+    (useDownloadedSongs as jest.Mock).mockReturnValue({
+      songs: [],
+      isLoading: false,
+      error: "Failed to load downloaded songs",
+      refresh: mockRefreshDownloads,
+    });
+
+    const { getByTestId, queryByTestId, queryByText } = render(<Library />);
+
+    // Downloadsタブをクリック
+    fireEvent.press(getByTestId("button-Downloads"));
+
+    // エラーメッセージが表示されることを確認
+    expect(queryByTestId("error")).toBeTruthy();
+    expect(queryByText("Failed to load downloaded songs")).toBeTruthy();
+  });
+
+  it("should show empty message when there are no downloaded songs", async () => {
+    // ダウンロード曲がない状態をモック
+    (useDownloadedSongs as jest.Mock).mockReturnValue({
+      songs: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshDownloads,
+    });
+
+    const { getByTestId, queryByText } = render(<Library />);
+
+    // Downloadsタブをクリック
+    fireEvent.press(getByTestId("button-Downloads"));
+
+    // 空のメッセージが表示されることを確認
+    expect(queryByText("No downloaded songs")).toBeTruthy();
+  });
+
+  it("should play song when a song item is clicked", async () => {
+    // ダウンロード済み曲をモック
+    (useDownloadedSongs as jest.Mock).mockReturnValue({
+      songs: mockDownloadedSongs,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshDownloads,
+    });
+
+    // 再生関数をモック
+    const playFromLibraryMock = jest.fn();
+    (useAudioPlayer as jest.Mock).mockReturnValue({
+      togglePlayPause: mockTogglePlayPause,
+      playFromLibrary: playFromLibraryMock,
+    });
+
+    const { getByTestId, getAllByTestId } = render(<Library />);
+
+    // Downloadsタブをクリック
+    fireEvent.press(getByTestId("button-Downloads"));
+
+    // 最初の曲をクリック
+    await waitFor(() => {
+      expect(getAllByTestId(/song-item-/)).toHaveLength(2);
+    });
+
+    fireEvent.press(getAllByTestId(/song-item-/)[0]);
+
+    // 再生関数が呼ばれたことを確認
+    expect(playFromLibraryMock).toHaveBeenCalledWith(
+      mockDownloadedSongs,
+      mockDownloadedSongs[0].id
+    );
   });
 
   it("should show loading state when downloads are loading", async () => {

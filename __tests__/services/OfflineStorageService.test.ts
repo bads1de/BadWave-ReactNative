@@ -60,6 +60,10 @@ describe("OfflineStorageService", () => {
         promise: Promise.resolve({ statusCode: 200 }),
       }));
 
+      // MMKVのsetメソッドをモック
+      const setSpy = jest.fn();
+      mockMMKV.set = setSpy;
+
       const result = await offlineStorageService.downloadSong(mockSong);
 
       // 期待される結果
@@ -69,14 +73,14 @@ describe("OfflineStorageService", () => {
           fromUrl: mockSong.song_path,
         })
       );
-      expect(mockMMKV.set).toHaveBeenCalledWith(
+      expect(setSpy).toHaveBeenCalledWith(
         expect.stringContaining("song-metadata"),
         expect.any(String)
       );
     });
 
     it("should return error when download fails", async () => {
-      // ダウンロード失敗のモック
+      // ダウンロード失敗のケース
       (RNFS.exists as jest.Mock).mockResolvedValue(false);
       (RNFS.downloadFile as jest.Mock).mockImplementation(() => ({
         promise: Promise.resolve({ statusCode: 404 }),
@@ -86,6 +90,33 @@ describe("OfflineStorageService", () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
+    });
+
+    it("should return error when download throws an exception", async () => {
+      // ダウンロード中に例外が発生するケース
+      (RNFS.exists as jest.Mock).mockResolvedValue(false);
+      (RNFS.downloadFile as jest.Mock).mockImplementation(() => ({
+        promise: Promise.reject(new Error("Network error")),
+      }));
+
+      const result = await offlineStorageService.downloadSong(mockSong);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it("should not download if song is already downloaded", async () => {
+      // 既にダウンロード済みのケース
+      (RNFS.exists as jest.Mock).mockResolvedValue(true);
+      const containsSpy = jest.fn().mockReturnValue(true);
+      mockMMKV.contains = containsSpy;
+
+      const downloadFileSpy = jest.spyOn(RNFS, "downloadFile");
+
+      const result = await offlineStorageService.downloadSong(mockSong);
+
+      expect(result.success).toBe(true);
+      expect(downloadFileSpy).not.toHaveBeenCalled();
     });
 
     it("should not download if song already exists", async () => {
@@ -106,7 +137,14 @@ describe("OfflineStorageService", () => {
         id: mockSong.id,
         localPath: `/mock/path/${mockSong.title}.mp3`,
       });
-      (mockMMKV.getString as jest.Mock).mockReturnValue(mockMetadata);
+
+      // モックの設定
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
+      const deleteSpy = jest.fn();
+      mockMMKV.delete = deleteSpy;
+
       (RNFS.exists as jest.Mock).mockResolvedValue(true);
       (RNFS.unlink as jest.Mock).mockResolvedValue(undefined);
 
@@ -114,7 +152,7 @@ describe("OfflineStorageService", () => {
 
       expect(result.success).toBe(true);
       expect(RNFS.unlink).toHaveBeenCalled();
-      expect(mockMMKV.delete).toHaveBeenCalledWith(
+      expect(deleteSpy).toHaveBeenCalledWith(
         expect.stringContaining(mockSong.id)
       );
     });
@@ -125,7 +163,11 @@ describe("OfflineStorageService", () => {
         id: mockSong.id,
         localPath: `/mock/path/${mockSong.title}.mp3`,
       });
-      (mockMMKV.getString as jest.Mock).mockReturnValue(mockMetadata);
+
+      // モックの設定
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
       (RNFS.exists as jest.Mock).mockResolvedValue(true);
       (RNFS.unlink as jest.Mock).mockRejectedValue(new Error("Delete failed"));
 
@@ -159,10 +201,13 @@ describe("OfflineStorageService", () => {
         localPath: `/mock/path/${mockSong.title}.mp3`,
       });
 
-      (mockMMKV.getAllKeys as jest.Mock).mockReturnValue([
-        "song-metadata:song-1",
-      ]);
-      (mockMMKV.getString as jest.Mock).mockReturnValue(mockMetadata);
+      // モックの設定
+      const getAllKeysSpy = jest.fn().mockReturnValue(["song-metadata:song-1"]);
+      mockMMKV.getAllKeys = getAllKeysSpy;
+
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
       (RNFS.exists as jest.Mock).mockResolvedValue(true);
 
       const songs = await offlineStorageService.getDownloadedSongs();
@@ -173,7 +218,51 @@ describe("OfflineStorageService", () => {
     });
 
     it("should return empty array when no songs are downloaded", async () => {
-      (mockMMKV.getAllKeys as jest.Mock).mockReturnValue([]);
+      // モックの設定
+      const getAllKeysSpy = jest.fn().mockReturnValue([]);
+      mockMMKV.getAllKeys = getAllKeysSpy;
+
+      const songs = await offlineStorageService.getDownloadedSongs();
+
+      expect(songs.length).toBe(0);
+    });
+
+    it("should filter out songs that no longer exist on disk", async () => {
+      // メタデータが保存されているが、ファイルが存在しないケース
+      const mockMetadata = JSON.stringify({
+        id: mockSong.id,
+        title: mockSong.title,
+        author: mockSong.author,
+        image_path: mockSong.image_path,
+        user_id: mockSong.user_id,
+        created_at: mockSong.created_at,
+        localPath: `/mock/path/${mockSong.title}.mp3`,
+      });
+
+      // モックの設定
+      const getAllKeysSpy = jest.fn().mockReturnValue(["song-metadata:song-1"]);
+      mockMMKV.getAllKeys = getAllKeysSpy;
+
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
+      // ファイルが存在しないように設定
+      (RNFS.exists as jest.Mock).mockResolvedValue(false);
+
+      const songs = await offlineStorageService.getDownloadedSongs();
+
+      expect(songs.length).toBe(0);
+    });
+
+    it("should handle invalid metadata", async () => {
+      // 無効なメタデータのケース
+      // モックの設定
+      const getAllKeysSpy = jest.fn().mockReturnValue(["song-metadata:song-1"]);
+      mockMMKV.getAllKeys = getAllKeysSpy;
+
+      // 無効なJSONを返す
+      const getStringSpy = jest.fn().mockReturnValue("invalid json");
+      mockMMKV.getString = getStringSpy;
 
       const songs = await offlineStorageService.getDownloadedSongs();
 
@@ -183,8 +272,19 @@ describe("OfflineStorageService", () => {
 
   describe("isSongDownloaded", () => {
     it("should return true if song is downloaded", async () => {
+      // モックの設定
+      const containsSpy = jest.fn().mockReturnValue(true);
+      mockMMKV.contains = containsSpy;
+
+      const mockMetadata = JSON.stringify({
+        id: mockSong.id,
+        localPath: `/mock/path/${mockSong.title}.mp3`,
+      });
+
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
       (RNFS.exists as jest.Mock).mockResolvedValue(true);
-      (mockMMKV.contains as jest.Mock).mockReturnValue(true);
 
       const isDownloaded = await offlineStorageService.isSongDownloaded(
         mockSong.id
@@ -212,7 +312,10 @@ describe("OfflineStorageService", () => {
         localPath: `/mock/path/${mockSong.title}.mp3`,
       });
 
-      (mockMMKV.getString as jest.Mock).mockReturnValue(mockMetadata);
+      // モックの設定
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
       (RNFS.exists as jest.Mock).mockResolvedValue(true);
 
       const localPath = await offlineStorageService.getSongLocalPath(
@@ -230,6 +333,57 @@ describe("OfflineStorageService", () => {
       );
 
       expect(localPath).toBeNull();
+    });
+
+    it("should return null if metadata exists but file does not exist", async () => {
+      const mockMetadata = JSON.stringify({
+        id: mockSong.id,
+        localPath: `/mock/path/${mockSong.title}.mp3`,
+      });
+
+      // モックの設定
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
+      // ファイルが存在しない場合
+      (RNFS.exists as jest.Mock).mockResolvedValue(false);
+
+      const localPath = await offlineStorageService.getSongLocalPath(
+        mockSong.id
+      );
+
+      expect(localPath).toBeNull();
+    });
+
+    it("should return null if metadata is invalid JSON", async () => {
+      // 無効なJSONを返す
+      const getStringSpy = jest.fn().mockReturnValue("invalid json");
+      mockMMKV.getString = getStringSpy;
+
+      const localPath = await offlineStorageService.getSongLocalPath(
+        mockSong.id
+      );
+
+      expect(localPath).toBeNull();
+    });
+
+    it("should return null if metadata does not contain localPath", async () => {
+      // localPathがないメタデータ
+      const mockMetadata = JSON.stringify({
+        id: mockSong.id,
+        // localPathがない
+      });
+
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
+      (RNFS.exists as jest.Mock).mockResolvedValue(true);
+
+      const localPath = await offlineStorageService.getSongLocalPath(
+        mockSong.id
+      );
+
+      expect(localPath).toBe(null);
     });
   });
 });

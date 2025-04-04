@@ -268,6 +268,11 @@ export class OfflineStorageService {
 
       const metadata = JSON.parse(metadataStr);
 
+      // localPathが存在しない場合はnullを返す
+      if (!metadata.localPath) {
+        return null;
+      }
+
       // ファイルが存在するか確認
       const exists = await RNFS.exists(metadata.localPath);
 
