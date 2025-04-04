@@ -60,6 +60,7 @@ export default function CreatePlaylist() {
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => setModalOpen(true)}
+        testID="create-playlist-button"
       >
         <Text style={styles.createButtonText}>+ New Playlist</Text>
       </TouchableOpacity>
@@ -81,6 +82,7 @@ export default function CreatePlaylist() {
               value={playlistName}
               placeholder="My Playlist"
               placeholderTextColor="rgba(255,255,255,0.6)"
+              testID="playlist-name-input"
             />
             {error && <Text style={styles.errorText}>{error.message}</Text>}
             <View style={styles.buttonContainer}>
@@ -90,6 +92,7 @@ export default function CreatePlaylist() {
                   setModalOpen(false);
                   setPlaylistName("");
                 }}
+                testID="cancel-button"
               >
                 <Text style={styles.textStyle}>Cancel</Text>
               </TouchableOpacity>
@@ -97,6 +100,7 @@ export default function CreatePlaylist() {
                 style={[styles.button, styles.buttonCreate]}
                 onPress={handleCreatePlaylist}
                 disabled={isPending}
+                testID="create-button"
               >
                 <Text style={styles.textStyle}>
                   {isPending ? "Creating..." : "Create"}

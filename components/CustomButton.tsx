@@ -13,6 +13,7 @@ interface CustomButtonProps extends TouchableOpacityProps {
   inactiveStyle?: any;
   activeTextStyle?: any;
   inactiveTextStyle?: any;
+  testID?: string;
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({

@@ -4,13 +4,16 @@ import { Ionicons } from "@expo/vector-icons";
 
 interface ErrorProps {
   message?: string;
+  testID?: string;
 }
 
-function Error({ message }: ErrorProps) {
+function Error({ message, testID }: ErrorProps) {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={testID || "error-container"}>
       <Ionicons name="alert-circle" size={24} color="#ef4444" />
-      <Text style={styles.text}>{message}</Text>
+      <Text style={styles.text} testID="error-message">
+        {message}
+      </Text>
     </View>
   );
 }

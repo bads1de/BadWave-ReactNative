@@ -196,6 +196,7 @@ function AddPlaylist({ songId, children }: AddPlaylistProps) {
           setModalOpen(true);
         }}
         style={styles.addButton}
+        testID="add-playlist-button"
       >
         {children || (
           <LinearGradient
@@ -232,10 +233,13 @@ function AddPlaylist({ songId, children }: AddPlaylistProps) {
                   style={styles.modalGradient}
                 >
                   <View style={styles.header}>
-                    <Text style={styles.title}>プレイリストに追加</Text>
+                    <Text style={styles.title} testID="modal-title">
+                      プレイリストに追加
+                    </Text>
                     <TouchableOpacity
                       onPress={() => setModalOpen(false)}
                       style={styles.closeButton}
+                      testID="close-button"
                     >
                       <Ionicons
                         name="close"
@@ -264,6 +268,7 @@ function AddPlaylist({ songId, children }: AddPlaylistProps) {
                         onPress={() => handleAddToPlaylist(playlist.id)}
                         disabled={isPending || isAdded[playlist.id]}
                         activeOpacity={0.7}
+                        testID="playlist-item"
                       >
                         <View style={styles.checkboxContainer}>
                           {isAdded[playlist.id] ? (

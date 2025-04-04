@@ -27,6 +27,7 @@ export default function CustomAlertDialog({
       transparent={true}
       visible={visible}
       onRequestClose={onCancel}
+      testID="alert-dialog-container"
     >
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
@@ -38,6 +39,7 @@ export default function CustomAlertDialog({
             <TouchableOpacity
               style={[styles.button, styles.cancelButton]}
               onPress={onCancel}
+              testID="cancel-button"
             >
               <Text style={styles.buttonText}>cancel</Text>
             </TouchableOpacity>
@@ -45,6 +47,7 @@ export default function CustomAlertDialog({
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
               onPress={onConfirm}
+              testID="confirm-button"
             >
               <Text style={styles.buttonText}>delete</Text>
             </TouchableOpacity>
