@@ -364,4 +364,99 @@ describe("DownloadButton", () => {
     // エラーが発生しないことを確認
     // ここでは特にアサーションは不要、エラーが発生しないことを確認するテスト
   });
+
+  it("handles songs with non-standard characters in title", async () => {
+    // 特殊文字を含む曲名のケース
+    const specialCharSong = {
+      ...mockSong,
+      title: "日本語の曲名 と Special Ch@r$: ♥♪",
+    };
+
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    mockOfflineStorageService.downloadSong.mockResolvedValue({ success: true });
+
+    const { getByTestId } = render(<DownloadButton song={specialCharSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("download-button"));
+
+    await waitFor(() => {
+      expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(
+        specialCharSong
+      );
+    });
+  });
+
+  it("handles concurrent download operations correctly", async () => {
+    // 同時に複数のダウンロードが行われた場合のテスト
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+
+    // ダウンロードに時間がかかるようにモック
+    let downloadPromiseResolve: (value: { success: boolean }) => void;
+    const downloadPromise = new Promise<{ success: boolean }>((resolve) => {
+      downloadPromiseResolve = resolve;
+    });
+
+    mockOfflineStorageService.downloadSong.mockReturnValue(downloadPromise);
+
+    // 複数のボタンをレンダリング
+    const { getAllByTestId } = render(
+      <>
+        <DownloadButton song={mockSong} />
+        <DownloadButton song={{ ...mockSong, id: "song-2" }} />
+      </>
+    );
+
+    await waitFor(() => {
+      expect(getAllByTestId("download-button")).toHaveLength(2);
+    });
+
+    // 両方のボタンをクリック
+    const buttons = getAllByTestId("download-button");
+    fireEvent.press(buttons[0]);
+    fireEvent.press(buttons[1]);
+
+    // ダウンロードが2回呼ばれることを確認
+    expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledTimes(2);
+
+    // 最初のダウンロードを完了
+    downloadPromiseResolve({ success: true });
+
+    // ダウンロードが完了したことを確認
+    // 初期チェック2回が行われていることを確認
+    expect(mockOfflineStorageService.isSongDownloaded).toHaveBeenCalledTimes(2);
+  });
+
+  it("handles songs with missing properties gracefully", async () => {
+    // 必要なプロパティが欠けている曲のケース
+    const incompleteSong = {
+      id: "incomplete-song",
+      title: "Incomplete Song",
+      // authorが欠けている
+      // image_pathが欠けている
+      song_path: "https://example.com/incomplete.mp3",
+      user_id: "test-user",
+      created_at: "2023-01-01T00:00:00.000Z",
+    } as any;
+
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    mockOfflineStorageService.downloadSong.mockResolvedValue({ success: true });
+
+    const { getByTestId } = render(<DownloadButton song={incompleteSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("download-button"));
+
+    await waitFor(() => {
+      expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(
+        incompleteSong
+      );
+    });
+  });
 });

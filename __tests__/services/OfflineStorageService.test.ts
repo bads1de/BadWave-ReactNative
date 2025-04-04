@@ -79,6 +79,64 @@ describe("OfflineStorageService", () => {
       );
     });
 
+    it("should handle songs with special characters in title", async () => {
+      // 特殊文字を含む曲名のケース
+      const specialCharSong = {
+        ...mockSong,
+        title: "Test Song with special chars: ?*<>|\\/:'",
+      };
+
+      (RNFS.exists as jest.Mock).mockResolvedValue(false);
+      (RNFS.downloadFile as jest.Mock).mockImplementation(() => ({
+        promise: Promise.resolve({ statusCode: 200 }),
+      }));
+
+      const setSpy = jest.fn();
+      mockMMKV.set = setSpy;
+
+      const result = await offlineStorageService.downloadSong(specialCharSong);
+
+      expect(result.success).toBe(true);
+      // ファイル名に特殊文字が含まれていないことを確認
+      expect(RNFS.downloadFile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          toFile: expect.not.stringContaining("?"),
+        })
+      );
+    });
+
+    it("should handle extremely large file downloads", async () => {
+      // 大きなファイルのダウンロードをシミュレート
+      (RNFS.exists as jest.Mock).mockResolvedValue(false);
+
+      // 進行状況をシミュレートするモック
+      const progressCallback = jest.fn();
+
+      (RNFS.downloadFile as jest.Mock).mockImplementation(({ progress }) => {
+        // 進行状況コールバックをシミュレート
+        if (progress) {
+          progress({ bytesWritten: 1000000, contentLength: 10000000 }); // 10%
+          progress({ bytesWritten: 5000000, contentLength: 10000000 }); // 50%
+          progress({ bytesWritten: 10000000, contentLength: 10000000 }); // 100%
+        }
+
+        return {
+          promise: Promise.resolve({ statusCode: 200 }),
+          jobId: 123,
+        };
+      });
+
+      const result = await offlineStorageService.downloadSong(mockSong);
+
+      expect(result.success).toBe(true);
+      expect(RNFS.downloadFile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromUrl: mockSong.song_path,
+          progress: expect.any(Function),
+        })
+      );
+    });
+
     it("should return error when download fails", async () => {
       // ダウンロード失敗のケース
       (RNFS.exists as jest.Mock).mockResolvedValue(false);

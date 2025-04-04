@@ -48,6 +48,9 @@ jest.mock("react-native-track-player", () => ({
     PlaybackQueueEnded: "playback-queue-ended",
     PlaybackTrackChanged: "playback-track-changed",
   },
+  // 追加したメソッド
+  reset: jest.fn().mockResolvedValue(undefined),
+  removeUpcomingTracks: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock("../../hooks/TrackPlayer/utils", () => ({

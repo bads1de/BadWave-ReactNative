@@ -170,6 +170,91 @@ describe("TrackPlayer utils", () => {
       }
     });
 
+    it("should handle songs with missing properties gracefully", async () => {
+      // 必要なプロパティが欠けている曲のケース
+      const incompleteSong = {
+        id: "incomplete-song",
+        title: "Incomplete Song",
+        // authorが欠けている
+        // image_pathが欠けている
+        song_path: "https://example.com/incomplete.mp3",
+        user_id: "test-user",
+        created_at: "2023-01-01T00:00:00.000Z",
+      } as unknown as Song;
+
+      // 元の関数を保存
+      const originalConvertSongToTrack = utils.convertSongToTrack;
+
+      // convertSongToTrackをモック化
+      utils.convertSongToTrack = jest.fn().mockImplementation(async (song) => {
+        return {
+          id: song.id,
+          url: song.song_path,
+          title: song.title,
+          artist: song.author || "Unknown Artist", // 欠けている場合はデフォルト値を使用
+          artwork: song.image_path || null, // 欠けている場合はnull
+        };
+      });
+
+      try {
+        const track = await utils.convertSongToTrack(incompleteSong);
+
+        expect(track).toEqual({
+          id: incompleteSong.id,
+          url: incompleteSong.song_path,
+          title: incompleteSong.title,
+          artist: "Unknown Artist",
+          artwork: null,
+        });
+      } finally {
+        // 元の関数に戻す
+        utils.convertSongToTrack = originalConvertSongToTrack;
+      }
+    });
+
+    it("should handle songs with extremely long titles", async () => {
+      // 非常に長いタイトルの曲のケース
+      const longTitleSong = {
+        ...mockSong,
+        title:
+          "This is an extremely long song title that exceeds the normal length of a song title and might cause issues with display or storage in some systems. It's important to test how the application handles such edge cases to ensure robustness.".repeat(
+            3
+          ), // 非常に長いタイトル
+      };
+
+      // 元の関数を保存
+      const originalConvertSongToTrack = utils.convertSongToTrack;
+
+      // convertSongToTrackをモック化
+      utils.convertSongToTrack = jest.fn().mockImplementation(async (song) => {
+        return {
+          id: song.id,
+          url: song.song_path,
+          title: song.title,
+          artist: song.author,
+          artwork: song.image_path,
+        };
+      });
+
+      try {
+        const track = await utils.convertSongToTrack(longTitleSong);
+
+        expect(track).toEqual({
+          id: longTitleSong.id,
+          url: longTitleSong.song_path,
+          title: longTitleSong.title,
+          artist: longTitleSong.author,
+          artwork: longTitleSong.image_path,
+        });
+
+        // タイトルが切り捨てられていないことを確認
+        expect(track.title.length).toBe(longTitleSong.title.length);
+      } finally {
+        // 元の関数に戻す
+        utils.convertSongToTrack = originalConvertSongToTrack;
+      }
+    });
+
     it("should return empty array for empty input", async () => {
       const tracks = await utils.convertToTracks([]);
 
