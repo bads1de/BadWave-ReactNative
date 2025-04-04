@@ -22,17 +22,29 @@ export function getOfflineStorageService(): OfflineStorageService {
  * ローカルにダウンロードされている場合はローカルパスを使用
  */
 export async function convertSongToTrack(song: Song): Promise<Track> {
-  const storage = getOfflineStorageService();
-  const localPath = await storage.getSongLocalPath(song.id);
+  try {
+    const storage = getOfflineStorageService();
+    const localPath = await storage.getSongLocalPath(song.id);
 
-  const track = {
-    id: song.id,
-    url: localPath || song.song_path, // ローカルパスがあればそれを使用、なければリモートURL
-    title: song.title,
-    artist: song.author,
-    artwork: song.image_path,
-  };
-  return track;
+    const track = {
+      id: song.id,
+      url: localPath || song.song_path, // ローカルパスがあればそれを使用、なければリモートURL
+      title: song.title,
+      artist: song.author,
+      artwork: song.image_path,
+    };
+    return track;
+  } catch (error) {
+    console.error(`Error converting song to track: ${error}`);
+    // エラー時はリモートURLを使用
+    return {
+      id: song.id,
+      url: song.song_path,
+      title: song.title,
+      artist: song.author,
+      artwork: song.image_path,
+    };
+  }
 }
 
 /**

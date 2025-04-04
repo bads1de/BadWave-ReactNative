@@ -268,6 +268,74 @@ describe("OfflineStorageService", () => {
 
       expect(songs.length).toBe(0);
     });
+
+    it("should handle missing localPath in metadata", async () => {
+      // localPathがないメタデータのケース
+      const mockMetadata = JSON.stringify({
+        id: mockSong.id,
+        title: mockSong.title,
+        author: mockSong.author,
+        image_path: mockSong.image_path,
+        user_id: mockSong.user_id,
+        created_at: mockSong.created_at,
+        // localPathがない
+      });
+
+      // モックの設定
+      const getAllKeysSpy = jest.fn().mockReturnValue(["song-metadata:song-1"]);
+      mockMMKV.getAllKeys = getAllKeysSpy;
+
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
+      const songs = await offlineStorageService.getDownloadedSongs();
+
+      // localPathがないメタデータはスキップされる
+      expect(songs.length).toBe(0);
+    });
+
+    it("should handle file system errors gracefully", async () => {
+      // ファイルシステムエラーのケース
+      const mockMetadata = JSON.stringify({
+        id: mockSong.id,
+        title: mockSong.title,
+        author: mockSong.author,
+        image_path: mockSong.image_path,
+        user_id: mockSong.user_id,
+        created_at: mockSong.created_at,
+        localPath: `/mock/path/${mockSong.title}.mp3`,
+      });
+
+      // モックの設定
+      const getAllKeysSpy = jest.fn().mockReturnValue(["song-metadata:song-1"]);
+      mockMMKV.getAllKeys = getAllKeysSpy;
+
+      const getStringSpy = jest.fn().mockReturnValue(mockMetadata);
+      mockMMKV.getString = getStringSpy;
+
+      // ファイルシステムエラーをシミュレート
+      (RNFS.exists as jest.Mock).mockRejectedValue(
+        new Error("File system error")
+      );
+
+      const songs = await offlineStorageService.getDownloadedSongs();
+
+      // エラーが発生しても空配列が返される
+      expect(songs.length).toBe(0);
+    });
+
+    it("should handle storage access errors gracefully", async () => {
+      // ストレージアクセスエラーのケース
+      const mockGetAllKeys = jest.fn().mockImplementation(() => {
+        throw new Error("Storage access error");
+      });
+      mockMMKV.getAllKeys = mockGetAllKeys;
+
+      const songs = await offlineStorageService.getDownloadedSongs();
+
+      // エラーが発生しても空配列が返される
+      expect(songs.length).toBe(0);
+    });
   });
 
   describe("isSongDownloaded", () => {

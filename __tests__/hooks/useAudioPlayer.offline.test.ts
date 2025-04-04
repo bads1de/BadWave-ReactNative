@@ -351,4 +351,126 @@ describe("useAudioPlayer - Offline Playback", () => {
     // TrackPlayer.addが呼ばれたことを確認
     expect(addSpy).toHaveBeenCalled();
   });
+
+  it("should handle playback when offline storage service throws an error", async () => {
+    // TrackPlayer.addのモックをスパイに置き換え
+    const addSpy = jest.spyOn(TrackPlayer, "add");
+
+    // ダウンロード確認のモックがエラーを投げる
+    mockOfflineStorageService.isSongDownloaded.mockRejectedValue(
+      new Error("Storage service error")
+    );
+
+    // convertSongToTrackのモックを設定
+    (utils.convertSongToTrack as jest.Mock).mockImplementation((song) => {
+      return Promise.resolve({
+        id: song.id,
+        url: song.song_path, // エラー時はリモートURLを使用
+        title: song.title,
+        artist: song.author,
+        artwork: song.image_path,
+      });
+    });
+
+    // フックをレンダリング
+    const { result } = renderHook(() => useAudioPlayer(mockSongs, "home"));
+
+    // togglePlayPauseを呼び出し
+    await act(async () => {
+      await result.current.togglePlayPause(mockSongs[0]);
+    });
+
+    // エラーが発生してもTrackPlayer.addが呼ばれることを確認
+    expect(addSpy).toHaveBeenCalled();
+  });
+
+  it("should handle playback when network is unavailable", async () => {
+    // TrackPlayer.addのモックをスパイに置き換え
+    const addSpy = jest.spyOn(TrackPlayer, "add");
+
+    // ダウンロード確認のモック
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
+    mockOfflineStorageService.getSongLocalPath.mockResolvedValue(
+      "/local/path/song1.mp3"
+    );
+
+    // convertSongToTrackのモックを設定
+    (utils.convertSongToTrack as jest.Mock).mockImplementation((song) => {
+      return Promise.resolve({
+        id: song.id,
+        url: "/local/path/song1.mp3", // ローカルパスを使用
+        title: song.title,
+        artist: song.author,
+        artwork: song.image_path,
+      });
+    });
+
+    // フックをレンダリング
+    const { result } = renderHook(() => useAudioPlayer(mockSongs, "home"));
+
+    // togglePlayPauseを呼び出し
+    await act(async () => {
+      await result.current.togglePlayPause(mockSongs[0]);
+    });
+
+    // ローカルパスを持つトラックが追加されることを確認
+    expect(addSpy).toHaveBeenCalled();
+  });
+
+  it("should handle playback when a song is deleted during playback", async () => {
+    // TrackPlayer.addのモックをスパイに置き換え
+    const addSpy = jest.spyOn(TrackPlayer, "add");
+
+    // 最初はダウンロード済み、後で削除されるシナリオ
+    mockOfflineStorageService.isSongDownloaded
+      .mockResolvedValueOnce(true) // 最初はダウンロード済み
+      .mockResolvedValueOnce(false); // 後で削除される
+
+    mockOfflineStorageService.getSongLocalPath
+      .mockResolvedValueOnce("/local/path/song1.mp3") // 最初はローカルパスがある
+      .mockResolvedValueOnce(null); // 後で削除される
+
+    // convertSongToTrackのモックを設定
+    (utils.convertSongToTrack as jest.Mock).mockImplementation((song) => {
+      if (mockOfflineStorageService.isSongDownloaded.mock.calls.length === 1) {
+        return Promise.resolve({
+          id: song.id,
+          url: "/local/path/song1.mp3", // 最初はローカルパス
+          title: song.title,
+          artist: song.author,
+          artwork: song.image_path,
+        });
+      } else {
+        return Promise.resolve({
+          id: song.id,
+          url: song.song_path, // 後でリモートURL
+          title: song.title,
+          artist: song.author,
+          artwork: song.image_path,
+        });
+      }
+    });
+
+    // フックをレンダリング
+    const { result } = renderHook(() => useAudioPlayer(mockSongs, "home"));
+
+    // 最初の再生
+    await act(async () => {
+      await result.current.togglePlayPause(mockSongs[0]);
+    });
+
+    // 最初はローカルパスを使用
+    expect(addSpy).toHaveBeenCalled();
+
+    // TrackPlayerのモックをリセット
+    addSpy.mockClear();
+
+    // 再度再生（この時にはファイルが削除されている）
+    await act(async () => {
+      await result.current.togglePlayPause(mockSongs[0]);
+    });
+
+    // リモートURLを使用して再生されることを確認
+    expect(addSpy).toHaveBeenCalled();
+  });
 });

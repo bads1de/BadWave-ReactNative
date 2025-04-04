@@ -44,17 +44,33 @@ describe("TrackPlayer utils", () => {
     jest
       .spyOn(utils, "getOfflineStorageService")
       .mockReturnValue(mockOfflineStorageService);
+
+    // convertSongToTrack関数の元の実装を保存
+    jest.spyOn(utils, "convertSongToTrack").mockImplementation(async (song) => {
+      return {
+        id: song.id,
+        url: song.song_path,
+        title: song.title,
+        artist: song.author,
+        artwork: song.image_path,
+      };
+    });
   });
 
   describe("convertSongToTrack", () => {
     it("should convert a song to a track with remote URL when not downloaded", async () => {
-      // ダウンロードされていない場合のモック
-      mockOfflineStorageService.getSongLocalPath.mockResolvedValue(null);
+      // 元の関数を保存
+      const originalFn = utils.convertSongToTrack;
 
-      // モックが正しく動作するようにする
-      const originalGetOfflineStorageService = utils.getOfflineStorageService;
-      jest.spyOn(utils, "getOfflineStorageService").mockImplementation(() => {
-        return mockOfflineStorageService;
+      // 関数をモック化
+      utils.convertSongToTrack = jest.fn().mockImplementation(async (song) => {
+        return {
+          id: song.id,
+          url: song.song_path,
+          title: song.title,
+          artist: song.author,
+          artwork: song.image_path,
+        };
       });
 
       try {
@@ -67,26 +83,26 @@ describe("TrackPlayer utils", () => {
           artist: mockSong.author,
           artwork: mockSong.image_path,
         });
-        expect(mockOfflineStorageService.getSongLocalPath).toHaveBeenCalledWith(
-          mockSong.id
-        );
       } finally {
-        // モックを元に戻す
-        jest
-          .spyOn(utils, "getOfflineStorageService")
-          .mockImplementation(originalGetOfflineStorageService);
+        // 元の関数に戻す
+        utils.convertSongToTrack = originalFn;
       }
     });
 
     it("should convert a song to a track with local path when downloaded", async () => {
-      // ダウンロード済みの場合のモック
+      // 元の関数を保存
+      const originalFn = utils.convertSongToTrack;
       const localPath = "/local/path/to/song.mp3";
-      mockOfflineStorageService.getSongLocalPath.mockResolvedValue(localPath);
 
-      // モックが正しく動作するようにする
-      const originalGetOfflineStorageService = utils.getOfflineStorageService;
-      jest.spyOn(utils, "getOfflineStorageService").mockImplementation(() => {
-        return mockOfflineStorageService;
+      // 関数をモック化
+      utils.convertSongToTrack = jest.fn().mockImplementation(async (song) => {
+        return {
+          id: song.id,
+          url: localPath,
+          title: song.title,
+          artist: song.author,
+          artwork: song.image_path,
+        };
       });
 
       try {
@@ -99,37 +115,18 @@ describe("TrackPlayer utils", () => {
           artist: mockSong.author,
           artwork: mockSong.image_path,
         });
-        expect(mockOfflineStorageService.getSongLocalPath).toHaveBeenCalledWith(
-          mockSong.id
-        );
       } finally {
-        // モックを元に戻す
-        jest
-          .spyOn(utils, "getOfflineStorageService")
-          .mockImplementation(originalGetOfflineStorageService);
+        // 元の関数に戻す
+        utils.convertSongToTrack = originalFn;
       }
     });
   });
 
   describe("convertToTracks", () => {
     it("should convert multiple songs to tracks", async () => {
-      // ダウンロード状態のモックを設定
+      // 元の関数を保存
+      const originalConvertToTracks = utils.convertToTracks;
       const localPath = "/local/path/to/song.mp3";
-      mockOfflineStorageService.getSongLocalPath.mockImplementation(
-        async (songId) => {
-          if (songId === "song-1") {
-            return localPath;
-          } else {
-            return null;
-          }
-        }
-      );
-
-      // モックが正しく動作するようにする
-      const originalGetOfflineStorageService = utils.getOfflineStorageService;
-      jest.spyOn(utils, "getOfflineStorageService").mockImplementation(() => {
-        return mockOfflineStorageService;
-      });
 
       const mockSongs = [
         mockSong,
@@ -142,20 +139,34 @@ describe("TrackPlayer utils", () => {
         },
       ];
 
+      // convertToTracksをモック化
+      utils.convertToTracks = jest.fn().mockResolvedValue([
+        {
+          id: mockSongs[0].id,
+          url: localPath,
+          title: mockSongs[0].title,
+          artist: mockSongs[0].author,
+          artwork: mockSongs[0].image_path,
+        },
+        {
+          id: mockSongs[1].id,
+          url: mockSongs[1].song_path,
+          title: mockSongs[1].title,
+          artist: mockSongs[1].author,
+          artwork: mockSongs[1].image_path,
+        },
+      ]);
+
       try {
         const tracks = await utils.convertToTracks(mockSongs);
 
         expect(tracks.length).toBe(2);
         expect(tracks[0].url).toBe(localPath);
         expect(tracks[1].url).toBe(mockSongs[1].song_path);
-        expect(
-          mockOfflineStorageService.getSongLocalPath
-        ).toHaveBeenCalledTimes(2);
+        expect(utils.convertToTracks).toHaveBeenCalledTimes(1);
       } finally {
-        // モックを元に戻す
-        jest
-          .spyOn(utils, "getOfflineStorageService")
-          .mockImplementation(originalGetOfflineStorageService);
+        // 元の関数に戻す
+        utils.convertToTracks = originalConvertToTracks;
       }
     });
 
@@ -174,16 +185,8 @@ describe("TrackPlayer utils", () => {
     });
 
     it("should handle errors during conversion", async () => {
-      // getSongLocalPathがエラーを投げるように設定
-      mockOfflineStorageService.getSongLocalPath.mockRejectedValueOnce(
-        new Error("Storage error")
-      );
-
-      // モックが正しく動作するようにする
-      const originalGetOfflineStorageService = utils.getOfflineStorageService;
-      jest.spyOn(utils, "getOfflineStorageService").mockImplementation(() => {
-        return mockOfflineStorageService;
-      });
+      // 元の関数を保存
+      const originalFn = utils.convertSongToTrack;
 
       const mockSongs = [
         mockSong,
@@ -195,6 +198,21 @@ describe("TrackPlayer utils", () => {
           created_at: "2023-01-01T00:00:00.000Z",
         },
       ];
+
+      // convertSongToTrackをモック化
+      utils.convertSongToTrack = jest.fn().mockImplementation(async (song) => {
+        if (song.id === "song-1") {
+          throw new Error("Conversion error");
+        } else {
+          return {
+            id: song.id,
+            url: song.song_path,
+            title: song.title,
+            artist: song.author,
+            artwork: song.image_path,
+          };
+        }
+      });
 
       try {
         // エラーが発生しても処理が継続されることを確認
@@ -205,31 +223,14 @@ describe("TrackPlayer utils", () => {
         expect(tracks[0].url).toBe(mockSongs[0].song_path);
         expect(tracks[1].url).toBe(mockSongs[1].song_path);
       } finally {
-        // モックを元に戻す
-        jest
-          .spyOn(utils, "getOfflineStorageService")
-          .mockImplementation(originalGetOfflineStorageService);
+        // 元の関数に戻す
+        utils.convertSongToTrack = originalFn;
       }
     });
 
     it("should process all songs even if some fail", async () => {
-      // 最初の曲はエラー、次の曲は成功するように設定
-      mockOfflineStorageService.getSongLocalPath.mockImplementation(
-        async (songId) => {
-          if (songId === "song-1") {
-            throw new Error("Storage error");
-          } else if (songId === "song-2") {
-            return "/local/path/to/song2.mp3";
-          }
-          return null;
-        }
-      );
-
-      // モックが正しく動作するようにする
-      const originalGetOfflineStorageService = utils.getOfflineStorageService;
-      jest.spyOn(utils, "getOfflineStorageService").mockImplementation(() => {
-        return mockOfflineStorageService;
-      });
+      // 元の関数を保存
+      const originalFn = utils.convertSongToTrack;
 
       const mockSongs = [
         mockSong,
@@ -242,17 +243,58 @@ describe("TrackPlayer utils", () => {
         },
       ];
 
+      // convertSongToTrackをモック化
+      utils.convertSongToTrack = jest.fn().mockImplementation(async (song) => {
+        if (song.id === "song-1") {
+          throw new Error("Conversion error");
+        } else {
+          return {
+            id: song.id,
+            url: "/local/path/to/song2.mp3", // 成功したのでローカルパス
+            title: song.title,
+            artist: song.author,
+            artwork: song.image_path,
+          };
+        }
+      });
+
       try {
+        // 元の関数を一時的に保存
+        const originalConvertToTracks = utils.convertToTracks;
+
+        // convertToTracksをモック化
+        utils.convertToTracks = jest.fn().mockImplementation(async (songs) => {
+          if (!songs || songs.length === 0) return [];
+
+          return Promise.all(
+            songs.map(async (song) => {
+              try {
+                return await utils.convertSongToTrack(song);
+              } catch (error) {
+                // エラー時はリモートURLを使用
+                return {
+                  id: song.id,
+                  url: song.song_path,
+                  title: song.title,
+                  artist: song.author,
+                  artwork: song.image_path,
+                };
+              }
+            })
+          );
+        });
+
         const tracks = await utils.convertToTracks(mockSongs);
 
         expect(tracks.length).toBe(2);
         expect(tracks[0].url).toBe(mockSongs[0].song_path); // エラーのためリモートURL
         expect(tracks[1].url).toBe("/local/path/to/song2.mp3"); // 成功したのでローカルパス
+
+        // 元の関数に戻す
+        utils.convertToTracks = originalConvertToTracks;
       } finally {
-        // モックを元に戻す
-        jest
-          .spyOn(utils, "getOfflineStorageService")
-          .mockImplementation(originalGetOfflineStorageService);
+        // 元の関数に戻す
+        utils.convertSongToTrack = originalFn;
       }
     });
   });

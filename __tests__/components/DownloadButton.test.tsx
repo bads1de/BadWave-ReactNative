@@ -4,12 +4,9 @@ import { DownloadButton } from "../../components/DownloadButton";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
 
 // Ioniconsのモック
-jest.mock("@expo/vector-icons", () => {
-  const originalModule = jest.requireActual("@expo/vector-icons");
-  return {
-    Ionicons: "Ionicons",
-  };
-});
+jest.mock("@expo/vector-icons", () => ({
+  Ionicons: "Ionicons",
+}));
 
 // モックの設定
 jest.mock("../../services/OfflineStorageService", () => {
@@ -239,5 +236,132 @@ describe("DownloadButton", () => {
     await waitFor(() => {
       expect(getByTestId("loading-indicator")).toBeTruthy();
     });
+  });
+
+  it("handles network errors during download", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    mockOfflineStorageService.downloadSong.mockResolvedValue({
+      success: false,
+      error: new Error("Network error: Unable to download song"),
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("download-button"));
+
+    // ネットワークエラー後もダウンロードボタンが表示されることを確認
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+  });
+
+  it("handles disk space errors during download", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    mockOfflineStorageService.downloadSong.mockResolvedValue({
+      success: false,
+      error: new Error("Disk space error: Not enough storage"),
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("download-button"));
+
+    // ディスクエラー後もダウンロードボタンが表示されることを確認
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+  });
+
+  it("handles permission errors during deletion", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
+    mockOfflineStorageService.deleteSong.mockResolvedValue({
+      success: false,
+      error: new Error("Permission error: Cannot delete file"),
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("delete-button"));
+
+    // 権限エラー後も削除ボタンが表示されることを確認
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+  });
+
+  it("handles rapid button clicks correctly", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    // ダウンロードに時間がかかるようにモック
+    mockOfflineStorageService.downloadSong.mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ success: true }), 100)
+        )
+    );
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    // 最初のクリック
+    fireEvent.press(getByTestId("download-button"));
+
+    // ローディング状態を確認
+    await waitFor(() => {
+      expect(getByTestId("loading-indicator")).toBeTruthy();
+    });
+
+    // ローディング中にさらにクリックしようとしても無視される
+    // ローディング中はボタンが表示されないので、クリックはできない
+
+    // downloadSongが1回だけ呼ばれることを確認
+    await waitFor(() => {
+      expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("handles component unmount during download operation", async () => {
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    // ダウンロードに時間がかかるようにモック
+    mockOfflineStorageService.downloadSong.mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ success: true }), 500)
+        )
+    );
+
+    const { getByTestId, unmount } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    // ダウンロード開始
+    fireEvent.press(getByTestId("download-button"));
+
+    // ローディング状態を確認
+    await waitFor(() => {
+      expect(getByTestId("loading-indicator")).toBeTruthy();
+    });
+
+    // コンポーネントをアンマウント
+    unmount();
+
+    // エラーが発生しないことを確認
+    // ここでは特にアサーションは不要、エラーが発生しないことを確認するテスト
   });
 });

@@ -339,4 +339,105 @@ describe("Library Screen - Downloads Tab", () => {
     // togglePlayPauseが呼ばれたことを確認
     expect(mockTogglePlayPause).toHaveBeenCalledWith("song-1");
   });
+
+  it("should refresh downloads when pull-to-refresh is triggered", async () => {
+    const { getByTestId } = render(<Library />);
+
+    // Downloadsタブをクリック
+    fireEvent.press(getByTestId("button-Downloads"));
+
+    // リフレッシュイベントを発生させる
+    fireEvent(getByTestId("downloads-flatlist"), "refresh");
+
+    // refresh関数が呼ばれたことを確認
+    expect(mockRefreshDownloads).toHaveBeenCalled();
+  });
+
+  it("should handle network errors gracefully", async () => {
+    // ネットワークエラーをモック
+    (useDownloadedSongs as jest.Mock).mockReturnValue({
+      songs: [],
+      isLoading: false,
+      error: "Network error: Unable to fetch downloaded songs",
+      refresh: mockRefreshDownloads,
+    });
+
+    const { getByTestId, queryByText } = render(<Library />);
+
+    // Downloadsタブをクリック
+    fireEvent.press(getByTestId("button-Downloads"));
+
+    // エラーメッセージが表示されることを確認
+    expect(
+      queryByText("Network error: Unable to fetch downloaded songs")
+    ).toBeTruthy();
+
+    // リトライボタンが表示されることを確認
+    expect(queryByText("Retry")).toBeTruthy();
+
+    // リトライボタンをクリック
+    fireEvent.press(getByTestId("button-Retry"));
+
+    // refresh関数が呼ばれたことを確認
+    expect(mockRefreshDownloads).toHaveBeenCalled();
+  });
+
+  it("should display song details correctly", async () => {
+    const { getByTestId, queryByText } = render(<Library />);
+
+    // Downloadsタブをクリック
+    fireEvent.press(getByTestId("button-Downloads"));
+
+    // 曲の詳細が正しく表示されることを確認
+    expect(queryByText("Downloaded Song 1")).toBeTruthy();
+    expect(queryByText("Artist 1")).toBeTruthy();
+    expect(queryByText("Downloaded Song 2")).toBeTruthy();
+    expect(queryByText("Artist 2")).toBeTruthy();
+  });
+
+  it("should handle transition between loading, error, and success states", async () => {
+    // 初期はローディング状態
+    (useDownloadedSongs as jest.Mock).mockReturnValue({
+      songs: [],
+      isLoading: true,
+      error: null,
+      refresh: mockRefreshDownloads,
+    });
+
+    const { getByTestId, queryByTestId, rerender } = render(<Library />);
+
+    // Downloadsタブをクリック
+    fireEvent.press(getByTestId("button-Downloads"));
+
+    // ローディング状態が表示されることを確認
+    expect(queryByTestId("loading")).toBeTruthy();
+
+    // エラー状態に変更
+    (useDownloadedSongs as jest.Mock).mockReturnValue({
+      songs: [],
+      isLoading: false,
+      error: "Failed to load",
+      refresh: mockRefreshDownloads,
+    });
+
+    // 再レンダリング
+    rerender(<Library />);
+
+    // エラー状態が表示されることを確認
+    expect(queryByTestId("error")).toBeTruthy();
+
+    // 成功状態に変更
+    (useDownloadedSongs as jest.Mock).mockReturnValue({
+      songs: mockDownloadedSongs,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshDownloads,
+    });
+
+    // 再レンダリング
+    rerender(<Library />);
+
+    // 成功状態が表示されることを確認
+    expect(queryByTestId("downloads-flatlist")).toBeTruthy();
+  });
 });
