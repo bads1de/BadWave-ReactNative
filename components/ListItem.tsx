@@ -18,6 +18,7 @@ interface ListItemProps {
   showStats?: boolean;
   imageSize?: "small" | "medium" | "large";
   onDelete?: () => void;
+  testID?: string;
 }
 
 const { width } = Dimensions.get("window");
@@ -28,6 +29,7 @@ function ListItem({
   showStats = true,
   imageSize = "medium",
   onDelete,
+  testID,
 }: ListItemProps) {
   const getImageSize = () => {
     switch (imageSize) {
@@ -45,6 +47,7 @@ function ListItem({
       style={styles.container}
       onPress={() => onPress(song)}
       activeOpacity={0.7}
+      testID={testID}
     >
       <View
         style={[

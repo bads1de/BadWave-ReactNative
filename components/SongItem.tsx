@@ -102,6 +102,7 @@ const SongItem = memo(
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           activeOpacity={0.9}
+          testID="song-container"
         >
           <View style={styles.imageContainer}>
             <Image
@@ -118,7 +119,10 @@ const SongItem = memo(
               style={styles.gradientOverlay}
             />
             <View style={styles.textOverlay}>
-              <TouchableOpacity onPress={handleTitlePress}>
+              <TouchableOpacity
+                onPress={handleTitlePress}
+                testID="song-title-button"
+              >
                 <Text style={styles.title} numberOfLines={1}>
                   {song.title}
                 </Text>

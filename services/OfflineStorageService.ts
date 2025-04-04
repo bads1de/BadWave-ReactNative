@@ -15,6 +15,7 @@ export class OfflineStorageService {
     this.storage = new MMKV({
       id: "offline-storage",
     });
+
     this.ensureDownloadDirectory();
   }
 
@@ -24,6 +25,7 @@ export class OfflineStorageService {
   private async ensureDownloadDirectory(): Promise<void> {
     try {
       const exists = await RNFS.exists(this.DOWNLOAD_DIR);
+
       if (!exists && RNFS.mkdir) {
         await RNFS.mkdir(this.DOWNLOAD_DIR);
       }
@@ -43,10 +45,13 @@ export class OfflineStorageService {
     try {
       // ファイル名にはタイトルを使用（特殊文字を除去）
       const sanitizedTitle = song.title.replace(/[^a-zA-Z0-9]/g, "_");
+
+      // 保存先のローカルパスを作成
       const localPath = `${this.DOWNLOAD_DIR}${sanitizedTitle}.mp3`;
 
       // 既にダウンロード済みかチェック
       const exists = await RNFS.exists(localPath);
+
       if (exists) {
         console.log(`Song already downloaded: ${song.title}`);
         return { success: true };
@@ -61,7 +66,7 @@ export class OfflineStorageService {
       }).promise;
 
       if (downloadResult.statusCode === 200) {
-        // メタデータを保存
+        // ダウンロード成功時、メタデータを作成
         const metadata = {
           id: song.id,
           title: song.title,
@@ -73,6 +78,7 @@ export class OfflineStorageService {
           downloadDate: new Date().toISOString(),
         };
 
+        // メタデータを保存
         this.storage.set(
           `${this.METADATA_PREFIX}${song.id}`,
           JSON.stringify(metadata)
@@ -83,6 +89,7 @@ export class OfflineStorageService {
         console.error(
           `Download failed with status code: ${downloadResult.statusCode}`
         );
+
         return {
           success: false,
           error: `Download failed with status code: ${downloadResult.statusCode}`,
@@ -90,6 +97,7 @@ export class OfflineStorageService {
       }
     } catch (error) {
       console.error("Error downloading song:", error);
+
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -106,11 +114,15 @@ export class OfflineStorageService {
     songId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      // メタデータのキーを生成
       const metadataKey = `${this.METADATA_PREFIX}${songId}`;
+
+      // メタデータを取得
       const metadataStr = this.storage.getString(metadataKey);
 
       if (!metadataStr) {
-        return { success: true }; // メタデータが存在しない場合は成功とみなす
+        // メタデータが存在しない場合は成功とみなす
+        return { success: true };
       }
 
       const metadata = JSON.parse(metadataStr);
@@ -118,12 +130,14 @@ export class OfflineStorageService {
 
       // ファイルが存在するか確認
       const exists = await RNFS.exists(localPath);
+
       if (exists) {
         try {
           // ファイル削除
           await RNFS.unlink(localPath);
         } catch (unlinkError) {
           console.error("Error unlinking file:", unlinkError);
+
           return {
             success: false,
             error:
@@ -140,6 +154,7 @@ export class OfflineStorageService {
       return { success: true };
     } catch (error) {
       console.error("Error deleting song:", error);
+
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -153,21 +168,28 @@ export class OfflineStorageService {
    */
   async getDownloadedSongs(): Promise<Song[]> {
     try {
+      // すべてのキーを取得
       const allKeys = this.storage.getAllKeys() || [];
+
+      // 曲のメタデータのキーだけを抽出
       const metadataKeys = allKeys.filter((key) =>
         key.startsWith(this.METADATA_PREFIX)
       );
 
       const songs: Song[] = [];
 
+      // 各メタデータについて処理
       for (const key of metadataKeys) {
         const metadataStr = this.storage.getString(key);
+
         if (metadataStr) {
           const metadata = JSON.parse(metadataStr);
 
-          // ファイルが実際に存在するか確認
+          // 実際にファイルが存在するか確認
           const exists = await RNFS.exists(metadata.localPath);
+
           if (exists) {
+            // 存在すればリストに追加
             songs.push({
               id: metadata.id,
               title: metadata.title,
@@ -178,7 +200,7 @@ export class OfflineStorageService {
               created_at: metadata.created_at || new Date().toISOString(),
             });
           } else {
-            // ファイルが存在しない場合はメタデータを削除
+            // ファイルがなければメタデータを削除
             this.storage.delete(key);
           }
         }
@@ -187,6 +209,7 @@ export class OfflineStorageService {
       return songs;
     } catch (error) {
       console.error("Error getting downloaded songs:", error);
+
       return [];
     }
   }
@@ -198,22 +221,30 @@ export class OfflineStorageService {
    */
   async isSongDownloaded(songId: string): Promise<boolean> {
     try {
+      // メタデータのキーを生成
       const metadataKey = `${this.METADATA_PREFIX}${songId}`;
+
+      // メタデータが存在するか確認
       const hasMetadata = this.storage.contains(metadataKey);
 
       if (!hasMetadata) {
         return false;
       }
 
+      // メタデータを取得
       const metadataStr = this.storage.getString(metadataKey);
+
       if (!metadataStr) {
         return false;
       }
 
       const metadata = JSON.parse(metadataStr);
+
+      // ファイルが存在するか確認
       return await RNFS.exists(metadata.localPath);
     } catch (error) {
       console.error("Error checking if song is downloaded:", error);
+
       return false;
     }
   }
@@ -225,7 +256,10 @@ export class OfflineStorageService {
    */
   async getSongLocalPath(songId: string): Promise<string | null> {
     try {
+      // メタデータのキーを生成
       const metadataKey = `${this.METADATA_PREFIX}${songId}`;
+
+      // メタデータを取得
       const metadataStr = this.storage.getString(metadataKey);
 
       if (!metadataStr) {
@@ -233,11 +267,14 @@ export class OfflineStorageService {
       }
 
       const metadata = JSON.parse(metadataStr);
+
+      // ファイルが存在するか確認
       const exists = await RNFS.exists(metadata.localPath);
 
       return exists ? metadata.localPath : null;
     } catch (error) {
       console.error("Error getting song local path:", error);
+
       return null;
     }
   }
@@ -248,8 +285,10 @@ export class OfflineStorageService {
    */
   async clearAllDownloads(): Promise<{ success: boolean; error?: string }> {
     try {
+      // すべてのダウンロード済み曲を取得
       const songs = await this.getDownloadedSongs();
 
+      // 各曲を削除
       for (const song of songs) {
         await this.deleteSong(song.id);
       }
@@ -257,6 +296,7 @@ export class OfflineStorageService {
       return { success: true };
     } catch (error) {
       console.error("Error clearing all downloads:", error);
+
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),

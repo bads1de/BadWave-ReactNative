@@ -13,9 +13,10 @@ import { Playlist } from "@/types";
 interface PlaylistItemProps {
   playlist: Playlist;
   onPress: (playlist: Playlist) => void;
+  testID?: string;
 }
 
-function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
+function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
   const { width } = useWindowDimensions();
   const itemWidth = (width - 48) / 2.2;
   const dynamicStyles = { width: itemWidth, height: itemWidth * 1.2 };
@@ -25,6 +26,7 @@ function PlaylistItem({ playlist, onPress }: PlaylistItemProps) {
       style={[styles.container, dynamicStyles]}
       onPress={() => onPress(playlist)}
       activeOpacity={0.7}
+      testID={testID}
     >
       {/* 装飾的な背景カード */}
       <View style={styles.decorativeCard1} />

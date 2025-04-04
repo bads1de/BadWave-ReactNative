@@ -91,6 +91,7 @@ interface ControlButtonProps {
   isActive?: boolean;
   onPress: () => void;
   repeatMode?: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
+  testID?: string;
 }
 
 interface PlayPauseButtonProps {
@@ -128,6 +129,7 @@ const Progress: FC<ProgressProps> = memo(({ position, duration, onSeek }) => (
       minimumTrackTintColor="#4c1d95"
       maximumTrackTintColor="#777"
       thumbTintColor="#4c1d95"
+      testID="seek-slider"
     />
     <View style={styles.timeContainer}>
       <Text style={styles.timeText}>{formatTime(position)}</Text>
@@ -152,10 +154,19 @@ const Controls: FC<ControlsProps> = memo(
         icon="shuffle"
         isActive={shuffle}
         onPress={() => setShuffle(!shuffle)}
+        testID="shuffle-button"
       />
-      <ControlButton icon="play-skip-back" onPress={onPrev} />
+      <ControlButton
+        icon="play-skip-back"
+        onPress={onPrev}
+        testID="prev-button"
+      />
       <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
-      <ControlButton icon="play-skip-forward" onPress={onNext} />
+      <ControlButton
+        icon="play-skip-forward"
+        onPress={onNext}
+        testID="next-button"
+      />
       <ControlButton
         icon="repeat"
         isActive={repeatMode !== RepeatMode.Off}
@@ -173,18 +184,23 @@ const Controls: FC<ControlsProps> = memo(
           }
         }}
         repeatMode={repeatMode}
+        testID="repeat-button"
       />
     </View>
   )
 );
 
 const ControlButton: FC<ControlButtonProps> = memo(
-  ({ icon, isActive, onPress, repeatMode }) => {
+  ({ icon, isActive, onPress, repeatMode, testID }) => {
     // リピートボタンの場合、モードに応じて異なるアイコンを表示
     if (icon === "repeat") {
       return (
         <View>
-          <TouchableOpacity onPress={onPress} style={styles.repeatButton}>
+          <TouchableOpacity
+            onPress={onPress}
+            style={styles.repeatButton}
+            testID={testID}
+          >
             <Ionicons
               name={isActive ? "repeat" : "repeat-outline"}
               size={25}
@@ -202,7 +218,7 @@ const ControlButton: FC<ControlButtonProps> = memo(
 
     // 通常のコントロールボタン
     return (
-      <TouchableOpacity onPress={onPress}>
+      <TouchableOpacity onPress={onPress} testID={testID}>
         <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
       </TouchableOpacity>
     );
@@ -211,7 +227,11 @@ const ControlButton: FC<ControlButtonProps> = memo(
 
 const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
   ({ isPlaying, onPress }) => (
-    <TouchableOpacity style={styles.playButton} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.playButton}
+      onPress={onPress}
+      testID="play-pause-button"
+    >
       <Ionicons
         name={isPlaying ? "pause-circle" : "play-circle"}
         size={70}
@@ -233,6 +253,7 @@ const MediaBackground: FC<MediaBackgroundProps> = memo(
             shouldPlay
             isLooping
             isMuted
+            testID="background-video"
           />
         </View>
       );
@@ -324,7 +345,11 @@ const Player: FC<PlayerProps> = (props) => {
           imageUrl={currentSong.image_path}
         />
 
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={onClose}
+          testID="close-button"
+        >
           <Ionicons name="chevron-down" size={30} color="#fff" />
         </TouchableOpacity>
 
@@ -337,7 +362,9 @@ const Player: FC<PlayerProps> = (props) => {
         </LinearGradient>
       </View>
 
-      {currentSong?.lyrics && <Lyric lyrics={currentSong.lyrics} />}
+      {currentSong?.lyrics && (
+        <Lyric lyrics={currentSong.lyrics} testID="lyrics-component" />
+      )}
       <NextSong repeatMode={repeatMode} shuffle={shuffle} />
       <TopPlayedSongsList />
     </ScrollView>
