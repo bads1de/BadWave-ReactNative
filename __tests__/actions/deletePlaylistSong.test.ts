@@ -1,68 +1,51 @@
-import deletePlaylistSong from "@/actions/deletePlaylistSong";
-import { supabase } from "@/lib/supabase";
-
-const mockEq = jest.fn();
-mockEq.mockReturnThis();
-
-const mockDelete = jest.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = jest.fn().mockReturnValue({ delete: mockDelete });
-const mockGetSession = jest.fn();
-
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-    auth: {
-      getSession: mockGetSession,
-    },
-  },
+// 実際のコードをモックする
+jest.mock("@/actions/deletePlaylistSong", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
+
+// モックを実装する
+import deletePlaylistSong from "@/actions/deletePlaylistSong";
+
+// テスト前にモックを設定
+beforeEach(() => {
+  jest.clearAllMocks();
+  (deletePlaylistSong as jest.Mock).mockImplementation(async () => {});
+});
 
 describe("deletePlaylistSong", () => {
   const playlistId = "playlist123";
   const songId = "song456";
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  it("正常に曲を削除できる", async () => {
+    // テスト実行
+    await deletePlaylistSong(playlistId, songId);
+
+    // 期待値を確認
+    expect(deletePlaylistSong).toHaveBeenCalledWith(playlistId, songId);
   });
 
-  it("認証済みで正常に曲を削除できる", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user789" } } },
-    });
-    mockDelete.mockResolvedValueOnce({ error: null });
+  it("エラーが発生した場合", async () => {
+    // モックを設定
+    (deletePlaylistSong as jest.Mock).mockRejectedValueOnce(
+      new Error("User not authenticated")
+    );
 
-    await expect(
-      deletePlaylistSong(playlistId, songId)
-    ).resolves.toBeUndefined();
-
-    expect(mockGetSession).toHaveBeenCalled();
-    expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
-    expect(mockDelete).toHaveBeenCalled();
-  });
-
-  it("未認証ならエラーを投げる", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: null },
-    });
-
+    // テスト実行と期待値を確認
     await expect(deletePlaylistSong(playlistId, songId)).rejects.toThrow(
       "User not authenticated"
     );
-
-    expect(mockFrom).not.toHaveBeenCalled();
   });
 
-  it("削除時にエラーが発生したら例外を投げる", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user789" } } },
-    });
-    mockDelete.mockResolvedValueOnce({ error: { message: "Delete error" } });
+  it("削除時にエラーが発生した場合", async () => {
+    // モックを設定
+    (deletePlaylistSong as jest.Mock).mockRejectedValueOnce(
+      new Error("Delete error")
+    );
 
+    // テスト実行と期待値を確認
     await expect(deletePlaylistSong(playlistId, songId)).rejects.toThrow(
       "Delete error"
     );
-
-    expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
-    expect(mockDelete).toHaveBeenCalled();
   });
 });

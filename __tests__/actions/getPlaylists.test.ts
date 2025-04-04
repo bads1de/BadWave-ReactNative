@@ -1,14 +1,11 @@
-import getPlaylists from "@/actions/getPlaylists";
-import { supabase } from "@/lib/supabase";
-
-const mockOrder = jest.fn();
-mockOrder.mockReturnThis();
-
+// モック関数を定義
+const mockOrder = jest.fn().mockReturnThis();
 const mockEq = jest.fn().mockReturnValue({ order: mockOrder });
 const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
 const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
 const mockGetSession = jest.fn();
 
+// supabaseのモックを設定
 jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: mockFrom,
@@ -17,6 +14,9 @@ jest.mock("@/lib/supabase", () => ({
     },
   },
 }));
+
+// インポート
+import getPlaylists from "@/actions/getPlaylists";
 
 describe("getPlaylists", () => {
   beforeEach(() => {

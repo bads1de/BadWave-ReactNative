@@ -1,18 +1,18 @@
-import getSongsByGenre from "@/actions/getSongsByGenre";
-import { supabase } from "@/lib/supabase";
-
-const mockOrder = jest.fn();
-mockOrder.mockReturnThis();
-
+// モック関数を定義
+const mockOrder = jest.fn().mockReturnThis();
 const mockOr = jest.fn().mockReturnValue({ order: mockOrder });
 const mockSelect = jest.fn().mockReturnValue({ or: mockOr });
 const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
 
+// supabaseのモックを設定
 jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: mockFrom,
   },
 }));
+
+// インポート
+import getSongsByGenre from "@/actions/getSongsByGenre";
 
 describe("getSongsByGenre", () => {
   beforeEach(() => {

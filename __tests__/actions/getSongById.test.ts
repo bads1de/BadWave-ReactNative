@@ -1,18 +1,18 @@
-import getSongById from "@/actions/getSongById";
-import { supabase } from "@/lib/supabase";
-
-const mockSingle = jest.fn();
-mockSingle.mockReturnThis();
-
+// モック関数を定義
+const mockSingle = jest.fn().mockReturnThis();
 const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
 const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
 const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
 
+// supabaseのモックを設定
 jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: mockFrom,
   },
 }));
+
+// インポート
+import getSongById from "@/actions/getSongById";
 
 describe("getSongById", () => {
   beforeEach(() => {

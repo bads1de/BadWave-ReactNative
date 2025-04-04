@@ -1,10 +1,9 @@
-import createPlaylist from "@/actions/createPlaylist";
-import { supabase } from "@/lib/supabase";
-
+// モック関数を定義
 const mockInsert = jest.fn();
 const mockFrom = jest.fn().mockReturnValue({ insert: mockInsert });
 const mockGetSession = jest.fn();
 
+// supabaseのモックを設定
 jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: mockFrom,
@@ -13,6 +12,9 @@ jest.mock("@/lib/supabase", () => ({
     },
   },
 }));
+
+// インポート
+import createPlaylist from "@/actions/createPlaylist";
 
 describe("createPlaylist", () => {
   const playlistName = "My Playlist";
