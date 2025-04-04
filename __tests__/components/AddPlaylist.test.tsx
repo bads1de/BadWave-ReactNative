@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act, waitFor } from "@testing-library/react-native";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../providers/AuthProvider";
 import Toast from "react-native-toast-message";
@@ -404,5 +404,186 @@ describe("AddPlaylist", () => {
 
     // エラーが発生しないことを確認するテスト
     // 実際のコンポーネントによってはエラー表示のテストIDが必要
+  });
+
+  it("プレイリスト追加中にネットワークエラーが発生した場合の処理", () => {
+    // モックをクリア
+    jest.clearAllMocks();
+
+    // usePlaylistStatusのモックを再設定
+    (usePlaylistStatus as jest.Mock).mockReturnValue({
+      isAdded: { p1: false, p2: false }, // すべて未追加に設定
+      fetchAddedStatus: mockFetchAddedStatus,
+    });
+
+    // useMutation のエラー状態をモック
+    (useMutation as jest.Mock).mockImplementation(({ onError }) => {
+      return {
+        mutate: (playlistId: string) => {
+          // エラーを発生させる
+          if (onError) {
+            onError(new Error("Network error"));
+          }
+        },
+        error: new Error("Network error"),
+        isPending: false,
+      };
+    });
+
+    const { getByTestId, getAllByTestId } = render(
+      <AddPlaylist songId="song1" />
+    );
+
+    // モックをリセット
+    mockFetchAddedStatus.mockClear();
+    mockInvalidateQueries.mockClear();
+
+    // モーダルを表示
+    act(() => {
+      fireEvent.press(getByTestId("add-playlist-button"));
+    });
+
+    // プレイリストをクリック
+    const playlistItems = getAllByTestId("playlist-item");
+    act(() => {
+      fireEvent.press(playlistItems[1]); // p2 (isAdded: false)
+    });
+
+    // エラーが発生してもクラッシュしないことを確認
+    // エラー発生時にはこれらの関数は呼ばれないはず
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+  });
+
+  it("複数のプレイリストを連続してクリックした場合の処理", () => {
+    // モックをクリア
+    jest.clearAllMocks();
+
+    // usePlaylistStatusのモックを再設定
+    (usePlaylistStatus as jest.Mock).mockReturnValue({
+      isAdded: { p1: false, p2: false, p3: false }, // すべて未追加に設定
+      fetchAddedStatus: mockFetchAddedStatus,
+    });
+
+    // プレイリストデータを追加
+    (useQuery as jest.Mock).mockReturnValue({
+      data: [
+        { id: "p1", name: "Playlist 1", user_id: "user1" },
+        { id: "p2", name: "Playlist 2", user_id: "user1" },
+        { id: "p3", name: "Playlist 3", user_id: "user1" },
+      ],
+      isLoading: false,
+      error: null,
+    });
+
+    // useMutationのモック
+    const mutateMock = jest.fn();
+    (useMutation as jest.Mock).mockImplementation(({ onSuccess }) => {
+      return {
+        mutate: (playlistId: string) => {
+          mutateMock(playlistId);
+          if (onSuccess) {
+            onSuccess();
+          }
+        },
+        error: null,
+        isPending: false,
+      };
+    });
+
+    const { getByTestId, getAllByTestId } = render(
+      <AddPlaylist songId="song1" />
+    );
+
+    // モックをリセット
+    mockFetchAddedStatus.mockClear();
+    mutateMock.mockClear();
+
+    // モーダルを表示
+    act(() => {
+      fireEvent.press(getByTestId("add-playlist-button"));
+    });
+
+    // 複数のプレイリストを連続してクリック
+    const playlistItems = getAllByTestId("playlist-item");
+    act(() => {
+      fireEvent.press(playlistItems[0]); // p1
+    });
+    act(() => {
+      fireEvent.press(playlistItems[1]); // p2
+    });
+    act(() => {
+      fireEvent.press(playlistItems[2]); // p3
+    });
+
+    // すべてのプレイリストに対してmutateが呼ばれたことを確認
+    expect(mutateMock).toHaveBeenCalledTimes(3);
+    expect(mutateMock).toHaveBeenCalledWith("p1");
+    expect(mutateMock).toHaveBeenCalledWith("p2");
+    expect(mutateMock).toHaveBeenCalledWith("p3");
+  });
+
+  it("モーダルを閉じるとモーダルが非表示になる", () => {
+    // モックをクリア
+    jest.clearAllMocks();
+
+    // usePlaylistStatusのモックを再設定
+    (usePlaylistStatus as jest.Mock).mockReturnValue({
+      isAdded: { p1: false, p2: false }, // すべて未追加に設定
+      fetchAddedStatus: mockFetchAddedStatus,
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <AddPlaylist songId="song1" />
+    );
+
+    // モーダルを表示
+    act(() => {
+      fireEvent.press(getByTestId("add-playlist-button"));
+    });
+
+    // モーダルが表示されていることを確認
+    expect(queryByTestId("modal-title")).toBeTruthy();
+
+    // 閉じるボタンをクリック
+    act(() => {
+      fireEvent.press(getByTestId("close-button"));
+    });
+
+    // モーダルが非表示になることを確認
+    expect(queryByTestId("modal-title")).toBeNull();
+  });
+
+  it("プレイリスト名が非常に長い場合の表示", () => {
+    // モックをクリア
+    jest.clearAllMocks();
+
+    // 非常に長い名前のプレイリストを設定
+    const longName =
+      "This is an extremely long playlist name that exceeds the normal length of a playlist name and might cause issues with display or storage in some systems. It's important to test how the application handles such edge cases to ensure robustness.".repeat(
+        2
+      );
+
+    (useQuery as jest.Mock).mockReturnValue({
+      data: [
+        { id: "p1", name: longName, user_id: "user1" },
+        { id: "p2", name: "Playlist 2", user_id: "user1" },
+      ],
+      isLoading: false,
+      error: null,
+    });
+
+    const { getByTestId, getAllByTestId } = render(
+      <AddPlaylist songId="song1" />
+    );
+
+    // モーダルを表示
+    fireEvent.press(getByTestId("add-playlist-button"));
+
+    // プレイリストが表示されることを確認
+    const playlistItems = getAllByTestId("playlist-item");
+    expect(playlistItems.length).toBe(2);
+
+    // 長い名前のプレイリストも正しく表示されることを確認
+    // 実際のコンポーネントによっては切り捨てられる可能性があるが、クラッシュしないことを確認
   });
 });

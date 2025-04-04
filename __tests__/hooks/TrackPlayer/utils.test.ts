@@ -384,6 +384,14 @@ describe("TrackPlayer utils", () => {
     });
   });
 
+  // getLocalPathsForTracks関数は実装されていないため、テストをスキップ
+  describe.skip("getLocalPathsForTracks", () => {
+    it("should be implemented in the future", () => {
+      // 将来的に実装される関数のテスト
+      expect(true).toBe(true);
+    });
+  });
+
   describe("getOfflineStorageService", () => {
     it("should return a singleton instance", () => {
       // モックを元に戻す

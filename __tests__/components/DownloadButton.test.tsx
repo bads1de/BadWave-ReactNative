@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { DownloadButton } from "../../components/DownloadButton";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
 
@@ -145,7 +145,10 @@ describe("DownloadButton", () => {
       expect(getByTestId("download-button")).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId("download-button"));
+    // actでラップして状態更新を正しく処理
+    await act(async () => {
+      fireEvent.press(getByTestId("download-button"));
+    });
 
     await waitFor(() => {
       expect(queryByTestId("download-button")).toBeNull();
@@ -168,7 +171,10 @@ describe("DownloadButton", () => {
       expect(getByTestId("delete-button")).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId("delete-button"));
+    // actでラップして状態更新を正しく処理
+    await act(async () => {
+      fireEvent.press(getByTestId("delete-button"));
+    });
 
     await waitFor(() => {
       expect(queryByTestId("delete-button")).toBeNull();
@@ -189,7 +195,10 @@ describe("DownloadButton", () => {
       expect(getByTestId("download-button")).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId("download-button"));
+    // actでラップして状態更新を正しく処理
+    await act(async () => {
+      fireEvent.press(getByTestId("download-button"));
+    });
 
     // ダウンロード失敗後もダウンロードボタンが表示されることを確認
     await waitFor(() => {
@@ -210,7 +219,10 @@ describe("DownloadButton", () => {
       expect(getByTestId("delete-button")).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId("delete-button"));
+    // actでラップして状態更新を正しく処理
+    await act(async () => {
+      fireEvent.press(getByTestId("delete-button"));
+    });
 
     // 削除失敗後も削除ボタンが表示されることを確認
     await waitFor(() => {
@@ -451,12 +463,151 @@ describe("DownloadButton", () => {
       expect(getByTestId("download-button")).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId("download-button"));
+    // actでラップして状態更新を正しく処理
+    await act(async () => {
+      fireEvent.press(getByTestId("download-button"));
+    });
 
     await waitFor(() => {
       expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(
         incompleteSong
       );
+    });
+  });
+
+  it("handles rapid button clicks correctly", async () => {
+    // 連打クリックのテスト
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+
+    // ダウンロードに時間がかかるようにモック
+    let downloadResolve: (value: { success: boolean }) => void;
+    const downloadPromise = new Promise<{ success: boolean }>((resolve) => {
+      downloadResolve = resolve;
+    });
+
+    mockOfflineStorageService.downloadSong.mockReturnValue(downloadPromise);
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    // 最初のクリック
+    await act(async () => {
+      fireEvent.press(getByTestId("download-button"));
+    });
+
+    // ローディング状態になることを確認
+    await waitFor(() => {
+      expect(getByTestId("loading-indicator")).toBeTruthy();
+    });
+
+    // ローディング中に再度クリックしても無視されることを確認
+    await act(async () => {
+      fireEvent.press(getByTestId("loading-indicator"));
+    });
+
+    // ダウンロードが1回しか呼ばれないことを確認
+    expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledTimes(1);
+
+    // ダウンロード完了
+    downloadResolve({ success: true });
+
+    // ダウンロード完了後は削除ボタンが表示される
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+  });
+
+  it("handles network reconnection scenarios", async () => {
+    // ネットワーク切断と再接続のシナリオをテスト
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+
+    // 最初はネットワークエラーを返す
+    mockOfflineStorageService.downloadSong
+      .mockResolvedValueOnce({
+        success: false,
+        error: new Error("Network error: Unable to download song"),
+      })
+      // 2回目は成功する
+      .mockResolvedValueOnce({ success: true });
+
+    const { getByTestId, queryByTestId } = render(
+      <DownloadButton song={mockSong} />
+    );
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    // 最初のダウンロード試行（失敗する）
+    await act(async () => {
+      fireEvent.press(getByTestId("download-button"));
+    });
+
+    // 失敗後もダウンロードボタンが表示される
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    // 2回目のダウンロード試行（成功する）
+    await act(async () => {
+      fireEvent.press(getByTestId("download-button"));
+    });
+
+    // 成功後は削除ボタンが表示される
+    await waitFor(() => {
+      expect(queryByTestId("download-button")).toBeNull();
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+  });
+
+  it("handles disk space errors correctly", async () => {
+    // ディスク容量不足のエラーをテスト
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
+    mockOfflineStorageService.downloadSong.mockResolvedValue({
+      success: false,
+      error: new Error("Disk space error: Not enough storage"),
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId("download-button"));
+    });
+
+    // エラー後もダウンロードボタンが表示される
+    await waitFor(() => {
+      expect(getByTestId("download-button")).toBeTruthy();
+    });
+  });
+
+  it("handles permission errors during deletion", async () => {
+    // 削除時の権限エラーをテスト
+    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
+    mockOfflineStorageService.deleteSong.mockResolvedValue({
+      success: false,
+      error: new Error("Permission error: Cannot delete file"),
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId("delete-button"));
+    });
+
+    // エラー後も削除ボタンが表示される
+    await waitFor(() => {
+      expect(getByTestId("delete-button")).toBeTruthy();
     });
   });
 });
