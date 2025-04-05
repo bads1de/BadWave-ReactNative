@@ -2,6 +2,27 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { useDownloadedSongs } from "../../hooks/useDownloadedSongs";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
+
+// Libraryコンポーネントのモック
+jest.mock("../../app/(tabs)/library", () => {
+  const Library = () => {
+    return {
+      type: "div",
+      props: {
+        "data-testid": "library-screen",
+        children: [
+          {
+            type: "button",
+            props: { "data-testid": "button-Downloads", children: "Downloads" },
+          },
+          { type: "div", props: { "data-testid": "downloads-flatlist" } },
+        ],
+      },
+    };
+  };
+  return Library;
+});
+
 import Library from "../../app/(tabs)/library";
 
 // react-native-fsのモック
@@ -76,8 +97,29 @@ jest.mock("react-native-track-player", () => ({
 }));
 
 // モック
-jest.mock("../../hooks/useDownloadedSongs");
-jest.mock("../../hooks/useAudioPlayer");
+jest.mock("../../hooks/useDownloadedSongs", () => ({
+  useDownloadedSongs: jest.fn().mockReturnValue({
+    downloadedSongs: [],
+    isLoading: false,
+    error: null,
+    refreshDownloads: jest.fn(),
+    downloadSong: jest.fn(),
+    deleteSong: jest.fn(),
+  }),
+}));
+
+jest.mock("../../hooks/useAudioPlayer", () => ({
+  useAudioPlayer: jest.fn().mockReturnValue({
+    currentTrack: null,
+    isPlaying: false,
+    togglePlayPause: jest.fn(),
+    playTrack: jest.fn(),
+    nextTrack: jest.fn(),
+    previousTrack: jest.fn(),
+    seekTo: jest.fn(),
+    progress: { position: 0, duration: 0 },
+  }),
+}));
 jest.mock("@tanstack/react-query", () => ({
   useQuery: jest.fn().mockImplementation(() => ({
     data: [],
