@@ -1,5 +1,5 @@
-import { Spotlight } from "@/types";
-import { supabase } from "@/lib/supabase";
+import { Spotlight } from "../types";
+import { supabase } from "../lib/supabase";
 
 /**
  * スポットライトデータを取得する関数

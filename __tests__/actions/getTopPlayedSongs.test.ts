@@ -1,13 +1,12 @@
-import getTopPlayedSongs from "@/actions/getTopPlayedSongs";
-import { supabase } from "@/lib/supabase";
+import getTopPlayedSongs from "../../actions/getTopPlayedSongs";
+import { supabase } from "../../lib/supabase";
+import { mockFunctions } from "../../__mocks__/supabase";
 
-const mockRpc = jest.fn();
+// supabaseのモックを設定
+jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
 
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    rpc: mockRpc,
-  },
-}));
+// モックのエイリアス
+const { mockRpc } = mockFunctions;
 
 describe("getTopPlayedSongs", () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
-import Song from "@/types";
+import { supabase } from "../lib/supabase";
+import Song from "../types";
 
 /**
  * IDを指定して曲情報を取得する

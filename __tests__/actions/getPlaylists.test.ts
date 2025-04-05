@@ -1,22 +1,22 @@
-// モック関数を定義
-const mockOrder = jest.fn().mockReturnThis();
-const mockEq = jest.fn().mockReturnValue({ order: mockOrder });
-const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
-const mockGetSession = jest.fn();
+import { mockFunctions } from "../../__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-    auth: {
-      getSession: mockGetSession,
-    },
-  },
-}));
+jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+
+// モックのエイリアス
+const { mockFrom, mockSelect, mockEq, mockOrder, mockGetSession } =
+  mockFunctions;
+
+// モックの設定
+mockGetSession.mockResolvedValue({
+  data: { session: { user: { id: "user123" } } },
+});
+
+// モックのチェーンを設定
+mockOrder.mockResolvedValue({ data: null, error: null });
 
 // インポート
-import getPlaylists from "@/actions/getPlaylists";
+import getPlaylists from "../../actions/getPlaylists";
 
 describe("getPlaylists", () => {
   beforeEach(() => {

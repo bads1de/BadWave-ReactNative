@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../lib/supabase";
 import getSongById from "./getSongById";
 import updatePlaylistImage from "./updatePlaylistImage";
 

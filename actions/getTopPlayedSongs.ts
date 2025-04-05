@@ -1,5 +1,5 @@
-import Song from "@/types";
-import { supabase } from "@/lib/supabase";
+import Song from "../types";
+import { supabase } from "../lib/supabase";
 
 /**
  * ユーザーの最もよく再生された曲を取得する

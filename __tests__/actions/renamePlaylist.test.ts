@@ -1,17 +1,14 @@
-import renamePlaylist from "@/actions/renamePlaylist";
-import { supabase } from "@/lib/supabase";
+import renamePlaylist from "../../actions/renamePlaylist";
+import { mockFunctions } from "../../__mocks__/supabase";
 
-const mockEq = jest.fn();
-mockEq.mockReturnThis();
+// supabaseのモックを設定
+jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
 
-const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = jest.fn().mockReturnValue({ update: mockUpdate });
+// モックのエイリアス
+const { mockFrom, mockUpdate, mockMatch } = mockFunctions;
 
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: mockFrom,
-  },
-}));
+// モックの設定
+mockMatch.mockResolvedValue({ data: null, error: null });
 
 describe("renamePlaylist", () => {
   beforeEach(() => {
@@ -19,14 +16,18 @@ describe("renamePlaylist", () => {
   });
 
   it("正常にプレイリスト名を変更できる", async () => {
-    mockUpdate.mockResolvedValueOnce({ error: null });
+    // モックの設定
+    mockMatch.mockResolvedValueOnce({ data: null, error: null });
+    mockUpdate.mockReturnValue({ match: mockMatch });
+    mockFrom.mockReturnValue({ update: mockUpdate });
 
-    await expect(
-      renamePlaylist("p1", "new title", "u1")
-    ).resolves.toBeUndefined();
+    // テスト実行
+    await renamePlaylist("p1", "new title", "u1");
 
+    // 検証
     expect(mockFrom).toHaveBeenCalledWith("playlists");
-    expect(mockUpdate).toHaveBeenCalled();
+    expect(mockUpdate).toHaveBeenCalledWith({ title: "new title" });
+    expect(mockMatch).toHaveBeenCalledWith({ id: "p1", user_id: "u1" });
   });
 
   it("タイトルが空なら例外を投げる", async () => {
@@ -38,8 +39,15 @@ describe("renamePlaylist", () => {
   });
 
   it("updateでエラーが発生したら例外を投げる", async () => {
-    mockUpdate.mockResolvedValueOnce({ error: { message: "error" } });
+    // モックの設定
+    mockMatch.mockResolvedValueOnce({
+      data: null,
+      error: { message: "error" },
+    });
+    mockUpdate.mockReturnValue({ match: mockMatch });
+    mockFrom.mockReturnValue({ update: mockUpdate });
 
+    // テスト実行と検証
     await expect(renamePlaylist("p1", "new title", "u1")).rejects.toThrow(
       "error"
     );

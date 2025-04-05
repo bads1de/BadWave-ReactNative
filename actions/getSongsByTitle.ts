@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
-import Song from "@/types";
+import { supabase } from "../lib/supabase";
+import Song from "../types";
 
 const getSongsByTitle = async (title: string): Promise<Song[]> => {
   const { data, error } = await supabase

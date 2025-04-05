@@ -1,10 +1,10 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../lib/supabase";
 
 /**
  * プレイリストの画像パスを更新する関数。
  * プレイリストの画像パスが空の場合のみ、指定された曲の画像パスで更新する。
  * これにより、プレイリストに最初に追加された曲の画像がプレイリストのサムネイルとして使用される。
- * 
+ *
  * @param {string} playlistId プレイリストID - 更新対象のプレイリストを特定するためのID
  * @param {string} songImagePath 曲の画像パス - プレイリストのサムネイルとして設定する画像のパス
  * @returns {Promise<void>} 処理が成功した場合は何も返さない。エラーが発生した場合は例外をスローする。

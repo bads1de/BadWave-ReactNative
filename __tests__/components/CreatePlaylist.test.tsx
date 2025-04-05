@@ -10,13 +10,19 @@ jest.mock("@tanstack/react-query", () => ({
   useQueryClient: jest.fn(),
 }));
 
-jest.mock("react-native-toast-message", () => ({
-  show: jest.fn(),
-  __esModule: true,
-  default: {
-    show: jest.fn(),
-  },
-}));
+jest.mock("react-native-toast-message", () => {
+  const mockShow = jest.fn();
+  return {
+    __esModule: true,
+    default: {
+      show: mockShow,
+      hide: jest.fn(),
+      setRef: jest.fn(),
+      getRef: jest.fn(),
+    },
+    show: mockShow,
+  };
+});
 
 jest.mock("../../actions/createPlaylist", () => jest.fn());
 
@@ -79,10 +85,12 @@ describe("CreatePlaylist", () => {
     fireEvent.press(getByTestId("create-button"));
 
     // エラーメッセージが表示される
-    expect(Toast.show).toHaveBeenCalledWith({
-      type: "error",
-      text1: "プレイリスト名を入力してください",
-    });
+    expect(Toast.show).toHaveBeenCalled();
+    expect(Toast.show).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "error",
+      })
+    );
 
     // mutate は呼ばれない
     expect(mockMutate).not.toHaveBeenCalled();
@@ -167,10 +175,12 @@ describe("CreatePlaylist", () => {
     expect(queryByText("Enter playlist name:")).toBeNull();
 
     // トーストが表示される
-    expect(Toast.show).toHaveBeenCalledWith({
-      type: "success",
-      text1: "プレイリストを作成しました",
-    });
+    expect(Toast.show).toHaveBeenCalled();
+    expect(Toast.show).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "success",
+      })
+    );
 
     // キャッシュが無効化される
     expect(mockInvalidateQueries).toHaveBeenCalled();

@@ -1,44 +1,56 @@
-// 実際のコードをモックする
-jest.mock("@/actions/getSongById", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+import getSongById from "../../actions/getSongById";
+import { mockFunctions } from "../../__mocks__/supabase";
 
-// モックを実装する
-import getSongById from "@/actions/getSongById";
+// supabaseのモックを設定
+jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+
+// モックのエイリアス
+const { mockFrom, mockSelect, mockEq, mockSingle } = mockFunctions;
 
 // テスト前にモックを設定
 beforeEach(() => {
   jest.clearAllMocks();
-  (getSongById as jest.Mock).mockImplementation(async () => ({
-    id: "s1",
-    title: "Song1",
-  }));
 });
 
 describe("getSongById", () => {
   it("正常に曲を取得できる", async () => {
+    // モックの設定
+    const mockSong = { id: "s1", title: "Song1" };
+    mockSingle.mockResolvedValueOnce({ data: mockSong, error: null });
+    mockSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ single: mockSingle });
+    mockFrom.mockReturnValue({ select: mockSelect });
+
     // テスト実行
     const result = await getSongById("s1");
 
     // 期待値を確認
-    expect(result).toEqual({ id: "s1", title: "Song1" });
-    expect(getSongById).toHaveBeenCalledWith("s1");
+    expect(result).toEqual(mockSong);
+    expect(mockFrom).toHaveBeenCalledWith("songs");
+    expect(mockSelect).toHaveBeenCalledWith("*");
+    expect(mockEq).toHaveBeenCalledWith("id", "s1");
   });
 
   it("エラーが発生した場合", async () => {
-    // モックを設定
-    (getSongById as jest.Mock).mockRejectedValueOnce(new Error("error"));
+    // モックの設定
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: "error" },
+    });
+    mockSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ single: mockSingle });
+    mockFrom.mockReturnValue({ select: mockSelect });
 
     // テスト実行と期待値を確認
     await expect(getSongById("s1")).rejects.toThrow("error");
   });
 
   it("データがない場合", async () => {
-    // モックを設定
-    (getSongById as jest.Mock).mockRejectedValueOnce(
-      new Error("Song not found")
-    );
+    // モックの設定
+    mockSingle.mockResolvedValueOnce({ data: null, error: null });
+    mockSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ single: mockSingle });
+    mockFrom.mockReturnValue({ select: mockSelect });
 
     // テスト実行と期待値を確認
     await expect(getSongById("s1")).rejects.toThrow("Song not found");

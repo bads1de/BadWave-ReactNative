@@ -1,34 +1,47 @@
-// 実際のコードをモックする
-jest.mock("@/actions/createPlaylist", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+import createPlaylist from "../../actions/createPlaylist";
+import { mockFunctions } from "../../__mocks__/supabase";
 
-// モックを実装する
-import createPlaylist from "@/actions/createPlaylist";
+// supabaseのモックを設定
+jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+
+// モックのエイリアス
+const { mockFrom, mockInsert, mockGetSession } = mockFunctions;
 
 // テスト前にモックを設定
 beforeEach(() => {
   jest.clearAllMocks();
-  (createPlaylist as jest.Mock).mockImplementation(async () => {});
 });
 
 describe("createPlaylist", () => {
   const playlistName = "My Playlist";
 
   it("正常にプレイリストを作成できる", async () => {
+    // モックの設定
+    mockGetSession.mockResolvedValueOnce({
+      data: { session: { user: { id: "user123" } } },
+      error: null,
+    });
+    mockInsert.mockResolvedValueOnce({ data: {}, error: null });
+    mockFrom.mockReturnValue({ insert: mockInsert });
+
     // テスト実行
     await createPlaylist(playlistName);
 
     // 期待値を確認
-    expect(createPlaylist).toHaveBeenCalledWith(playlistName);
+    expect(mockGetSession).toHaveBeenCalled();
+    expect(mockFrom).toHaveBeenCalledWith("playlists");
+    expect(mockInsert).toHaveBeenCalledWith({
+      user_id: "user123",
+      title: playlistName,
+    });
   });
 
   it("未認証の場合", async () => {
     // モックを設定
-    (createPlaylist as jest.Mock).mockRejectedValueOnce(
-      new Error("User not authenticated")
-    );
+    mockGetSession.mockResolvedValueOnce({
+      data: { session: null },
+      error: null,
+    });
 
     // テスト実行と期待値を確認
     await expect(createPlaylist(playlistName)).rejects.toThrow(
@@ -38,7 +51,15 @@ describe("createPlaylist", () => {
 
   it("DBエラーが発生した場合", async () => {
     // モックを設定
-    (createPlaylist as jest.Mock).mockRejectedValueOnce(new Error("DB error"));
+    mockGetSession.mockResolvedValueOnce({
+      data: { session: { user: { id: "user123" } } },
+      error: null,
+    });
+    mockInsert.mockResolvedValueOnce({
+      data: null,
+      error: { message: "DB error" },
+    });
+    mockFrom.mockReturnValue({ insert: mockInsert });
 
     // テスト実行と期待値を確認
     await expect(createPlaylist(playlistName)).rejects.toThrow("DB error");

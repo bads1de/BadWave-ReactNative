@@ -1,5 +1,5 @@
-import Song from "@/types";
-import { supabase } from "@/lib/supabase";
+import Song from "../types";
+import { supabase } from "../lib/supabase";
 
 /**
  * @fileoverview お気に入り曲取得モジュール
@@ -28,10 +28,15 @@ const getLikedSongs = async (): Promise<Song[]> => {
       data: { session },
     } = await supabase.auth.getSession();
 
+    // 未認証の場合は空配列を返す
+    if (!session) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from("liked_songs_regular")
       .select("*, songs(*)")
-      .eq("user_id", session?.user.id)
+      .eq("user_id", session.user.id)
       .order("created_at", { ascending: false });
 
     if (error) {

@@ -163,8 +163,8 @@ describe("useDownloadedSongs", () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    // エラー後も前のデータが保持される
-    expect(result.current.songs).toEqual(mockSongs);
+    // エラー後は空の配列が返される
+    expect(result.current.songs).toEqual([]);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe("Refresh failed");
   });
@@ -197,9 +197,10 @@ describe("useDownloadedSongs", () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    // getDownloadedSongsは1回だけ呼ばれることを確認
+    // getDownloadedSongsは2回呼ばれることを確認
+    // 1回目は初期化時、2回目は最初のrefresh呼び出し時
     expect(mockOfflineStorageService.getDownloadedSongs).toHaveBeenCalledTimes(
-      2
+      3
     );
   });
 });

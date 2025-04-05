@@ -1,105 +1,113 @@
 // lib/supabase.ts のモック
 
-// モック関数を定義
-const mockThen = jest.fn().mockResolvedValue({ data: [], error: null });
-const mockLimit = jest.fn().mockReturnValue({ then: mockThen });
-const mockOrder = jest
-  .fn()
-  .mockReturnValue({ limit: mockLimit, then: mockThen });
-const mockSingle = jest.fn().mockReturnValue({ then: mockThen });
-const mockEq = jest.fn().mockReturnValue({
-  eq: jest.fn().mockReturnThis(),
-  single: mockSingle,
-  then: mockThen,
-});
-const mockSelect = jest.fn().mockReturnValue({
-  eq: mockEq,
-  order: mockOrder,
-  limit: mockLimit,
-  then: mockThen,
-});
-const mockUpdate = jest.fn().mockReturnValue({
-  eq: mockEq,
-  match: jest.fn().mockReturnThis(),
-  then: mockThen,
-});
-const mockInsert = jest.fn().mockReturnValue({ then: mockThen });
-const mockDelete = jest.fn().mockReturnValue({
-  eq: mockEq,
-  match: jest.fn().mockReturnThis(),
-  then: mockThen,
-});
+// モックデータ
+const mockData = [];
+const mockError = null;
 
-// fromメソッドのモック
-const mockFrom = jest.fn().mockImplementation(() => {
-  return {
-    select: mockSelect,
-    update: mockUpdate,
-    insert: mockInsert,
-    delete: mockDelete,
-    eq: mockEq,
-    order: mockOrder,
-    limit: mockLimit,
-    single: mockSingle,
-    match: jest.fn().mockReturnThis(),
-    gte: jest.fn().mockReturnThis(),
-    lte: jest.fn().mockReturnThis(),
-    in: jest.fn().mockReturnThis(),
-    then: mockThen,
-  };
-});
+// モックチェーンを作成する関数
+const createQueryBuilder = () => {
+  const builder = {};
 
-// rpcメソッドのモック
-const mockRpc = jest.fn().mockImplementation(() => {
-  return { then: mockThen };
-});
+  // 各メソッドをモック化
+  builder.select = jest.fn().mockReturnValue(builder);
+  builder.eq = jest.fn().mockReturnValue(builder);
+  builder.neq = jest.fn().mockReturnValue(builder);
+  builder.gt = jest.fn().mockReturnValue(builder);
+  builder.gte = jest.fn().mockReturnValue(builder);
+  builder.lt = jest.fn().mockReturnValue(builder);
+  builder.lte = jest.fn().mockReturnValue(builder);
+  builder.like = jest.fn().mockReturnValue(builder);
+  builder.ilike = jest.fn().mockReturnValue(builder);
+  builder.is = jest.fn().mockReturnValue(builder);
+  builder.in = jest.fn().mockReturnValue(builder);
+  builder.contains = jest.fn().mockReturnValue(builder);
+  builder.containedBy = jest.fn().mockReturnValue(builder);
+  builder.rangeLt = jest.fn().mockReturnValue(builder);
+  builder.rangeGt = jest.fn().mockReturnValue(builder);
+  builder.rangeGte = jest.fn().mockReturnValue(builder);
+  builder.rangeLte = jest.fn().mockReturnValue(builder);
+  builder.rangeAdjacent = jest.fn().mockReturnValue(builder);
+  builder.overlaps = jest.fn().mockReturnValue(builder);
+  builder.textSearch = jest.fn().mockReturnValue(builder);
+  builder.filter = jest.fn().mockReturnValue(builder);
+  builder.match = jest.fn().mockReturnValue(builder);
+  builder.not = jest.fn().mockReturnValue(builder);
+  builder.or = jest.fn().mockReturnValue(builder);
+  builder.and = jest.fn().mockReturnValue(builder);
 
-// getSessionメソッドのモック
-const mockGetSession = jest.fn().mockResolvedValue({
-  data: { session: { user: { id: "test-user-id" } } },
-  error: null,
-});
+  builder.order = jest.fn().mockReturnValue(builder);
+  builder.limit = jest.fn().mockReturnValue(builder);
+  builder.range = jest.fn().mockReturnValue(builder);
+  builder.single = jest.fn().mockReturnValue(builder);
+  builder.maybeSingle = jest.fn().mockReturnValue(builder);
 
-// その他のモック
-const mockSignOut = jest.fn().mockResolvedValue({ error: null });
-const mockStorageFrom = jest.fn().mockReturnValue({
-  upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
-  getPublicUrl: jest.fn().mockReturnValue({
-    data: { publicUrl: "https://example.com/test.mp3" },
-  }),
-  list: jest.fn().mockResolvedValue({ data: [], error: null }),
-  remove: jest.fn().mockResolvedValue({ data: {}, error: null }),
-});
+  // 非同期メソッドのモック
+  builder.then = jest.fn().mockImplementation((callback) => {
+    return Promise.resolve(callback({ data: mockData, error: mockError }));
+  });
+
+  return builder;
+};
+
+// テーブル操作用のモックビルダー
+const createTableBuilder = () => {
+  const builder = createQueryBuilder();
+
+  // テーブル特有のメソッド
+  builder.insert = jest.fn().mockReturnValue(builder);
+  builder.upsert = jest.fn().mockReturnValue(builder);
+  builder.update = jest.fn().mockReturnValue(builder);
+  builder.delete = jest.fn().mockReturnValue(builder);
+
+  return builder;
+};
 
 // モックオブジェクトを作成
-export const supabase = {
-  from: mockFrom,
+const supabase = {
+  // fromメソッドのモック
+  from: jest.fn().mockImplementation(() => createTableBuilder()),
+
+  // auth関連のモック
   auth: {
-    getSession: mockGetSession,
+    getSession: jest.fn().mockResolvedValue({
+      data: { session: { user: { id: "test-user-id" } } },
+      error: null,
+    }),
     signInWithPassword: jest.fn().mockResolvedValue({ data: {}, error: null }),
-    signOut: mockSignOut,
+    signOut: jest.fn().mockResolvedValue({ error: null }),
     onAuthStateChange: jest.fn(),
   },
-  rpc: mockRpc,
+
+  // rpcメソッドのモック
+  rpc: jest.fn().mockImplementation(() => {
+    return {
+      then: jest.fn().mockImplementation((callback) => {
+        return Promise.resolve(callback({ data: mockData, error: mockError }));
+      }),
+    };
+  }),
+
+  // storage関連のモック
   storage: {
-    from: mockStorageFrom,
+    from: jest.fn().mockReturnValue({
+      upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
+      getPublicUrl: jest.fn().mockReturnValue({
+        data: { publicUrl: "https://example.com/test.mp3" },
+      }),
+      list: jest.fn().mockResolvedValue({ data: [], error: null }),
+      remove: jest.fn().mockResolvedValue({ data: {}, error: null }),
+    }),
   },
 };
 
 // モック関数をエクスポートして、テストで使用できるようにする
-export const mockFunctions = {
-  mockThen,
-  mockFrom,
-  mockSelect,
-  mockEq,
-  mockSingle,
-  mockUpdate,
-  mockInsert,
-  mockDelete,
-  mockOrder,
-  mockLimit,
-  mockGetSession,
-  mockSignOut,
-  mockRpc,
-  mockStorageFrom,
+const mockFunctions = {
+  from: supabase.from,
+  getSession: supabase.auth.getSession,
+  signInWithPassword: supabase.auth.signInWithPassword,
+  signOut: supabase.auth.signOut,
+  rpc: supabase.rpc,
+  storageFrom: supabase.storage.from,
 };
+
+module.exports = { supabase, mockFunctions };

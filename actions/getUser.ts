@@ -1,5 +1,5 @@
-import { CACHED_QUERIES } from "@/constants";
-import { supabase } from "@/lib/supabase";
+import { CACHED_QUERIES } from "../constants";
+import { supabase } from "../lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 /**
  * ユーザー情報を取得する関数

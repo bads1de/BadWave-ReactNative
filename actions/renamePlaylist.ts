@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../lib/supabase";
 
 /**
  * プレイリストの名前を変更する
@@ -19,8 +19,7 @@ const renamePlaylist = async (
   const { error } = await supabase
     .from("playlists")
     .update({ title: newTitle.trim() })
-    .eq("id", playlistId)
-    .eq("user_id", userId);
+    .match({ id: playlistId, user_id: userId });
 
   if (error) {
     console.error("プレイリストの更新中にエラーが発生しました:", error);

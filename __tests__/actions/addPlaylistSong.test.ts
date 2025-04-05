@@ -1,28 +1,26 @@
 // 実際のコードをモックする
-jest.mock("@/actions/addPlaylistSong", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+import addPlaylistSong from "../../actions/addPlaylistSong";
+import getSongById from "../../actions/getSongById";
+import updatePlaylistImage from "../../actions/updatePlaylistImage";
+import { mockFunctions } from "../../__mocks__/supabase";
 
-jest.mock("@/actions/getSongById", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+// supabaseのモックを設定
+jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
 
-jest.mock("@/actions/updatePlaylistImage", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+// モックの設定
+jest.mock("../../actions/getSongById");
+jest.mock("../../actions/updatePlaylistImage");
 
-// モックを実装する
-import addPlaylistSong from "@/actions/addPlaylistSong";
-import getSongById from "@/actions/getSongById";
-import updatePlaylistImage from "@/actions/updatePlaylistImage";
+// モックのエイリアス
+const { mockFrom, mockInsert } = mockFunctions;
+
+// モックの設定
+mockInsert.mockResolvedValue({ data: null, error: null });
+mockFrom.mockReturnValue({ insert: mockInsert });
 
 // テスト前にモックを設定
 beforeEach(() => {
   jest.clearAllMocks();
-  (addPlaylistSong as jest.Mock).mockImplementation(async () => {});
   (getSongById as jest.Mock).mockImplementation(async () => ({
     id: "s1",
     title: "Song1",
@@ -41,10 +39,12 @@ describe("addPlaylistSong", () => {
     await addPlaylistSong({ playlistId, userId, songId });
 
     // 期待値を確認
-    expect(addPlaylistSong).toHaveBeenCalledWith({
-      playlistId,
-      userId,
-      songId,
+    expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
+    expect(mockInsert).toHaveBeenCalledWith({
+      playlist_id: playlistId,
+      user_id: userId,
+      song_id: songId,
+      song_type: "regular",
     });
     expect(getSongById).toHaveBeenCalledWith(songId);
     expect(updatePlaylistImage).toHaveBeenCalled();
@@ -52,7 +52,10 @@ describe("addPlaylistSong", () => {
 
   it("曲追加時にエラーが発生した場合", async () => {
     // モックを設定
-    (addPlaylistSong as jest.Mock).mockRejectedValueOnce(new Error("DB error"));
+    mockInsert.mockResolvedValueOnce({
+      data: null,
+      error: { message: "DB error" },
+    });
 
     // テスト実行と期待値を確認
     await expect(
