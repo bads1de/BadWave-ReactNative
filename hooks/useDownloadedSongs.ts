@@ -1,53 +1,41 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Song from "../types";
 import { getOfflineStorageService } from "./TrackPlayer/utils";
+import { CACHED_QUERIES } from "@/constants";
 
 /**
  * ダウンロード済みの曲を取得するカスタムフック
  * @returns ダウンロード済みの曲一覧と状態
  */
 export function useDownloadedSongs() {
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  /**
-   * ダウンロード済みの曲を取得する
-   */
-  const fetchDownloadedSongs = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const offlineStorageService = getOfflineStorageService();
-      const downloadedSongs = await offlineStorageService.getDownloadedSongs();
-
-      setSongs(downloadedSongs);
-    } catch (err) {
-      console.error("Failed to fetch downloaded songs:", err);
-      setError(err instanceof Error ? err.message : String(err));
-      setSongs([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  /**
-   * 曲一覧を更新する
-   */
-  const refresh = useCallback(() => {
-    fetchDownloadedSongs();
-  }, [fetchDownloadedSongs]);
-
-  // 初回マウント時に曲一覧を取得
-  useEffect(() => {
-    fetchDownloadedSongs();
-  }, [fetchDownloadedSongs]);
+  const {
+    data: songs = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: [CACHED_QUERIES.downloadedSongs],
+    queryFn: async () => {
+      try {
+        const offlineStorageService = getOfflineStorageService();
+        return await offlineStorageService.getDownloadedSongs();
+      } catch (err) {
+        console.error("Failed to fetch downloaded songs:", err);
+        throw err;
+      }
+    },
+    // ダウンロード済み曲リストは頻繁に変わる可能性があるので、staleTimeを短めに設定
+    staleTime: 1000 * 30, // 30秒
+  });
 
   return {
     songs,
     isLoading,
-    error,
-    refresh,
+    error: error
+      ? error instanceof Error
+        ? error.message
+        : String(error)
+      : null,
+    refresh: refetch,
   };
 }

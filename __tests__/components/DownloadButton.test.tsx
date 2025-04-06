@@ -2,6 +2,7 @@ import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { DownloadButton } from "../../components/DownloadButton";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Ioniconsのモック
 jest.mock("@expo/vector-icons", () => ({
@@ -18,6 +19,27 @@ jest.mock("../../services/OfflineStorageService", () => {
     })),
   };
 });
+
+// useDownloadStatusフックをモック
+jest.mock("../../hooks/useDownloadStatus", () => ({
+  useDownloadStatus: jest.fn(),
+  useDownloadSong: jest.fn(),
+  useDeleteDownloadedSong: jest.fn(),
+}));
+
+// テスト用のラッパーコンポーネント
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  return ({ children }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
 
 describe("DownloadButton", () => {
   let mockOfflineStorageService: jest.Mocked<OfflineStorageService>;
@@ -47,113 +69,188 @@ describe("DownloadButton", () => {
   });
 
   it("renders download button when song is not downloaded", async () => {
-    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
-
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
-
-    await waitFor(() => {
-      expect(getByTestId("download-button")).toBeTruthy();
+    // useDownloadStatusフックのモック設定
+    const useDownloadStatusMock =
+      require("../../hooks/useDownloadStatus").useDownloadStatus;
+    useDownloadStatusMock.mockReturnValue({
+      data: false,
+      isLoading: false,
     });
-    expect(mockOfflineStorageService.isSongDownloaded).toHaveBeenCalledWith(
-      mockSong.id
-    );
+
+    // useDownloadSongフックのモック設定
+    const useDownloadSongMock =
+      require("../../hooks/useDownloadStatus").useDownloadSong;
+    useDownloadSongMock.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
+
+    expect(getByTestId("download-button")).toBeTruthy();
+    expect(useDownloadStatusMock).toHaveBeenCalledWith(mockSong.id);
   });
 
   it("renders delete button when song is downloaded", async () => {
-    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
-
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
-
-    await waitFor(() => {
-      expect(getByTestId("delete-button")).toBeTruthy();
+    // useDownloadStatusフックのモック設定
+    const useDownloadStatusMock =
+      require("../../hooks/useDownloadStatus").useDownloadStatus;
+    useDownloadStatusMock.mockReturnValue({
+      data: true,
+      isLoading: false,
     });
-    expect(mockOfflineStorageService.isSongDownloaded).toHaveBeenCalledWith(
-      mockSong.id
-    );
+
+    // useDeleteDownloadedSongフックのモック設定
+    const useDeleteDownloadedSongMock =
+      require("../../hooks/useDownloadStatus").useDeleteDownloadedSong;
+    useDeleteDownloadedSongMock.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
+
+    expect(getByTestId("delete-button")).toBeTruthy();
+    expect(useDownloadStatusMock).toHaveBeenCalledWith(mockSong.id);
   });
 
   it("downloads song when download button is pressed", async () => {
-    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
-    mockOfflineStorageService.downloadSong.mockResolvedValue({ success: true });
-
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
-
-    await waitFor(() => {
-      expect(getByTestId("download-button")).toBeTruthy();
+    // useDownloadStatusフックのモック設定
+    const useDownloadStatusMock =
+      require("../../hooks/useDownloadStatus").useDownloadStatus;
+    useDownloadStatusMock.mockReturnValue({
+      data: false,
+      isLoading: false,
     });
+
+    // useDownloadSongフックのモック設定
+    const mutateMock = jest.fn();
+    const useDownloadSongMock =
+      require("../../hooks/useDownloadStatus").useDownloadSong;
+    useDownloadSongMock.mockReturnValue({
+      mutate: mutateMock,
+      isPending: false,
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
+
+    expect(getByTestId("download-button")).toBeTruthy();
 
     fireEvent.press(getByTestId("download-button"));
 
-    await waitFor(() => {
-      expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(
-        mockSong
-      );
-    });
+    expect(mutateMock).toHaveBeenCalledWith(mockSong);
   });
 
   it("deletes song when delete button is pressed", async () => {
-    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
-    mockOfflineStorageService.deleteSong.mockResolvedValue({ success: true });
-
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
-
-    await waitFor(() => {
-      expect(getByTestId("delete-button")).toBeTruthy();
+    // useDownloadStatusフックのモック設定
+    const useDownloadStatusMock =
+      require("../../hooks/useDownloadStatus").useDownloadStatus;
+    useDownloadStatusMock.mockReturnValue({
+      data: true,
+      isLoading: false,
     });
+
+    // useDeleteDownloadedSongフックのモック設定
+    const mutateMock = jest.fn();
+    const useDeleteDownloadedSongMock =
+      require("../../hooks/useDownloadStatus").useDeleteDownloadedSong;
+    useDeleteDownloadedSongMock.mockReturnValue({
+      mutate: mutateMock,
+      isPending: false,
+    });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
+
+    expect(getByTestId("delete-button")).toBeTruthy();
 
     fireEvent.press(getByTestId("delete-button"));
 
-    await waitFor(() => {
-      expect(mockOfflineStorageService.deleteSong).toHaveBeenCalledWith(
-        mockSong.id
-      );
-    });
+    expect(mutateMock).toHaveBeenCalledWith(mockSong.id);
   });
 
   it("shows loading state during download", async () => {
-    mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
-    // ダウンロードが完了する前にローディング状態をチェックするため、解決しないPromiseを返す
-    mockOfflineStorageService.downloadSong.mockImplementation(
-      () => new Promise(() => {})
-    );
-
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
-
-    await waitFor(() => {
-      expect(getByTestId("download-button")).toBeTruthy();
+    // useDownloadStatusフックのモック設定
+    const useDownloadStatusMock =
+      require("../../hooks/useDownloadStatus").useDownloadStatus;
+    useDownloadStatusMock.mockReturnValue({
+      data: false,
+      isLoading: false,
     });
 
-    fireEvent.press(getByTestId("download-button"));
-
-    await waitFor(() => {
-      expect(getByTestId("loading-indicator")).toBeTruthy();
+    // useDownloadSongフックのモック設定
+    const useDownloadSongMock =
+      require("../../hooks/useDownloadStatus").useDownloadSong;
+    useDownloadSongMock.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: true, // ローディング中
     });
+
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
+
+    expect(getByTestId("loading-indicator")).toBeTruthy();
   });
 
   it("updates button state after successful download", async () => {
-    mockOfflineStorageService.isSongDownloaded
-      .mockResolvedValueOnce(false) // 初回チェック時はダウンロードされていない
-      .mockResolvedValueOnce(true); // ダウンロード後のチェック
+    // useDownloadStatusフックのモック設定
+    const useDownloadStatusMock =
+      require("../../hooks/useDownloadStatus").useDownloadStatus;
+    // 初回はダウンロードされていない状態
+    useDownloadStatusMock.mockReturnValueOnce({
+      data: false,
+      isLoading: false,
+    });
+    // 2回目はダウンロード済み状態
+    useDownloadStatusMock.mockReturnValueOnce({
+      data: true,
+      isLoading: false,
+    });
 
-    mockOfflineStorageService.downloadSong.mockResolvedValue({ success: true });
+    // useDownloadSongフックのモック設定
+    const mutateMock = jest.fn();
+    const useDownloadSongMock =
+      require("../../hooks/useDownloadStatus").useDownloadSong;
+    useDownloadSongMock.mockReturnValue({
+      mutate: mutateMock,
+      isPending: false,
+    });
 
-    const { getByTestId, queryByTestId } = render(
-      <DownloadButton song={mockSong} />
+    // useDeleteDownloadedSongフックのモック設定
+    const useDeleteDownloadedSongMock =
+      require("../../hooks/useDownloadStatus").useDeleteDownloadedSong;
+    useDeleteDownloadedSongMock.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    });
+
+    const { getByTestId, rerender } = render(
+      <DownloadButton song={mockSong} />,
+      {
+        wrapper: createWrapper(),
+      }
     );
 
-    await waitFor(() => {
-      expect(getByTestId("download-button")).toBeTruthy();
-    });
+    // 初回はダウンロードボタンが表示される
+    expect(getByTestId("download-button")).toBeTruthy();
 
-    // actでラップして状態更新を正しく処理
-    await act(async () => {
-      fireEvent.press(getByTestId("download-button"));
-    });
+    // ボタンをクリック
+    fireEvent.press(getByTestId("download-button"));
+    expect(mutateMock).toHaveBeenCalledWith(mockSong);
 
-    await waitFor(() => {
-      expect(queryByTestId("download-button")).toBeNull();
-      expect(getByTestId("delete-button")).toBeTruthy();
-    });
+    // コンポーネントを再レンダリング
+    rerender(<DownloadButton song={mockSong} />);
+
+    // ダウンロード後は削除ボタンが表示される
+    expect(getByTestId("delete-button")).toBeTruthy();
   });
 
   it("updates button state after successful deletion", async () => {

@@ -1,8 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "../types";
-import { getOfflineStorageService } from "../hooks/TrackPlayer/utils";
+import {
+  useDownloadStatus,
+  useDownloadSong,
+  useDeleteDownloadedSong,
+} from "../hooks/useDownloadStatus";
 
 interface DownloadButtonProps {
   song: Song;
@@ -21,61 +25,26 @@ export function DownloadButton({
   color = "white",
   style = {},
 }: DownloadButtonProps) {
-  const [isDownloaded, setIsDownloaded] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // ダウンロード状態を取得
+  const { data: isDownloaded = false, isLoading: isStatusLoading } =
+    useDownloadStatus(song.id);
 
-  // マウント時に曲がダウンロード済みかチェック
-  useEffect(() => {
-    checkDownloadStatus();
-  }, [song.id]);
+  // ダウンロード/削除ミューテーション
+  const downloadMutation = useDownloadSong();
+  const deleteMutation = useDeleteDownloadedSong();
 
-  // ダウンロード状態をチェック
-  const checkDownloadStatus = async () => {
-    try {
-      const offlineStorageService = getOfflineStorageService();
-      const downloaded = await offlineStorageService.isSongDownloaded(song.id);
-      setIsDownloaded(downloaded);
-    } catch (error) {
-      console.error("Failed to check download status:", error);
-    }
+  // ローディング状態
+  const isLoading =
+    isStatusLoading || downloadMutation.isPending || deleteMutation.isPending;
+
+  // ダウンロード処理
+  const handleDownload = () => {
+    downloadMutation.mutate(song);
   };
 
-  // 曲をダウンロード
-  const handleDownload = async () => {
-    try {
-      setIsLoading(true);
-      const offlineStorageService = getOfflineStorageService();
-      const result = await offlineStorageService.downloadSong(song);
-
-      if (result.success) {
-        setIsDownloaded(true);
-      } else {
-        console.error("Download failed:", result.error);
-      }
-    } catch (error) {
-      console.error("Error downloading song:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ダウンロードした曲を削除
-  const handleDelete = async () => {
-    try {
-      setIsLoading(true);
-      const offlineStorageService = getOfflineStorageService();
-      const result = await offlineStorageService.deleteSong(song.id);
-
-      if (result.success) {
-        setIsDownloaded(false);
-      } else {
-        console.error("Delete failed:", result.error);
-      }
-    } catch (error) {
-      console.error("Error deleting song:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  // 削除処理
+  const handleDelete = () => {
+    deleteMutation.mutate(song.id);
   };
 
   // ローディング中

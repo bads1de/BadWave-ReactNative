@@ -26,6 +26,8 @@ export const CACHED_QUERIES = {
   topPlayedSongs: "topPlayedSongs",
   getPublicPlaylists: "getPublicPlaylists",
   getRecommendations: "getRecommendations",
+  downloadStatus: "downloadStatus",
+  downloadedSongs: "downloadedSongs",
 } as const;
 
 export const CACHE_CONFIG = {
