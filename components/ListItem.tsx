@@ -1,16 +1,11 @@
 import React, { memo } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import ListItemOptionsMenu from "./ListItemOptionsMenu";
+import { DownloadButton } from "./DownloadButton";
 
 interface ListItemProps {
   song: Song;
@@ -19,9 +14,8 @@ interface ListItemProps {
   imageSize?: "small" | "medium" | "large";
   onDelete?: () => void;
   testID?: string;
+  showDownloadButton?: boolean;
 }
-
-const { width } = Dimensions.get("window");
 
 function ListItem({
   song,
@@ -30,6 +24,7 @@ function ListItem({
   imageSize = "medium",
   onDelete,
   testID,
+  showDownloadButton = false,
 }: ListItemProps) {
   const getImageSize = () => {
     switch (imageSize) {
@@ -94,6 +89,13 @@ function ListItem({
               </View>
             </View>
           )}
+
+          <View
+            testID="download-button-container"
+            style={styles.downloadButtonContainer}
+          >
+            <DownloadButton song={song} size={18} />
+          </View>
         </View>
       </View>
       {onDelete && <ListItemOptionsMenu onDelete={onDelete} />}
@@ -157,6 +159,18 @@ const styles = StyleSheet.create({
   rightContainer: {
     flexDirection: "row",
     alignItems: "center",
+    paddingRight: 30,
+    position: "relative",
+  },
+  downloadButtonContainer: {
+    marginLeft: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    right: 0,
+  },
+  hidden: {
+    display: "none",
   },
 });
 
@@ -166,6 +180,7 @@ export default memo(ListItem, (prevProps, nextProps) => {
   return (
     prevProps.song.id === nextProps.song.id &&
     prevProps.showStats === nextProps.showStats &&
-    prevProps.imageSize === nextProps.imageSize
+    prevProps.imageSize === nextProps.imageSize &&
+    prevProps.showDownloadButton === nextProps.showDownloadButton
   );
 });

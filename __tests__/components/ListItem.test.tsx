@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import ListItem from "../../components/ListItem";
+import { DownloadButton } from "../../components/DownloadButton";
 
 // モックの設定
 jest.mock("expo-image", () => ({
@@ -16,6 +17,10 @@ jest.mock("@expo/vector-icons", () => ({
 }));
 
 jest.mock("../../components/ListItemOptionsMenu", () => "ListItemOptionsMenu");
+
+jest.mock("../../components/DownloadButton", () => ({
+  DownloadButton: "DownloadButton",
+}));
 
 describe("ListItem", () => {
   // テスト用のモックデータ
@@ -40,7 +45,7 @@ describe("ListItem", () => {
     const { getByText } = render(
       <ListItem song={mockSong} onPress={mockOnPress} />
     );
-    
+
     expect(getByText("テスト曲")).toBeTruthy();
     expect(getByText("テストアーティスト")).toBeTruthy();
     expect(getByText("100")).toBeTruthy();
@@ -52,9 +57,9 @@ describe("ListItem", () => {
     const { getByTestId } = render(
       <ListItem song={mockSong} onPress={mockOnPress} testID="list-item" />
     );
-    
+
     fireEvent.press(getByTestId("list-item"));
-    
+
     expect(mockOnPress).toHaveBeenCalledWith(mockSong);
   });
 
@@ -63,7 +68,7 @@ describe("ListItem", () => {
     const { queryByText } = render(
       <ListItem song={mockSong} onPress={mockOnPress} showStats={false} />
     );
-    
+
     expect(queryByText("100")).toBeNull();
     expect(queryByText("50")).toBeNull();
   });
@@ -71,14 +76,14 @@ describe("ListItem", () => {
   it("imageSize='small'の場合、小さいサイズの画像を表示する", () => {
     const mockOnPress = jest.fn();
     const { getByTestId } = render(
-      <ListItem 
-        song={mockSong} 
-        onPress={mockOnPress} 
+      <ListItem
+        song={mockSong}
+        onPress={mockOnPress}
         imageSize="small"
         testID="list-item"
       />
     );
-    
+
     // コンポーネントが正しくレンダリングされていることを確認
     expect(getByTestId("list-item")).toBeTruthy();
   });
@@ -87,15 +92,55 @@ describe("ListItem", () => {
     const mockOnPress = jest.fn();
     const mockOnDelete = jest.fn();
     const { getByTestId } = render(
-      <ListItem 
-        song={mockSong} 
-        onPress={mockOnPress} 
+      <ListItem
+        song={mockSong}
+        onPress={mockOnPress}
         onDelete={mockOnDelete}
         testID="list-item"
       />
     );
-    
+
     // コンポーネントが正しくレンダリングされていることを確認
     expect(getByTestId("list-item")).toBeTruthy();
+  });
+
+  it("showDownloadButton=trueの場合、ダウンロードボタンを表示する", () => {
+    const mockOnPress = jest.fn();
+    const { getByTestId } = render(
+      <ListItem
+        song={mockSong}
+        onPress={mockOnPress}
+        showDownloadButton={true}
+        testID="list-item"
+      />
+    );
+
+    // ダウンロードボタンが表示されていることを確認
+    expect(getByTestId("download-button-container")).toBeTruthy();
+  });
+
+  it("showDownloadButton=falseの場合、ダウンロードボタンを表示しない", () => {
+    const mockOnPress = jest.fn();
+    const { queryByTestId } = render(
+      <ListItem
+        song={mockSong}
+        onPress={mockOnPress}
+        showDownloadButton={false}
+        testID="list-item"
+      />
+    );
+
+    // ダウンロードボタンが表示されていないことを確認
+    expect(queryByTestId("download-button-container")).toBeNull();
+  });
+
+  it("デフォルトではダウンロードボタンを表示しない", () => {
+    const mockOnPress = jest.fn();
+    const { queryByTestId } = render(
+      <ListItem song={mockSong} onPress={mockOnPress} testID="list-item" />
+    );
+
+    // デフォルトではダウンロードボタンが表示されていないことを確認
+    expect(queryByTestId("download-button-container")).toBeNull();
   });
 });
