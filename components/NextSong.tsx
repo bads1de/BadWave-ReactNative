@@ -130,10 +130,10 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 20,
     backgroundColor: "#1e1e24",
     borderRadius: 16,
-    margin: 16,
+    marginHorizontal: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -168,7 +168,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   songInfo: {
-    marginLeft: 40,
+    marginLeft: 16,
+    flex: 1,
   },
   songName: {
     fontSize: 18,

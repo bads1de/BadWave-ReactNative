@@ -17,7 +17,7 @@ import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 import Song from "@/types";
 
 const { width } = Dimensions.get("window");
-const ITEM_WIDTH = (width - 104) / 3;
+const ITEM_WIDTH = (width - 96) / 3;
 const ITEM_HEIGHT = ITEM_WIDTH * 1.5;
 
 // 曲アイテムコンポーネントを抽出してメモ化
@@ -129,13 +129,13 @@ function TopPlayedSongsList() {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 16,
+    marginBottom: 16,
   },
   cardContainer: {
     backgroundColor: "#1e1e24",
     borderRadius: 16,
     padding: 20,
-    margin: 16,
+    marginHorizontal: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   songsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 16,
+    gap: 12,
   },
   songItem: {
     width: ITEM_WIDTH,

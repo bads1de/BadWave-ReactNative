@@ -369,11 +369,13 @@ function Player(props: PlayerProps) {
         </LinearGradient>
       </View>
 
-      {currentSong?.lyrics && (
-        <Lyric lyrics={currentSong.lyrics} testID="lyrics-component" />
-      )}
-      <NextSong repeatMode={repeatMode} shuffle={shuffle} />
-      <TopPlayedSongsList />
+      <View style={styles.bottomSectionsContainer}>
+        {currentSong?.lyrics && (
+          <Lyric lyrics={currentSong.lyrics} testID="lyrics-component" />
+        )}
+        <NextSong repeatMode={repeatMode} shuffle={shuffle} />
+        <TopPlayedSongsList />
+      </View>
     </ScrollView>
   );
 }
@@ -393,6 +395,11 @@ const MemoizedPlayer = memo(Player, (prevProps, nextProps) => {
 export default MemoizedPlayer;
 
 const styles = StyleSheet.create({
+  bottomSectionsContainer: {
+    paddingTop: 16,
+    paddingBottom: 32,
+    gap: 16,
+  },
   scrollContainer: {
     flex: 1,
     backgroundColor: "#000",

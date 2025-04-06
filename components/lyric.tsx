@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#1e1e24",
     borderRadius: 16,
-    padding: 16,
-    margin: 16,
+    padding: 20,
+    marginHorizontal: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -124,8 +124,8 @@ const styles = StyleSheet.create({
   },
   expandButton: {
     backgroundColor: "#333340",
-    paddingVertical: 8,
-    paddingHorizontal: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
     borderRadius: 50,
     borderWidth: 1,
     borderColor: "#4c4c60",
