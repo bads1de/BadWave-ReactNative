@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   View,
   Text,
@@ -16,11 +16,11 @@ interface CustomAlertDialogProps {
 
 const { width } = Dimensions.get("window");
 
-export default function CustomAlertDialog({
+const CustomAlertDialog = ({
   visible,
   onConfirm,
   onCancel,
-}: CustomAlertDialogProps) {
+}: CustomAlertDialogProps) => {
   return (
     <Modal
       animationType="fade"
@@ -56,7 +56,13 @@ export default function CustomAlertDialog({
       </View>
     </Modal>
   );
-}
+};
+
+// カスタム比較関数を使用してメモ化
+export default memo(CustomAlertDialog, (prevProps, nextProps) => {
+  // visibleプロパティが同じ場合は再レンダリングしない
+  return prevProps.visible === nextProps.visible;
+});
 
 // 変更後のスタイル定義
 const styles = StyleSheet.create({

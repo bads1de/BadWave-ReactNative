@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import createPlaylist from "../actions/createPlaylist";
 
 import Toast from "react-native-toast-message";
 
-export default function CreatePlaylist() {
+const CreatePlaylist = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const queryClient = useQueryClient();
@@ -112,7 +112,7 @@ export default function CreatePlaylist() {
       </Modal>
     </>
   );
-}
+};
 
 const styles = StyleSheet.create({
   createButton: {
@@ -191,3 +191,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+// メモ化してエクスポート
+export default memo(CreatePlaylist);

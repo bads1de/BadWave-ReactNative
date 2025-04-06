@@ -13,6 +13,7 @@ interface LyricProps {
   initialVisibleLines?: number;
   songTitle?: string;
   artistName?: string;
+  testID?: string;
 }
 
 const Lyric: React.FC<LyricProps> = ({

@@ -18,6 +18,7 @@ import NextSong from "./NextSong";
 import Lyric from "./lyric";
 import LikeButton from "./LikeButton";
 import AddPlaylist from "./AddPlaylist";
+import MarqueeText from "./MarqueeText";
 import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
 import TopPlayedSongsList from "./TopPlayedSongsList";
@@ -109,7 +110,13 @@ const { width, height } = Dimensions.get("window");
 const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => (
   <View style={styles.infoContainer}>
     <View style={styles.textContainer}>
-      <Text style={styles.title}>{currentSong.title}</Text>
+      <MarqueeText
+        text={currentSong.title}
+        style={styles.titleContainer}
+        speed={0.5}
+        withGesture={false}
+        fontSize={24}
+      />
       <Text style={styles.author}>{currentSong.author}</Text>
     </View>
     <AddPlaylist songId={currentSong.id} />
@@ -416,6 +423,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     width: "100%",
+  },
+  titleContainer: {
+    height: 40,
+    marginBottom: 5,
   },
   author: {
     color: "#999",

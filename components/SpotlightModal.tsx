@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, memo } from "react";
 import {
   Modal,
   View,
@@ -31,12 +31,12 @@ interface SpotlightModalProps {
   onClose: () => void;
 }
 
-export default function SpotlightModal({
+const SpotlightModal = ({
   item,
   isMuted,
   onMuteToggle,
   onClose,
-}: SpotlightModalProps) {
+}: SpotlightModalProps) => {
   const windowWidth = Dimensions.get("window").width;
   const windowHeight = Dimensions.get("window").height;
   const fadeAnim = useSharedValue(0);
@@ -135,7 +135,16 @@ export default function SpotlightModal({
       </View>
     </Modal>
   );
-}
+};
+
+// カスタム比較関数を使用してメモ化
+export default memo(SpotlightModal, (prevProps, nextProps) => {
+  // video_pathとisMutedが同じ場合は再レンダリングしない
+  return (
+    prevProps.item.video_path === nextProps.item.video_path &&
+    prevProps.isMuted === nextProps.isMuted
+  );
+});
 
 const styles = StyleSheet.create({
   overlay: {

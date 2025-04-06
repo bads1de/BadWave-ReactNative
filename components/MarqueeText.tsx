@@ -8,6 +8,7 @@ interface MarqueeTextProps {
   spacing?: number;
   style?: ViewStyle;
   withGesture?: boolean;
+  fontSize?: number;
 }
 
 function MarqueeText({
@@ -16,15 +17,16 @@ function MarqueeText({
   spacing = 100,
   style,
   withGesture = false,
+  fontSize = 16,
 }: MarqueeTextProps) {
   return (
     <View style={[styles.container, style]} testID="marquee-text-container">
       {text.length > 15 ? (
         <Marquee speed={speed} spacing={spacing} withGesture={withGesture}>
-          <Text style={styles.text}>{text}</Text>
+          <Text style={[styles.text, { fontSize }]}>{text}</Text>
         </Marquee>
       ) : (
-        <Text style={styles.text}>{text}</Text>
+        <Text style={[styles.text, { fontSize }]}>{text}</Text>
       )}
     </View>
   );
@@ -36,8 +38,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   text: {
-    fontSize: 16,
     color: "#fff",
+    fontWeight: "bold",
   },
 });
 

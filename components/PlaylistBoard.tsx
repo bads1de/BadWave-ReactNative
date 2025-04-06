@@ -6,6 +6,7 @@ import { Playlist } from "@/types";
 import { CACHED_QUERIES } from "@/constants";
 import getPublicPlaylists from "@/actions/getPublicPlaylists";
 import { useQuery } from "@tanstack/react-query";
+import { memo, useCallback } from "react";
 
 const PlaylistBoard = () => {
   const { data: playlists = [] } = useQuery({
@@ -15,15 +16,18 @@ const PlaylistBoard = () => {
 
   const router = useRouter();
 
-  const handlePlaylistPress = (playlist: Playlist) => {
-    router.push({
-      pathname: "/(tabs)/playlist/[playlistId]" as const,
-      params: {
-        playlistId: playlist.id,
-        title: playlist.title,
-      },
-    });
-  };
+  const handlePlaylistPress = useCallback(
+    (playlist: Playlist) => {
+      router.push({
+        pathname: "/(tabs)/playlist/[playlistId]" as const,
+        params: {
+          playlistId: playlist.id,
+          title: playlist.title,
+        },
+      });
+    },
+    [router]
+  );
 
   return (
     <View style={{ marginBottom: 16 }}>
@@ -123,4 +127,5 @@ const PlaylistBoard = () => {
   );
 };
 
-export default PlaylistBoard;
+// メモ化してエクスポート
+export default memo(PlaylistBoard);

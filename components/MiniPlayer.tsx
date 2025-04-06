@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
+import MarqueeText from "./MarqueeText";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -62,9 +63,12 @@ function ModernMiniPlayer({
             priority="high"
           />
           <View style={styles.songInfo}>
-            <Text style={styles.title} numberOfLines={1}>
-              {currentSong.title}
-            </Text>
+            <MarqueeText
+              text={currentSong.title}
+              style={styles.titleContainer}
+              speed={0.5}
+              withGesture={false}
+            />
             <Text style={styles.author} numberOfLines={1}>
               {currentSong.author}
             </Text>
@@ -125,6 +129,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    marginBottom: 4,
+  },
+  titleContainer: {
+    height: 20,
     marginBottom: 4,
   },
   author: {

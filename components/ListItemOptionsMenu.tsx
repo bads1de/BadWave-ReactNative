@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { Modal, View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
@@ -7,9 +7,7 @@ interface ListItemOptionsMenuProps {
   onDelete?: () => void;
 }
 
-export default function ListItemOptionsMenu({
-  onDelete,
-}: ListItemOptionsMenuProps) {
+const ListItemOptionsMenu = ({ onDelete }: ListItemOptionsMenuProps) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -56,7 +54,10 @@ export default function ListItemOptionsMenu({
       </Modal>
     </>
   );
-}
+};
+
+// メモ化してエクスポート
+export default memo(ListItemOptionsMenu);
 
 const styles = StyleSheet.create({
   menuButton: {
