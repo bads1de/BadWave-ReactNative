@@ -31,12 +31,12 @@ interface SpotlightModalProps {
   onClose: () => void;
 }
 
-const SpotlightModal = ({
+function SpotlightModal({
   item,
   isMuted,
   onMuteToggle,
   onClose,
-}: SpotlightModalProps) => {
+}: SpotlightModalProps) {
   const windowWidth = Dimensions.get("window").width;
   const windowHeight = Dimensions.get("window").height;
   const fadeAnim = useSharedValue(0);
@@ -135,7 +135,7 @@ const SpotlightModal = ({
       </View>
     </Modal>
   );
-};
+}
 
 // カスタム比較関数を使用してメモ化
 export default memo(SpotlightModal, (prevProps, nextProps) => {

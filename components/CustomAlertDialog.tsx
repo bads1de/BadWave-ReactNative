@@ -16,11 +16,11 @@ interface CustomAlertDialogProps {
 
 const { width } = Dimensions.get("window");
 
-const CustomAlertDialog = ({
+function CustomAlertDialog({
   visible,
   onConfirm,
   onCancel,
-}: CustomAlertDialogProps) => {
+}: CustomAlertDialogProps) {
   return (
     <Modal
       animationType="fade"
@@ -56,7 +56,7 @@ const CustomAlertDialog = ({
       </View>
     </Modal>
   );
-};
+}
 
 // カスタム比較関数を使用してメモ化
 export default memo(CustomAlertDialog, (prevProps, nextProps) => {

@@ -30,7 +30,7 @@ interface TrendItemProps {
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.6;
 
-const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
+function TrendItem({ song, index, onPlay }: TrendItemProps) {
   return (
     <TouchableOpacity
       style={styles.itemContainer}
@@ -68,7 +68,10 @@ const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
       </BlurView>
     </TouchableOpacity>
   );
-});
+}
+
+// メモ化してエクスポート
+const MemoizedTrendItem = memo(TrendItem);
 
 export default function TrendBoard() {
   const [period, setPeriod] = useState<TrendPeriod>("all");
@@ -145,7 +148,7 @@ export default function TrendBoard() {
         horizontal
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
-          <TrendItem song={item} index={index} onPlay={onPlay} />
+          <MemoizedTrendItem song={item} index={index} onPlay={onPlay} />
         )}
         showsHorizontalScrollIndicator={false}
         snapToInterval={ITEM_WIDTH + 16}

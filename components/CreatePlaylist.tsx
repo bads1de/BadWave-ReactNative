@@ -13,7 +13,7 @@ import createPlaylist from "../actions/createPlaylist";
 
 import Toast from "react-native-toast-message";
 
-const CreatePlaylist = () => {
+function CreatePlaylist() {
   const [modalOpen, setModalOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const queryClient = useQueryClient();
@@ -112,7 +112,7 @@ const CreatePlaylist = () => {
       </Modal>
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   createButton: {

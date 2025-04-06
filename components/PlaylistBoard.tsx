@@ -8,7 +8,7 @@ import getPublicPlaylists from "@/actions/getPublicPlaylists";
 import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback } from "react";
 
-const PlaylistBoard = () => {
+function PlaylistBoard() {
   const { data: playlists = [] } = useQuery({
     queryKey: [CACHED_QUERIES.getPublicPlaylists],
     queryFn: () => getPublicPlaylists(),
@@ -125,7 +125,7 @@ const PlaylistBoard = () => {
       </ScrollView>
     </View>
   );
-};
+}
 
 // メモ化してエクスポート
 export default memo(PlaylistBoard);

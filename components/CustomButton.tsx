@@ -16,7 +16,7 @@ interface CustomButtonProps extends TouchableOpacityProps {
   testID?: string;
 }
 
-const CustomButton: React.FC<CustomButtonProps> = ({
+function CustomButton({
   label,
   isActive,
   activeStyle,
@@ -24,7 +24,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   activeTextStyle,
   inactiveTextStyle,
   ...props
-}) => {
+}: CustomButtonProps) {
   return (
     <TouchableOpacity
       style={[styles.button, isActive ? activeStyle : inactiveStyle]}
@@ -40,7 +40,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
       </Text>
     </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
   button: {

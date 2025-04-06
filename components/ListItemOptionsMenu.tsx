@@ -7,7 +7,7 @@ interface ListItemOptionsMenuProps {
   onDelete?: () => void;
 }
 
-const ListItemOptionsMenu = ({ onDelete }: ListItemOptionsMenuProps) => {
+function ListItemOptionsMenu({ onDelete }: ListItemOptionsMenuProps) {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -54,7 +54,7 @@ const ListItemOptionsMenu = ({ onDelete }: ListItemOptionsMenuProps) => {
       </Modal>
     </>
   );
-};
+}
 
 // メモ化してエクスポート
 export default memo(ListItemOptionsMenu);

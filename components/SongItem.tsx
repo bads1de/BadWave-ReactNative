@@ -27,142 +27,141 @@ interface SongItemProps {
   songType?: string;
 }
 
-const SongItem = memo(
-  ({
-    song,
-    onClick,
-    dynamicSize = false,
-    songType = "regular",
-  }: SongItemProps) => {
-    const router = useRouter();
-    const [isImageLoaded, setIsImageLoaded] = useState(false);
+function SongItem({
+  song,
+  onClick,
+  dynamicSize = false,
+  songType = "regular",
+}: SongItemProps) {
+  const router = useRouter();
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-    // Reanimatedの共有値を使用
-    const scaleAnim = useSharedValue(1);
-    const opacityAnim = useSharedValue(0);
+  // Reanimatedの共有値を使用
+  const scaleAnim = useSharedValue(1);
+  const opacityAnim = useSharedValue(0);
 
-    // 初回マウント時のみ実行されるフラグ
-    const isFirstRender = useRef(true);
+  // 初回マウント時のみ実行されるフラグ
+  const isFirstRender = useRef(true);
 
-    const { width: windowWidth } = Dimensions.get("window");
+  const { width: windowWidth } = Dimensions.get("window");
 
-    const calculateItemSize = () => {
-      if (dynamicSize) {
-        const itemWidth = (windowWidth - 48) / 2 - 16;
-        const itemHeight = itemWidth * 1.6;
-        return { width: itemWidth, height: itemHeight };
-      }
-      return { width: 180, height: 320 };
-    };
+  const calculateItemSize = () => {
+    if (dynamicSize) {
+      const itemWidth = (windowWidth - 48) / 2 - 16;
+      const itemHeight = itemWidth * 1.6;
+      return { width: itemWidth, height: itemHeight };
+    }
+    return { width: 180, height: 320 };
+  };
 
-    const dynamicStyle = calculateItemSize();
+  const dynamicStyle = calculateItemSize();
 
-    useEffect(() => {
-      // 初回レンダリング時のみ、または画像がロードされた時のみ実行
-      if (isImageLoaded && isFirstRender.current) {
-        opacityAnim.value = withTiming(1, { duration: 500 });
-        isFirstRender.current = false;
-      }
-    }, [isImageLoaded]);
+  useEffect(() => {
+    // 初回レンダリング時のみ、または画像がロードされた時のみ実行
+    if (isImageLoaded && isFirstRender.current) {
+      opacityAnim.value = withTiming(1, { duration: 500 });
+      isFirstRender.current = false;
+    }
+  }, [isImageLoaded]);
 
-    const handlePressIn = () => {
-      scaleAnim.value = withSpring(0.95, {
-        damping: 8,
-        stiffness: 100,
-      });
-    };
+  const handlePressIn = () => {
+    scaleAnim.value = withSpring(0.95, {
+      damping: 8,
+      stiffness: 100,
+    });
+  };
 
-    const handlePressOut = () => {
-      scaleAnim.value = withSpring(1, {
-        damping: 5,
-        stiffness: 40,
-      });
-    };
+  const handlePressOut = () => {
+    scaleAnim.value = withSpring(1, {
+      damping: 5,
+      stiffness: 40,
+    });
+  };
 
-    const handleTitlePress = () => {
-      router.push({
-        pathname: `/song/[songId]`,
-        params: { songId: song.id },
-      });
-    };
+  const handleTitlePress = () => {
+    router.push({
+      pathname: `/song/[songId]`,
+      params: { songId: song.id },
+    });
+  };
 
-    return (
-      <Animated.View
-        style={[
-          styles.containerWrapper,
-          dynamicStyle,
-          useAnimatedStyle(() => ({
-            transform: [{ scale: scaleAnim.value }],
-            opacity: opacityAnim.value,
-          })),
-        ]}
+  return (
+    <Animated.View
+      style={[
+        styles.containerWrapper,
+        dynamicStyle,
+        useAnimatedStyle(() => ({
+          transform: [{ scale: scaleAnim.value }],
+          opacity: opacityAnim.value,
+        })),
+      ]}
+    >
+      <TouchableOpacity
+        style={styles.container}
+        onPress={() => onClick(song.id)}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.9}
+        testID="song-container"
       >
-        <TouchableOpacity
-          style={styles.container}
-          onPress={() => onClick(song.id)}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          activeOpacity={0.9}
-          testID="song-container"
-        >
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: song.image_path }}
-              style={styles.image}
-              onLoad={() => setIsImageLoaded(true)}
-              contentFit="cover"
-              cachePolicy="disk"
-            />
-            {!isImageLoaded && <View style={styles.imagePlaceholder} />}
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
-              locations={[0.5, 0.75, 1]}
-              style={styles.gradientOverlay}
-            />
-            <View style={styles.textOverlay}>
-              <TouchableOpacity
-                onPress={handleTitlePress}
-                testID="song-title-button"
-                style={styles.titleContainer}
-              >
-                <MarqueeText
-                  text={song.title}
-                  style={styles.titleMarquee}
-                  speed={0.5}
-                  withGesture={false}
-                />
-              </TouchableOpacity>
-              <Text style={styles.author} numberOfLines={1}>
-                {song.author}
-              </Text>
-              <View style={styles.statsContainer}>
-                <View style={styles.statsItem}>
-                  <Ionicons name="play" size={14} color="#fff" />
-                  <Text style={styles.statsText}>{song.count}</Text>
-                </View>
-                <View style={styles.statsItem}>
-                  <Ionicons name="heart" size={14} color="#fff" />
-                  <Text style={styles.statsText}>{song.like_count}</Text>
-                </View>
-                <DownloadButton
-                  song={song}
-                  size={16}
-                  style={styles.downloadButton}
-                />
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: song.image_path }}
+            style={styles.image}
+            onLoad={() => setIsImageLoaded(true)}
+            contentFit="cover"
+            cachePolicy="disk"
+          />
+          {!isImageLoaded && <View style={styles.imagePlaceholder} />}
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
+            locations={[0.5, 0.75, 1]}
+            style={styles.gradientOverlay}
+          />
+          <View style={styles.textOverlay}>
+            <TouchableOpacity
+              onPress={handleTitlePress}
+              testID="song-title-button"
+              style={styles.titleContainer}
+            >
+              <MarqueeText
+                text={song.title}
+                style={styles.titleMarquee}
+                speed={0.5}
+                withGesture={false}
+              />
+            </TouchableOpacity>
+            <Text style={styles.author} numberOfLines={1}>
+              {song.author}
+            </Text>
+            <View style={styles.statsContainer}>
+              <View style={styles.statsItem}>
+                <Ionicons name="play" size={14} color="#fff" />
+                <Text style={styles.statsText}>{song.count}</Text>
               </View>
+              <View style={styles.statsItem}>
+                <Ionicons name="heart" size={14} color="#fff" />
+                <Text style={styles.statsText}>{song.like_count}</Text>
+              </View>
+              <DownloadButton
+                song={song}
+                size={16}
+                style={styles.downloadButton}
+              />
             </View>
           </View>
-          <LinearGradient
-            colors={["rgba(124, 58, 237, 0.1)", "rgba(124, 58, 237, 0.05)"]}
-            style={styles.cardGlow}
-          />
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  }
-);
+        </View>
+        <LinearGradient
+          colors={["rgba(124, 58, 237, 0.1)", "rgba(124, 58, 237, 0.05)"]}
+          style={styles.cardGlow}
+        />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
-export default SongItem;
+// メモ化してエクスポート
+export default memo(SongItem);
 
 const styles = StyleSheet.create({
   containerWrapper: {

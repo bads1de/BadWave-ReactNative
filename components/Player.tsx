@@ -338,7 +338,7 @@ const PlayerControls: FC<PlayerProps> = memo(
  * />
  * ```
  */
-const Player: FC<PlayerProps> = (props) => {
+function Player(props: PlayerProps) {
   const { currentSong, onClose, shuffle, repeatMode } = props;
 
   return (
@@ -376,7 +376,7 @@ const Player: FC<PlayerProps> = (props) => {
       <TopPlayedSongsList />
     </ScrollView>
   );
-};
+}
 
 // カスタム比較関数を使用してメモ化
 const MemoizedPlayer = memo(Player, (prevProps, nextProps) => {
