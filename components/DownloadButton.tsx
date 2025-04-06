@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-} from "react-native";
+import { TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform } from "react-native";
 import Song from "../types";
 import { getOfflineStorageService } from "../hooks/TrackPlayer/utils";
 
@@ -104,11 +98,7 @@ export function DownloadButton({
         onPress={handleDelete}
         style={[styles.button, style]}
       >
-        {Platform.OS === "test" ? (
-          <Text>cloud-done</Text>
-        ) : (
-          <Ionicons name="cloud-done" size={size} color={color} />
-        )}
+        <Ionicons name="cloud-done" size={size} color={color} />
       </TouchableOpacity>
     );
   }
@@ -120,11 +110,7 @@ export function DownloadButton({
       onPress={handleDownload}
       style={[styles.button, style]}
     >
-      {Platform.OS === "test" ? (
-        <Text>cloud-download-outline</Text>
-      ) : (
-        <Ionicons name="cloud-download-outline" size={size} color={color} />
-      )}
+      <Ionicons name="cloud-download-outline" size={size} color={color} />
     </TouchableOpacity>
   );
 }
