@@ -13,7 +13,7 @@ import AuthModal from "@/components/AuthModal";
 import { ToastComponent } from "@/components/CustomToast";
 import TrackPlayer from "react-native-track-player";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
-import NetInfo from "@react-native-community/netinfo";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,13 +24,6 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
   },
-});
-
-// オンライン状態の監視を設定
-onlineManager.setEventListener((setOnline) => {
-  return NetInfo.addEventListener((state) => {
-    setOnline(!!state.isConnected);
-  });
 });
 
 export default function RootLayout() {
@@ -64,29 +57,31 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister: mmkvPersister,
-        maxAge: 1000 * 60 * 60 * 24, // 24時間
-      }}
-      // キャッシュが復元された後の処理
-      onSuccess={async () => {
-        // オンラインの場合、一時停止されたミューテーションを再開し、クエリを再取得
-        if (onlineManager.isOnline()) {
-          await queryClient.resumePausedMutations();
-          await queryClient.invalidateQueries();
-        }
-      }}
-    >
-      <AuthProvider>
-        <View style={{ flex: 1, backgroundColor: "#000" }}>
-          <StatusBar style="light" />
-          {showAuthModal && <AuthModal />}
-          <Stack screenOptions={{ headerShown: false }} />
-          <ToastComponent />
-        </View>
-      </AuthProvider>
-    </PersistQueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister: mmkvPersister,
+          maxAge: 1000 * 60 * 60 * 24, // 24時間
+        }}
+        // キャッシュが復元された後の処理
+        onSuccess={async () => {
+          // オンラインの場合、一時停止されたミューテーションを再開し、クエリを再取得
+          if (onlineManager.isOnline()) {
+            await queryClient.resumePausedMutations();
+            await queryClient.invalidateQueries();
+          }
+        }}
+      >
+        <AuthProvider>
+          <View style={{ flex: 1, backgroundColor: "#000" }}>
+            <StatusBar style="light" />
+            {showAuthModal && <AuthModal />}
+            <Stack screenOptions={{ headerShown: false }} />
+            <ToastComponent />
+          </View>
+        </AuthProvider>
+      </PersistQueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

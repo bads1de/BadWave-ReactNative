@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
+import MarqueeText from "./MarqueeText";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -122,10 +123,14 @@ const SongItem = memo(
               <TouchableOpacity
                 onPress={handleTitlePress}
                 testID="song-title-button"
+                style={styles.titleContainer}
               >
-                <Text style={styles.title} numberOfLines={1}>
-                  {song.title}
-                </Text>
+                <MarqueeText
+                  text={song.title}
+                  style={styles.titleMarquee}
+                  speed={0.5}
+                  withGesture={false}
+                />
               </TouchableOpacity>
               <Text style={styles.author} numberOfLines={1}>
                 {song.author}
@@ -208,6 +213,12 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  titleContainer: {
+    width: "100%",
+  },
+  titleMarquee: {
+    height: 24,
   },
   author: {
     color: "#ddd",

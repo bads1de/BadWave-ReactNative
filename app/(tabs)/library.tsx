@@ -16,9 +16,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import CreatePlaylist from "@/components/CreatePlaylist";
 import { Playlist } from "@/types";
-import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
 
-type LibraryType = "liked" | "playlists" | "downloads";
+type LibraryType = "liked" | "playlists";
 
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
@@ -46,24 +45,15 @@ export default function LibraryScreen() {
     enabled: !!session,
   });
 
-  // ダウンロード済みの曲を取得
-  const {
-    songs: downloadedSongs,
-    isLoading: isDownloadsLoading,
-    error: downloadsError,
-    refresh: refreshDownloads,
-  } = useDownloadedSongs();
-
   // コンテキストに応じて曲リストを切り替え
   const currentSongs = useMemo(() => {
     if (type === "liked") return likedSongs;
-    if (type === "downloads") return downloadedSongs;
     return [];
-  }, [type, likedSongs, downloadedSongs]);
+  }, [type, likedSongs]);
 
   const { togglePlayPause } = useAudioPlayer(
     currentSongs,
-    type === "liked" ? "liked" : "home"
+    type === "liked" ? "liked" : "playlist"
   );
 
   // プレイリストをクリックしたときのハンドラをメモ化
@@ -102,16 +92,12 @@ export default function LibraryScreen() {
     [handlePlaylistPress]
   );
 
-  if (isLikedLoading || isPlaylistsLoading || isDownloadsLoading)
-    return <Loading />;
-  if (likedError || playlistsError || downloadsError)
+  if (isLikedLoading || isPlaylistsLoading) return <Loading />;
+  if (likedError || playlistsError)
     return (
       <Error
         message={
-          likedError?.message ||
-          playlistsError?.message ||
-          downloadsError ||
-          "An error occurred"
+          likedError?.message || playlistsError?.message || "An error occurred"
         }
       />
     );
@@ -163,19 +149,6 @@ export default function LibraryScreen() {
                 onPress={() => setType("playlists")}
                 testID="button-Playlists"
               />
-              <CustomButton
-                label="Downloads"
-                isActive={type === "downloads"}
-                activeStyle={styles.typeButtonActive}
-                inactiveStyle={styles.typeButton}
-                activeTextStyle={styles.typeButtonTextActive}
-                inactiveTextStyle={styles.typeButtonText}
-                onPress={() => {
-                  setType("downloads");
-                  refreshDownloads();
-                }}
-                testID="button-Downloads"
-              />
             </ScrollView>
           </View>
           {type === "liked" ? (
@@ -198,44 +171,23 @@ export default function LibraryScreen() {
                 <Text style={styles.noSongsText}>No songs found.</Text>
               </View>
             )
-          ) : type === "playlists" ? (
-            playlists && playlists.length > 0 ? (
-              <FlatList
-                key={"playlists"}
-                data={playlists}
-                renderItem={renderPlaylistItem}
-                numColumns={2}
-                keyExtractor={keyExtractor}
-                contentContainerStyle={styles.listContainer}
-                windowSize={5}
-                maxToRenderPerBatch={8}
-                updateCellsBatchingPeriod={50}
-                removeClippedSubviews={true}
-                initialNumToRender={6}
-              />
-            ) : (
-              <View style={[styles.noSongsContainer, { flex: 1 }]}>
-                <Text style={styles.noSongsText}>No playlists found.</Text>
-              </View>
-            )
-          ) : downloadedSongs && downloadedSongs.length > 0 ? (
+          ) : playlists && playlists.length > 0 ? (
             <FlatList
-              key={"downloads"}
-              data={downloadedSongs}
-              renderItem={renderLikedSongs}
-              keyExtractor={(item) => item.id}
+              key={"playlists"}
+              data={playlists}
+              renderItem={renderPlaylistItem}
               numColumns={2}
+              keyExtractor={keyExtractor}
               contentContainerStyle={styles.listContainer}
               windowSize={5}
               maxToRenderPerBatch={8}
               updateCellsBatchingPeriod={50}
               removeClippedSubviews={true}
               initialNumToRender={6}
-              testID="downloads-flatlist"
             />
           ) : (
             <View style={[styles.noSongsContainer, { flex: 1 }]}>
-              <Text style={styles.noSongsText}>No downloaded songs found.</Text>
+              <Text style={styles.noSongsText}>No playlists found.</Text>
             </View>
           )}
         </>

@@ -24,6 +24,12 @@ jest.mock("../../components/DownloadButton", () => ({
   DownloadButton: "DownloadButton",
 }));
 
+jest.mock("../../components/MarqueeText", () => {
+  return function MockMarqueeText(props: any) {
+    return <text-mock>{props.text}</text-mock>;
+  };
+});
+
 // インポート
 import SongItem from "../../components/SongItem";
 import { useRouter } from "expo-router";
