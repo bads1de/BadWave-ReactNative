@@ -119,9 +119,9 @@ describe("ListItem", () => {
     expect(getByTestId("download-button-container")).toBeTruthy();
   });
 
-  it("showDownloadButton=falseの場合、ダウンロードボタンを表示しない", () => {
+  it("showDownloadButton=falseを指定しても、ダウンロードボタンを常に表示する", () => {
     const mockOnPress = jest.fn();
-    const { queryByTestId } = render(
+    const { getByTestId } = render(
       <ListItem
         song={mockSong}
         onPress={mockOnPress}
@@ -130,17 +130,17 @@ describe("ListItem", () => {
       />
     );
 
-    // ダウンロードボタンが表示されていないことを確認
-    expect(queryByTestId("download-button-container")).toBeNull();
+    // ダウンロードボタンが表示されていることを確認
+    expect(getByTestId("download-button-container")).toBeTruthy();
   });
 
-  it("デフォルトではダウンロードボタンを表示しない", () => {
+  it("デフォルトでダウンロードボタンを表示する", () => {
     const mockOnPress = jest.fn();
-    const { queryByTestId } = render(
+    const { getByTestId } = render(
       <ListItem song={mockSong} onPress={mockOnPress} testID="list-item" />
     );
 
-    // デフォルトではダウンロードボタンが表示されていないことを確認
-    expect(queryByTestId("download-button-container")).toBeNull();
+    // デフォルトでダウンロードボタンが表示されていることを確認
+    expect(getByTestId("download-button-container")).toBeTruthy();
   });
 });

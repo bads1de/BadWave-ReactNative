@@ -14,7 +14,7 @@ interface ListItemProps {
   imageSize?: "small" | "medium" | "large";
   onDelete?: () => void;
   testID?: string;
-  showDownloadButton?: boolean;
+  showDownloadButton?: boolean; // 互換性のために残していますが、常にtrueとして扱われます
 }
 
 function ListItem({
@@ -24,7 +24,7 @@ function ListItem({
   imageSize = "medium",
   onDelete,
   testID,
-  showDownloadButton = false,
+  showDownloadButton = true, // 常にtrueとして扱います
 }: ListItemProps) {
   const getImageSize = () => {
     switch (imageSize) {
@@ -90,6 +90,7 @@ function ListItem({
             </View>
           )}
 
+          {/* ダウンロードボタンは常に表示 */}
           <View
             testID="download-button-container"
             style={styles.downloadButtonContainer}

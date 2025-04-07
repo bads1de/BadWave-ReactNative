@@ -35,7 +35,9 @@ export function DownloadButton({
 
   // ローディング状態
   const isLoading =
-    isStatusLoading || downloadMutation.isPending || deleteMutation.isPending;
+    isStatusLoading ||
+    (downloadMutation && downloadMutation.isPending) ||
+    (deleteMutation && deleteMutation.isPending);
 
   // ダウンロード処理
   const handleDownload = () => {
