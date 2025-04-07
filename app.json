@@ -18,6 +18,10 @@
       },
       "package": "com.s3xmaxman.badmusicappmobile"
     },
+    "androidStatusBar": {
+      "backgroundColor": "#000000",
+      "barStyle": "light-content"
+    },
     "androidNavigationBar": {
       "backgroundColor": "#000000",
       "barStyle": "light-content"

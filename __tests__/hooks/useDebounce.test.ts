@@ -1,4 +1,5 @@
-import { renderHook, act } from "@testing-library/react-hooks";
+import { renderHook } from "@testing-library/react";
+import { act } from "react-dom/test-utils";
 import { useDebounce } from "../../hooks/useDebounce";
 
 describe("useDebounce", () => {
@@ -12,7 +13,7 @@ describe("useDebounce", () => {
 
   it("初期値を返す", () => {
     const { result } = renderHook(() => useDebounce("initial", 500));
-    
+
     expect(result.current).toBe("initial");
   });
 
@@ -21,16 +22,16 @@ describe("useDebounce", () => {
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: "initial", delay: 500 } }
     );
-    
+
     expect(result.current).toBe("initial");
-    
+
     rerender({ value: "updated", delay: 500 });
     expect(result.current).toBe("initial"); // まだ遅延中
-    
+
     act(() => {
       jest.advanceTimersByTime(500);
     });
-    
+
     expect(result.current).toBe("updated"); // 遅延後
   });
 
@@ -39,24 +40,24 @@ describe("useDebounce", () => {
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: "initial", delay: 500 } }
     );
-    
+
     rerender({ value: "update1", delay: 500 });
     act(() => {
       jest.advanceTimersByTime(200);
     });
-    
+
     rerender({ value: "update2", delay: 500 });
     act(() => {
       jest.advanceTimersByTime(200);
     });
-    
+
     rerender({ value: "final", delay: 500 });
     expect(result.current).toBe("initial"); // まだ遅延中
-    
+
     act(() => {
       jest.advanceTimersByTime(500);
     });
-    
+
     expect(result.current).toBe("final"); // 最後の値のみ反映
   });
 
@@ -65,29 +66,29 @@ describe("useDebounce", () => {
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: "initial", delay: 500 } }
     );
-    
+
     rerender({ value: "updated", delay: 1000 });
-    
+
     act(() => {
       jest.advanceTimersByTime(500);
     });
-    
+
     expect(result.current).toBe("initial"); // まだ遅延中（1000ms待ち）
-    
+
     act(() => {
       jest.advanceTimersByTime(500);
     });
-    
+
     expect(result.current).toBe("updated"); // 1000ms後に更新
   });
 
   it("コンポーネントがアンマウントされた場合、タイマーがクリアされる", () => {
     const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
-    
+
     const { unmount } = renderHook(() => useDebounce("test", 500));
-    
+
     unmount();
-    
+
     expect(clearTimeoutSpy).toHaveBeenCalled();
   });
 });

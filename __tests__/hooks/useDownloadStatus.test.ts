@@ -1,5 +1,9 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
-import { useDownloadStatus, useDownloadSong, useDeleteDownloadedSong } from "../../hooks/useDownloadStatus";
+import {
+  useDownloadStatus,
+  useDownloadSong,
+  useDeleteDownloadedSong,
+} from "../../hooks/useDownloadStatus";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
@@ -25,9 +29,8 @@ const createWrapper = () => {
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe("useDownloadStatus", () => {
@@ -45,11 +48,15 @@ describe("useDownloadStatus", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOfflineStorageService = new OfflineStorageService() as jest.Mocked<OfflineStorageService>;
+    mockOfflineStorageService =
+      new OfflineStorageService() as jest.Mocked<OfflineStorageService>;
 
     // getOfflineStorageService関数をモック化
     jest
-      .spyOn(require("../../hooks/TrackPlayer/utils"), "getOfflineStorageService")
+      .spyOn(
+        require("../../hooks/TrackPlayer/utils"),
+        "getOfflineStorageService"
+      )
       .mockReturnValue(mockOfflineStorageService);
   });
 
@@ -70,7 +77,9 @@ describe("useDownloadStatus", () => {
 
     // 正しいデータが返されることを確認
     expect(result.current.data).toBe(true);
-    expect(mockOfflineStorageService.isSongDownloaded).toHaveBeenCalledWith("song-1");
+    expect(mockOfflineStorageService.isSongDownloaded).toHaveBeenCalledWith(
+      "song-1"
+    );
   });
 
   it("useDownloadSong downloads a song", async () => {
@@ -86,7 +95,9 @@ describe("useDownloadStatus", () => {
     });
 
     // ダウンロード関数が呼ばれたことを確認
-    expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(mockSong);
+    expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(
+      mockSong
+    );
     // ミューテーションが成功したことを確認
     expect(result.current.isSuccess).toBe(true);
   });
@@ -125,7 +136,9 @@ describe("useDownloadStatus", () => {
     });
 
     // ダウンロード関数が呼ばれたことを確認
-    expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(mockSong);
+    expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(
+      mockSong
+    );
     // ミューテーションが成功したことを確認（エラーはサービス内で処理されるため）
     expect(result.current.isSuccess).toBe(true);
   });

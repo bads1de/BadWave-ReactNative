@@ -41,7 +41,7 @@ const createWrapper = () => {
   );
 };
 
-describe("DownloadButton", () => {
+describe("DownloadButton - 常に表示されるダウンロードボタンコンポーネント", () => {
   let mockOfflineStorageService: jest.Mocked<OfflineStorageService>;
 
   const mockSong = {
@@ -68,7 +68,7 @@ describe("DownloadButton", () => {
       .mockReturnValue(mockOfflineStorageService);
   });
 
-  it("renders download button when song is not downloaded", async () => {
+  it("曲がダウンロードされていない場合はダウンロードボタンを表示する", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
       require("../../hooks/useDownloadStatus").useDownloadStatus;
@@ -89,11 +89,12 @@ describe("DownloadButton", () => {
       wrapper: createWrapper(),
     });
 
+    // ダウンロードボタンが表示されることを確認
     expect(getByTestId("download-button")).toBeTruthy();
     expect(useDownloadStatusMock).toHaveBeenCalledWith(mockSong.id);
   });
 
-  it("renders delete button when song is downloaded", async () => {
+  it("曲がダウンロード済みの場合は削除ボタンを表示する", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
       require("../../hooks/useDownloadStatus").useDownloadStatus;
@@ -114,11 +115,12 @@ describe("DownloadButton", () => {
       wrapper: createWrapper(),
     });
 
+    // 削除ボタンが表示されることを確認
     expect(getByTestId("delete-button")).toBeTruthy();
     expect(useDownloadStatusMock).toHaveBeenCalledWith(mockSong.id);
   });
 
-  it("downloads song when download button is pressed", async () => {
+  it("ダウンロードボタンを押すと曲をダウンロードする", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
       require("../../hooks/useDownloadStatus").useDownloadStatus;
@@ -140,14 +142,17 @@ describe("DownloadButton", () => {
       wrapper: createWrapper(),
     });
 
+    // ダウンロードボタンが表示されることを確認
     expect(getByTestId("download-button")).toBeTruthy();
 
+    // ボタンをクリック
     fireEvent.press(getByTestId("download-button"));
 
+    // ダウンロード関数が呼ばれることを確認
     expect(mutateMock).toHaveBeenCalledWith(mockSong);
   });
 
-  it("deletes song when delete button is pressed", async () => {
+  it("削除ボタンを押すと曲を削除する", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
       require("../../hooks/useDownloadStatus").useDownloadStatus;
@@ -169,14 +174,17 @@ describe("DownloadButton", () => {
       wrapper: createWrapper(),
     });
 
+    // 削除ボタンが表示されることを確認
     expect(getByTestId("delete-button")).toBeTruthy();
 
+    // ボタンをクリック
     fireEvent.press(getByTestId("delete-button"));
 
+    // 削除関数が呼ばれることを確認
     expect(mutateMock).toHaveBeenCalledWith(mockSong.id);
   });
 
-  it("shows loading state during download", async () => {
+  it("ダウンロード中はローディング状態を表示する", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
       require("../../hooks/useDownloadStatus").useDownloadStatus;
@@ -197,10 +205,11 @@ describe("DownloadButton", () => {
       wrapper: createWrapper(),
     });
 
+    // ローディングインジケーターが表示されることを確認
     expect(getByTestId("loading-indicator")).toBeTruthy();
   });
 
-  it("updates button state after successful download", async () => {
+  it("ダウンロード成功後にボタンの状態が更新される", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
       require("../../hooks/useDownloadStatus").useDownloadStatus;
@@ -253,7 +262,7 @@ describe("DownloadButton", () => {
     expect(getByTestId("delete-button")).toBeTruthy();
   });
 
-  it("updates button state after successful deletion", async () => {
+  it("削除成功後にボタンの状態が更新される", async () => {
     mockOfflineStorageService.isSongDownloaded
       .mockResolvedValueOnce(true) // 初回チェック時はダウンロード済み
       .mockResolvedValueOnce(false); // 削除後のチェック
@@ -279,7 +288,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles download failure", async () => {
+  it("ダウンロード失敗時の処理を正しく行う", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
       success: false,
@@ -303,7 +312,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles deletion failure", async () => {
+  it("削除失敗時の処理を正しく行う", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
     mockOfflineStorageService.deleteSong.mockResolvedValue({
       success: false,
@@ -327,7 +336,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("shows loading state during deletion", async () => {
+  it("削除中はローディング状態を表示する", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
     // 削除が完了する前にローディング状態をチェックするため、解決しないPromiseを返す
     mockOfflineStorageService.deleteSong.mockImplementation(
@@ -347,7 +356,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles network errors during download", async () => {
+  it("ダウンロード中のネットワークエラーを処理する", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
       success: false,
@@ -368,7 +377,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles disk space errors during download", async () => {
+  it("ダウンロード中のディスク容量エラーを処理する", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
       success: false,
@@ -389,7 +398,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles permission errors during deletion", async () => {
+  it("削除中の権限エラーを処理する", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
     mockOfflineStorageService.deleteSong.mockResolvedValue({
       success: false,
@@ -410,7 +419,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles rapid button clicks correctly", async () => {
+  it("連続クリックを正しく処理する", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     // ダウンロードに時間がかかるようにモック
     mockOfflineStorageService.downloadSong.mockImplementation(
@@ -443,7 +452,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles component unmount during download operation", async () => {
+  it("ダウンロード中のコンポーネントアンマウントを処理する", async () => {
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     // ダウンロードに時間がかかるようにモック
     mockOfflineStorageService.downloadSong.mockImplementation(
@@ -474,7 +483,7 @@ describe("DownloadButton", () => {
     // ここでは特にアサーションは不要、エラーが発生しないことを確認するテスト
   });
 
-  it("handles songs with non-standard characters in title", async () => {
+  it("タイトルに特殊文字を含む曲を処理する", async () => {
     // 特殊文字を含む曲名のケース
     const specialCharSong = {
       ...mockSong,
@@ -499,7 +508,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles concurrent download operations correctly", async () => {
+  it("複数の同時ダウンロード操作を正しく処理する", async () => {
     // 同時に複数のダウンロードが行われた場合のテスト
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
 
@@ -539,7 +548,7 @@ describe("DownloadButton", () => {
     expect(mockOfflineStorageService.isSongDownloaded).toHaveBeenCalledTimes(2);
   });
 
-  it("handles songs with missing properties gracefully", async () => {
+  it("プロパティが欠けている曲を適切に処理する", async () => {
     // 必要なプロパティが欠けている曲のケース
     const incompleteSong = {
       id: "incomplete-song",
@@ -572,7 +581,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles rapid button clicks correctly", async () => {
+  it("ボタンの連打を正しく処理する", async () => {
     // 連打クリックのテスト
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
 
@@ -617,7 +626,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles network reconnection scenarios", async () => {
+  it("ネットワーク再接続シナリオを処理する", async () => {
     // ネットワーク切断と再接続のシナリオをテスト
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
 
@@ -660,7 +669,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles disk space errors correctly", async () => {
+  it("ディスク容量エラーを正しく処理する", async () => {
     // ディスク容量不足のエラーをテスト
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
@@ -684,7 +693,7 @@ describe("DownloadButton", () => {
     });
   });
 
-  it("handles permission errors during deletion", async () => {
+  it("削除中の権限エラーを適切に処理する", async () => {
     // 削除時の権限エラーをテスト
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
     mockOfflineStorageService.deleteSong.mockResolvedValue({
