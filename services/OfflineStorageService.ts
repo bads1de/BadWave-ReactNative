@@ -1,4 +1,4 @@
-import RNFS from "react-native-fs";
+import * as FileSystem from "expo-file-system";
 import { MMKV } from "react-native-mmkv";
 import Song from "../types";
 
@@ -9,7 +9,7 @@ import Song from "../types";
 export class OfflineStorageService {
   private storage: MMKV;
   private readonly METADATA_PREFIX = "song-metadata:";
-  private readonly DOWNLOAD_DIR = RNFS.DocumentDirectoryPath + "/downloads/";
+  private readonly DOWNLOAD_DIR = FileSystem.documentDirectory + "downloads/";
 
   constructor() {
     this.storage = new MMKV({
@@ -24,10 +24,12 @@ export class OfflineStorageService {
    */
   private async ensureDownloadDirectory(): Promise<void> {
     try {
-      const exists = await RNFS.exists(this.DOWNLOAD_DIR);
+      const dirInfo = await FileSystem.getInfoAsync(this.DOWNLOAD_DIR);
 
-      if (!exists && RNFS.mkdir) {
-        await RNFS.mkdir(this.DOWNLOAD_DIR);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(this.DOWNLOAD_DIR, {
+          intermediates: true,
+        });
       }
     } catch (error) {
       console.error("Failed to create download directory:", error);
@@ -50,22 +52,20 @@ export class OfflineStorageService {
       const localPath = `${this.DOWNLOAD_DIR}${sanitizedTitle}.mp3`;
 
       // 既にダウンロード済みかチェック
-      const exists = await RNFS.exists(localPath);
+      const fileInfo = await FileSystem.getInfoAsync(localPath);
 
-      if (exists) {
+      if (fileInfo.exists) {
         console.log(`Song already downloaded: ${song.title}`);
         return { success: true };
       }
 
       // ダウンロード実行
-      const downloadResult = await RNFS.downloadFile({
-        fromUrl: song.song_path,
-        toFile: localPath,
-        background: true,
-        discretionary: true,
-      }).promise;
+      const downloadResult = await FileSystem.downloadAsync(
+        song.song_path,
+        localPath
+      );
 
-      if (downloadResult.statusCode === 200) {
+      if (downloadResult.status === 200) {
         // ダウンロード成功時、メタデータを作成
         const metadata = {
           id: song.id,
@@ -87,12 +87,12 @@ export class OfflineStorageService {
         return { success: true };
       } else {
         console.error(
-          `Download failed with status code: ${downloadResult.statusCode}`
+          `Download failed with status code: ${downloadResult.status}`
         );
 
         return {
           success: false,
-          error: `Download failed with status code: ${downloadResult.statusCode}`,
+          error: `Download failed with status code: ${downloadResult.status}`,
         };
       }
     } catch (error) {
@@ -129,12 +129,12 @@ export class OfflineStorageService {
       const localPath = metadata.localPath;
 
       // ファイルが存在するか確認
-      const exists = await RNFS.exists(localPath);
+      const fileInfo = await FileSystem.getInfoAsync(localPath);
 
-      if (exists) {
+      if (fileInfo.exists) {
         try {
           // ファイル削除
-          await RNFS.unlink(localPath);
+          await FileSystem.deleteAsync(localPath);
         } catch (unlinkError) {
           console.error("Error unlinking file:", unlinkError);
 
@@ -186,9 +186,9 @@ export class OfflineStorageService {
           const metadata = JSON.parse(metadataStr);
 
           // 実際にファイルが存在するか確認
-          const exists = await RNFS.exists(metadata.localPath);
+          const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
 
-          if (exists) {
+          if (fileInfo.exists) {
             // 存在すればリストに追加
             songs.push({
               id: metadata.id,
@@ -241,7 +241,8 @@ export class OfflineStorageService {
       const metadata = JSON.parse(metadataStr);
 
       // ファイルが存在するか確認
-      return await RNFS.exists(metadata.localPath);
+      const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
+      return fileInfo.exists;
     } catch (error) {
       console.error("Error checking if song is downloaded:", error);
 
@@ -274,9 +275,9 @@ export class OfflineStorageService {
       }
 
       // ファイルが存在するか確認
-      const exists = await RNFS.exists(metadata.localPath);
+      const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
 
-      return exists ? metadata.localPath : null;
+      return fileInfo.exists ? metadata.localPath : null;
     } catch (error) {
       console.error("Error getting song local path:", error);
 

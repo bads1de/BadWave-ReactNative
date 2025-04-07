@@ -16,9 +16,7 @@
       "reactNativeDirectoryCheck": {
         "listUnknownPackages": false,
         "exclude": [
-          "react-native-track-player",
-          "react-native-fs",
-          "react-native-swiper"
+          "react-native-track-player"
         ]
       }
     }
@@ -60,14 +58,14 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
-    "react-native-fs": "^2.20.0",
+    "expo-file-system": "~18.0.12",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-mmkv": "^2.12.2",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
     "react-native-svg": "15.8.0",
-    "react-native-swiper": "^1.6.0",
+    "react-native-swiper-flatlist": "^3.2.5",
     "react-native-toast-message": "^2.2.1",
     "react-native-track-player": "^4.1.1",
     "react-native-web": "~0.19.13",

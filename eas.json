@@ -1,7 +1,8 @@
 {
   "cli": {
     "version": ">= 15.0.6",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "requireCommit": false
   },
   "build": {
     "development": {
@@ -9,18 +10,36 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      },
+      "cache": {
+        "key": "v1"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      },
+      "cache": {
+        "key": "v1"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      },
+      "cache": {
+        "key": "v1"
       }
     }
   },
