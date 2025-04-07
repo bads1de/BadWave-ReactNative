@@ -16,7 +16,8 @@
       "reactNativeDirectoryCheck": {
         "listUnknownPackages": false,
         "exclude": [
-          "react-native-track-player"
+          "react-native-track-player",
+          "react-native-swiper"
         ]
       }
     }
