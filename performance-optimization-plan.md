@@ -12,7 +12,7 @@ BadMusicApp のコードベースを分析した結果、以下の領域でパ�
 
 ### 2. 画像処理とリソース管理
 
-- **画像キャッシュ戦略**: 現在 `expo-image` を使用していますが、キャッシュポリシーの統一と最適化が必要です
+- **画像キャッシュ戦略**: 現在 `expo-image` を使用していますが、データの性質に応じた適切なキャッシュポリシーの最適化が必要です
 - **画像サイズと品質**: 画像のサイズと品質の最適化が必要です
 - **遅延読み込み**: 画面外の画像の読み込みを遅延させる戦略が不足しています
 
@@ -90,10 +90,10 @@ const memoizedCallback = useCallback(() => {
 
 ### 2. 画像処理とリソース管理の最適化
 
-#### 2.1 画像キャッシュポリシーの統一
+#### 2.1 画像キャッシュポリシーの最適化
 
 ```typescript
-// 現在の実装（バラバラ）
+// 現在の実装（データの性質に応じて異なるポリシーを適用）
 <Image
   source={{ uri: imageUrl }}
   cachePolicy="memory-disk"
@@ -104,10 +104,19 @@ const memoizedCallback = useCallback(() => {
   cachePolicy="disk"
 />
 
-// 改善案: キャッシュポリシーの統一と最適化
+// 改善案: データの性質に応じたキャッシュポリシーの最適化
+// 頻繁に変更されない画像（アルバムアート等）
 <Image
-  source={{ uri: imageUrl }}
+  source={{ uri: albumArtUrl }}
   cachePolicy="memory-disk"
+  transition={200}
+  priority={isVisible ? "high" : "low"}
+/>
+
+// 頻繁に更新される可能性のある画像（プロフィール画像等）
+<Image
+  source={{ uri: profileImageUrl }}
+  cachePolicy="memory"
   transition={200}
   priority={isVisible ? "high" : "low"}
 />
@@ -246,7 +255,7 @@ useEffect(() => {
 1. **高優先度**
 
    - MMKV への完全移行（AsyncStorage からの移行完了）
-   - 画像キャッシュ戦略の統一と最適化
+   - 画像キャッシュ戦略の最適化（データの性質に応じた適切なポリシー適用）
    - FlatList のさらなる最適化
 
 2. **中優先度**
