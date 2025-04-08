@@ -23,7 +23,7 @@ const createWrapper = () => {
       },
     },
   });
-  return ({ children }) => (
+  return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
@@ -227,7 +227,7 @@ describe("useDownloadedSongs", () => {
     // getDownloadedSongsは2回呼ばれることを確認
     // 1回目は初期化時、2回目は最初のrefresh呼び出し時
     expect(mockOfflineStorageService.getDownloadedSongs).toHaveBeenCalledTimes(
-      3
+      2
     );
   });
 });
