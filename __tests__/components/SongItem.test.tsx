@@ -25,9 +25,11 @@ jest.mock("../../components/DownloadButton", () => ({
 }));
 
 jest.mock("../../components/MarqueeText", () => {
-  return function MockMarqueeText(props: any) {
-    return <text-mock>{props.text}</text-mock>;
+  const MockMarqueeText = (props: any) => {
+    const { Text } = require("react-native");
+    return <Text>{props.text}</Text>;
   };
+  return MockMarqueeText;
 });
 
 // インポート

@@ -1,8 +1,9 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
-
 import { act } from "react-test-renderer";
 import { useDownloadedSongs } from "../../hooks/useDownloadedSongs";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
 
 // モックの設定
 jest.mock("../../services/OfflineStorageService", () => {
@@ -12,6 +13,20 @@ jest.mock("../../services/OfflineStorageService", () => {
     })),
   };
 });
+
+// テスト用のラッパーコンポーネント
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  return ({ children }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
 
 describe("useDownloadedSongs", () => {
   let mockOfflineStorageService: jest.Mocked<OfflineStorageService>;
@@ -54,7 +69,9 @@ describe("useDownloadedSongs", () => {
   it("should return downloaded songs", async () => {
     mockOfflineStorageService.getDownloadedSongs.mockResolvedValue(mockSongs);
 
-    const { result } = renderHook(() => useDownloadedSongs());
+    const { result } = renderHook(() => useDownloadedSongs(), {
+      wrapper: createWrapper(),
+    });
 
     // 初期状態は空配列とローディング状態
     expect(result.current.songs).toEqual([]);
@@ -86,7 +103,9 @@ describe("useDownloadedSongs", () => {
         },
       ]);
 
-    const { result } = renderHook(() => useDownloadedSongs());
+    const { result } = renderHook(() => useDownloadedSongs(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -115,7 +134,9 @@ describe("useDownloadedSongs", () => {
     const error = new Error("Failed to fetch");
     mockOfflineStorageService.getDownloadedSongs.mockRejectedValue(error);
 
-    const { result } = renderHook(() => useDownloadedSongs());
+    const { result } = renderHook(() => useDownloadedSongs(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -128,7 +149,9 @@ describe("useDownloadedSongs", () => {
   it("should handle empty result", async () => {
     mockOfflineStorageService.getDownloadedSongs.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useDownloadedSongs());
+    const { result } = renderHook(() => useDownloadedSongs(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -144,7 +167,9 @@ describe("useDownloadedSongs", () => {
       .mockResolvedValueOnce(mockSongs)
       .mockRejectedValueOnce(new Error("Refresh failed"));
 
-    const { result } = renderHook(() => useDownloadedSongs());
+    const { result } = renderHook(() => useDownloadedSongs(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -185,7 +210,9 @@ describe("useDownloadedSongs", () => {
         },
       ]);
 
-    const { result } = renderHook(() => useDownloadedSongs());
+    const { result } = renderHook(() => useDownloadedSongs(), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 

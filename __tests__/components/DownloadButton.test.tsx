@@ -4,8 +4,6 @@ import { DownloadButton } from "../../components/DownloadButton";
 import { OfflineStorageService } from "../../services/OfflineStorageService";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Ioniconsのモック
-jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
 
@@ -65,45 +63,13 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
         require("../../hooks/TrackPlayer/utils"),
         "getOfflineStorageService"
       )
-      .mockReturnValue(mockOfflineStorageService);
-  });
-
-  it("曲がダウンロードされていない場合はダウンロードボタンを表示する", async () => {
-    // useDownloadStatusフックのモック設定
-    const useDownloadStatusMock =
-      require("../../hooks/useDownloadStatus").useDownloadStatus;
-    useDownloadStatusMock.mockReturnValue({
-      data: false,
-      isLoading: false,
-    });
-
-    // useDownloadSongフックのモック設定
-    const useDownloadSongMock =
-      require("../../hooks/useDownloadStatus").useDownloadSong;
-    useDownloadSongMock.mockReturnValue({
-      mutate: jest.fn(),
-      isPending: false,
-    });
-
-    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
-      wrapper: createWrapper(),
-    });
-
-    // ダウンロードボタンが表示されることを確認
-    expect(getByTestId("download-button")).toBeTruthy();
-    expect(useDownloadStatusMock).toHaveBeenCalledWith(mockSong.id);
-  });
-
-  it("曲がダウンロード済みの場合は削除ボタンを表示する", async () => {
-    // useDownloadStatusフックのモック設定
-    const useDownloadStatusMock =
-      require("../../hooks/useDownloadStatus").useDownloadStatus;
-    useDownloadStatusMock.mockReturnValue({
+      .mockReturnValue(mockOff qSd("download-button")).toBeTruthy();
+  acaeockSong.id);
+ // S設MrnValue({
       data: true,
       isLoading: false,
     });
 
-    // useDeleteDownloadedSongフックのモック設定
     const useDeleteDownloadedSongMock =
       require("../../hooks/useDownloadStatus").useDeleteDownloadedSong;
     useDeleteDownloadedSongMock.mockReturnValue({
@@ -270,7 +236,10 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.deleteSong.mockResolvedValue({ success: true });
 
     const { getByTestId, queryByTestId } = render(
-      <DownloadButton song={mockSong} />
+      <DownloadButton song={mockSong} />,
+      {
+        wrapper: createWrapper(),
+      }
     );
 
     await waitFor(() => {
@@ -292,15 +261,20 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
       success: false,
-      error: new Error("Download failed"),
+      error: "Download failed",
     });
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
-    });
-
+    });,
+  {
+        wrapper: createWrapper(,
+      }
+    )
     // actでラップして状態更新を正しく処理
     await act(async () => {
       fireEvent.press(getByTestId("download-button"));
@@ -316,13 +290,17 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
     mockOfflineStorageService.deleteSong.mockResolvedValue({
       success: false,
-      error: new Error("Deletion failed"),
+      error: "Deletion failed",
     });
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
-      expect(getByTestId("delete-button")).toBeTruthy();
+      expect(getByTestId("delete-button")).toBeTruthy();, {
+      wrapper: createWrapper(,
+    })
     });
 
     // actでラップして状態更新を正しく処理
@@ -343,8 +321,12 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
       () => new Promise(() => {})
     );
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
-
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
+, {
+      wrapper: createWrapper(,
+    })
     await waitFor(() => {
       expect(getByTestId("delete-button")).toBeTruthy();
     });
@@ -360,13 +342,17 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
       success: false,
-      error: new Error("Network error: Unable to download song"),
+      error: "Network error: Unable to download song",
     });
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
-      expect(getByTestId("download-button")).toBeTruthy();
+      expect(getByTestId("download-button")).toBeTruthy();, {
+      wrapper: createWrapper(),
+    }
     });
 
     fireEvent.press(getByTestId("download-button"));
@@ -381,10 +367,14 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
       success: false,
-      error: new Error("Disk space error: Not enough storage"),
+      error: "Disk space error: Not enough storage",
     });
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });, {
+      wrapper: createWrapper(),
+    }
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
@@ -402,10 +392,14 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
     mockOfflineStorageService.deleteSong.mockResolvedValue({
       success: false,
-      error: new Error("Permission error: Cannot delete file"),
+      error: "Permission error: Cannot delete file",
     });
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    }, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("delete-button")).toBeTruthy();
@@ -424,12 +418,16 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // ダウンロードに時間がかかるようにモック
     mockOfflineStorageService.downloadSong.mockImplementation(
       () =>
-        new Promise((resolve) =>
+        new Promise((resolve) =>, {
+      wrapper: createWrapper(),
+    }
           setTimeout(() => resolve({ success: true }), 100)
         )
     );
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
@@ -446,7 +444,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // ローディング中にさらにクリックしようとしても無視される
     // ローディング中はボタンが表示されないので、クリックはできない
 
-    // downloadSongが1回だけ呼ばれることを確認
+    // downloadSongが1回だけ呼ばれることを確認, {
+      wrapper: createWrapper(),
+    }
     await waitFor(() => {
       expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledTimes(1);
     });
@@ -462,7 +462,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
         )
     );
 
-    const { getByTestId, unmount } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId, unmount } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
@@ -477,7 +479,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     });
 
     // コンポーネントをアンマウント
-    unmount();
+    unmount();, {
+      wrapper: createWrapper(,
+    })
 
     // エラーが発生しないことを確認
     // ここでは特にアサーションは不要、エラーが発生しないことを確認するテスト
@@ -493,7 +497,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({ success: true });
 
-    const { getByTestId } = render(<DownloadButton song={specialCharSong} />);
+    const { getByTestId } = render(<DownloadButton song={specialCharSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
@@ -506,7 +512,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
         specialCharSong
       );
     });
-  });
+  });, {
+      wrapper: createWrapper(),
+    }
 
   it("複数の同時ダウンロード操作を正しく処理する", async () => {
     // 同時に複数のダウンロードが行われた場合のテスト
@@ -519,13 +527,10 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     });
 
     mockOfflineStorageService.downloadSong.mockReturnValue(downloadPromise);
-
-    // 複数のボタンをレンダリング
-    const { getAllByTestId } = render(
-      <>
-        <DownloadButton song={mockSong} />
-        <DownloadButton song={{ ...mockSong, id: "song-2" }} />
-      </>
+    </>,
+      {
+        wrapper: createWrapper(),
+      }
     );
 
     await waitFor(() => {
@@ -541,8 +546,11 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledTimes(2);
 
     // 最初のダウンロードを完了
-    downloadPromiseResolve({ success: true });
-
+    downl,oadPromiseResolve!({ success: true });
+  {
+        wrapper: createWrapper(),
+      }
+    
     // ダウンロードが完了したことを確認
     // 初期チェック2回が行われていることを確認
     expect(mockOfflineStorageService.isSongDownloaded).toHaveBeenCalledTimes(2);
@@ -563,7 +571,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({ success: true });
 
-    const { getByTestId } = render(<DownloadButton song={incompleteSong} />);
+    const { getByTestId } = render(<DownloadButton song={incompleteSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
@@ -577,7 +587,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     await waitFor(() => {
       expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledWith(
         incompleteSong
-      );
+      );, {
+      wrapper: createWrapper(,
+    })
     });
   });
 
@@ -587,13 +599,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
 
     // ダウンロードに時間がかかるようにモック
     let downloadResolve: (value: { success: boolean }) => void;
-    const downloadPromise = new Promise<{ success: boolean }>((resolve) => {
-      downloadResolve = resolve;
+(resolve) => {
+     wrapper: createWrapper(),
     });
-
-    mockOfflineStorageService.downloadSong.mockReturnValue(downloadPromise);
-
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
@@ -611,14 +619,16 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
 
     // ローディング中に再度クリックしても無視されることを確認
     await act(async () => {
-      fireEvent.press(getByTestId("loading-indicator"));
+      fireEvent.press(getByTestId("loading-indicator"));, {
+      wrapper: createWrapper(),
+    }
     });
 
     // ダウンロードが1回しか呼ばれないことを確認
     expect(mockOfflineStorageService.downloadSong).toHaveBeenCalledTimes(1);
 
     // ダウンロード完了
-    downloadResolve({ success: true });
+    downloadResolve!({ success: true });
 
     // ダウンロード完了後は削除ボタンが表示される
     await waitFor(() => {
@@ -634,13 +644,16 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.downloadSong
       .mockResolvedValueOnce({
         success: false,
-        error: new Error("Network error: Unable to download song"),
+        error: "Network error: Unable to download song",
       })
       // 2回目は成功する
       .mockResolvedValueOnce({ success: true });
 
     const { getByTestId, queryByTestId } = render(
-      <DownloadButton song={mockSong} />
+      <DownloadButton song={mockSong} />,
+      {
+        wrapper: createWrapper(),
+      }
     );
 
     await waitFor(() => {
@@ -655,7 +668,10 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // 失敗後もダウンロードボタンが表示される
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
-    });
+    });,
+      {
+        wrapper: createWrapper(),
+      }
 
     // 2回目のダウンロード試行（成功する）
     await act(async () => {
@@ -674,10 +690,12 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(false);
     mockOfflineStorageService.downloadSong.mockResolvedValue({
       success: false,
-      error: new Error("Disk space error: Not enough storage"),
+      error: "Disk space error: Not enough storage",
     });
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
@@ -690,7 +708,9 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // エラー後もダウンロードボタンが表示される
     await waitFor(() => {
       expect(getByTestId("download-button")).toBeTruthy();
-    });
+    });, {
+      wrapper: createWrapper(),
+    }
   });
 
   it("削除中の権限エラーを適切に処理する", async () => {
@@ -698,10 +718,12 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     mockOfflineStorageService.isSongDownloaded.mockResolvedValue(true);
     mockOfflineStorageService.deleteSong.mockResolvedValue({
       success: false,
-      error: new Error("Permission error: Cannot delete file"),
+      error: "Permission error: Cannot delete file",
     });
 
-    const { getByTestId } = render(<DownloadButton song={mockSong} />);
+    const { getByTestId } = render(<DownloadButton song={mockSong} />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(getByTestId("delete-button")).toBeTruthy();
@@ -712,8 +734,11 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     });
 
     // エラー後も削除ボタンが表示される
-    await waitFor(() => {
+    await waitFor(() => {, {
+      wrapper: createWrapper(),
+    }
       expect(getByTestId("delete-button")).toBeTruthy();
     });
   });
+});
 });
