@@ -8,6 +8,13 @@ type PlaylistSong = Song & { songType: "regular" };
  * 指定されたプレイリストIDに含まれる「regular」な曲を取得する
  * @param {string} playlistId プレイリストID
  * @returns {Promise<PlaylistSong[]>} プレイリストに含まれる曲の配列
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * const songs = await getPlaylistSongs('playlist-id-123');
+ * console.log(songs);
+ * ```
  */
 const getPlaylistSongs = async (
   playlistId: string
@@ -25,7 +32,7 @@ const getPlaylistSongs = async (
 
   if (playlistError) {
     console.error("Failed to fetch playlist:", playlistError);
-    return [];
+    throw new Error(playlistError.message);
   }
 
   // 非公開プレイリストで未認証の場合のみ早期リターン
@@ -50,7 +57,7 @@ const getPlaylistSongs = async (
 
   if (error) {
     console.error("Failed to fetch playlist songs:", error);
-    return [];
+    throw new Error(error.message);
   }
 
   const playlistSongs: PlaylistSong[] = (data || []).map((item: any) => ({

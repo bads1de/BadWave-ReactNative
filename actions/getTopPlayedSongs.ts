@@ -11,8 +11,16 @@ interface TopPlayedSong extends Song {
 
 /**
  * 指定されたユーザーの最も再生回数の多い曲を取得する
+ *
  * @param {string} userId ユーザーID
  * @returns {Promise<TopPlayedSong[]>} 再生回数順にソートされた曲の配列
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * const songs = await getTopPlayedSongs('user-id-123');
+ * console.log(songs);
+ * ```
  */
 const getTopPlayedSongs = async (userId?: string): Promise<TopPlayedSong[]> => {
   if (!userId) {

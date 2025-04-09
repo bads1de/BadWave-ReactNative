@@ -2,11 +2,19 @@ import { supabase } from "@/lib/supabase";
 import { Playlist } from "@/types";
 
 /**
- * パブリックプレイリスト一覧を取得する
- * @param {number} limit - 取得する最大件数
- * @returns {Promise<Playlist[]>} プレイリストの配列
+ * 公開されているプレイリストを取得する
+ *
+ * @param {number} limit 取得する件数 (デフォルト20)
+ * @returns {Promise<Playlist[]>} 公開プレイリストの配列
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * const playlists = await getPublicPlaylists(10);
+ * console.log(playlists);
+ * ```
  */
-const getPublicPlaylists = async (limit: number = 6): Promise<Playlist[]> => {
+const getPublicPlaylists = async (limit: number = 20): Promise<Playlist[]> => {
   const { data, error } = await supabase
     .from("playlists")
     .select("*")
@@ -16,7 +24,7 @@ const getPublicPlaylists = async (limit: number = 6): Promise<Playlist[]> => {
 
   if (error) {
     console.error(error.message);
-    return [];
+    throw new Error(error.message);
   }
 
   return (data as Playlist[]) || [];

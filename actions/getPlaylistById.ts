@@ -7,27 +7,19 @@ import { Playlist } from "@/types";
  */
 
 /**
- * IDを指定してプレイリスト情報を取得する
- * @description
- * 指定されたプレイリストIDに一致するプレイリストの詳細情報を取得します。
- * プレイリストが存在しない場合はnullを返します。
+ * 指定IDのプレイリストを取得する
  *
- * @param {string} playlistId 取得するプレイリストのID
- * @returns {Promise<Playlist | null>} プレイリスト情報またはnull
+ * @param {string} playlistId プレイリストID
+ * @returns {Promise<Playlist | null>} プレイリスト。存在しない場合はnull
  * @throws {Error} データベースクエリに失敗した場合
  *
  * @example
  * ```typescript
- * // プレイリストを取得
- * const playlist = await getPlaylistById("123");
- * if (playlist) {
- *   console.log(playlist.title); // プレイリスト名
- * }
+ * const playlist = await getPlaylistById('playlist-id-123');
+ * console.log(playlist);
  * ```
  */
-const getPlaylistById = async (
-  playlistId: string
-): Promise<Playlist | null> => {
+const getPlaylistById = async (playlistId: string): Promise<Playlist | null> => {
   const { data, error } = await supabase
     .from("playlists")
     .select("*")

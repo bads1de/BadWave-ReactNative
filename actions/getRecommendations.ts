@@ -1,6 +1,19 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
 
+/**
+ * ユーザーにおすすめの曲を取得する
+ *
+ * @param {number} limit 取得する曲の数
+ * @returns {Promise<Song[]>} おすすめ曲の配列
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * const recommendations = await getRecommendations(10);
+ * console.log(recommendations);
+ * ```
+ */
 const getRecommendations = async (limit: number = 10): Promise<Song[]> => {
   // 現在のユーザーセッションを取得
   const {
@@ -21,7 +34,7 @@ const getRecommendations = async (limit: number = 10): Promise<Song[]> => {
 
     if (error) {
       console.error("Error fetching recommendations:", error);
-      return [];
+      throw new Error(error.message);
     }
 
     // データがない場合は空配列を返す

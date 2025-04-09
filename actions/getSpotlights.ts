@@ -1,27 +1,32 @@
-import { Spotlight } from "../types";
 import { supabase } from "../lib/supabase";
+import Song from "../types";
 
 /**
- * スポットライトデータを取得する関数
+ * スポットライト曲を取得する
  *
- * @description Supabaseデータベースの「spotlights」テーブルから全てのスポットライトデータを取得します。
- * 結果は作成日時の降順（最新のものが先頭）でソートされます。
+ * @param {number} limit 取得する曲数 (デフォルト10)
+ * @returns {Promise<Song[]>} スポットライト曲の配列
+ * @throws {Error} データベースクエリに失敗した場合
  *
- * @returns {Promise<Spotlight[]>} スポットライトデータの配列を含むPromise
- * @throws {Error} データベースクエリでエラーが発生した場合
+ * @example
+ * ```typescript
+ * const songs = await getSpotlights(5);
+ * console.log(songs);
+ * ```
  */
-const getSpotlights = async (): Promise<Spotlight[]> => {
+const getSpotlights = async (limit = 10): Promise<Song[]> => {
   const { data, error } = await supabase
-    .from("spotlights")
+    .from("songs")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (error) {
     console.error(error.message);
     throw new Error(error.message);
   }
 
-  return (data as Spotlight[]) || [];
+  return (data as Song[]) || [];
 };
 
 export default getSpotlights;

@@ -2,9 +2,17 @@ import { supabase } from "@/lib/supabase";
 
 /**
  * プレイリストの公開設定を切り替える
- * @param {string} playlistId プレイリストID
- * @param {string} userId ユーザーID
- * @param {boolean} isPublic 公開設定 (true: 公開, false: 非公開)
+ *
+ * @param {string} playlistId - プレイリストID
+ * @param {string} userId - ユーザーID
+ * @param {boolean} isPublic - 公開設定 (true: 公開, false: 非公開)
+ * @returns {Promise<void>} 処理が成功した場合は何も返さない
+ * @throws {Error} データベース更新時にエラーが発生した場合
+ *
+ * @example
+ * ```typescript
+ * await togglePublicPlaylist('playlist-id-123', 'user-id-456', true);
+ * ```
  */
 const togglePublicPlaylist = async (
   playlistId: string,

@@ -5,6 +5,13 @@ import { Playlist } from "@/types";
  * タイトルでパブリックプレイリストを検索する
  * @param {string} title - 検索するタイトル
  * @returns {Promise<Playlist[]>} プレイリストの配列
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * const playlists = await getPlaylistsByTitle('お気に入り');
+ * console.log(playlists);
+ * ```
  */
 const getPlaylistsByTitle = async (title: string): Promise<Playlist[]> => {
   const { data, error } = await supabase

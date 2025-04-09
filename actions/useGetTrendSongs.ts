@@ -5,9 +5,17 @@ import { supabase } from "@/lib/supabase";
 export type TrendPeriod = "all" | "month" | "week" | "day";
 
 /**
- * トレンド曲を取得する関数
- * @param period - 取得する期間
- * @returns 取得したトレンド曲のリスト
+ * 指定期間のトレンド曲を取得する
+ *
+ * @param {TrendPeriod} period - 取得する期間 ('all'|'month'|'week'|'day')
+ * @returns {Promise<Song[]>} トレンド曲の配列
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * const songs = await getTrendSongs('week');
+ * console.log(songs);
+ * ```
  */
 const getTrendSongs = async (period: TrendPeriod = "all"): Promise<Song[]> => {
   let query = supabase.from("songs").select("*");

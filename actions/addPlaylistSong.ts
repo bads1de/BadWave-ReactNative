@@ -21,6 +21,11 @@ interface AddPlaylistSongProps {
  * @param props - 必要なパラメータを含むオブジェクト
  * @returns プレイリストIDと追加された曲のデータを含むオブジェクト
  * @throws データベースエラーが発生した場合
+ *
+ * @example
+ * ```typescript
+ * await addPlaylistSong({ playlistId: 'playlist-id-123', songId: 'song-id-456', userId: 'user-id-789' });
+ * ```
  */
 const addPlaylistSong = async ({
   playlistId,

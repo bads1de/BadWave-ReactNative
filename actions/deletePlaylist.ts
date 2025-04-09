@@ -1,9 +1,17 @@
 import { supabase } from "../lib/supabase";
 
 /**
- * 指定されたプレイリストを削除する
+ * プレイリストを削除する
+ *
  * @param {string} playlistId プレイリストID
  * @param {string} userId ユーザーID
+ * @returns {Promise<void>} 処理が成功した場合は何も返さない
+ * @throws {Error} データベースクエリに失敗した場合
+ *
+ * @example
+ * ```typescript
+ * await deletePlaylist('playlist-id-123', 'user-id-456');
+ * ```
  */
 const deletePlaylist = async (
   playlistId: string,

@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import Playlist from "../types";
 
 /**
  * @fileoverview プレイリスト作成モジュール
@@ -7,40 +8,36 @@ import { supabase } from "../lib/supabase";
 
 /**
  * 新しいプレイリストを作成する
- * @description
- * 認証済みユーザーのために新しいプレイリストを作成します。
- * プレイリスト名は必須で、空文字列は許可されません。
  *
- * @param {string} name - 作成するプレイリストの名前
- * @returns {Promise<void>} プレイリスト作成の成功時は何も返さない
- * @throws {Error} 以下の場合にエラーをスロー:
- *   - ユーザーが認証されていない場合
- *   - データベース操作に失敗した場合
+ * @param {string} userId ユーザーID
+ * @param {string} title プレイリストタイトル
+ * @param {boolean} isPublic 公開設定
+ * @returns {Promise<Playlist>} 作成されたプレイリスト
+ * @throws {Error} データベースクエリに失敗した場合
  *
  * @example
  * ```typescript
- * // 新しいプレイリストを作成
- * await createPlaylist("My Favorite Songs");
+ * const playlist = await createPlaylist('user-id-123', 'My Playlist', true);
+ * console.log(playlist);
  * ```
  */
-const createPlaylist = async (name: string): Promise<void> => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    throw new Error("User not authenticated");
-  }
-
-  const { error } = await supabase.from("playlists").insert({
-    user_id: session?.user.id,
-    title: name,
-  });
+const createPlaylist = async (
+  userId: string,
+  title: string,
+  isPublic: boolean
+): Promise<Playlist> => {
+  const { data, error } = await supabase
+    .from("playlists")
+    .insert({ user_id: userId, title, is_public: isPublic })
+    .select()
+    .single();
 
   if (error) {
     console.error(error.message);
     throw new Error(error.message);
   }
+
+  return data as Playlist;
 };
 
 export default createPlaylist;
