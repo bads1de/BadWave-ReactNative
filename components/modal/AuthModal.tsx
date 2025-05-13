@@ -25,7 +25,7 @@ GoogleSignin.configure({
     "412901923265-4rek27if7dg41i3pl5ap0idho61th752.apps.googleusercontent.com",
 });
 
-function AuthModal() {
+function AuthModalInner() {
   const { session } = useAuth();
   const { setShowAuthModal } = useAuthStore();
   const [email, setEmail] = useState("");
@@ -362,4 +362,4 @@ const styles = StyleSheet.create({
 });
 
 // メモ化してエクスポート
-export default memo(AuthModal);
+export default memo(AuthModalInner);

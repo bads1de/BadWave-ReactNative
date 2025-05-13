@@ -30,7 +30,8 @@ interface TrendItemProps {
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.6;
 
-function TrendItem({ song, index, onPlay }: TrendItemProps) {
+// TrendItemをメモ化
+const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
   return (
     <TouchableOpacity
       style={styles.itemContainer}
@@ -68,37 +69,18 @@ function TrendItem({ song, index, onPlay }: TrendItemProps) {
       </BlurView>
     </TouchableOpacity>
   );
-}
+});
 
-// メモ化してエクスポート
-const MemoizedTrendItem = memo(TrendItem);
-
-export default function TrendBoard() {
-  const [period, setPeriod] = useState<TrendPeriod>("all");
-  const {
-    data: trends = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.trendsSongs, period],
-    queryFn: () => getTrendSongs(period),
-  });
-  const { togglePlayPause } = useAudioPlayer(trends);
-
-  // メモ化されたコールバック
-  const onPlay = useCallback(
-    async (song: Song) => {
-      await togglePlayPause(song);
-    },
-    [togglePlayPause]
-  );
-
-  if (isLoading) return <Loading />;
-
-  if (error) return <Error message={error.message} />;
-
-  return (
-    <View style={styles.container}>
+// 期間セレクタをコンポーネントとして分離
+const PeriodSelector = memo(
+  ({
+    period,
+    setPeriod,
+  }: {
+    period: TrendPeriod;
+    setPeriod: (period: TrendPeriod) => void;
+  }) => {
+    return (
       <View style={styles.periodSelector}>
         <ScrollView
           horizontal
@@ -143,21 +125,62 @@ export default function TrendBoard() {
           />
         </ScrollView>
       </View>
+    );
+  }
+);
+
+function TrendBoard() {
+  const [period, setPeriod] = useState<TrendPeriod>("all");
+  const {
+    data: trends = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: [CACHED_QUERIES.trendsSongs, period],
+    queryFn: () => getTrendSongs(period),
+  });
+  const { togglePlayPause } = useAudioPlayer(trends);
+
+  // メモ化されたコールバック
+  const onPlay = useCallback(
+    async (song: Song) => {
+      await togglePlayPause(song);
+    },
+    [togglePlayPause]
+  );
+
+  // キー抽出関数をメモ化
+  const keyExtractor = useCallback((item: Song) => item.id, []);
+
+  if (isLoading) return <Loading />;
+
+  if (error) return <Error message={error.message} />;
+
+  return (
+    <View style={styles.container}>
+      <PeriodSelector period={period} setPeriod={setPeriod} />
       <FlatList
         data={trends}
         horizontal
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         renderItem={({ item, index }) => (
-          <MemoizedTrendItem song={item} index={index} onPlay={onPlay} />
+          <TrendItem song={item} index={index} onPlay={onPlay} />
         )}
         showsHorizontalScrollIndicator={false}
         snapToInterval={ITEM_WIDTH + 16}
         decelerationRate="fast"
         contentContainerStyle={styles.listContent}
+        windowSize={3}
+        maxToRenderPerBatch={5}
+        initialNumToRender={4}
+        removeClippedSubviews={true}
       />
     </View>
   );
 }
+
+// コンポーネント全体をメモ化してエクスポート
+export default memo(TrendBoard);
 
 const styles = StyleSheet.create({
   container: {

@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import {
   View,
   Text,
@@ -58,6 +58,17 @@ const TopPlayedSongItem = memo(
         </View>
       </TouchableOpacity>
     );
+  },
+  (prevProps, nextProps) => {
+    // songオブジェクトの主要なプロパティとonPress, indexを比較
+    return (
+      prevProps.song.id === nextProps.song.id &&
+      prevProps.song.title === nextProps.song.title &&
+      prevProps.song.author === nextProps.song.author &&
+      prevProps.song.image_path === nextProps.song.image_path &&
+      prevProps.index === nextProps.index &&
+      prevProps.onPress === nextProps.onPress
+    );
   }
 );
 
@@ -79,34 +90,37 @@ function TopPlayedSongsList() {
    * 改善点: 状態更新の確実性向上とリソース管理の改善
    * @param songIndex 選択された曲のインデックス
    */
-  const handleSongPress = async (songIndex: number) => {
-    try {
-      // 既存の再生中の曲を一時停止
-      if (isPlaying) {
-        await TrackPlayer.pause();
-      }
+  const handleSongPress = useCallback(
+    async (songIndex: number) => {
+      try {
+        // 既存の再生中の曲を一時停止
+        if (isPlaying) {
+          await TrackPlayer.pause();
+        }
 
-      // サブプレイヤーの状態をリセット
-      // バッチ処理で状態更新を最適化
-      setCurrentSongIndex(-1); // 一度無効なインデックスをセット
-      setSongs([]); // 曲リストをクリア
+        // サブプレイヤーの状態をリセット
+        // バッチ処理で状態更新を最適化
+        setCurrentSongIndex(-1); // 一度無効なインデックスをセット
+        setSongs([]); // 曲リストをクリア
 
-      // 状態更新が確実に反映されるよう少し待機
-      // Reactのバッチ更新を利用するために非同期処理を使用
-      await new Promise<void>((resolve) => {
-        // 次のレンダリングサイクルで確実に実行されるようにする
-        requestAnimationFrame(() => {
-          // 新しい状態を設定
-          setSongs(topSongs);
-          setCurrentSongIndex(songIndex);
-          setShowSubPlayer(true);
-          resolve();
+        // 状態更新が確実に反映されるよう少し待機
+        // Reactのバッチ更新を利用するために非同期処理を使用
+        await new Promise<void>((resolve) => {
+          // 次のレンダリングサイクルで確実に実行されるようにする
+          requestAnimationFrame(() => {
+            // 新しい状態を設定
+            setSongs(topSongs);
+            setCurrentSongIndex(songIndex);
+            setShowSubPlayer(true);
+            resolve();
+          });
         });
-      });
-    } catch (error) {
-      console.error("Error handling song press:", error);
-    }
-  };
+      } catch (error) {
+        console.error("Error handling song press:", error);
+      }
+    },
+    [isPlaying, topSongs, setCurrentSongIndex, setSongs, setShowSubPlayer]
+  );
 
   return (
     <View style={styles.container}>

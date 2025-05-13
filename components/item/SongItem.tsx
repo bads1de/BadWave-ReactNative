@@ -162,7 +162,20 @@ function SongItem({
 }
 
 // メモ化してエクスポート
-export default memo(SongItem);
+export default memo(SongItem, (prevProps, nextProps) => {
+  // songオブジェクトの主要なプロパティとonClick, dynamicSize, songTypeを比較
+  return (
+    prevProps.song.id === nextProps.song.id &&
+    prevProps.song.title === nextProps.song.title &&
+    prevProps.song.author === nextProps.song.author &&
+    prevProps.song.image_path === nextProps.song.image_path &&
+    prevProps.song.count === nextProps.song.count &&
+    prevProps.song.like_count === nextProps.song.like_count &&
+    prevProps.onClick === nextProps.onClick &&
+    prevProps.dynamicSize === nextProps.dynamicSize &&
+    prevProps.songType === nextProps.songType
+  );
+});
 
 const styles = StyleSheet.create({
   containerWrapper: {

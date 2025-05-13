@@ -143,6 +143,12 @@ const styles = StyleSheet.create({
 
 // メモ化してエクスポート
 export default memo(PlaylistItem, (prevProps, nextProps) => {
-  // プレイリストのIDが同じ場合は再レンダリングしない
-  return prevProps.playlist.id === nextProps.playlist.id;
+  // プレイリストの主要なプロパティ、onPress、testIDを比較
+  return (
+    prevProps.playlist.id === nextProps.playlist.id &&
+    prevProps.playlist.title === nextProps.playlist.title &&
+    prevProps.playlist.image_path === nextProps.playlist.image_path &&
+    prevProps.onPress === nextProps.onPress &&
+    prevProps.testID === nextProps.testID
+  );
 });

@@ -44,4 +44,14 @@ const styles = StyleSheet.create({
 });
 
 // メモ化してエクスポート
-export default memo(MarqueeText);
+export default memo(MarqueeText, (prevProps, nextProps) => {
+  // すべてのpropsを比較
+  return (
+    prevProps.text === nextProps.text &&
+    prevProps.speed === nextProps.speed &&
+    prevProps.spacing === nextProps.spacing &&
+    prevProps.style === nextProps.style && // styleオブジェクトの参照を比較
+    prevProps.withGesture === nextProps.withGesture &&
+    prevProps.fontSize === nextProps.fontSize
+  );
+});

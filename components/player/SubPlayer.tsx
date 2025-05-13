@@ -1,4 +1,4 @@
-import React, { useRef, memo } from "react";
+import React, { useRef, memo, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -23,7 +23,7 @@ interface SubPlayerProps {
   onClose: () => void;
 }
 
-function SubPlayer({ onClose }: SubPlayerProps) {
+function SubPlayerInner({ onClose }: SubPlayerProps) {
   const { songs, currentSongIndex, setCurrentSongIndex } = useSubPlayerStore();
   const swiperRef = useRef(null);
 
@@ -58,142 +58,151 @@ function SubPlayer({ onClose }: SubPlayerProps) {
   const progressPosition = currentPosition;
   const progressDuration = duration;
 
-  const renderSong = (song: Song, index: number) => {
-    const isActive = index === currentSongIndex;
-    return (
-      <View
-        style={[
-          styles.slide,
-          isActive ? styles.activeSlide : styles.inactiveSlide,
-        ]}
-        key={song.id}
-      >
-        <ImageBackground
-          source={{ uri: song.image_path }}
-          style={styles.songImage}
-          contentFit="cover"
-          cachePolicy="memory-disk"
+  const renderSong = useCallback(
+    (song: Song, index: number) => {
+      const isActive = index === currentSongIndex;
+      return (
+        <View
+          style={[
+            styles.slide,
+            isActive ? styles.activeSlide : styles.inactiveSlide,
+          ]}
+          key={song.id}
         >
-          <TouchableOpacity
-            style={styles.imageOverlay}
-            activeOpacity={1}
-            onPress={togglePlayPause}
+          <ImageBackground
+            source={{ uri: song.image_path }}
+            style={styles.songImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
           >
-            {/* 上部のグラデーション */}
-            <LinearGradient
-              colors={["rgba(0,0,0,0.7)", "transparent"]}
-              style={styles.topGradient}
-            />
-
-            {/* 下部のグラデーション */}
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
-              locations={[0.6, 0.8, 1]}
-              style={styles.bottomGradient}
+            <TouchableOpacity
+              style={styles.imageOverlay}
+              activeOpacity={1}
+              onPress={togglePlayPause}
             >
-              <View style={styles.songInfo}>
-                <Text style={styles.songTitle}>{song.title}</Text>
-                <Text style={styles.songAuthor}>{song.author}</Text>
-              </View>
+              {/* 上部のグラデーション */}
+              <LinearGradient
+                colors={["rgba(0,0,0,0.7)", "transparent"]}
+                style={styles.topGradient}
+              />
 
-              {/* プログレスバー */}
-              <View style={styles.playerControls}>
-                <View style={styles.seekBarContainer}>
-                  <View style={styles.progressBarBackground}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        {
-                          width: `${
-                            (progressPosition / (progressDuration || 1)) * 100
-                          }%`,
-                        },
-                      ]}
+              {/* 下部のグラデーション */}
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
+                locations={[0.6, 0.8, 1]}
+                style={styles.bottomGradient}
+              >
+                <View style={styles.songInfo}>
+                  <Text style={styles.songTitle}>{song.title}</Text>
+                  <Text style={styles.songAuthor}>{song.author}</Text>
+                </View>
+
+                {/* プログレスバー */}
+                <View style={styles.playerControls}>
+                  <View style={styles.seekBarContainer}>
+                    <View style={styles.progressBarBackground}>
+                      <View
+                        style={[
+                          styles.progressBarFill,
+                          {
+                            width: `${
+                              (progressPosition / (progressDuration || 1)) * 100
+                            }%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Slider
+                      style={styles.seekBar}
+                      minimumValue={0}
+                      maximumValue={progressDuration || 1}
+                      value={progressPosition}
+                      minimumTrackTintColor="transparent"
+                      maximumTrackTintColor="transparent"
+                      thumbTintColor="transparent"
+                      onSlidingComplete={seekTo}
                     />
                   </View>
-                  <Slider
-                    style={styles.seekBar}
-                    minimumValue={0}
-                    maximumValue={progressDuration || 1}
-                    value={progressPosition}
-                    minimumTrackTintColor="transparent"
-                    maximumTrackTintColor="transparent"
-                    thumbTintColor="transparent"
-                    onSlidingComplete={seekTo}
-                  />
                 </View>
-              </View>
-            </LinearGradient>
+              </LinearGradient>
 
-            {/* アクションアイコン */}
-            <View style={styles.actionIcons}>
-              <TouchableOpacity style={styles.actionButton}>
-                <BlurView
-                  intensity={30}
-                  style={styles.blurIconContainer}
-                  tint="dark"
-                >
-                  <Ionicons
-                    name="person-circle-outline"
-                    size={28}
-                    color="#FF69B4"
-                  />
-                </BlurView>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <BlurView
-                  intensity={30}
-                  style={styles.blurIconContainer}
-                  tint="dark"
-                >
-                  <Ionicons name="heart-outline" size={28} color="#FF0080" />
-                </BlurView>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <BlurView
-                  intensity={30}
-                  style={styles.blurIconContainer}
-                  tint="dark"
-                >
-                  <Ionicons
-                    name="chatbubble-outline"
-                    size={28}
-                    color="#00dbde"
-                  />
-                </BlurView>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <BlurView
-                  intensity={30}
-                  style={styles.blurIconContainer}
-                  tint="dark"
-                >
-                  <Ionicons
-                    name="share-social-outline"
-                    size={28}
-                    color="#7C3AED"
-                  />
-                </BlurView>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <BlurView
-                  intensity={30}
-                  style={styles.blurIconContainer}
-                  tint="dark"
-                >
-                  <Ionicons
-                    name="ellipsis-horizontal"
-                    size={28}
-                    color="#00F5A0"
-                  />
-                </BlurView>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </ImageBackground>
-      </View>
-    );
-  };
+              {/* アクションアイコン */}
+              <View style={styles.actionIcons}>
+                <TouchableOpacity style={styles.actionButton}>
+                  <BlurView
+                    intensity={30}
+                    style={styles.blurIconContainer}
+                    tint="dark"
+                  >
+                    <Ionicons
+                      name="person-circle-outline"
+                      size={28}
+                      color="#FF69B4"
+                    />
+                  </BlurView>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <BlurView
+                    intensity={30}
+                    style={styles.blurIconContainer}
+                    tint="dark"
+                  >
+                    <Ionicons name="heart-outline" size={28} color="#FF0080" />
+                  </BlurView>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <BlurView
+                    intensity={30}
+                    style={styles.blurIconContainer}
+                    tint="dark"
+                  >
+                    <Ionicons
+                      name="chatbubble-outline"
+                      size={28}
+                      color="#00dbde"
+                    />
+                  </BlurView>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <BlurView
+                    intensity={30}
+                    style={styles.blurIconContainer}
+                    tint="dark"
+                  >
+                    <Ionicons
+                      name="share-social-outline"
+                      size={28}
+                      color="#7C3AED"
+                    />
+                  </BlurView>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <BlurView
+                    intensity={30}
+                    style={styles.blurIconContainer}
+                    tint="dark"
+                  >
+                    <Ionicons
+                      name="ellipsis-horizontal"
+                      size={28}
+                      color="#00F5A0"
+                    />
+                  </BlurView>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </ImageBackground>
+        </View>
+      );
+    },
+    [
+      currentSongIndex,
+      progressPosition,
+      progressDuration,
+      togglePlayPause,
+      seekTo,
+    ]
+  );
 
   return (
     <View style={styles.container}>
@@ -388,4 +397,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(SubPlayer);
+export default memo(SubPlayerInner);

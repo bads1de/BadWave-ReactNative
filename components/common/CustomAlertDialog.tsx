@@ -60,8 +60,12 @@ function CustomAlertDialog({
 
 // カスタム比較関数を使用してメモ化
 export default memo(CustomAlertDialog, (prevProps, nextProps) => {
-  // visibleプロパティが同じ場合は再レンダリングしない
-  return prevProps.visible === nextProps.visible;
+  // visible, onConfirm, onCancelプロパティが同じ場合は再レンダリングしない
+  return (
+    prevProps.visible === nextProps.visible &&
+    prevProps.onConfirm === nextProps.onConfirm &&
+    prevProps.onCancel === nextProps.onCancel
+  );
 });
 
 // 変更後のスタイル定義

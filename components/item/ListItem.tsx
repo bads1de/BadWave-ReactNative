@@ -177,11 +177,19 @@ const styles = StyleSheet.create({
 
 // カスタム比較関数を使用してメモ化
 export default memo(ListItem, (prevProps, nextProps) => {
-  // 曲のIDと表示オプションが同じ場合は再レンダリングしない
+  // 曲の主要なプロパティ、関数、表示オプションを比較
   return (
     prevProps.song.id === nextProps.song.id &&
+    prevProps.song.title === nextProps.song.title &&
+    prevProps.song.author === nextProps.song.author &&
+    prevProps.song.image_path === nextProps.song.image_path &&
+    prevProps.song.count === nextProps.song.count &&
+    prevProps.song.like_count === nextProps.song.like_count &&
+    prevProps.onPress === nextProps.onPress &&
     prevProps.showStats === nextProps.showStats &&
     prevProps.imageSize === nextProps.imageSize &&
+    prevProps.onDelete === nextProps.onDelete &&
+    prevProps.testID === nextProps.testID &&
     prevProps.showDownloadButton === nextProps.showDownloadButton
   );
 });

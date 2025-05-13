@@ -76,7 +76,7 @@ const backgroundImages = {
   "Chill House": require("@/assets/images/ChillHouse.jpg"),
 } as const;
 
-const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
+const GenreCardInner: React.FC<GenreCardProps> = ({ genre }) => {
   const router = useRouter();
   const scale = useSharedValue(1);
   const rotate = useSharedValue("0deg");
@@ -287,4 +287,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GenreCard;
+export default React.memo(GenreCardInner);

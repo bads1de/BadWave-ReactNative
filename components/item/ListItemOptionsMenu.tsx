@@ -57,7 +57,10 @@ function ListItemOptionsMenu({ onDelete }: ListItemOptionsMenuProps) {
 }
 
 // メモ化してエクスポート
-export default memo(ListItemOptionsMenu);
+export default memo(ListItemOptionsMenu, (prevProps, nextProps) => {
+  // onDelete関数が同じ場合は再レンダリングしない
+  return prevProps.onDelete === nextProps.onDelete;
+});
 
 const styles = StyleSheet.create({
   menuButton: {

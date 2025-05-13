@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, memo } from "react";
 import {
   View,
   StyleSheet,
@@ -15,7 +15,7 @@ import Loading from "../common/Loading";
 import Error from "../common/Error";
 import { Video, ResizeMode } from "expo-av";
 
-export default function SpotlightBoard() {
+function SpotlightBoard() {
   const [isMuted, setIsMuted] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -31,7 +31,7 @@ export default function SpotlightBoard() {
   });
 
   // 動画再生/停止はタッチイン・アウトで制御
-  const handlePressIn = (index: number) => {
+  const handlePressIn = useCallback((index: number) => {
     const videoRef = videoRefs.current[index];
 
     if (videoRef) {
@@ -39,9 +39,9 @@ export default function SpotlightBoard() {
         .playAsync()
         .catch((error: any) => console.log("Video play failed:", error));
     }
-  };
+  }, []);
 
-  const handlePressOut = (index: number) => {
+  const handlePressOut = useCallback((index: number) => {
     const videoRef = videoRefs.current[index];
 
     if (videoRef) {
@@ -49,17 +49,22 @@ export default function SpotlightBoard() {
         .pauseAsync()
         .catch((error: any) => console.log("Video pause failed:", error));
     }
-  };
+  }, []);
 
   // タッチ時にモーダルを表示
-  const handlePress = (item: any) => {
+  const handlePress = useCallback((item: any) => {
     setSelectedItem(item);
     setModalVisible(true);
-  };
+  }, []);
 
-  const handleMuteToggle = () => {
+  const handleMuteToggle = useCallback(() => {
     setIsMuted((prev) => !prev);
-  };
+  }, []);
+
+  // ビデオレファレンスを設定するコールバック
+  const setVideoRef = useCallback((ref: any, index: number) => {
+    if (ref) videoRefs.current[index] = ref;
+  }, []);
 
   if (isLoading) return <Loading />;
   if (isError) return <Error message={"Something went wrong"} />;
@@ -80,9 +85,7 @@ export default function SpotlightBoard() {
             onPress={() => handlePress(item)}
           >
             <Video
-              ref={(ref) => {
-                if (ref) videoRefs.current[index] = ref;
-              }}
+              ref={(ref) => setVideoRef(ref, index)}
               source={{ uri: item.video_path }}
               style={styles.video}
               isLooping
@@ -154,3 +157,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 });
+
+// コンポーネント全体をメモ化してエクスポート
+export default memo(SpotlightBoard);

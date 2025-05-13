@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, memo } from "react";
 import {
   View,
   TextInput,
@@ -25,7 +25,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 type SearchType = "songs" | "playlists";
 
-export default function SearchScreen() {
+function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<SearchType>("songs");
   const debouncedQuery = useDebounce(searchQuery, 500);
@@ -305,3 +305,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
+
+// コンポーネント全体をメモ化してエクスポート
+export default memo(SearchScreen);

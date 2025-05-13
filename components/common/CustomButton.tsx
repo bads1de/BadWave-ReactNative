@@ -56,9 +56,15 @@ const styles = StyleSheet.create({
 
 // メモ化してエクスポート
 export default memo(CustomButton, (prevProps, nextProps) => {
-  // labelとisActiveが同じ場合は再レンダリングしない
+  // 主要なpropsを比較
   return (
     prevProps.label === nextProps.label &&
-    prevProps.isActive === nextProps.isActive
+    prevProps.isActive === nextProps.isActive &&
+    prevProps.activeStyle === nextProps.activeStyle &&
+    prevProps.inactiveStyle === nextProps.inactiveStyle &&
+    prevProps.activeTextStyle === nextProps.activeTextStyle &&
+    prevProps.inactiveTextStyle === nextProps.inactiveTextStyle &&
+    prevProps.testID === nextProps.testID &&
+    prevProps.onPress === nextProps.onPress // onPressも比較対象に追加
   );
 });

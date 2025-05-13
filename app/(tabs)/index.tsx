@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   SafeAreaView,
   Text,
@@ -50,33 +50,33 @@ export default function HomeScreen() {
     [togglePlayPause]
   );
 
+  const renderSectionTitle = useCallback(
+    (title: string, icon: React.ComponentProps<typeof Ionicons>["name"]) => (
+      <View style={styles.sectionTitleContainer}>
+        <LinearGradient
+          colors={["#4C1D95", "#7C3AED"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.titleGradient}
+        >
+          <Ionicons
+            name={icon}
+            size={22}
+            color="#FFFFFF"
+            style={styles.titleIcon}
+          />
+        </LinearGradient>
+        <View style={styles.titleTextContainer}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          <View style={styles.titleUnderline} />
+        </View>
+      </View>
+    ),
+    []
+  );
+
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
-
-  const renderSectionTitle = (
-    title: string,
-    icon: React.ComponentProps<typeof Ionicons>["name"]
-  ) => (
-    <View style={styles.sectionTitleContainer}>
-      <LinearGradient
-        colors={["#4C1D95", "#7C3AED"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.titleGradient}
-      >
-        <Ionicons
-          name={icon}
-          size={22}
-          color="#FFFFFF"
-          style={styles.titleIcon}
-        />
-      </LinearGradient>
-      <View style={styles.titleTextContainer}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <View style={styles.titleUnderline} />
-      </View>
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
