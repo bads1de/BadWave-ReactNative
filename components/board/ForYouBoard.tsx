@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, memo } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
@@ -9,7 +9,7 @@ import Song from "@/types";
 import Error from "@/components/common/Error";
 import Loading from "@/components/common/Loading";
 
-export default function ForYouBoard() {
+function ForYouBoard() {
   const {
     data: recommendations = [],
     isLoading,
@@ -79,6 +79,8 @@ export default function ForYouBoard() {
     </View>
   );
 }
+
+export default memo(ForYouBoard);
 
 const styles = StyleSheet.create({
   container: {
