@@ -24,7 +24,7 @@ const getPublicPlaylists = async (limit: number = 20): Promise<Playlist[]> => {
 
   if (error) {
     console.error(error.message);
-    throw new Error(error.message);
+    return [];
   }
 
   return (data as Playlist[]) || [];
