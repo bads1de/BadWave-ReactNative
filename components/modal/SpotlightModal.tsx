@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, memo } from "react";
+import React, { useEffect, memo } from "react";
 import {
   Modal,
   View,
@@ -17,14 +17,12 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { VideoView, useVideoPlayer } from "expo-video";
-// ResizeMode は expo-video には直接ないので、必要に応じて contentFit プロパティで対応します。
-// expo-av の ResizeMode.COVER は expo-video の contentFit="cover" に相当すると考えられます。
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 interface SpotlightModalProps {
   item: {
-    video_path: any;
+    video_path: string;
     title: string;
     description: string;
   };
@@ -51,11 +49,10 @@ function SpotlightModal({
 
   useEffect(() => {
     fadeAnim.value = withTiming(1, { duration: 300 });
-    // isMuted prop の変更を player に反映
     if (player) {
       player.muted = isMuted;
     }
-  }, [isMuted, player]); // player も依存配列に追加
+  }, [isMuted, player]);
 
   const handleClose = () => {
     fadeAnim.value = withTiming(0, { duration: 200 }, (finished) => {
@@ -100,10 +97,8 @@ function SpotlightModal({
                 styles.video,
                 { width: windowWidth * 0.9, height: windowHeight * 0.7 },
               ]}
-              contentFit="cover" // ResizeMode.COVER の代替
-              nativeControls={false} // ネイティブコントロールを非表示にする
-              // allowsFullscreen // 必要に応じて有効化
-              // allowsPictureInPicture // 必要に応じて有効化
+              contentFit="cover"
+              nativeControls={false}
             />
 
             <LinearGradient
