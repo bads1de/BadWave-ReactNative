@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import ListItemOptionsMenu from "./ListItemOptionsMenu";
-import { DownloadButton } from "./DownloadButton";
+import { DownloadButton } from "../DownloadButton";
 
 interface ListItemProps {
   song: Song;

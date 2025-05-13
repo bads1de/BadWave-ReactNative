@@ -14,14 +14,14 @@ import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
 import { ResizeMode, Video } from "expo-av";
 import Song from "@/types";
-import NextSong from "./NextSong";
-import Lyric from "./lyric";
-import LikeButton from "./LikeButton";
-import AddPlaylist from "./playlist/AddPlaylist";
-import MarqueeText from "./common/MarqueeText";
 import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
-import TopPlayedSongsList from "./TopPlayedSongsList";
+import MarqueeText from "../common/MarqueeText";
+import AddPlaylist from "../playlist/AddPlaylist";
+import LikeButton from "../LikeButton";
+import Lyric from "./lyric";
+import NextSong from "./NextSong";
+import TopPlayedSongsList from "../item/TopPlayedSongsList";
 
 /**
  * @fileoverview 音楽プレーヤーのUIコンポーネント

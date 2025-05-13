@@ -15,7 +15,7 @@ import getSongs from "@/actions/getSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
 import SpotlightBoard from "@/components/board/SpotlightBoard";
-import GenreCard from "@/components/GenreCard";
+import GenreCard from "@/components/item/GenreCard";
 import { CACHED_QUERIES, genreCards } from "@/constants";
 import SongItem from "@/components/item/SongItem";
 import TrendBoard from "@/components/board/TrendBoard";

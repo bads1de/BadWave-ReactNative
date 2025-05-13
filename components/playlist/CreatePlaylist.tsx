@@ -8,8 +8,8 @@ import {
   Modal,
 } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CACHED_QUERIES } from "../../constants";
-import createPlaylist from "../../actions/createPlaylist";
+import { CACHED_QUERIES } from "@/constants";
+import createPlaylist from "@/actions/createPlaylist";
 
 import Toast from "react-native-toast-message";
 

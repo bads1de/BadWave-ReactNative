@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import MarqueeText from "./common/MarqueeText";
+
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -18,7 +18,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import { useRouter } from "expo-router";
-import { DownloadButton } from "./DownloadButton";
+import MarqueeText from "../common/MarqueeText";
+import { DownloadButton } from "../DownloadButton";
 
 interface SongItemProps {
   song: Song;

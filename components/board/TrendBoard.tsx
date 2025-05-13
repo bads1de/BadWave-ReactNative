@@ -17,9 +17,9 @@ import Song from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import getTrendSongs, { TrendPeriod } from "@/actions/useGetTrendSongs";
-import CustomButton from "./common/CustomButton";
-import Loading from "./common/Loading";
-import Error from "./common/Error";
+import CustomButton from "@/components/common/CustomButton";
+import Loading from "@/components/common/Loading";
+import Error from "@/components/common/Error";
 
 interface TrendItemProps {
   song: Song;

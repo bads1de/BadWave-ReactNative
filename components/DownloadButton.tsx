@@ -1,12 +1,12 @@
 import React from "react";
 import { TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Song from "../types";
+import Song from "@/types";
 import {
   useDownloadStatus,
   useDownloadSong,
   useDeleteDownloadedSong,
-} from "../hooks/useDownloadStatus";
+} from "@/hooks/useDownloadStatus";
 
 interface DownloadButtonProps {
   song: Song;

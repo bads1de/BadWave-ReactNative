@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/providers/AuthProvider";
-import CustomAlertDialog from "./CustomAlertDialog";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylist from "@/actions/deletePlaylist";
 import renamePlaylist from "@/actions/renamePlaylist";
@@ -17,6 +17,7 @@ import togglePublicPlaylist from "@/actions/togglePublicPlaylist";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
+import CustomAlertDialog from "../common/CustomAlertDialog";
 
 interface PlaylistOptionsMenuProps {
   playlistId: string;
