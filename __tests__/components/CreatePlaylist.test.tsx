@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import CreatePlaylist from "../../components/CreatePlaylist";
+import CreatePlaylist from "../../components/playlist/CreatePlaylist";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Toast from "react-native-toast-message";
 

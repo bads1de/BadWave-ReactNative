@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import Error from "../../components/Error";
+import Error from "../../components/common/Error";
 
 // モックの設定
 jest.mock("@expo/vector-icons", () => ({

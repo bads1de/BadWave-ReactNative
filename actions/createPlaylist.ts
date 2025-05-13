@@ -17,27 +17,29 @@ import Playlist from "../types";
  *
  * @example
  * ```typescript
- * const playlist = await createPlaylist('user-id-123', 'My Playlist', true);
+ * const playlist = await createPlaylist('user-id-123', 'My Playlist');
  * console.log(playlist);
  * ```
  */
-const createPlaylist = async (
-  userId: string,
-  title: string,
-  isPublic: boolean
-): Promise<Playlist> => {
-  const { data, error } = await supabase
-    .from("playlists")
-    .insert({ user_id: userId, title, is_public: isPublic })
-    .select()
-    .single();
+
+const createPlaylist = async (title: string): Promise<void> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("User not authenticated");
+  }
+
+  const { error } = await supabase.from("playlists").insert({
+    user_id: session?.user.id,
+    title: title.trim(),
+  });
 
   if (error) {
     console.error(error.message);
     throw new Error(error.message);
   }
-
-  return data as Playlist;
 };
 
 export default createPlaylist;

@@ -11,7 +11,7 @@ import { memo, useCallback } from "react";
 function PlaylistBoard() {
   const { data: playlists = [] } = useQuery({
     queryKey: [CACHED_QUERIES.getPublicPlaylists],
-    queryFn: () => getPublicPlaylists(),
+    queryFn: () => getPublicPlaylists(10),
   });
 
   const router = useRouter();

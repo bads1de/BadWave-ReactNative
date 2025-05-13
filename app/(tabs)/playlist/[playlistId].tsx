@@ -24,10 +24,10 @@ import { useHeaderStore } from "@/hooks/useHeaderStore";
 import getPlaylistSongs from "@/actions/getPlaylistSongs";
 import getPlaylistById from "@/actions/getPlaylistById";
 import deletePlaylistSong from "@/actions/deletePlaylistSong";
-import ListItem from "@/components/ListItem";
-import Loading from "@/components/Loading";
-import Error from "@/components/Error";
-import PlaylistOptionsMenu from "@/components/PlaylistOptionsMenu";
+import ListItem from "@/components/item/ListItem";
+import Loading from "@/components/common/Loading";
+import Error from "@/components/common/Error";
+import PlaylistOptionsMenu from "@/components/playlist/PlaylistOptionsMenu";
 
 const { width } = Dimensions.get("window");
 

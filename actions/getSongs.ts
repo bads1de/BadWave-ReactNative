@@ -10,16 +10,15 @@ import Song from "../types";
  *
  * @example
  * ```typescript
- * const songs = await getSongs(50);
+ * const songs = await getSongs();
  * console.log(songs);
  * ```
  */
-const getSongs = async (limit = 100): Promise<Song[]> => {
+const getSongs = async (): Promise<Song[]> => {
   const { data, error } = await supabase
     .from("songs")
     .select("*")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error(error.message);

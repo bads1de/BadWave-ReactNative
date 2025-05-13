@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import SpotlightModal from "./SpotlightModal";
+import SpotlightModal from "../modal/SpotlightModal";
 import { CACHED_QUERIES } from "@/constants";
 import getSpotlights from "@/actions/getSpotlights";
 import { useQuery } from "@tanstack/react-query";
-import Loading from "./Loading";
-import Error from "./Error";
+import Loading from "../common/Loading";
+import Error from "../common/Error";
 import { Video, ResizeMode } from "expo-av";
 
 export default function SpotlightBoard() {

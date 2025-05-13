@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import Song from "../types";
+import { Spotlight } from "../types";
 
 /**
  * スポットライト曲を取得する
@@ -10,23 +10,22 @@ import Song from "../types";
  *
  * @example
  * ```typescript
- * const songs = await getSpotlights(5);
+ * const songs = await getSpotlights();
  * console.log(songs);
  * ```
  */
-const getSpotlights = async (limit = 10): Promise<Song[]> => {
+const getSpotlights = async (): Promise<Spotlight[]> => {
   const { data, error } = await supabase
-    .from("songs")
+    .from("spotlights")
     .select("*")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error(error.message);
     throw new Error(error.message);
   }
 
-  return (data as Song[]) || [];
+  return (data as Spotlight[]) || [];
 };
 
 export default getSpotlights;

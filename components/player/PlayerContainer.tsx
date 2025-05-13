@@ -1,8 +1,8 @@
 import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
-import MiniPlayer from "@/components/MiniPlayer";
-import Player from "@/components/Player";
-import SubPlayer from "@/components/SubPlayer";
+import MiniPlayer from "@/components/player/MiniPlayer";
+import Player from "@/components/player/Player";
+import SubPlayer from "@/components/player/SubPlayer";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useAudioStore } from "@/hooks/useAudioStore";
 import { usePlayerStore } from "@/hooks/usePlayerStore";

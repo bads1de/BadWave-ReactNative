@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import MarqueeText from "./MarqueeText";
+import MarqueeText from "@/components/common/MarqueeText";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

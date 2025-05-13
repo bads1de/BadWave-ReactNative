@@ -2,12 +2,12 @@ import React, { useCallback } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
-import SongItem from "@/components/SongItem";
+import SongItem from "@/components/item/SongItem";
 import getRecommendations from "@/actions/getRecommendations";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import Song from "@/types";
-import Error from "@/components/Error";
-import Loading from "./Loading";
+import Error from "@/components/common/Error";
+import Loading from "@/components/common/Loading";
 
 export default function ForYouBoard() {
   const {

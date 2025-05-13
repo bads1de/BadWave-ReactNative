@@ -3,11 +3,11 @@ import { StyleSheet, View } from "react-native";
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Header from "@/components/Header";
+import Header from "@/components/common/Header";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
 import { useAudioStore } from "@/hooks/useAudioStore";
-import PlayerContainer from "@/components/PlayerContainer";
+import PlayerContainer from "@/components/player/PlayerContainer";
 
 export default function TabLayout() {
   const { showPlayer } = usePlayerStore();

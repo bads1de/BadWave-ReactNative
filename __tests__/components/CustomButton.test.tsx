@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import CustomButton from "../../components/CustomButton";
+import CustomButton from "../../components/common/CustomButton";
 
 describe("CustomButton", () => {
   // テスト用のスタイル

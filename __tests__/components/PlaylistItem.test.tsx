@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import PlaylistItem from "../../components/PlaylistItem";
+import PlaylistItem from "../../components/item/PlaylistItem";
 
 // モックの設定
 jest.mock("expo-image", () => ({

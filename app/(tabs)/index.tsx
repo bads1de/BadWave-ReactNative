@@ -14,16 +14,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import getSongs from "@/actions/getSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
-import SpotlightBoard from "@/components/SpotlightBoard";
+import SpotlightBoard from "@/components/board/SpotlightBoard";
 import GenreCard from "@/components/GenreCard";
 import { CACHED_QUERIES, genreCards } from "@/constants";
-import SongItem from "@/components/SongItem";
-import TrendBoard from "@/components/TrendBoard";
-import Loading from "@/components/Loading";
-import Error from "@/components/Error";
+import SongItem from "@/components/item/SongItem";
+import TrendBoard from "@/components/board/TrendBoard";
+import Loading from "@/components/common/Loading";
+import Error from "@/components/common/Error";
 import Song from "@/types";
-import PlaylistBoard from "@/components/PlaylistBoard";
-import ForYouBoard from "@/components/ForYouBoard";
+import PlaylistBoard from "@/components/board/PlaylistBoard";
+import ForYouBoard from "@/components/board/ForYouBoard";
 
 export default function HomeScreen() {
   const { showPlayer } = usePlayerStore();
