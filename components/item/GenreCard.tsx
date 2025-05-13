@@ -66,14 +66,14 @@ const getGenreIcon = (genre: string): string => {
 };
 
 const backgroundImages = {
-  "Retro Wave": require("../assets/images/RetroWave.jpg"),
-  "Electro House": require("../assets/images/ElectroHouse.jpg"),
-  "Nu Disco": require("../assets/images/NuDisco.jpg"),
-  "City Pop": require("../assets/images/CityPop.jpg"),
-  "Tropical House": require("../assets/images/TropicalHouse.jpg"),
-  "Vapor Wave": require("../assets/images/VaporWave.jpg"),
-  "r&b": require("../assets/images/RnB.jpg"),
-  "Chill House": require("../assets/images/ChillHouse.jpg"),
+  "Retro Wave": require("@/assets/images/RetroWave.jpg"),
+  "Electro House": require("@/assets/images/ElectroHouse.jpg"),
+  "Nu Disco": require("@/assets/images/NuDisco.jpg"),
+  "City Pop": require("@/assets/images/CityPop.jpg"),
+  "Tropical House": require("@/assets/images/TropicalHouse.jpg"),
+  "Vapor Wave": require("@/assets/images/VaporWave.jpg"),
+  "r&b": require("@/assets/images/RnB.jpg"),
+  "Chill House": require("@/assets/images/ChillHouse.jpg"),
 } as const;
 
 const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
