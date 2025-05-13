@@ -12,7 +12,7 @@ import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
-import { ResizeMode, Video } from "expo-av";
+import { VideoView, useVideoPlayer } from "expo-video";
 import Song from "@/types";
 import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
@@ -251,16 +251,20 @@ const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
 const MediaBackground: FC<MediaBackgroundProps> = memo(
   ({ videoUrl, imageUrl }) => {
     if (videoUrl) {
+      // useVideoPlayerを使用してビデオプレーヤーを作成
+      const player = useVideoPlayer({ uri: videoUrl }, (player) => {
+        player.muted = true;
+        player.loop = true;
+        player.play();
+      });
+
       return (
         <View style={styles.backgroundImage}>
-          <Video
-            source={{ uri: videoUrl }}
+          <VideoView
+            player={player}
             style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
-            resizeMode={ResizeMode.COVER}
-            shouldPlay
-            isLooping
-            isMuted
-            testID="background-video"
+            contentFit="cover"
+            nativeControls={false}
           />
         </View>
       );

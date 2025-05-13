@@ -16,7 +16,9 @@ import Animated, {
   Extrapolation,
   runOnJS,
 } from "react-native-reanimated";
-import { Video, ResizeMode } from "expo-av";
+import { VideoView, useVideoPlayer } from "expo-video";
+// ResizeMode は expo-video には直接ないので、必要に応じて contentFit プロパティで対応します。
+// expo-av の ResizeMode.COVER は expo-video の contentFit="cover" に相当すると考えられます。
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -41,11 +43,19 @@ function SpotlightModal({
   const windowHeight = Dimensions.get("window").height;
   const fadeAnim = useSharedValue(0);
 
-  const videoRef = useRef(null);
+  const player = useVideoPlayer(item.video_path, (player) => {
+    player.loop = true;
+    player.play();
+    player.muted = isMuted;
+  });
 
   useEffect(() => {
     fadeAnim.value = withTiming(1, { duration: 300 });
-  }, []);
+    // isMuted prop の変更を player に反映
+    if (player) {
+      player.muted = isMuted;
+    }
+  }, [isMuted, player]); // player も依存配列に追加
 
   const handleClose = () => {
     fadeAnim.value = withTiming(0, { duration: 200 }, (finished) => {
@@ -84,17 +94,16 @@ function SpotlightModal({
           ]}
         >
           <View style={styles.videoContainer}>
-            <Video
-              ref={videoRef}
-              source={{ uri: item.video_path }}
+            <VideoView
+              player={player}
               style={[
                 styles.video,
                 { width: windowWidth * 0.9, height: windowHeight * 0.7 },
               ]}
-              shouldPlay
-              isLooping
-              resizeMode={ResizeMode.COVER}
-              isMuted={isMuted}
+              contentFit="cover" // ResizeMode.COVER の代替
+              nativeControls={false} // ネイティブコントロールを非表示にする
+              // allowsFullscreen // 必要に応じて有効化
+              // allowsPictureInPicture // 必要に応じて有効化
             />
 
             <LinearGradient
