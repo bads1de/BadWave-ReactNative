@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import Song from "../types";
+import Song from "@/types";
 import { RepeatMode } from "react-native-track-player";
 
 interface AudioState {

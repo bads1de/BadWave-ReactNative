@@ -1,5 +1,5 @@
-import { supabase } from "../lib/supabase";
-import Song from "../types";
+import { supabase } from "@/lib/supabase";
+import Song from "@/types";
 
 /**
  * タイトルで曲を検索する

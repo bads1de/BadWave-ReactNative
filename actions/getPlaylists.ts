@@ -1,5 +1,5 @@
-import { supabase } from "../lib/supabase";
-import { Playlist } from "../types";
+import { supabase } from "@/lib/supabase";
+import { Playlist } from "@/types";
 
 /**
  * 指定ユーザーのプレイリスト一覧を取得する

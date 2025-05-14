@@ -1,5 +1,5 @@
-import { supabase } from "../lib/supabase";
-import { Spotlight } from "../types";
+import { supabase } from "@/lib/supabase";
+import { Spotlight } from "@/types";
 
 /**
  * スポットライト曲を取得する

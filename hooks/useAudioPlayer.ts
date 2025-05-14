@@ -6,9 +6,9 @@ import TrackPlayer, {
   useActiveTrack,
   useProgress,
 } from "react-native-track-player";
-import Song from "../types";
-import useOnPlay from "./useOnPlay";
-import { useAudioStore, useAudioActions } from "./useAudioStore";
+import Song from "@/types";
+import useOnPlay from "@/hooks/useOnPlay";
+import { useAudioStore, useAudioActions } from "@/hooks/useAudioStore";
 import {
   usePlayerState,
   useQueueOperations,
@@ -16,7 +16,7 @@ import {
   PlayContext,
   logError,
   safeAsyncOperation,
-} from "./TrackPlayer";
+} from "@/hooks/TrackPlayer";
 
 /**
  * オーディオプレイヤーの状態管理と操作を行うカスタムフック

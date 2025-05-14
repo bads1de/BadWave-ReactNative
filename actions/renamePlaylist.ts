@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 /**
  * プレイリストの名前を変更する

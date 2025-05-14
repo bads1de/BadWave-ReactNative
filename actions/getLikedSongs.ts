@@ -1,5 +1,5 @@
-import Song from "../types";
-import { supabase } from "../lib/supabase";
+import Song from "@/types";
+import { supabase } from "@/lib/supabase";
 
 /**
  * @fileoverview お気に入り曲取得モジュール

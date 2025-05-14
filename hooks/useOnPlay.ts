@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import usePlayHistory from "./usePlayHistory";
+import usePlayHistory from "@/hooks/usePlayHistory";
 
 /**
  * 曲の再生回数を更新するカスタムフック
