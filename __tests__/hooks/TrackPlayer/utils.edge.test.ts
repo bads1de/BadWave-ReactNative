@@ -1,14 +1,14 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
-import * as utils from "../../../hooks/TrackPlayer/utils";
+import * as utils from "@/hooks/TrackPlayer/utils";
 import {
   convertSongToTrack,
   convertToTracks,
-} from "../../../hooks/TrackPlayer/utils";
-import Song from "../../../types";
-import { OfflineStorageService } from "../../../services/OfflineStorageService";
+} from "@/hooks/TrackPlayer/utils";
+import Song from "@/types";
+import { OfflineStorageService } from "@/services/OfflineStorageService";
 
 // OfflineStorageServiceのモック
-jest.mock("../../../services/OfflineStorageService", () => {
+jest.mock("@/services/OfflineStorageService", () => {
   return {
     OfflineStorageService: jest.fn().mockImplementation(() => ({
       getSongLocalPath: jest.fn(),

@@ -1,7 +1,7 @@
-import { OfflineStorageService } from "../../services/OfflineStorageService";
+import { OfflineStorageService } from "@/services/OfflineStorageService";
 import * as FileSystem from "expo-file-system";
 import { MMKV } from "react-native-mmkv";
-import Song from "../../types";
+import Song from "@/types";
 
 // モックの設定
 jest.mock("expo-file-system", () => ({

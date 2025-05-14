@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import { usePlayerStore } from "../../hooks/usePlayerStore";
+import { usePlayerStore } from "@/hooks/usePlayerStore";
 
 describe("usePlayerStore", () => {
   beforeEach(() => {

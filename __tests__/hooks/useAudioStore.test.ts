@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import { useAudioStore, useAudioActions } from "../../hooks/useAudioStore";
+import { useAudioStore, useAudioActions } from "@/hooks/useAudioStore";
 import { RepeatMode } from "react-native-track-player";
 
 // react-native-track-playerのモック

@@ -3,14 +3,14 @@ import {
   useDownloadStatus,
   useDownloadSong,
   useDeleteDownloadedSong,
-} from "../../hooks/useDownloadStatus";
-import { OfflineStorageService } from "../../services/OfflineStorageService";
+} from "@/hooks/useDownloadStatus";
+import { OfflineStorageService } from "@/services/OfflineStorageService";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { act } from "react-test-renderer";
 
 // OfflineStorageServiceのモック
-jest.mock("../../services/OfflineStorageService", () => {
+jest.mock("@/services/OfflineStorageService", () => {
   return {
     OfflineStorageService: jest.fn().mockImplementation(() => ({
       downloadSong: jest.fn(),
@@ -21,7 +21,7 @@ jest.mock("../../services/OfflineStorageService", () => {
 });
 
 // getOfflineStorageServiceのモック
-jest.mock("../../hooks/TrackPlayer/utils", () => ({
+jest.mock("@/hooks/TrackPlayer/utils", () => ({
   getOfflineStorageService: jest.fn(),
 }));
 

@@ -1,16 +1,16 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { useDownloadedSongs } from "../../hooks/useDownloadedSongs";
-import { useAudioPlayer } from "../../hooks/useAudioPlayer";
+import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 // Libraryコンポーネントのモック
-jest.mock("../../app/(tabs)/library", () => {
+jest.mock("@/app/(tabs)/library", () => {
   const React = require("react");
   const { View, Text, TouchableOpacity, FlatList } = require("react-native");
-  const { useDownloadedSongs } = require("../../hooks/useDownloadedSongs");
-  const SongItem = require("../../components/SongItem").default;
-  const Error = require("../../components/Error").default;
-  const Loading = require("../../components/Loading").default;
+  const { useDownloadedSongs } = require("@/hooks/useDownloadedSongs");
+  const SongItem = require("@/components/SongItem").default;
+  const Error = require("@/components/Error").default;
+  const Loading = require("@/components/Loading").default;
 
   const Library = () => {
     const { songs, isLoading, error, refresh } = useDownloadedSongs();
@@ -59,7 +59,7 @@ jest.mock("../../app/(tabs)/library", () => {
   return Library;
 });
 
-import Library from "../../app/(tabs)/library";
+import Library from "@/app/(tabs)/library";
 
 // react-native-fsのモック
 jest.mock("react-native-fs", () => ({
@@ -194,7 +194,7 @@ jest.mock("../../components/SongItem", () => {
     },
   };
 });
-jest.mock("../../components/PlaylistItem", () => {
+jest.mock("@/components/PlaylistItem", () => {
   const React = require("react");
   const { View, Text, TouchableOpacity } = require("react-native");
 
@@ -209,7 +209,7 @@ jest.mock("../../components/PlaylistItem", () => {
     },
   };
 });
-jest.mock("../../components/CreatePlaylist", () => {
+jest.mock("@/components/CreatePlaylist", () => {
   const React = require("react");
   const { View, Text } = require("react-native");
 
@@ -224,7 +224,7 @@ jest.mock("../../components/CreatePlaylist", () => {
     },
   };
 });
-jest.mock("../../components/Loading", () => {
+jest.mock("@/components/Loading", () => {
   const React = require("react");
   const { View, Text, ActivityIndicator } = require("react-native");
 
@@ -235,7 +235,7 @@ jest.mock("../../components/Loading", () => {
     },
   };
 });
-jest.mock("../../components/Error", () => {
+jest.mock("@/components/Error", () => {
   const React = require("react");
   const { View, Text } = require("react-native");
 
@@ -246,7 +246,7 @@ jest.mock("../../components/Error", () => {
     },
   };
 });
-jest.mock("../../components/CustomButton", () => {
+jest.mock("@/components/CustomButton", () => {
   const React = require("react");
   const { TouchableOpacity, Text } = require("react-native");
 

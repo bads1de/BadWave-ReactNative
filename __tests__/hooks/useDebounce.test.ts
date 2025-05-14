@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import { useDebounce } from "../../hooks/useDebounce";
+import { useDebounce } from "@/hooks/useDebounce";
 
 describe("useDebounce", () => {
   beforeEach(() => {

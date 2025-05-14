@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import { useHeaderStore } from "../../hooks/useHeaderStore";
+import { useHeaderStore } from "@/hooks/useHeaderStore";
 
 describe("useHeaderStore", () => {
   beforeEach(() => {
