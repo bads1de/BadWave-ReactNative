@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import {
   SafeAreaView,
   Text,
@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   View,
-  Dimensions,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,8 +14,7 @@ import getSongs from "@/actions/getSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
 import SpotlightBoard from "@/components/board/SpotlightBoard";
-import GenreCard from "@/components/item/GenreCard";
-import { CACHED_QUERIES, genreCards } from "@/constants";
+import { CACHED_QUERIES } from "@/constants";
 import SongItem from "@/components/item/SongItem";
 import TrendBoard from "@/components/board/TrendBoard";
 import Loading from "@/components/common/Loading";
@@ -24,6 +22,7 @@ import Error from "@/components/common/Error";
 import Song from "@/types";
 import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
+import HeroSection from "@/components/board/HeroBoard";
 
 export default function HomeScreen() {
   const { showPlayer } = usePlayerStore();
@@ -88,6 +87,11 @@ export default function HomeScreen() {
         contentContainerStyle={[styles.listWrapper, { paddingBottom: 96 }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Hero Section - 動的に変わるジャンルカード */}
+        <View style={styles.heroContainer}>
+          <HeroSection />
+        </View>
+
         {renderSectionTitle("Trends", "trending-up")}
         <View style={styles.sectionContent}>
           <TrendBoard />
@@ -106,19 +110,6 @@ export default function HomeScreen() {
         {renderSectionTitle("Playlists", "list")}
         <View style={styles.sectionContent}>
           <PlaylistBoard />
-        </View>
-
-        {renderSectionTitle("Genres", "musical-notes")}
-        <View style={styles.sectionContent}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalScroll}
-          >
-            {genreCards.map((item) => (
-              <GenreCard key={item.id} genre={item.name} />
-            ))}
-          </ScrollView>
         </View>
 
         {renderSectionTitle("Songs", "disc")}
@@ -144,8 +135,6 @@ export default function HomeScreen() {
   );
 }
 
-const { width } = Dimensions.get("window");
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -160,6 +149,10 @@ const styles = StyleSheet.create({
   },
   listWrapper: {
     padding: 16,
+  },
+  heroContainer: {
+    marginTop: 8,
+    marginBottom: 16,
   },
   sectionTitleContainer: {
     marginBottom: 16,
