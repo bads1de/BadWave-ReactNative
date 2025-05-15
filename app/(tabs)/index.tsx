@@ -22,7 +22,7 @@ import Error from "@/components/common/Error";
 import Song from "@/types";
 import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
-import HeroSection from "@/components/board/HeroBoard";
+import HeroBoard from "@/components/board/HeroBoard";
 
 export default function HomeScreen() {
   const { showPlayer } = usePlayerStore();
@@ -87,9 +87,8 @@ export default function HomeScreen() {
         contentContainerStyle={[styles.listWrapper, { paddingBottom: 96 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero Section - 動的に変わるジャンルカード */}
         <View style={styles.heroContainer}>
-          <HeroSection />
+          <HeroBoard />
         </View>
 
         {renderSectionTitle("Trends", "trending-up")}
