@@ -15,8 +15,7 @@ describe("getSongs", () => {
   it("正常に曲一覧を取得できる", async () => {
     // モックの設定
     const songs = [{ id: "s1" }, { id: "s2" }];
-    mockLimit.mockResolvedValueOnce({ data: songs, error: null });
-    mockOrder.mockReturnValue({ limit: mockLimit });
+    mockOrder.mockResolvedValueOnce({ data: songs, error: null });
     mockSelect.mockReturnValue({ order: mockOrder });
     mockFrom.mockReturnValue({ select: mockSelect });
 
@@ -28,16 +27,14 @@ describe("getSongs", () => {
     expect(mockFrom).toHaveBeenCalledWith("songs");
     expect(mockSelect).toHaveBeenCalledWith("*");
     expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
-    expect(mockLimit).toHaveBeenCalledWith(20);
   });
 
   it("エラーが発生したら例外を投げる", async () => {
     // モックの設定
-    mockLimit.mockResolvedValueOnce({
+    mockOrder.mockResolvedValueOnce({
       data: null,
       error: { message: "error" },
     });
-    mockOrder.mockReturnValue({ limit: mockLimit });
     mockSelect.mockReturnValue({ order: mockOrder });
     mockFrom.mockReturnValue({ select: mockSelect });
 

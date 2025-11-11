@@ -171,7 +171,7 @@ jest.mock("../../providers/AuthProvider", () => ({
     session: { user: { id: "test-user" } },
   }),
 }));
-jest.mock("../../hooks/useAuthStore", () => ({
+jest.mock("@/hooks/useAuthStore", () => ({
   useAuthStore: jest.fn().mockReturnValue({
     user: { id: "test-user" },
   }),
@@ -179,7 +179,7 @@ jest.mock("../../hooks/useAuthStore", () => ({
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
-jest.mock("../../components/SongItem", () => {
+jest.mock("@/components/item/SongItem", () => {
   const React = require("react");
   const { View, Text, TouchableOpacity } = require("react-native");
 

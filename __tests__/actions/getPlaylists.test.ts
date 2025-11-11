@@ -36,7 +36,7 @@ describe("getPlaylists", () => {
     expect(mockFrom).toHaveBeenCalledWith("playlists");
   });
 
-  it("エラーが発生したら例外を投げる", async () => {
+  it("エラーが発生したら空配列を返す", async () => {
     mockGetSession.mockResolvedValueOnce({
       data: { session: { user: { id: "user123" } } },
     });
@@ -45,6 +45,7 @@ describe("getPlaylists", () => {
       error: { message: "error" },
     });
 
-    await expect(getPlaylists()).rejects.toThrow("error");
+    const result = await getPlaylists();
+    expect(result).toEqual([]);
   });
 });

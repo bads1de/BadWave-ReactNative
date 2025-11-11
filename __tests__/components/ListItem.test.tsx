@@ -1,7 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import ListItem from "../../components/ListItem";
-import { DownloadButton } from "../../components/DownloadButton";
+import ListItem from "@/components/item/ListItem";
 
 // モックの設定
 jest.mock("expo-image", () => ({
@@ -16,10 +15,11 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
 
-jest.mock("../../components/ListItemOptionsMenu", () => "ListItemOptionsMenu");
+jest.mock("@/components/item/ListItemOptionsMenu", () => ({ __esModule: true, default: "ListItemOptionsMenu" }));
 
-jest.mock("../../components/DownloadButton", () => ({
-  DownloadButton: "DownloadButton",
+jest.mock("@/components/DownloadButton", () => ({
+  __esModule: true,
+  default: () => null, // React componentとしてモック
 }));
 
 describe("ListItem", () => {

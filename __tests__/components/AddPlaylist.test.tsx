@@ -120,7 +120,7 @@ jest.mock("@expo/vector-icons", () => ({
 
 // AddPlaylist コンポーネントをインポート
 // 注意: モックの設定後にインポートする必要があります
-const AddPlaylist = require("../../components/AddPlaylist").default;
+const AddPlaylist = require("@/components/playlist/AddPlaylist").default;
 
 describe("AddPlaylist", () => {
   // モックの設定

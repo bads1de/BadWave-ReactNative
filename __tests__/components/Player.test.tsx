@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import Player from "../../components/Player";
+import Player from "@/components/player/Player";
 
 // react-native-track-playerのモック
 jest.mock("react-native-track-player", () => ({
@@ -34,13 +34,30 @@ jest.mock("expo-linear-gradient", () => ({
   LinearGradient: "LinearGradient",
 }));
 
+jest.mock("expo-video", () => ({
+  VideoView: "VideoView",
+  useVideoPlayer: jest.fn(() => ({
+    muted: false,
+    loop: false,
+    play: jest.fn(),
+  })),
+}));
+
 jest.mock("@react-native-community/slider", () => "Slider");
 
-jest.mock("../../components/NextSong", () => "NextSong");
-jest.mock("../../components/lyric", () => "Lyric");
-jest.mock("../../components/LikeButton", () => "LikeButton");
-jest.mock("../../components/AddPlaylist", () => "AddPlaylist");
-jest.mock("../../components/TopPlayedSongsList", () => "TopPlayedSongsList");
+jest.mock("@/components/player/NextSong", () => "NextSong");
+jest.mock("@/components/player/lyric", () => "Lyric");
+jest.mock("@/components/LikeButton", () => ({ __esModule: true, default: "LikeButton" }));
+jest.mock("@/components/playlist/AddPlaylist", () => ({ __esModule: true, default: "AddPlaylist" }));
+jest.mock("@/components/item/TopPlayedSongsList", () => ({ __esModule: true, default: "TopPlayedSongsList" }));
+jest.mock("@/components/common/MarqueeText", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  return {
+    __esModule: true,
+    default: ({ text }: any) => React.createElement(Text, null, text),
+  };
+});
 
 describe("Player", () => {
   // テスト用のモックデータ

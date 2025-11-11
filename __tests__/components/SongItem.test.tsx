@@ -20,11 +20,11 @@ jest.mock("expo-linear-gradient", () => ({
   LinearGradient: "LinearGradient",
 }));
 
-jest.mock("../../components/DownloadButton", () => ({
+jest.mock("@/components/DownloadButton", () => ({
   DownloadButton: "DownloadButton",
 }));
 
-jest.mock("../../components/MarqueeText", () => {
+jest.mock("@/components/common/MarqueeText", () => {
   const MockMarqueeText = (props: any) => {
     const { Text } = require("react-native");
     return <Text>{props.text}</Text>;
@@ -33,7 +33,7 @@ jest.mock("../../components/MarqueeText", () => {
 });
 
 // インポート
-import SongItem from "../../components/SongItem";
+import SongItem from "@/components/item/SongItem";
 import { useRouter } from "expo-router";
 
 describe("SongItem", () => {

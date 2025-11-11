@@ -45,7 +45,7 @@ describe("getSongById", () => {
     await expect(getSongById("s1")).rejects.toThrow("error");
   });
 
-  it("データがない場合", async () => {
+  it("データがない場合はnullを返す", async () => {
     // モックの設定
     mockSingle.mockResolvedValueOnce({ data: null, error: null });
     mockSelect.mockReturnValue({ eq: mockEq });
@@ -53,6 +53,7 @@ describe("getSongById", () => {
     mockFrom.mockReturnValue({ select: mockSelect });
 
     // テスト実行と期待値を確認
-    await expect(getSongById("s1")).rejects.toThrow("Song not found");
+    const result = await getSongById("s1");
+    expect(result).toBeNull();
   });
 });

@@ -1,0 +1,141 @@
+import React from "react";
+import { render } from "@testing-library/react-native";
+import PlayerContainer from "@/components/player/PlayerContainer";
+
+jest.mock("@/components/player/MiniPlayer", () => {
+  const React = require("react");
+  const { View, Text } = require("react-native");
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: "mini-player" }, React.createElement(Text, null, "MiniPlayer")),
+  };
+});
+
+jest.mock("@/components/player/Player", () => {
+  const React = require("react");
+  const { View, Text } = require("react-native");
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: "full-player" }, React.createElement(Text, null, "Player")),
+  };
+});
+
+jest.mock("@/components/player/SubPlayer", () => {
+  const React = require("react");
+  const { View, Text } = require("react-native");
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: "sub-player" }, React.createElement(Text, null, "SubPlayer")),
+  };
+});
+
+jest.mock("@/hooks/useAudioPlayer", () => ({
+  useAudioPlayer: jest.fn(),
+}));
+
+jest.mock("@/hooks/useAudioStore", () => ({
+  useAudioStore: jest.fn(),
+}));
+
+jest.mock("@/hooks/usePlayerStore", () => ({
+  usePlayerStore: jest.fn(),
+}));
+
+jest.mock("@/hooks/useSubPlayerStore", () => ({
+  useSubPlayerStore: jest.fn(),
+}));
+
+const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioStore } = require("@/hooks/useAudioStore");
+const { usePlayerStore } = require("@/hooks/usePlayerStore");
+const { useSubPlayerStore } = require("@/hooks/useSubPlayerStore");
+
+describe("PlayerContainer", () => {
+  const mockSong = {
+    id: "song1",
+    title: "Test Song",
+    author: "Test Artist",
+    image_path: "https://example.com/image.jpg",
+    song_path: "https://example.com/song.mp3",
+    video_path: null,
+    lyrics: null,
+    genre: "pop",
+    created_at: "2024-01-01",
+    like_count: 0,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    useAudioPlayer.mockReturnValue({
+      isPlaying: false,
+      togglePlayPause: jest.fn(),
+      playNextSong: jest.fn(),
+      playPrevSong: jest.fn(),
+      seekTo: jest.fn(),
+      setRepeat: jest.fn(),
+      setShuffle: jest.fn(),
+      progressPosition: 0,
+      progressDuration: 180000,
+    });
+
+    useAudioStore.mockReturnValue({
+      currentSong: mockSong,
+      repeatMode: 0,
+      shuffle: false,
+    });
+
+    usePlayerStore.mockReturnValue({
+      showPlayer: false,
+      setShowPlayer: jest.fn(),
+    });
+
+    useSubPlayerStore.mockReturnValue({
+      showSubPlayer: false,
+      setShowSubPlayer: jest.fn(),
+    });
+  });
+
+  it("renders MiniPlayer when showPlayer is false", () => {
+    const { getByTestId, queryByTestId } = render(<PlayerContainer />);
+
+    expect(getByTestId("mini-player")).toBeTruthy();
+    expect(queryByTestId("full-player")).toBeNull();
+  });
+
+  it("renders full Player when showPlayer is true", () => {
+    usePlayerStore.mockReturnValue({
+      showPlayer: true,
+      setShowPlayer: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = render(<PlayerContainer />);
+
+    expect(getByTestId("full-player")).toBeTruthy();
+    expect(queryByTestId("mini-player")).toBeNull();
+  });
+
+  it("renders SubPlayer when showSubPlayer is true", () => {
+    useSubPlayerStore.mockReturnValue({
+      showSubPlayer: true,
+      setShowSubPlayer: jest.fn(),
+    });
+
+    const { getByTestId } = render(<PlayerContainer />);
+
+    expect(getByTestId("sub-player")).toBeTruthy();
+  });
+
+  it("does not render any player when currentSong is null", () => {
+    useAudioStore.mockReturnValue({
+      currentSong: null,
+      repeatMode: 0,
+      shuffle: false,
+    });
+
+    const { queryByTestId } = render(<PlayerContainer />);
+
+    expect(queryByTestId("mini-player")).toBeNull();
+    expect(queryByTestId("full-player")).toBeNull();
+  });
+});

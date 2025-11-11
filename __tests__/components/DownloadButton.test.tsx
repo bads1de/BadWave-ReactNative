@@ -223,9 +223,15 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // 初回はダウンロードボタンが表示される
     expect(getByTestId("download-button")).toBeTruthy();
 
-    // ボタンをクリック
+    // ボタンをクリック - ダウンロードを実行
     fireEvent.press(getByTestId("download-button"));
     expect(mutateMock).toHaveBeenCalledWith(mockSong);
+
+    // ダウンロード完了後の状態をシミュレート
+    useDownloadStatusMock.mockReturnValue({
+      data: true,
+      isLoading: false,
+    });
 
     // コンポーネントを再レンダリング
     rerender(<DownloadButton song={mockSong} />);
