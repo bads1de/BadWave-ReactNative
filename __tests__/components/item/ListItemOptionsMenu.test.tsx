@@ -12,19 +12,17 @@ jest.mock("expo-blur", () => ({
 
 describe("ListItemOptionsMenu", () => {
   it("renders menu button", () => {
-    const { UNSAFE_getAllByType } = render(<ListItemOptionsMenu />);
+    const { getByTestId } = render(<ListItemOptionsMenu />);
 
-    const touchables = UNSAFE_getAllByType("TouchableOpacity");
-    expect(touchables.length).toBeGreaterThan(0);
+    expect(getByTestId("menu-button")).toBeTruthy();
   });
 
   it("opens modal when menu button is pressed", () => {
-    const { UNSAFE_getAllByType, getByText } = render(
+    const { getByTestId, getByText } = render(
       <ListItemOptionsMenu onDelete={jest.fn()} />
     );
 
-    const touchables = UNSAFE_getAllByType("TouchableOpacity");
-    const menuButton = touchables[0];
+    const menuButton = getByTestId("menu-button");
     fireEvent.press(menuButton);
 
     expect(getByText("削除")).toBeTruthy();
@@ -32,27 +30,25 @@ describe("ListItemOptionsMenu", () => {
 
   it("calls onDelete when delete option is pressed", () => {
     const mockOnDelete = jest.fn();
-    const { UNSAFE_getAllByType, getByText } = render(
+    const { getByTestId } = render(
       <ListItemOptionsMenu onDelete={mockOnDelete} />
     );
 
     // メニューボタンを押してモーダルを開く
-    const touchables = UNSAFE_getAllByType("TouchableOpacity");
-    const menuButton = touchables[0];
+    const menuButton = getByTestId("menu-button");
     fireEvent.press(menuButton);
 
     // 削除ボタンを押す
-    const deleteButton = getByText("削除");
+    const deleteButton = getByTestId("delete-option");
     fireEvent.press(deleteButton);
 
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
   });
 
   it("does not show delete option when onDelete is not provided", () => {
-    const { UNSAFE_getAllByType, queryByText } = render(<ListItemOptionsMenu />);
+    const { getByTestId, queryByText } = render(<ListItemOptionsMenu />);
 
-    const touchables = UNSAFE_getAllByType("TouchableOpacity");
-    const menuButton = touchables[0];
+    const menuButton = getByTestId("menu-button");
     fireEvent.press(menuButton);
 
     expect(queryByText("削除")).toBeNull();

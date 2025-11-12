@@ -56,6 +56,7 @@ const DeletePlaylistSongsBtn: React.FC<DeletePlaylistSongsBtnProps> = ({
       style={styles.deleteButton}
       onPress={handleDelete}
       disabled={isDeleting}
+      testID="delete-playlist-song-button"
     >
       <Ionicons
         name="trash-outline"

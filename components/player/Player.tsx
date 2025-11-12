@@ -259,7 +259,7 @@ const MediaBackground: FC<MediaBackgroundProps> = memo(
       });
 
       return (
-        <View style={styles.backgroundImage}>
+        <View style={styles.backgroundImage} testID="background-video">
           <VideoView
             player={player}
             style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}

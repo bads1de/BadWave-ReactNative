@@ -18,8 +18,7 @@ jest.mock("@expo/vector-icons", () => ({
 jest.mock("@/components/item/ListItemOptionsMenu", () => ({ __esModule: true, default: "ListItemOptionsMenu" }));
 
 jest.mock("@/components/DownloadButton", () => ({
-  __esModule: true,
-  default: () => null, // React componentとしてモック
+  DownloadButton: () => null,
 }));
 
 describe("ListItem", () => {

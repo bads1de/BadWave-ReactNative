@@ -15,6 +15,7 @@ function ListItemOptionsMenu({ onDelete }: ListItemOptionsMenuProps) {
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         style={styles.menuButton}
+        testID="menu-button"
       >
         <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
       </TouchableOpacity>
@@ -39,6 +40,7 @@ function ListItemOptionsMenu({ onDelete }: ListItemOptionsMenuProps) {
                     onDelete();
                     setModalVisible(false);
                   }}
+                  testID="delete-option"
                 >
                   <Ionicons name="trash-outline" size={24} color="#ff4444" />
                   <Text style={[styles.optionText, styles.deleteText]}>

@@ -6,14 +6,25 @@ jest.mock("expo-image", () => ({ ImageBackground: "ImageBackground" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("expo-router", () => ({ useRouter: jest.fn() }));
 jest.mock("react-native-reanimated", () => {
-  const View = require("react-native").View;
+  const React = require("react");
+  const { View } = require("react-native");
+  
   return {
-    default: { View },
+    __esModule: true,
+    default: {
+      View: View,
+      Text: require("react-native").Text,
+      ScrollView: require("react-native").ScrollView,
+    },
     useSharedValue: jest.fn(() => ({ value: 0 })),
     useAnimatedStyle: jest.fn(() => ({})),
     withTiming: jest.fn((value) => value),
     withSpring: jest.fn((value) => value),
     runOnJS: jest.fn((fn) => fn),
+    Easing: {
+      ease: jest.fn(),
+      bezier: jest.fn(),
+    },
   };
 });
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));

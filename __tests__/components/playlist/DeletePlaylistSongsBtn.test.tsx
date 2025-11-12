@@ -41,7 +41,7 @@ describe("DeletePlaylistSongsBtn", () => {
   );
 
   it("renders delete button", () => {
-    const { UNSAFE_getByType } = render(
+    const { getByTestId } = render(
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
@@ -50,11 +50,11 @@ describe("DeletePlaylistSongsBtn", () => {
       { wrapper }
     );
 
-    expect(UNSAFE_getByType("TouchableOpacity")).toBeTruthy();
+    expect(getByTestId("delete-playlist-song-button")).toBeTruthy();
   });
 
   it("calls delete function when button is pressed", async () => {
-    const { UNSAFE_getByType } = render(
+    const { getByTestId } = render(
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
@@ -63,7 +63,7 @@ describe("DeletePlaylistSongsBtn", () => {
       { wrapper }
     );
 
-    const button = UNSAFE_getByType("TouchableOpacity");
+    const button = getByTestId("delete-playlist-song-button");
     fireEvent.press(button);
 
     await waitFor(() => {
@@ -76,7 +76,7 @@ describe("DeletePlaylistSongsBtn", () => {
   });
 
   it("shows success toast on successful deletion", async () => {
-    const { UNSAFE_getByType } = render(
+    const { getByTestId } = render(
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
@@ -85,7 +85,7 @@ describe("DeletePlaylistSongsBtn", () => {
       { wrapper }
     );
 
-    fireEvent.press(UNSAFE_getByType("TouchableOpacity"));
+    fireEvent.press(getByTestId("delete-playlist-song-button"));
 
     await waitFor(() => {
       expect(Toast.show).toHaveBeenCalledWith({
@@ -96,7 +96,7 @@ describe("DeletePlaylistSongsBtn", () => {
   });
 
   it("disables button while deleting", async () => {
-    const { UNSAFE_getByType } = render(
+    const { getByTestId } = render(
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
@@ -105,7 +105,7 @@ describe("DeletePlaylistSongsBtn", () => {
       { wrapper }
     );
 
-    const button = UNSAFE_getByType("TouchableOpacity");
+    const button = getByTestId("delete-playlist-song-button");
     fireEvent.press(button);
 
     // ボタンが無効化されていることを確認
