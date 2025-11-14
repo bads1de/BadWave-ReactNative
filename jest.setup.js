@@ -2,6 +2,10 @@
 // jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 // jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
+// setImmediate と clearImmediate のポリフィル
+global.setImmediate = global.setImmediate || ((fn, ...args) => global.setTimeout(fn, 0, ...args));
+global.clearImmediate = global.clearImmediate || ((id) => global.clearTimeout(id));
+
 // Expo のモック
 jest.mock("expo-font");
 jest.mock("expo-asset");

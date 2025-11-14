@@ -136,6 +136,7 @@ export default function PlaylistOptionsMenu({
       <TouchableOpacity
         onPress={() => setShowOptionsModal(true)}
         style={styles.menuButton}
+        testID="menu-button"
       >
         <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
       </TouchableOpacity>
@@ -145,11 +146,13 @@ export default function PlaylistOptionsMenu({
         transparent={true}
         animationType="slide"
         onRequestClose={() => setShowOptionsModal(false)}
+        testID="options-modal"
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setShowOptionsModal(false)}
+          testID="options-modal-overlay"
         >
           <View style={styles.modalContent}>
             {isOwner && (
@@ -198,11 +201,13 @@ export default function PlaylistOptionsMenu({
         transparent={true}
         animationType="slide"
         onRequestClose={() => setShowRenameModal(false)}
+        testID="rename-modal"
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setShowRenameModal(false)}
+          testID="rename-modal-overlay"
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>プレイリスト名を変更</Text>
