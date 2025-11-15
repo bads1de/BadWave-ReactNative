@@ -87,7 +87,7 @@ function TopPlayedSongsList() {
 
   /**
    * 曲がタップされたときの処理
-   * 改善点: 状態更新の確実性向上とリソース管理の改善
+   * 最適化: requestAnimationFrameを削除し、Zustandのバッチ更新で同期的に処理
    * @param songIndex 選択された曲のインデックス
    */
   const handleSongPress = useCallback(
@@ -99,22 +99,14 @@ function TopPlayedSongsList() {
         }
 
         // サブプレイヤーの状態をリセット
-        // バッチ処理で状態更新を最適化
-        setCurrentSongIndex(-1); // 一度無効なインデックスをセット
-        setSongs([]); // 曲リストをクリア
+        setCurrentSongIndex(-1);
+        setSongs([]);
 
-        // 状態更新が確実に反映されるよう少し待機
-        // Reactのバッチ更新を利用するために非同期処理を使用
-        await new Promise<void>((resolve) => {
-          // 次のレンダリングサイクルで確実に実行されるようにする
-          requestAnimationFrame(() => {
-            // 新しい状態を設定
-            setSongs(topSongs);
-            setCurrentSongIndex(songIndex);
-            setShowSubPlayer(true);
-            resolve();
-          });
-        });
+        // Zustandのバッチ更新により、複数の状態更新を同期的に実行
+        // requestAnimationFrameを使用せず、直接状態を更新
+        setSongs(topSongs);
+        setCurrentSongIndex(songIndex);
+        setShowSubPlayer(true);
       } catch (error) {
         console.error("Error handling song press:", error);
       }

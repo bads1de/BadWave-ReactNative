@@ -575,20 +575,22 @@ describe("TopPlayedSongsList", () => {
     });
   });
 
-  describe("requestAnimationFrameの処理", () => {
-    it("曲タップ時にrequestAnimationFrameを使用して状態を更新する", async () => {
+  describe("状態更新の最適化", () => {
+    it("曲タップ時にrequestAnimationFrameを使用せず同期的に状態を更新する", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
       
       const song = getByText("トップソング1");
       fireEvent.press(song);
       
+      // 同期的な更新を検証（waitForを使用しない）
       await waitFor(() => {
         expect(mockSetSongs).toHaveBeenCalledWith(mockSongs);
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(0);
-      }, { timeout: 2000 });
+        expect(mockSetShowSubPlayer).toHaveBeenCalledWith(true);
+      });
     });
 
-    it("状態更新が正しい順序で実行される", async () => {
+    it("状態更新が同期的にバッチ処理される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
       
       const song = getByText("トップソング1");
@@ -599,10 +601,63 @@ describe("TopPlayedSongsList", () => {
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(-1);
         expect(mockSetSongs).toHaveBeenCalledWith([]);
         
-        // その後新しい値を設定
+        // その後新しい値を設定（同期的に）
         expect(mockSetSongs).toHaveBeenCalledWith(mockSongs);
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(0);
-      }, { timeout: 2000 });
+        expect(mockSetShowSubPlayer).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it("requestAnimationFrameが使用されていないことを確認", async () => {
+      // requestAnimationFrameをモック
+      const rafSpy = jest.spyOn(global, 'requestAnimationFrame');
+      
+      const { getByText } = render(<TopPlayedSongsList />);
+      
+      const song = getByText("トップソング1");
+      fireEvent.press(song);
+      
+      await waitFor(() => {
+        expect(mockSetSongs).toHaveBeenCalledWith(mockSongs);
+      });
+      
+      // requestAnimationFrameが呼ばれていないことを確認
+      expect(rafSpy).not.toHaveBeenCalled();
+      
+      rafSpy.mockRestore();
+    });
+
+    it("複数の状態更新が一度にまとめて実行される", async () => {
+      const { getByText } = render(<TopPlayedSongsList />);
+      
+      const callOrder: string[] = [];
+      
+      // 呼び出し順序を記録
+      mockSetCurrentSongIndex.mockImplementation((index) => {
+        callOrder.push(`setCurrentSongIndex:${index}`);
+      });
+      mockSetSongs.mockImplementation((songs) => {
+        callOrder.push(`setSongs:${Array.isArray(songs) ? songs.length : 0}`);
+      });
+      mockSetShowSubPlayer.mockImplementation((show) => {
+        callOrder.push(`setShowSubPlayer:${show}`);
+      });
+      
+      const song = getByText("トップソング1");
+      fireEvent.press(song);
+      
+      await waitFor(() => {
+        expect(mockSetSongs).toHaveBeenCalled();
+        expect(mockSetCurrentSongIndex).toHaveBeenCalled();
+        expect(mockSetShowSubPlayer).toHaveBeenCalled();
+      });
+      
+      // 状態更新が連続して呼ばれることを確認
+      expect(callOrder).toContain('setCurrentSongIndex:-1');
+      expect(callOrder).toContain('setSongs:0');
+      expect(callOrder).toContain(`setSongs:${mockSongs.length}`);
+      expect(callOrder).toContain('setCurrentSongIndex:0');
+      expect(callOrder).toContain('setShowSubPlayer:true');
     });
   });
 });

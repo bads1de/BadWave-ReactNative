@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, memo } from "react";
+import React, { useState, useRef, useCallback, memo, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -13,13 +13,28 @@ import getSpotlights from "@/actions/getSpotlights";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../common/Loading";
 import Error from "../common/Error";
-import { Video, ResizeMode } from "expo-av";
+import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
+
+// 型定義
+interface SpotlightItem {
+  id: string;
+  video_path: string;
+  title?: string;
+  description?: string;
+}
+
+// 定数定義
+const INACTIVE_VIDEO_INDEX = -1;
 
 function SpotlightBoard() {
   const [isMuted, setIsMuted] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const videoRefs = useRef<any[]>([]);
+  const [selectedItem, setSelectedItem] = useState<SpotlightItem | null>(null);
+  // 最適化: 現在再生中の動画のインデックスを追跡
+  const [activeVideoIndex, setActiveVideoIndex] = useState<number>(INACTIVE_VIDEO_INDEX);
+
+  // 最適化: Map構造でvideoRefを管理（より効率的）
+  const videoRefsMap = useRef<Map<number, Video>>(new Map());
 
   const {
     data: spotlightData,
@@ -30,29 +45,44 @@ function SpotlightBoard() {
     queryFn: getSpotlights,
   });
 
-  // 動画再生/停止はタッチイン・アウトで制御
+  // 最適化: 動画再生の最適化（一度に1つのみ再生）
   const handlePressIn = useCallback((index: number) => {
-    const videoRef = videoRefs.current[index];
+    // 他の動画を停止（同時再生の防止）
+    if (activeVideoIndex !== INACTIVE_VIDEO_INDEX && activeVideoIndex !== index) {
+      const prevVideoRef = videoRefsMap.current.get(activeVideoIndex);
+      if (prevVideoRef) {
+        prevVideoRef.pauseAsync().catch(() => {
+          // エラーは無視（既に停止している可能性がある）
+        });
+      }
+    }
 
+    // 新しい動画を再生
+    const videoRef = videoRefsMap.current.get(index);
     if (videoRef) {
       videoRef
         .playAsync()
-        .catch((error: any) => console.log("Video play failed:", error));
+        .catch((error: Error) => {
+          console.log("動画の再生に失敗しました:", error.message);
+        });
+      setActiveVideoIndex(index);
     }
-  }, []);
+  }, [activeVideoIndex]);
 
   const handlePressOut = useCallback((index: number) => {
-    const videoRef = videoRefs.current[index];
-
+    const videoRef = videoRefsMap.current.get(index);
     if (videoRef) {
       videoRef
         .pauseAsync()
-        .catch((error: any) => console.log("Video pause failed:", error));
+        .catch((error: Error) => {
+          console.log("動画の停止に失敗しました:", error.message);
+        });
     }
+    setActiveVideoIndex(INACTIVE_VIDEO_INDEX);
   }, []);
 
   // タッチ時にモーダルを表示
-  const handlePress = useCallback((item: any) => {
+  const handlePress = useCallback((item: SpotlightItem) => {
     setSelectedItem(item);
     setModalVisible(true);
   }, []);
@@ -61,9 +91,31 @@ function SpotlightBoard() {
     setIsMuted((prev) => !prev);
   }, []);
 
-  // ビデオレファレンスを設定するコールバック
-  const setVideoRef = useCallback((ref: any, index: number) => {
-    if (ref) videoRefs.current[index] = ref;
+  // 最適化: ビデオレファレンスを設定するコールバック（Map構造を使用）
+  const setVideoRef = useCallback((ref: Video | null, index: number) => {
+    if (ref) {
+      videoRefsMap.current.set(index, ref);
+    } else {
+      videoRefsMap.current.delete(index);
+    }
+  }, []);
+
+  // 最適化: クリーンアップの改善（メモリリーク防止）
+  useEffect(() => {
+    return () => {
+      // コンポーネントのアンマウント時に全ての動画を停止してメモリを解放
+      videoRefsMap.current.forEach((ref) => {
+        if (ref) {
+          ref.pauseAsync().catch(() => {
+            // クリーンアップ時のエラーは無視
+          });
+          ref.unloadAsync().catch(() => {
+            // クリーンアップ時のエラーは無視
+          });
+        }
+      });
+      videoRefsMap.current.clear();
+    };
   }, []);
 
   if (isLoading) return <Loading />;

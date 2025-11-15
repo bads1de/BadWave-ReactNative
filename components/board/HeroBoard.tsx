@@ -1,4 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  memo,
+} from "react";
 import {
   View,
   Text,
@@ -86,13 +93,20 @@ function HeroBoard() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
   const router = useRouter();
+
+  // useRefでタイマーを管理し、クリーンアップを確実に実行
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true); // マウント状態の追跡
 
   const opacity = useSharedValue(1);
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
 
-  const currentGenre = genreCards[currentIndex].name;
+  // currentGenreの計算を最適化（メモ化）
+  const currentGenre = useMemo(
+    () => genreCards[currentIndex].name,
+    [currentIndex]
+  );
 
   // アニメーションスタイル
   const animatedStyle = useAnimatedStyle(() => {
@@ -102,35 +116,45 @@ function HeroBoard() {
     };
   });
 
-  // 次のジャンルに切り替える関数
-  const changeGenre = () => {
-    // フェードアウト
-    opacity.value = withTiming(0, { duration: 500 }, () => {
-      runOnJS(updateGenre)();
-    });
-  };
+  // ジャンルを更新する関数（メモ化）
+  const updateGenre = useCallback(() => {
+    if (!isMountedRef.current) return;
 
-  // ジャンルを更新する関数
-  const updateGenre = () => {
     setCurrentIndex(nextIndex);
     setNextIndex((nextIndex + 1) % genreCards.length);
 
     // フェードイン
     opacity.value = withTiming(1, { duration: 500 });
-  };
+  }, [nextIndex, opacity]);
+
+  // 次のジャンルに切り替える関数（メモ化）
+  const changeGenre = useCallback(() => {
+    if (!isMountedRef.current) return;
+
+    // フェードアウト
+    opacity.value = withTiming(0, { duration: 500 }, (finished) => {
+      if (finished && isMountedRef.current) {
+        runOnJS(updateGenre)();
+      }
+    });
+  }, [opacity, updateGenre]);
 
   // タイマーを設定
   useEffect(() => {
+    isMountedRef.current = true;
+
     timerRef.current = setInterval(() => {
       changeGenre();
     }, 5000); // 5秒ごとに切り替え
 
     return () => {
+      isMountedRef.current = false;
       if (timerRef.current) {
         clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [nextIndex]);
+  }, [changeGenre]);
 
   // ジャンルページに移動
   const navigateToGenre = () => {
@@ -325,4 +349,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HeroBoard;
+export default memo(HeroBoard);

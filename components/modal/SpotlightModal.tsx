@@ -23,8 +23,8 @@ import { LinearGradient } from "expo-linear-gradient";
 interface SpotlightModalProps {
   item: {
     video_path: string;
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
   };
   isMuted: boolean;
   onMuteToggle: () => void;
@@ -132,8 +132,8 @@ function SpotlightModal({
           </TouchableOpacity>
 
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.description}>{item.description}</Text>
+            <Text style={styles.title}>{item.title || "Untitled"}</Text>
+            <Text style={styles.description}>{item.description || ""}</Text>
           </View>
         </Animated.View>
       </View>
