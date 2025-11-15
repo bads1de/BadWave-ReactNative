@@ -27,7 +27,7 @@ GoogleSignin.configure({
 
 function AuthModalInner() {
   const { session } = useAuth();
-  const { setShowAuthModal } = useAuthStore();
+  const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

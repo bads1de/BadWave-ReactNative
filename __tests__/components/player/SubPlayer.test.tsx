@@ -158,17 +158,20 @@ describe("SubPlayer", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSubPlayerStore.mockReturnValue({
-      songs: mockSongs,
-      currentSongIndex: 0,
-      setCurrentSongIndex: mockSetCurrentSongIndex,
-      showSubPlayer: true,
-      setShowSubPlayer: jest.fn(),
-      previewDuration: 30000,
-      setPreviewDuration: jest.fn(),
-      autoPlay: true,
-      setAutoPlay: jest.fn(),
-      setSongs: jest.fn(),
+        mockUseSubPlayerStore.mockImplementation((selector) => {
+      const state = {
+        songs: mockSongs,
+        currentSongIndex: 0,
+        setCurrentSongIndex: mockSetCurrentSongIndex,
+        showSubPlayer: true,
+        setShowSubPlayer: jest.fn(),
+        previewDuration: 30000,
+        setPreviewDuration: jest.fn(),
+        autoPlay: true,
+        setAutoPlay: jest.fn(),
+        setSongs: jest.fn(),
+      };
+      return selector(state);
     });
 
     mockUseSubPlayerAudio.mockReturnValue({

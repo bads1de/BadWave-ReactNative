@@ -24,7 +24,7 @@ import { useRouter } from "expo-router";
 export default function SongDetailScreen() {
   const router = useRouter();
   const { songId } = useLocalSearchParams<{ songId: string }>();
-  const { setShowHeader } = useHeaderStore();
+  const setShowHeader = useHeaderStore((state) => state.setShowHeader);
 
   const {
     data: song,

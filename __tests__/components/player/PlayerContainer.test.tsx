@@ -79,21 +79,21 @@ describe("PlayerContainer", () => {
       progressDuration: 180000,
     });
 
-    useAudioStore.mockReturnValue({
+    useAudioStore.mockImplementation((selector) => selector({
       currentSong: mockSong,
       repeatMode: 0,
       shuffle: false,
-    });
+    }));
 
-    usePlayerStore.mockReturnValue({
+    usePlayerStore.mockImplementation((selector) => selector({
       showPlayer: false,
       setShowPlayer: jest.fn(),
-    });
+    }));
 
-    useSubPlayerStore.mockReturnValue({
+    useSubPlayerStore.mockImplementation((selector) => selector({
       showSubPlayer: false,
       setShowSubPlayer: jest.fn(),
-    });
+    }));
   });
 
   it("renders MiniPlayer when showPlayer is false", () => {
@@ -104,10 +104,10 @@ describe("PlayerContainer", () => {
   });
 
   it("renders full Player when showPlayer is true", () => {
-    usePlayerStore.mockReturnValue({
+        usePlayerStore.mockImplementation((selector) => selector({
       showPlayer: true,
       setShowPlayer: jest.fn(),
-    });
+    }));
 
     const { getByTestId, queryByTestId } = render(<PlayerContainer />);
 
@@ -116,10 +116,10 @@ describe("PlayerContainer", () => {
   });
 
   it("renders SubPlayer when showSubPlayer is true", () => {
-    useSubPlayerStore.mockReturnValue({
+        useSubPlayerStore.mockImplementation((selector) => selector({
       showSubPlayer: true,
       setShowSubPlayer: jest.fn(),
-    });
+    }));
 
     const { getByTestId } = render(<PlayerContainer />);
 
@@ -127,11 +127,11 @@ describe("PlayerContainer", () => {
   });
 
   it("does not render any player when currentSong is null", () => {
-    useAudioStore.mockReturnValue({
+        useAudioStore.mockImplementation((selector) => selector({
       currentSong: null,
       repeatMode: 0,
       shuffle: false,
-    });
+    }));
 
     const { queryByTestId } = render(<PlayerContainer />);
 

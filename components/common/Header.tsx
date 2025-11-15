@@ -6,7 +6,7 @@ import { useUser } from "@/actions/getUser";
 import { memo } from "react";
 
 function Header() {
-  const { setShowAuthModal } = useAuthStore();
+  const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const { data: user } = useUser();
   const { session } = useAuth();
 

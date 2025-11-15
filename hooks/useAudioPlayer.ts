@@ -35,14 +35,12 @@ export function useAudioPlayer(
   const onPlay = useOnPlay();
 
   // Zustand ストアから状態を取得
-  const {
-    currentSong,
-    repeatMode,
-    shuffle,
-    setCurrentSong,
-    setRepeatMode: setStoreRepeatMode,
-    setShuffle: setStoreShuffle,
-  } = useAudioStore();
+  const currentSong = useAudioStore((state) => state.currentSong);
+  const repeatMode = useAudioStore((state) => state.repeatMode);
+  const shuffle = useAudioStore((state) => state.shuffle);
+  const setCurrentSong = useAudioStore((state) => state.setCurrentSong);
+  const setStoreRepeatMode = useAudioStore((state) => state.setRepeatMode);
+  const setStoreShuffle = useAudioStore((state) => state.setShuffle);
 
   // 複合アクションを取得
   const { updateCurrentSongAndState } = useAudioActions();

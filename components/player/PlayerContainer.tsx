@@ -20,11 +20,15 @@ import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
  */
 function PlayerContainer() {
   // メインプレイヤーの状態
-  const { showPlayer, setShowPlayer } = usePlayerStore();
-  const { currentSong, repeatMode, shuffle } = useAudioStore();
+  const showPlayer = usePlayerStore((state) => state.showPlayer);
+  const setShowPlayer = usePlayerStore((state) => state.setShowPlayer);
+  const currentSong = useAudioStore((state) => state.currentSong);
+  const repeatMode = useAudioStore((state) => state.repeatMode);
+  const shuffle = useAudioStore((state) => state.shuffle);
 
   // サブプレイヤーの状態
-  const { showSubPlayer, setShowSubPlayer } = useSubPlayerStore();
+  const showSubPlayer = useSubPlayerStore((state) => state.showSubPlayer);
+  const setShowSubPlayer = useSubPlayerStore((state) => state.setShowSubPlayer);
 
   // 再生コントロール関数と進捗情報を取得
   const {

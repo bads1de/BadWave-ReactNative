@@ -36,7 +36,7 @@ export default function PlaylistDetailScreen() {
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
   const { session } = useAuth();
   const queryClient = useQueryClient();
-  const { setShowHeader } = useHeaderStore();
+  const setShowHeader = useHeaderStore((state) => state.setShowHeader);
 
   useFocusEffect(
     useCallback(() => {

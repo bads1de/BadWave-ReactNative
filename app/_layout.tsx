@@ -27,7 +27,7 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  const { showAuthModal } = useAuthStore();
+  const showAuthModal = useAuthStore((state) => state.showAuthModal);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const isPlaybackServiceRegistered = useRef(false);
 

@@ -10,6 +10,7 @@ export class OfflineStorageService {
   private storage: MMKV;
   private readonly METADATA_PREFIX = "song-metadata:";
   private readonly DOWNLOAD_DIR = FileSystem.documentDirectory + "downloads/";
+  private readonly IMAGES_DIR = FileSystem.documentDirectory + "downloads/images/";
 
   constructor() {
     this.storage = new MMKV({
@@ -31,8 +32,62 @@ export class OfflineStorageService {
           intermediates: true,
         });
       }
+
+      // 画像ディレクトリも確認
+      const imagesDirInfo = await FileSystem.getInfoAsync(this.IMAGES_DIR);
+
+      if (!imagesDirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(this.IMAGES_DIR, {
+          intermediates: true,
+        });
+      }
     } catch (error) {
       console.error("Failed to create download directory:", error);
+    }
+  }
+
+  /**
+   * 画像をダウンロードし、ローカルパスを返す
+   * @param imageUrl 画像のURL
+   * @param songId 曲のID
+   * @returns ローカルパス（失敗時はnull）
+   */
+  private async downloadImage(
+    imageUrl: string,
+    songId: string
+  ): Promise<string | null> {
+    try {
+      // 画像URLが空の場合はスキップ
+      if (!imageUrl) {
+        return null;
+      }
+
+      // 保存先のローカルパスを作成
+      const localPath = `${this.IMAGES_DIR}${songId}_artwork.jpg`;
+
+      // 既にダウンロード済みかチェック
+      const fileInfo = await FileSystem.getInfoAsync(localPath);
+
+      if (fileInfo.exists) {
+        console.log(`Image already downloaded: ${songId}`);
+        return localPath;
+      }
+
+      // ダウンロード実行
+      const downloadResult = await FileSystem.downloadAsync(imageUrl, localPath);
+
+      if (downloadResult.status === 200) {
+        console.log(`Image downloaded successfully: ${songId}`);
+        return localPath;
+      } else {
+        console.error(
+          `Image download failed with status code: ${downloadResult.status}`
+        );
+        return null;
+      }
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      return null;
     }
   }
 
@@ -66,12 +121,18 @@ export class OfflineStorageService {
       );
 
       if (downloadResult.status === 200) {
+        // 画像もダウンロード
+        const imageLocalPath = await this.downloadImage(
+          song.image_path,
+          song.id
+        );
+
         // ダウンロード成功時、メタデータを作成
         const metadata = {
           id: song.id,
           title: song.title,
           author: song.author,
-          image_path: song.image_path,
+          image_path: imageLocalPath || song.image_path, // ローカルパスがあればそれを使用
           user_id: song.user_id,
           created_at: song.created_at,
           localPath,

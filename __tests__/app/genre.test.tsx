@@ -29,7 +29,14 @@ describe("GenreSongsScreen", () => {
   beforeEach(() => {
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     useAudioPlayer.mockReturnValue({ togglePlayPause: jest.fn(), currentSong: null });
-    useHeaderStore.mockReturnValue({ showHeader: true, setShowHeader: jest.fn() });
+        const mockSetShowHeader = jest.fn();
+    useHeaderStore.mockImplementation((selector) => {
+      const state = {
+        showHeader: true,
+        setShowHeader: mockSetShowHeader,
+      };
+      return selector(state);
+    });
     useRouter.mockReturnValue({ back: jest.fn() });
     useLocalSearchParams.mockReturnValue({ genre: "Retro Wave" });
   });

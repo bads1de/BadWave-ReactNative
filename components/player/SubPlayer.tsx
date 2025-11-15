@@ -24,7 +24,11 @@ interface SubPlayerProps {
 }
 
 function SubPlayerInner({ onClose }: SubPlayerProps) {
-  const { songs, currentSongIndex, setCurrentSongIndex } = useSubPlayerStore();
+    const songs = useSubPlayerStore((state) => state.songs);
+  const currentSongIndex = useSubPlayerStore((state) => state.currentSongIndex);
+  const setCurrentSongIndex = useSubPlayerStore(
+    (state) => state.setCurrentSongIndex
+  );
   const swiperRef = useRef(null);
 
   // useSubPlayerAudio フックを使用して再生機能を統合

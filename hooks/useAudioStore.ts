@@ -36,7 +36,7 @@ export const useAudioStore = create<AudioState>((set) => ({
 // 追加のアクションを持つ拡張ストア
 // これらのアクションは複数の状態を一度に更新するためのものです
 export const useAudioActions = () => {
-  const { setCurrentSong } = useAudioStore();
+  const setCurrentSong = useAudioStore((state) => state.setCurrentSong);
 
   return {
     // 曲を変更する

@@ -171,7 +171,6 @@ export default memo(SongItem, (prevProps, nextProps) => {
     prevProps.song.image_path === nextProps.song.image_path &&
     prevProps.song.count === nextProps.song.count &&
     prevProps.song.like_count === nextProps.song.like_count &&
-    prevProps.onClick === nextProps.onClick &&
     prevProps.dynamicSize === nextProps.dynamicSize &&
     prevProps.songType === nextProps.songType
   );

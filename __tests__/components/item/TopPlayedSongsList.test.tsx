@@ -101,14 +101,17 @@ describe("TopPlayedSongsList", () => {
       currentSong: null,
     } as any);
 
-    mockUseSubPlayerStore.mockReturnValue({
-      setShowSubPlayer: mockSetShowSubPlayer,
-      setSongs: mockSetSongs,
-      setCurrentSongIndex: mockSetCurrentSongIndex,
-      songs: [],
-      currentSongIndex: -1,
-      showSubPlayer: false,
-    } as any);
+        mockUseSubPlayerStore.mockImplementation((selector) => {
+      const state = {
+        setShowSubPlayer: mockSetShowSubPlayer,
+        setSongs: mockSetSongs,
+        setCurrentSongIndex: mockSetCurrentSongIndex,
+        songs: [],
+        currentSongIndex: -1,
+        showSubPlayer: false,
+      };
+      return selector(state);
+    });
 
     (TrackPlayer.pause as jest.Mock).mockResolvedValue(undefined);
   });

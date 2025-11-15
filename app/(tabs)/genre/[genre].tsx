@@ -23,7 +23,7 @@ import Song from "@/types";
 export default function GenreSongsScreen() {
   const router = useRouter();
   const { genre } = useLocalSearchParams<{ genre: string }>();
-  const { setShowHeader } = useHeaderStore();
+  const setShowHeader = useHeaderStore((state) => state.setShowHeader);
   const {
     data: genreSongs = [],
     isLoading,

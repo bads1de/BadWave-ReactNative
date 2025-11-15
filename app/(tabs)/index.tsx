@@ -25,7 +25,7 @@ import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
 
 export default function HomeScreen() {
-  const { showPlayer } = usePlayerStore();
+  const showPlayer = usePlayerStore((state) => state.showPlayer);
   const {
     data: songs = [],
     isLoading,

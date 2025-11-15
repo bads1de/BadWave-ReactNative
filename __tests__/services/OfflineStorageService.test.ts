@@ -573,4 +573,195 @@ describe("OfflineStorageService", () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe("downloadImage", () => {
+    it("should download image and return local path", async () => {
+      // 画像が存在しない場合
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+        exists: false,
+      });
+      (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({
+        status: 200,
+      });
+
+      const localPath = await (service as any).downloadImage(
+        mockSong.image_path,
+        mockSong.id
+      );
+
+      // ローカルパスが返されることを確認
+      expect(localPath).toBe(
+        "/mock/document/directory/downloads/images/test-song-id_artwork.jpg"
+      );
+
+      // ダウンロードが呼ばれたことを確認
+      expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
+        mockSong.image_path,
+        "/mock/document/directory/downloads/images/test-song-id_artwork.jpg"
+      );
+    });
+
+    it("should skip download if image already exists", async () => {
+      // 画像が既に存在する場合
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+        exists: true,
+      });
+
+      const localPath = await (service as any).downloadImage(
+        mockSong.image_path,
+        mockSong.id
+      );
+
+      // ローカルパスが返されることを確認
+      expect(localPath).toBe(
+        "/mock/document/directory/downloads/images/test-song-id_artwork.jpg"
+      );
+
+      // ダウンロードが呼ばれないことを確認
+      expect(FileSystem.downloadAsync).not.toHaveBeenCalled();
+    });
+
+    it("should return null if image URL is empty", async () => {
+      const localPath = await (service as any).downloadImage("", mockSong.id);
+
+      // nullが返されることを確認
+      expect(localPath).toBeNull();
+
+      // ダウンロードが呼ばれないことを確認
+      expect(FileSystem.downloadAsync).not.toHaveBeenCalled();
+    });
+
+    it("should return null on download failure", async () => {
+      // ダウンロードが失敗する場合
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+        exists: false,
+      });
+      (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({
+        status: 404,
+      });
+
+      const localPath = await (service as any).downloadImage(
+        mockSong.image_path,
+        mockSong.id
+      );
+
+      // nullが返されることを確認
+      expect(localPath).toBeNull();
+    });
+
+    it("should handle network errors during image download", async () => {
+      // ネットワークエラーのケース
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+        exists: false,
+      });
+      (FileSystem.downloadAsync as jest.Mock).mockRejectedValue(
+        new Error("Network error")
+      );
+
+      const localPath = await (service as any).downloadImage(
+        mockSong.image_path,
+        mockSong.id
+      );
+
+      // nullが返されることを確認
+      expect(localPath).toBeNull();
+    });
+  });
+
+  describe("downloadSong with image download", () => {
+    it("should download both song and image", async () => {
+      // ファイルと画像が存在しない場合
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+        exists: false,
+      });
+      (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({
+        status: 200,
+      });
+
+      const result = await service.downloadSong(mockSong);
+
+      // 結果が成功であることを確認
+      expect(result).toEqual({ success: true });
+
+      // 音声ファイルのダウンロードが呼ばれたことを確認
+      expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
+        mockSong.song_path,
+        "/mock/document/directory/downloads/Test_Song.mp3"
+      );
+
+      // 画像のダウンロードが呼ばれたことを確認
+      expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
+        mockSong.image_path,
+        "/mock/document/directory/downloads/images/test-song-id_artwork.jpg"
+      );
+
+      // メタデータが保存されたことを確認
+      const savedMetadata = JSON.parse(
+        (mockMMKV.set as jest.Mock).mock.calls[0][1]
+      );
+      expect(savedMetadata.image_path).toBe(
+        "/mock/document/directory/downloads/images/test-song-id_artwork.jpg"
+      );
+    });
+
+    it("should handle case when image URL is not provided", async () => {
+      // 画像URLがない曲
+      const songWithoutImage = {
+        ...mockSong,
+        image_path: "",
+      };
+
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+        exists: false,
+      });
+      (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({
+        status: 200,
+      });
+
+      const result = await service.downloadSong(songWithoutImage);
+
+      // 結果が成功であることを確認
+      expect(result).toEqual({ success: true });
+
+      // 音声ファイルのダウンロードが呼ばれたことを確認
+      expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
+        mockSong.song_path,
+        "/mock/document/directory/downloads/Test_Song.mp3"
+      );
+
+      // メタデータが保存されたことを確認（image_pathは空のまま）
+      const savedMetadata = JSON.parse(
+        (mockMMKV.set as jest.Mock).mock.calls[0][1]
+      );
+      expect(savedMetadata.image_path).toBe("");
+    });
+
+    it("should continue even if image download fails", async () => {
+      // 音声ファイルは存在しないが、画像が存在しない場合
+      let callCount = 0;
+      (FileSystem.getInfoAsync as jest.Mock).mockImplementation(() => {
+        return Promise.resolve({ exists: false });
+      });
+
+      // 音声ファイルは成功、画像は失敗
+      (FileSystem.downloadAsync as jest.Mock).mockImplementation((url) => {
+        if (url === mockSong.song_path) {
+          return Promise.resolve({ status: 200 });
+        } else {
+          return Promise.resolve({ status: 404 });
+        }
+      });
+
+      const result = await service.downloadSong(mockSong);
+
+      // 音声ファイルのダウンロードが成功すれば全体として成功
+      expect(result).toEqual({ success: true });
+
+      // メタデータが保存されたことを確認（image_pathは元のURLのまま）
+      const savedMetadata = JSON.parse(
+        (mockMMKV.set as jest.Mock).mock.calls[0][1]
+      );
+      expect(savedMetadata.image_path).toBe(mockSong.image_path);
+    });
+  });
 });

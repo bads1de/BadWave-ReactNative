@@ -22,7 +22,7 @@ type LibraryType = "liked" | "playlists";
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
   const { session } = useAuth();
-  const { setShowAuthModal } = useAuthStore();
+  const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const router = useRouter();
 
   const {

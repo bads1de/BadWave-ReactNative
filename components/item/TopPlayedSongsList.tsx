@@ -76,8 +76,11 @@ function TopPlayedSongsList() {
   const { data: user } = useUser();
   const userId = user?.id;
   const { isPlaying } = useAudioPlayer();
-  const { setShowSubPlayer, setSongs, setCurrentSongIndex } =
-    useSubPlayerStore();
+  const setShowSubPlayer = useSubPlayerStore((state) => state.setShowSubPlayer);
+  const setSongs = useSubPlayerStore((state) => state.setSongs);
+  const setCurrentSongIndex = useSubPlayerStore(
+    (state) => state.setCurrentSongIndex
+  );
 
   const { data: topSongs = [] } = useQuery({
     queryKey: [CACHED_QUERIES.topPlayedSongs, userId],

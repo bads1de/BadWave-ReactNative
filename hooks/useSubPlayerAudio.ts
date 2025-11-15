@@ -24,13 +24,13 @@ import Song from "@/types";
  */
 export function useSubPlayerAudio() {
   // Zustand ストアから状態を取得
-  const {
-    songs,
-    currentSongIndex,
-    previewDuration,
-    autoPlay,
-    setCurrentSongIndex,
-  } = useSubPlayerStore();
+  const songs = useSubPlayerStore((state) => state.songs);
+  const currentSongIndex = useSubPlayerStore((state) => state.currentSongIndex);
+  const previewDuration = useSubPlayerStore((state) => state.previewDuration);
+  const autoPlay = useSubPlayerStore((state) => state.autoPlay);
+  const setCurrentSongIndex = useSubPlayerStore(
+    (state) => state.setCurrentSongIndex
+  );
 
   // 再生状態の管理
   const [isPlaying, setIsPlaying] = useState(false); // 再生中かどうか

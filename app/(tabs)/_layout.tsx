@@ -10,9 +10,9 @@ import { useAudioStore } from "@/hooks/useAudioStore";
 import PlayerContainer from "@/components/player/PlayerContainer";
 
 export default function TabLayout() {
-  const { showPlayer } = usePlayerStore();
-  const { showHeader } = useHeaderStore();
-  const { currentSong } = useAudioStore();
+  const showPlayer = usePlayerStore((state) => state.showPlayer);
+  const showHeader = useHeaderStore((state) => state.showHeader);
+  const currentSong = useAudioStore((state) => state.currentSong);
 
   return (
     <>

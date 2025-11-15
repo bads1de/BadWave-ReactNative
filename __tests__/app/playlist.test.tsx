@@ -36,7 +36,14 @@ describe("PlaylistDetailScreen", () => {
   beforeEach(() => {
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     useAudioPlayer.mockReturnValue({ togglePlayPause: jest.fn(), currentSong: null });
-    useHeaderStore.mockReturnValue({ showHeader: true, setShowHeader: jest.fn() });
+        const mockSetShowHeader = jest.fn();
+    useHeaderStore.mockImplementation((selector) => {
+      const state = {
+        showHeader: true,
+        setShowHeader: mockSetShowHeader,
+      };
+      return selector(state);
+    });
     useAuth.mockReturnValue({ session: { user: { id: "test-user" } }, setSession: jest.fn() });
     useRouter.mockReturnValue({ back: jest.fn() });
     useLocalSearchParams.mockReturnValue({ playlistId: "test-playlist-id" });
