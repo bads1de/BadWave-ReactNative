@@ -1,5 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Header from "@/components/common/Header";
 
 jest.mock("@/hooks/useHeaderStore", () => ({
@@ -34,7 +35,17 @@ describe("Header", () => {
   });
 
   it("renders without crashing", () => {
-    const { UNSAFE_root } = render(<Header />);
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const { UNSAFE_root } = render(
+      <QueryClientProvider client={queryClient}>
+        <Header />
+      </QueryClientProvider>
+    );
     expect(UNSAFE_root).toBeTruthy();
   });
 });

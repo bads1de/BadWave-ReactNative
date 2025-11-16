@@ -6,11 +6,12 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 // Libraryコンポーネントのモック
 jest.mock("@/app/(tabs)/library", () => {
   const React = require("react");
-  const { View, Text, TouchableOpacity, FlatList } = require("react-native");
+  const { View, Text, TouchableOpacity } = require("react-native");
+  const FlashList = require("@shopify/flash-list").FlashList;
   const { useDownloadedSongs } = require("@/hooks/useDownloadedSongs");
-  const SongItem = require("@/components/SongItem").default;
-  const Error = require("@/components/Error").default;
-  const Loading = require("@/components/Loading").default;
+  const SongItem = require("@/components/item/SongItem").default;
+  const Error = require("@/components/common/Error").default;
+  const Loading = require("@/components/common/Loading").default;
 
   const Library = () => {
     const { songs, isLoading, error, refresh } = useDownloadedSongs();
@@ -28,7 +29,7 @@ jest.mock("@/app/(tabs)/library", () => {
         return React.createElement(Text, {}, "No downloaded songs");
       }
 
-      return React.createElement(FlatList, {
+      return React.createElement(FlashList, {
         testID: "downloads-flatlist",
         data: songs,
         keyExtractor: (item) => item.id,
@@ -38,6 +39,7 @@ jest.mock("@/app/(tabs)/library", () => {
             onPress: () => {},
           });
         },
+        estimatedItemSize: 80,
       });
     };
 
@@ -194,7 +196,7 @@ jest.mock("@/components/item/SongItem", () => {
     },
   };
 });
-jest.mock("@/components/PlaylistItem", () => {
+jest.mock("@/components/item/PlaylistItem", () => {
   const React = require("react");
   const { View, Text, TouchableOpacity } = require("react-native");
 
@@ -209,7 +211,7 @@ jest.mock("@/components/PlaylistItem", () => {
     },
   };
 });
-jest.mock("@/components/CreatePlaylist", () => {
+jest.mock("@/components/playlist/CreatePlaylist", () => {
   const React = require("react");
   const { View, Text } = require("react-native");
 
@@ -224,7 +226,7 @@ jest.mock("@/components/CreatePlaylist", () => {
     },
   };
 });
-jest.mock("@/components/Loading", () => {
+jest.mock("@/components/common/Loading", () => {
   const React = require("react");
   const { View, Text, ActivityIndicator } = require("react-native");
 
@@ -235,7 +237,7 @@ jest.mock("@/components/Loading", () => {
     },
   };
 });
-jest.mock("@/components/Error", () => {
+jest.mock("@/components/common/Error", () => {
   const React = require("react");
   const { View, Text } = require("react-native");
 
@@ -246,7 +248,7 @@ jest.mock("@/components/Error", () => {
     },
   };
 });
-jest.mock("@/components/CustomButton", () => {
+jest.mock("@/components/common/CustomButton", () => {
   const React = require("react");
   const { TouchableOpacity, Text } = require("react-native");
 

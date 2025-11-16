@@ -2,12 +2,12 @@ import React, { memo, useState, useCallback } from "react";
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Dimensions,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
@@ -71,6 +71,8 @@ const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
   );
 });
 
+TrendItem.displayName = "TrendItem";
+
 // 期間セレクタをコンポーネントとして分離
 const PeriodSelector = memo(
   ({
@@ -129,6 +131,8 @@ const PeriodSelector = memo(
   }
 );
 
+PeriodSelector.displayName = "PeriodSelector";
+
 function TrendBoard() {
   const [period, setPeriod] = useState<TrendPeriod>("all");
   const {
@@ -159,7 +163,7 @@ function TrendBoard() {
   return (
     <View style={styles.container}>
       <PeriodSelector period={period} setPeriod={setPeriod} />
-      <FlatList
+      <FlashList
         data={trends}
         horizontal
         keyExtractor={keyExtractor}
@@ -170,10 +174,6 @@ function TrendBoard() {
         snapToInterval={ITEM_WIDTH + 16}
         decelerationRate="fast"
         contentContainerStyle={styles.listContent}
-        windowSize={3}
-        maxToRenderPerBatch={5}
-        initialNumToRender={4}
-        removeClippedSubviews={true}
       />
     </View>
   );

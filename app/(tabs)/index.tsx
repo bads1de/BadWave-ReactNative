@@ -7,6 +7,7 @@ import {
   FlatList,
   View,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -116,7 +117,7 @@ export default function HomeScreen() {
           <Loading />
         ) : (
           <View style={styles.sectionContent}>
-            <FlatList
+            <FlashList
               data={songs}
               renderItem={renderItem}
               keyExtractor={(item) => item.id}

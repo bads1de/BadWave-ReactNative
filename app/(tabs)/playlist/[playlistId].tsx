@@ -2,11 +2,11 @@ import React, { useCallback } from "react";
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Dimensions,
   TouchableOpacity,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -210,7 +210,7 @@ export default function PlaylistDetailScreen() {
         </BlurView>
       </View>
     ),
-    [playlist, playlistSongs.length, session?.user.id, router]
+    [playlist, playlistSongs.length, session?.user.id, router, playlistId]
   );
 
   if (isLoading || isLoadingPlaylist) return <Loading />;
@@ -220,13 +220,12 @@ export default function PlaylistDetailScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {playlistSongs && playlistSongs.length > 0 ? (
-        <FlatList
+        <FlashList
           data={playlistSongs}
           keyExtractor={keyExtractor}
           renderItem={renderSongs}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
-          numColumns={1}
           key={"playlist-songs-list"}
         />
       ) : (

@@ -1,12 +1,6 @@
 import React, { useState, useCallback, useMemo, memo } from "react";
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  FlatList,
-  SafeAreaView,
-  Text,
-} from "react-native";
+import { View, TextInput, StyleSheet, SafeAreaView, Text } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
 import getSongsByTitle from "@/actions/getSongsByTitle";
@@ -183,37 +177,26 @@ function SearchScreen() {
       ) : (
         <>
           {searchType === "songs" ? (
-            <FlatList
+            <FlashList
               key="songs-list"
               data={searchSongs}
               keyExtractor={keyExtractor}
               renderItem={renderSongItem}
               contentContainerStyle={styles.listContainer}
               ListEmptyComponent={songsEmptyComponent}
-              windowSize={5}
-              maxToRenderPerBatch={10}
-              updateCellsBatchingPeriod={50}
-              removeClippedSubviews={true}
-              initialNumToRender={8}
             />
           ) : (
-            <FlatList
+            <FlashList
               key="playlists-list"
               data={searchPlaylists}
               keyExtractor={keyExtractor}
               renderItem={renderPlaylistItem}
-              contentContainerStyle={[
-                styles.listContainer,
-                styles.playlistContainer,
-              ]}
+              contentContainerStyle={{
+                ...styles.listContainer,
+                ...styles.playlistContainer,
+              }}
               numColumns={2}
               ListEmptyComponent={playlistsEmptyComponent}
-              // パフォーマンス最適化
-              windowSize={5}
-              maxToRenderPerBatch={8}
-              updateCellsBatchingPeriod={50}
-              removeClippedSubviews={true}
-              initialNumToRender={6}
             />
           )}
         </>

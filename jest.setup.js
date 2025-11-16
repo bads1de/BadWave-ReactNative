@@ -2,9 +2,38 @@
 // jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 // jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
-// setImmediate と clearImmediate のポリフィル
-global.setImmediate = global.setImmediate || ((fn, ...args) => global.setTimeout(fn, 0, ...args));
-global.clearImmediate = global.clearImmediate || ((id) => global.clearTimeout(id));
+// より堅牢なsetImmediateとclearImmediateのpolyfill
+if (typeof setImmediate === 'undefined') {
+  global.setImmediate = (callback, ...args) => {
+    return setTimeout(callback, 0, ...args);
+  };
+}
+
+if (typeof clearImmediate === 'undefined') {
+  global.clearImmediate = (id) => {
+    clearTimeout(id);
+  };
+}
+
+// React NativeのStatusBarをモック
+jest.mock('react-native/Libraries/Components/StatusBar/StatusBar', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => null),
+  };
+});
+
+// React NativeのInteractionManagerをモック
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: jest.fn((callback) => {
+    callback();
+    return { cancel: jest.fn() };
+  }),
+  createInteractionHandle: jest.fn(),
+  clearInteractionHandle: jest.fn(),
+  setDeadline: jest.fn(),
+}));
 
 // Expo のモック
 jest.mock("expo-font");

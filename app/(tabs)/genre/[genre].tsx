@@ -1,11 +1,6 @@
-import React, { useCallback, useMemo } from "react";
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import React, { useCallback } from "react";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -71,16 +66,11 @@ export default function GenreSongsScreen() {
           </TouchableOpacity>
           <Text style={styles.title}>{genre}</Text>
         </View>
-        <FlatList
+        <FlashList
           data={genreSongs}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContainer}
-          windowSize={5}
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={50}
-          removeClippedSubviews={true}
-          initialNumToRender={8}
         />
       </View>
     </SafeAreaView>

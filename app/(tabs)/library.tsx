@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import React, { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
@@ -153,18 +154,13 @@ export default function LibraryScreen() {
           </View>
           {type === "liked" ? (
             likedSongs && likedSongs.length > 0 ? (
-              <FlatList
+              <FlashList
                 key={"liked"}
                 data={likedSongs}
                 renderItem={renderLikedSongs}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 contentContainerStyle={styles.listContainer}
-                windowSize={5}
-                maxToRenderPerBatch={8}
-                updateCellsBatchingPeriod={50}
-                removeClippedSubviews={true}
-                initialNumToRender={6}
               />
             ) : (
               <View style={[styles.noSongsContainer, { flex: 1 }]}>
@@ -172,18 +168,13 @@ export default function LibraryScreen() {
               </View>
             )
           ) : playlists && playlists.length > 0 ? (
-            <FlatList
+            <FlashList
               key={"playlists"}
               data={playlists}
               renderItem={renderPlaylistItem}
               numColumns={2}
               keyExtractor={keyExtractor}
               contentContainerStyle={styles.listContainer}
-              windowSize={5}
-              maxToRenderPerBatch={8}
-              updateCellsBatchingPeriod={50}
-              removeClippedSubviews={true}
-              initialNumToRender={6}
             />
           ) : (
             <View style={[styles.noSongsContainer, { flex: 1 }]}>

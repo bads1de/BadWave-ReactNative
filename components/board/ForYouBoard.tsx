@@ -1,5 +1,6 @@
 import React, { useCallback, memo } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import SongItem from "@/components/item/SongItem";
@@ -63,18 +64,13 @@ function ForYouBoard() {
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlashList
         data={recommendations}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        windowSize={3}
-        maxToRenderPerBatch={5}
-        updateCellsBatchingPeriod={50}
-        removeClippedSubviews={true}
-        initialNumToRender={3}
       />
     </View>
   );
