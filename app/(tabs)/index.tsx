@@ -123,10 +123,10 @@ export default function HomeScreen() {
               keyExtractor={(item) => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.songsContainer,
-                currentSong && !showPlayer && { paddingBottom: 10 },
-              ]}
+              contentContainerStyle={{
+                ...styles.songsContainer,
+                ...(currentSong && !showPlayer ? { paddingBottom: 10 } : {}),
+              }}
             />
           </View>
         )}
