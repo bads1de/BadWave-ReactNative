@@ -183,6 +183,7 @@ function SearchScreen() {
               keyExtractor={keyExtractor}
               renderItem={renderSongItem}
               contentContainerStyle={styles.listContainer}
+              estimatedItemSize={100}
               ListEmptyComponent={songsEmptyComponent}
             />
           ) : (
@@ -196,6 +197,7 @@ function SearchScreen() {
                 ...styles.playlistContainer,
               }}
               numColumns={2}
+              estimatedItemSize={200}
               ListEmptyComponent={playlistsEmptyComponent}
             />
           )}

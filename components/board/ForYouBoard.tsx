@@ -71,6 +71,7 @@ function ForYouBoard() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        estimatedItemSize={220}
       />
     </View>
   );
@@ -81,6 +82,7 @@ export default memo(ForYouBoard);
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+    height: 240,
   },
   listContent: {
     paddingVertical: 8,

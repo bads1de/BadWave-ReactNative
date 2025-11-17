@@ -161,6 +161,7 @@ export default function LibraryScreen() {
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 contentContainerStyle={styles.listContainer}
+                estimatedItemSize={236}
               />
             ) : (
               <View style={[styles.noSongsContainer, { flex: 1 }]}>
@@ -175,6 +176,7 @@ export default function LibraryScreen() {
               numColumns={2}
               keyExtractor={keyExtractor}
               contentContainerStyle={styles.listContainer}
+              estimatedItemSize={210}
             />
           ) : (
             <View style={[styles.noSongsContainer, { flex: 1 }]}>

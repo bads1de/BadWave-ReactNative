@@ -1,12 +1,5 @@
 import React, { useCallback } from "react";
-import {
-  SafeAreaView,
-  Text,
-  ScrollView,
-  StyleSheet,
-  FlatList,
-  View,
-} from "react-native";
+import { SafeAreaView, Text, ScrollView, StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -94,12 +87,16 @@ export default function HomeScreen() {
 
         {renderSectionTitle("Trends", "trending-up")}
         <View style={styles.sectionContent}>
-          <TrendBoard />
+          <View style={styles.trendSection}>
+            <TrendBoard />
+          </View>
         </View>
 
         {renderSectionTitle("For You", "heart")}
         <View style={styles.sectionContent}>
-          <ForYouBoard />
+          <View style={styles.forYouSection}>
+            <ForYouBoard />
+          </View>
         </View>
 
         {renderSectionTitle("Spotlights", "flash")}
@@ -115,21 +112,24 @@ export default function HomeScreen() {
         {renderSectionTitle("Songs", "disc")}
         {isLoading ? (
           <Loading />
-        ) : (
-          <View style={styles.sectionContent}>
-            <FlashList
-              data={songs}
-              renderItem={renderItem}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                ...styles.songsContainer,
-                ...(currentSong && !showPlayer ? { paddingBottom: 10 } : {}),
-              }}
-            />
+        ) : songs && songs.length > 0 ? (
+          <View style={[styles.sectionContent, styles.songsSection]}>
+            <View style={styles.songsList}>
+              <FlashList
+                data={songs}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                estimatedItemSize={200}
+                contentContainerStyle={{
+                  ...styles.songsContainer,
+                  ...(currentSong && !showPlayer ? { paddingBottom: 10 } : {}),
+                }}
+              />
+            </View>
           </View>
-        )}
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -218,6 +218,18 @@ const styles = StyleSheet.create({
   },
   horizontalScroll: {
     paddingVertical: 8,
+  },
+  forYouSection: {
+    minHeight: 240,
+  },
+  trendSection: {
+    minHeight: 320,
+  },
+  songsSection: {
+    minHeight: 320,
+  },
+  songsList: {
+    height: 320,
   },
   songsContainer: {
     paddingVertical: 8,

@@ -71,6 +71,7 @@ export default function GenreSongsScreen() {
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContainer}
+          estimatedItemSize={80}
         />
       </View>
     </SafeAreaView>

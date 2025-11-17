@@ -96,7 +96,7 @@ function HeroBoard() {
 
   // useRefでタイマーを管理し、クリーンアップを確実に実行
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isMountedRef = useRef(true); // マウント状態の追跡
+  const isMounted = useSharedValue(1); // マウント状態の追跡
 
   const opacity = useSharedValue(1);
   const scale = useSharedValue(1);
@@ -118,7 +118,7 @@ function HeroBoard() {
 
   // ジャンルを更新する関数（メモ化）
   const updateGenre = useCallback(() => {
-    if (!isMountedRef.current) return;
+    if (!isMounted.value) return;
 
     setCurrentIndex(nextIndex);
     setNextIndex((nextIndex + 1) % genreCards.length);
@@ -129,11 +129,11 @@ function HeroBoard() {
 
   // 次のジャンルに切り替える関数（メモ化）
   const changeGenre = useCallback(() => {
-    if (!isMountedRef.current) return;
+    if (!isMounted.value) return;
 
     // フェードアウト
     opacity.value = withTiming(0, { duration: 500 }, (finished) => {
-      if (finished && isMountedRef.current) {
+      if (finished && isMounted.value) {
         runOnJS(updateGenre)();
       }
     });
@@ -141,14 +141,14 @@ function HeroBoard() {
 
   // タイマーを設定
   useEffect(() => {
-    isMountedRef.current = true;
+    isMounted.value = 1;
 
     timerRef.current = setInterval(() => {
       changeGenre();
     }, 5000); // 5秒ごとに切り替え
 
     return () => {
-      isMountedRef.current = false;
+      isMounted.value = 0;
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { onlineManager } from "@tanstack/react-query";
@@ -15,6 +15,16 @@ import TrackPlayer from "react-native-track-player";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __TRACK_PLAYER_SERVICE_REGISTERED__: boolean | undefined;
+}
+
+if (!global.__TRACK_PLAYER_SERVICE_REGISTERED__) {
+  TrackPlayer.registerPlaybackService(playbackService);
+  global.__TRACK_PLAYER_SERVICE_REGISTERED__ = true;
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,15 +39,8 @@ const queryClient = new QueryClient({
 export default function RootLayout() {
   const showAuthModal = useAuthStore((state) => state.showAuthModal);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const isPlaybackServiceRegistered = useRef(false);
 
   useEffect(() => {
-    if (!isPlaybackServiceRegistered.current) {
-      TrackPlayer.registerPlaybackService(playbackService);
-      isPlaybackServiceRegistered.current = true;
-      console.log("再生サービスが登録されました");
-    }
-
     // プレイヤーのセットアップ
     const setupPlayerAsync = async () => {
       if (isPlayerReady) return;
@@ -54,7 +57,7 @@ export default function RootLayout() {
     };
 
     setupPlayerAsync();
-  }, []);
+  }, [isPlayerReady]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

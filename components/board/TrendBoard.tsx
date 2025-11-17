@@ -160,21 +160,32 @@ function TrendBoard() {
 
   if (error) return <Error message={error.message} />;
 
+  if (!trends || trends.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>トレンドデータがありません</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <PeriodSelector period={period} setPeriod={setPeriod} />
-      <FlashList
-        data={trends}
-        horizontal
-        keyExtractor={keyExtractor}
-        renderItem={({ item, index }) => (
-          <TrendItem song={item} index={index} onPlay={onPlay} />
-        )}
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={ITEM_WIDTH + 16}
-        decelerationRate="fast"
-        contentContainerStyle={styles.listContent}
-      />
+      <View style={styles.list}>
+        <FlashList
+          data={trends}
+          horizontal
+          keyExtractor={keyExtractor}
+          renderItem={({ item, index }) => (
+            <TrendItem song={item} index={index} onPlay={onPlay} />
+          )}
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={ITEM_WIDTH + 16}
+          decelerationRate="fast"
+          contentContainerStyle={styles.listContent}
+          estimatedItemSize={ITEM_WIDTH}
+        />
+      </View>
     </View>
   );
 }
@@ -185,6 +196,9 @@ export default memo(TrendBoard);
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 24,
+  },
+  list: {
+    height: ITEM_WIDTH * 1.2,
   },
   listContent: {
     paddingHorizontal: 8,
@@ -287,5 +301,16 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(255,255,255,0.3)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
   },
 });
