@@ -52,7 +52,7 @@ function SongItem({
       const itemHeight = itemWidth * 1.6;
       return { width: itemWidth, height: itemHeight };
     }
-    return { width: 180, height: 320 };
+    return { width: 180, height: 304 };
   };
 
   const dynamicStyle = calculateItemSize();

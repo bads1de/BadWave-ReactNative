@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   forYouSection: {
-    minHeight: 240,
+    minHeight: 320,
   },
   trendSection: {
     minHeight: 320,
