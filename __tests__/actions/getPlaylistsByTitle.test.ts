@@ -1,11 +1,11 @@
 // 実際のコードをモックする
+// モックを実装する
+import getPlaylistsByTitle from "@/actions/getPlaylistsByTitle";
+
 jest.mock("@/actions/getPlaylistsByTitle", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-// モックを実装する
-import getPlaylistsByTitle from "@/actions/getPlaylistsByTitle";
 
 // テスト前にモックを設定
 beforeEach(() => {

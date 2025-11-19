@@ -1,5 +1,8 @@
 import { mockFunctions } from "../../__mocks__/supabase";
 
+// インポート
+import getPlaylists from "../../actions/getPlaylists";
+
 // supabaseのモックを設定
 jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
 
@@ -14,9 +17,6 @@ mockGetSession.mockResolvedValue({
 
 // モックのチェーンを設定
 mockOrder.mockResolvedValue({ data: null, error: null });
-
-// インポート
-import getPlaylists from "../../actions/getPlaylists";
 
 describe("getPlaylists", () => {
   beforeEach(() => {

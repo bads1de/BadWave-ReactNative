@@ -1,6 +1,10 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 
+// インポート
+import SongItem from "@/components/item/SongItem";
+import { useRouter } from "expo-router";
+
 // モックの設定
 jest.mock("expo-router", () => ({
   useRouter: jest.fn().mockReturnValue({
@@ -31,10 +35,6 @@ jest.mock("@/components/common/MarqueeText", () => {
   };
   return MockMarqueeText;
 });
-
-// インポート
-import SongItem from "@/components/item/SongItem";
-import { useRouter } from "expo-router";
 
 describe("SongItem", () => {
   // テスト用のモックデータ

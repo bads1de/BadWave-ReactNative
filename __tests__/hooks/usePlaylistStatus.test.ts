@@ -1,4 +1,8 @@
 // 実際のコードをモックする
+// モックを実装する
+import usePlaylistStatus from "@/hooks/usePlaylistStatus";
+import Toast from "react-native-toast-message";
+
 jest.mock("@/hooks/usePlaylistStatus", () => ({
   __esModule: true,
   default: jest.fn(),
@@ -7,10 +11,6 @@ jest.mock("@/hooks/usePlaylistStatus", () => ({
 jest.mock("react-native-toast-message", () => ({
   show: jest.fn(),
 }));
-
-// モックを実装する
-import usePlaylistStatus from "@/hooks/usePlaylistStatus";
-import Toast from "react-native-toast-message";
 
 describe("usePlaylistStatus", () => {
   const playlists = [

@@ -1,5 +1,4 @@
 import getTopPlayedSongs from "../../actions/getTopPlayedSongs";
-import { supabase } from "../../lib/supabase";
 import { mockFunctions } from "../../__mocks__/supabase";
 
 // supabaseのモックを設定

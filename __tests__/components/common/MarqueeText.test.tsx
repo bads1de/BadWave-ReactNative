@@ -1,6 +1,5 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { Text } from "react-native";
 import MarqueeText from "@/components/common/MarqueeText";
 
 // モックの設定

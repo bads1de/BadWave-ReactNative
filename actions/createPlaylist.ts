@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-import Playlist from "@/types";
 
 /**
  * @fileoverview プレイリスト作成モジュール

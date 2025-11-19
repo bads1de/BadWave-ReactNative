@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import Song from "@/types";
 import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
 import { CACHED_QUERIES } from "@/constants";
 

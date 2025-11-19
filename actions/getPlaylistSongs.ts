@@ -1,6 +1,5 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
-import { Playlist } from "@/types";
 
 type PlaylistSong = Song & { songType: "regular" };
 

@@ -1,11 +1,11 @@
 // 実際のコードをモックする
+// モックを実装する
+import getPlaylistById from "@/actions/getPlaylistById";
+
 jest.mock("@/actions/getPlaylistById", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-// モックを実装する
-import getPlaylistById from "@/actions/getPlaylistById";
 
 // テスト前にモックを設定
 beforeEach(() => {

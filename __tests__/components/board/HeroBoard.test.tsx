@@ -1,5 +1,5 @@
 import React from "react";
-import { render, waitFor, act } from "@testing-library/react-native";
+import { render, act } from "@testing-library/react-native";
 import HeroBoard from "@/components/board/HeroBoard";
 
 jest.mock("expo-image", () => ({ ImageBackground: "ImageBackground" }));

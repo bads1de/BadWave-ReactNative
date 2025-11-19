@@ -1,11 +1,11 @@
 // 実際のコードをモックする
+// モックを実装する
+import getPublicPlaylists from "@/actions/getPublicPlaylists";
+
 jest.mock("@/actions/getPublicPlaylists", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-// モックを実装する
-import getPublicPlaylists from "@/actions/getPublicPlaylists";
 
 // テスト前にモックを設定
 beforeEach(() => {

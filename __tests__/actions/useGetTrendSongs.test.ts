@@ -1,11 +1,11 @@
 // 実際のコードをモックする
+// モックを実装する
+import getTrendSongs from "@/actions/useGetTrendSongs";
+
 jest.mock("@/actions/useGetTrendSongs", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-// モックを実装する
-import getTrendSongs from "@/actions/useGetTrendSongs";
 
 // テスト前にモックを設定
 beforeEach(() => {

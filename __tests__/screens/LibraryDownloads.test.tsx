@@ -1,7 +1,9 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+
+import Library from "@/app/(tabs)/library";
 
 // Libraryコンポーネントのモック
 jest.mock("@/app/(tabs)/library", () => {
@@ -60,8 +62,6 @@ jest.mock("@/app/(tabs)/library", () => {
   };
   return Library;
 });
-
-import Library from "@/app/(tabs)/library";
 
 // react-native-fsのモック
 jest.mock("react-native-fs", () => ({

@@ -13,7 +13,7 @@ import getSpotlights from "@/actions/getSpotlights";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../common/Loading";
 import Error from "../common/Error";
-import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
+import { Video, ResizeMode } from "expo-av";
 
 // 型定義
 interface SpotlightItem {

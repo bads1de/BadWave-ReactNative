@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useRef } from "react";
 import TrackPlayer, { Track } from "react-native-track-player";
 import Song from "../../types";
-import { PlayContext, PlayContextType, QueueState } from "./types";
-import { convertToTracks, logError, safeAsyncOperation } from "./utils";
+import { PlayContext, QueueState } from "./types";
+import { convertToTracks, safeAsyncOperation } from "./utils";
 
 /**
  * プレイヤーの状態管理を行うカスタムフック

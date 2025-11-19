@@ -1,11 +1,11 @@
 // 実際のコードをモックする
+// モックを実装する
+import usePlayHistory from "@/hooks/usePlayHistory";
+
 jest.mock("@/hooks/usePlayHistory", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-// モックを実装する
-import usePlayHistory from "@/hooks/usePlayHistory";
 
 describe("usePlayHistory", () => {
   const mockRecordPlay = jest.fn();

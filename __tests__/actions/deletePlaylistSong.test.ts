@@ -1,11 +1,11 @@
 // 実際のコードをモックする
+// モックを実装する
+import deletePlaylistSong from "@/actions/deletePlaylistSong";
+
 jest.mock("@/actions/deletePlaylistSong", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-// モックを実装する
-import deletePlaylistSong from "@/actions/deletePlaylistSong";
 
 // テスト前にモックを設定
 beforeEach(() => {

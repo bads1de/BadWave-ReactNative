@@ -13,8 +13,6 @@ import {
   usePlayerState,
   useQueueOperations,
   PlayContextType,
-  PlayContext,
-  logError,
   safeAsyncOperation,
 } from "@/hooks/TrackPlayer";
 

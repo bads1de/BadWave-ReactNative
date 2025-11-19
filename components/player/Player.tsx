@@ -250,14 +250,16 @@ const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
 
 const MediaBackground: FC<MediaBackgroundProps> = memo(
   ({ videoUrl, imageUrl }) => {
-    if (videoUrl) {
-      // useVideoPlayerを使用してビデオプレーヤーを作成
-      const player = useVideoPlayer({ uri: videoUrl }, (player) => {
+    // useVideoPlayerを使用してビデオプレーヤーを作成
+    const player = useVideoPlayer({ uri: videoUrl || undefined }, (player) => {
+      if (videoUrl) {
         player.muted = true;
         player.loop = true;
         player.play();
-      });
+      }
+    });
 
+    if (videoUrl) {
       return (
         <View style={styles.backgroundImage} testID="background-video">
           <VideoView
@@ -269,6 +271,7 @@ const MediaBackground: FC<MediaBackgroundProps> = memo(
         </View>
       );
     }
+
     return (
       <ImageBackground
         source={{ uri: imageUrl! }}
