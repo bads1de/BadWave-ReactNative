@@ -17,6 +17,19 @@ interface LikeButtonProps {
   size?: number;
 }
 
+/**
+ * @file LikeButton.tsx
+ * @description 曲に対する「いいね」機能を提供するボタンコンポーネントです。
+ *
+ * このコンポーネントは、ユーザーが曲に「いいね」を付けたり外したりする機能を提供します。
+ * ユーザーの認証状態を確認し、未認証の場合はログインを促します。
+ *
+ * @component
+ * @param {LikeButtonProps} props - コンポーネントのプロパティ
+ * @param {string} props.songId - いいね対象の曲ID
+ * @param {number} [props.size=24] - アイコンのサイズ
+ * @returns {JSX.Element} いいねボタン
+ */
 function LikeButton({ songId, size }: LikeButtonProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();

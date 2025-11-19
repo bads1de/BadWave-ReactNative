@@ -7,6 +7,15 @@ interface LoadingProps {
   testID?: string;
 }
 
+/**
+ * 画面中央にローディングインジケーターを表示するコンポーネントです。
+ *
+ * @param {LoadingProps} props - コンポーネントのプロパティ。
+ * @param {'small' | 'large' | number} [props.size='large'] - インジケーターのサイズ。
+ * @param {string} [props.color='#4c1d95'] - インジケーターの色。
+ * @param {string} [props.testID] - テスト用のID。
+ * @returns {JSX.Element} ローディングインジケーターコンポーネント。
+ */
 function Loading({ size, color = "#4c1d95", testID }: LoadingProps) {
   return (
     <View style={styles.container} testID={testID || "loading-container"}>

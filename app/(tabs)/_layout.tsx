@@ -9,6 +9,15 @@ import { useHeaderStore } from "@/hooks/useHeaderStore";
 import { useAudioStore } from "@/hooks/useAudioStore";
 import PlayerContainer from "@/components/player/PlayerContainer";
 
+/**
+ * @file _layout.tsx
+ * @description タブベースのナビゲーションレイアウトを定義するコンポーネントです。
+ *
+ * このコンポーネントは、アプリケーションの主要な3つのタブ（ホーム、検索、ライブラリ）の
+ * スタイル、アイコン、表示設定を構成します。
+ * また、グローバルなヘッダーとプレイヤーUI (`PlayerContainer`) の表示/非表示を
+ * 状態に応じて制御します。
+ */
 export default function TabLayout() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const showHeader = useHeaderStore((state) => state.showHeader);

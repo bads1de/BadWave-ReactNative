@@ -1,3 +1,9 @@
+/**
+ * @file AuthProvider.tsx
+ * @description
+ * 認証セッションを管理し、アプリケーション全体で認証状態を共有するためのプロバイダーコンポーネントです。
+ * Supabaseの認証状態の変更を監視し、セッション情報をアプリケーション全体に提供します。
+ */
 import React, {
   createContext,
   useContext,
@@ -11,12 +17,20 @@ import { useQueryClient } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 
 interface AuthProviderProps {
+  /** 現在の認証セッション */
   session: Session | null;
+  /** 認証セッションを更新する関数 */
   setSession: (session: Session | null) => void;
 }
 
 const AuthContext = createContext<AuthProviderProps | undefined>(undefined);
 
+/**
+ * 認証プロバイダーコンポーネント
+ * @param {object} props - プロパティ
+ * @param {ReactNode} props.children - 子要素
+ * @returns {JSX.Element}
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const queryClient = useQueryClient();
@@ -50,6 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * 認証コンテキストを使用するためのカスタムフックです。
+ * AuthProvider内で使用する必要があります。
+ * @returns {AuthProviderProps} 認証セッションとセッション更新関数を含むオブジェクト
+ * @throws {Error} AuthProviderの外部で使用された場合
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
 

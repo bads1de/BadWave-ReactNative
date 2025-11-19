@@ -2,15 +2,13 @@ import { supabase } from "@/lib/supabase";
 import { Playlist } from "@/types";
 
 /**
- * 指定ユーザーのプレイリスト一覧を取得する
+ * 現在のユーザーのプレイリスト一覧を取得する
  *
- * @param {string} userId ユーザーID
- * @returns {Promise<Playlist[]>} プレイリストの配列
- * @throws {Error} データベースクエリに失敗した場合
+ * @returns {Promise<Playlist[]>} プレイリストの配列。エラーが発生した場合は空の配列を返す。
  *
  * @example
  * ```typescript
- * const playlists = await getPlaylists('user-id-123');
+ * const playlists = await getPlaylists();
  * console.log(playlists);
  * ```
  */

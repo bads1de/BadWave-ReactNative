@@ -7,7 +7,15 @@ interface ErrorProps {
   testID?: string;
 }
 
-function Error({ message, testID }: ErrorProps) {
+/**
+ * エラーメッセージとアイコンを表示するコンポーネントです。
+ *
+ * @param {ErrorProps} props - コンポーネントのプロパティ。
+ * @param {string} [props.message='エラーが発生しました'] - 表示するエラーメッセージ。
+ * @param {string} [props.testID] - テスト用のID。
+ * @returns {JSX.Element} エラー表示コンポーネント。
+ */
+function Error({ message = "エラーが発生しました", testID }: ErrorProps) {
   return (
     <View style={styles.container} testID={testID || "error-container"}>
       <Ionicons name="alert-circle" size={24} color="#ef4444" />

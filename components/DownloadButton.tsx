@@ -16,8 +16,18 @@ interface DownloadButtonProps {
 }
 
 /**
- * 曲のダウンロード/削除ボタンコンポーネント
- * 曲がダウンロード済みかどうかによって表示を切り替える
+ * 曲のダウンロード状態に応じて、ダウンロードまたは削除の機能を提供するボタンコンポーネントです。
+ *
+ * - 曲がダウンロード済みの場合：削除アイコンを表示し、タップで端末から曲を削除します。
+ * - 曲が未ダウンロードの場合：ダウンロードアイコンを表示し、タップで曲をダウンロードします。
+ * - 処理中：ローディングインジケーターを表示します。
+ *
+ * @param {DownloadButtonProps} props - コンポーネントのプロパティ
+ * @param {Song} props.song - 対象の曲オブジェクト
+ * @param {number} [props.size=24] - アイコンのサイズ
+ * @param {string} [props.color='white'] - アイコンの色
+ * @param {object} [props.style={}] - ボタンに適用する追加のスタイル
+ * @returns {JSX.Element} ダウンロード/削除ボタン
  */
 function DownloadButtonComponent({
   song,

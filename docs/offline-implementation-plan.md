@@ -36,91 +36,44 @@ badwave-mobile は音楽ストリーミング・再生アプリケーション�
 
 **実装済み:**
 
-- [`services/OfflineStorageService.ts`](services/OfflineStorageService.ts): 曲とアートワークのダウンロード・削除・メタデータ管理
-- [`components/DownloadButton.tsx`](components/DownloadButton.tsx): ダウンロード/削除の UI コンポーネント
-- [`hooks/useDownloadStatus.ts`](hooks/useDownloadStatus.ts): ダウンロード状態の管理
-- [`hooks/useDownloadedSongs.ts`](hooks/useDownloadedSongs.ts): ダウンロード済み曲の取得
-
-**技術仕様:**
-
-```typescript
-// OfflineStorageService の主要機能
-class OfflineStorageService {
-  - downloadSong(song): Promise<{success, error?}>
-  - deleteSong(songId): Promise<{success, error?}>
-  - getDownloadedSongs(): Promise<Song[]>
-  - isSongDownloaded(songId): Promise<boolean>
-  - getSongLocalPath(songId): Promise<string | null>
-  - clearAllDownloads(): Promise<{success, error?}>
-}
-```
+- [`services/OfflineStorageService.ts`](services/OfflineStorageService.ts): 曲とアートワークのダウンロード・削除・メタデータ管理を行うサービス。
+- [`components/DownloadButton.tsx`](components/DownloadButton.tsx): ダウンロード UI。
+- `hooks/useDownloadStatus.ts`, `hooks/useDownloadedSongs.ts`: ダウンロード状態と曲リストを管理するフック。
 
 **不足点:**
 
-- バッチダウンロード機能なし
-- ダウンロード進捗の詳細表示なし（開始/完了のみ）
-- Wi-Fi 専用ダウンロード設定なし
-- ダウンロード失敗時のリトライ機能なし
+- バッチダウンロード、ダウンロード進捗の詳細表示、Wi-Fi 専用設定、失敗時リトライ機能。
 
 #### ✅ ローカル再生（完成度 100%）
 
 **実装済み:**
 
-- [`services/PlayerService.ts`](services/PlayerService.ts): react-native-track-player の初期化と設定
-- [`hooks/TrackPlayer/utils.ts`](hooks/TrackPlayer/utils.ts:24-48): ローカルファイルパスの自動検出と使用
-- TrackPlayer がローカルファイルとリモート URL の両方に対応
-
-**技術仕様:**
-
-```typescript
-// convertSongToTrack の動作
-async function convertSongToTrack(song: Song): Promise<Track> {
-  const localPath = await storage.getSongLocalPath(song.id);
-  return {
-    url: localPath || song.song_path, // ローカル優先
-    // ...その他のメタデータ
-  };
-}
-```
+- `react-native-track-player` が、ローカルファイルパスを自動的に検知して再生するロジック (`hooks/TrackPlayer/utils.ts`) を実装済み。
+- 曲オブジェクトをプレイヤーに渡す際、ローカルの音源パスが存在すればリモート URL より優先して使用する。
 
 #### ✅ MMKV ストレージ（完成度 90%）
 
 **実装済み:**
 
-- [`lib/mmkv-storage.ts`](lib/mmkv-storage.ts): アプリ全体のストレージ（`id: "app-storage"`）
-- [`services/OfflineStorageService.ts`](services/OfflineStorageService.ts:16-18): オフライン専用ストレージ（`id: "offline-storage"`）
-- [`lib/mmkv-persister.ts`](lib/mmkv-persister.ts): React Query 永続化用アダプター
+- 高速な Key-Value ストアである MMKV を、アプリ全体のストレージやオフラインデータ用ストレージとして導入済み。
+- React Query のキャッシュ永続化用アダプターとしても機能している。
 
 **不足点:**
 
-- AsyncStorage が一部で併用されている（[`providers/AuthProvider.tsx`](providers/AuthProvider.tsx)）
-- 完全な MMKV 移行が未完了
+- 認証セッションの永続化に、一部`AsyncStorage`が残っている。
 
 #### ✅ React Query 永続化（完成度 100%）
 
 **実装済み:**
 
-- [`app/_layout.tsx`](app/_layout.tsx:61-74): `PersistQueryClientProvider`を使用
-- キャッシュ保持期間: 24 時間
-- オンライン復帰時の自動再取得
-
-**設定:**
-
-```typescript
-// React Query 設定
-{
-  staleTime: 1000 * 60 * 10,  // 10分
-  gcTime: 1000 * 60 * 30,      // 30分
-  persistMaxAge: 1000 * 60 * 60 * 24 // 24時間
-}
-```
+- `PersistQueryClientProvider`により、React Query で取得したサーバーデータは MMKV に 24 時間キャッシュされる。
+- これにより、オフライン時でも以前読み込んだデータを表示可能。
 
 #### ⚠️ 認証永続化（部分実装）
 
 **現状:**
 
-- Supabase の認証は AsyncStorage を使用
-- 認証トークンは永続化されているが、MMKV に移行されていない
+- Supabase の認証トークンは`AsyncStorage`を使用して永続化されている。完全なオフライン対応とパフォーマンス向上のため、MMKV への移行が望ましい。
 
 ### 強みと弱み
 

@@ -8,19 +8,15 @@ import { supabase } from "@/lib/supabase";
 /**
  * 新しいプレイリストを作成する
  *
- * @param {string} userId ユーザーID
  * @param {string} title プレイリストタイトル
- * @param {boolean} isPublic 公開設定
- * @returns {Promise<Playlist>} 作成されたプレイリスト
- * @throws {Error} データベースクエリに失敗した場合
+ * @returns {Promise<void>}
+ * @throws {Error} ユーザーが認証されていない場合、またはデータベースクエリに失敗した場合
  *
  * @example
  * ```typescript
- * const playlist = await createPlaylist('user-id-123', 'My Playlist');
- * console.log(playlist);
+ * await createPlaylist('My New Playlist');
  * ```
  */
-
 const createPlaylist = async (title: string): Promise<void> => {
   const {
     data: { session },

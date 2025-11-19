@@ -36,6 +36,18 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * @file _layout.tsx
+ * @description アプリケーションのルートレイアウトコンポーネントです。
+ *
+ * このコンポーネントは、アプリケーション全体で利用される以下の機能を提供・設定します。
+ * - React Query (TanStack Query) とキャッシュの永続化設定 (`PersistQueryClientProvider`)
+ * - 認証状態のグローバル管理 (`AuthProvider`)
+ * - ジェスチャーハンドリング (`GestureHandlerRootView`)
+ * - グローバルな認証モーダルとトースト通知コンポーネントの配置
+ * - `react-native-track-player` のサービス登録とプレイヤーの初期セットアップ
+ * - ヘッダーを非表示にするための `Stack` のデフォルト設定
+ */
 export default function RootLayout() {
   const showAuthModal = useAuthStore((state) => state.showAuthModal);
   const [isPlayerReady, setIsPlayerReady] = useState(false);

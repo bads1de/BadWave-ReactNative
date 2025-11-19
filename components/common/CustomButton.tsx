@@ -16,6 +16,19 @@ interface CustomButtonProps extends TouchableOpacityProps {
   testID?: string;
 }
 
+/**
+ * アクティブ/非アクティブの状態でスタイルが変化する、カスタマイズ可能なボタンコンポーネントです。
+ *
+ * @param {CustomButtonProps} props - コンポーネントのプロパティ。`TouchableOpacityProps` を拡張します。
+ * @param {string} props.label - ボタンに表示されるテキスト。
+ * @param {boolean} props.isActive - ボタンがアクティブ状態かどうか。
+ * @param {object} [props.activeStyle] - アクティブ状態の時のボタンスタイル。
+ * @param {object} [props.inactiveStyle] - 非アクティブ状態の時のボタンスタイル。
+ * @param {object} [props.activeTextStyle] - アクティブ状態の時のテキストスタイル。
+ * @param {object} [props.inactiveTextStyle] - 非アクティブ状態の時のテキストスタイル。
+ * @param {string} [props.testID] - テスト用のID。
+ * @returns {JSX.Element} カスタムボタンコンポーネント。
+ */
 function CustomButton({
   label,
   isActive,

@@ -18,6 +18,21 @@ import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
 
+/**
+ * @file index.tsx
+ * @description アプリケーションのホーム画面コンポーネントです。
+ *
+ * この画面では、以下のセクションをスクロール形式で表示します。
+ * - ヒーローセクション (`HeroBoard`)
+ * - トレンド (`TrendBoard`)
+ * - あなたへのおすすめ (`ForYouBoard`)
+ * - スポットライト (`SpotlightBoard`)
+ * - プレイリスト (`PlaylistBoard`)
+ * - 全ての曲リスト
+ *
+ * 各セクションのタイトルと、曲リストの表示および再生機能を提供します。
+ * データ取得中のローディング状態やエラー状態もハンドリングします。
+ */
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const {

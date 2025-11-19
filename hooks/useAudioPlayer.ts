@@ -17,11 +17,40 @@ import {
 } from "@/hooks/TrackPlayer";
 
 /**
- * オーディオプレイヤーの状態管理と操作を行うカスタムフック
- * @param songs 再生可能な曲リスト
- * @param contextType 再生コンテキストタイプ
- * @param contextId コンテキストID
- * @param sectionId セクションID
+ * オーディオプレイヤーの状態管理と操作を行うカスタムフックです。
+ * `react-native-track-player` と Zustand ストアをラップし、再生、一時停止、
+ * 曲の切り替え、シーク、リピート、シャッフルなどの機能を提供します。
+ *
+ * @param {Song[]} songs - 再生キューの元となる曲のリスト。
+ * @param {PlayContextType} [contextType=null] - 再生コンテキストの種類（例: "playlist", "album"）。
+ * @param {string} [contextId] - 再生コンテキストのID（例: プレイリストID）。
+ * @param {string} [sectionId] - コンテキスト内のセクションID。
+ * @returns {{
+ *   currentSong: Song | null | undefined,
+ *   isPlaying: boolean,
+ *   repeatMode: RepeatMode,
+ *   shuffle: boolean,
+ *   progressPosition: number,
+ *   progressDuration: number,
+ *   togglePlayPause: (song?: Song, contextId?: string, contextType?: PlayContextType) => Promise<boolean | undefined>,
+ *   seekTo: (millis: number) => Promise<boolean | undefined>,
+ *   playNextSong: () => Promise<boolean | undefined>,
+ *   playPrevSong: () => Promise<boolean | undefined>,
+ *   setRepeat: (mode: RepeatMode) => Promise<boolean | undefined>,
+ *   setShuffle: () => Promise<boolean>
+ * }} オーディオプレイヤーの状態と操作関数を含むオブジェクト。
+ *   - `currentSong`: 現在再生中の曲オブジェクト。
+ *   - `isPlaying`: 現在再生中かどうかを示す真偽値。
+ *   - `repeatMode`: 現在のリピートモード (`Off`, `Track`, `Queue`)。
+ *   - `shuffle`: 現在シャッフルモードが有効かどうかを示す真偽値。
+ *   - `progressPosition`: 現在の再生位置（ミリ秒）。
+ *   - `progressDuration`: 現在の曲の総再生時間（ミリ秒）。
+ *   - `togglePlayPause`: 曲の再生・一時停止を切り替えます。
+ *   - `seekTo`: 指定した再生位置に移動します。
+ *   - `playNextSong`: キューの次の曲を再生します。
+ *   - `playPrevSong`: キューの前の曲を再生します。
+ *   - `setRepeat`: リピートモードを設定します。
+ *   - `setShuffle`: シャッフルモードのオン・オフを切り替えます。
  */
 export function useAudioPlayer(
   songs: Song[] = [],
