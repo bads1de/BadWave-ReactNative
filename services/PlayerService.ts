@@ -90,11 +90,9 @@ async function isPlayerServiceRunning(): Promise<boolean> {
   try {
     const playbackState = await TrackPlayer.getPlaybackState();
     return playbackState.state !== State.None;
-  } catch (error) {
-    console.error(
-      "プレイヤーのサービスが実行中かどうかをチェックする際に失敗しました:",
-      error
-    );
+  } catch {
+    // プレイヤーが初期化されていない場合、エラーが発生するのは正常な動作
+    // エラーログを出力せず、falseを返す
     return false;
   }
 }
