@@ -72,6 +72,8 @@ const TopPlayedSongItem = memo(
   }
 );
 
+TopPlayedSongItem.displayName = "TopPlayedSongItem";
+
 function TopPlayedSongsList() {
   const { data: user } = useUser();
   const userId = user?.id;

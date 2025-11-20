@@ -22,6 +22,9 @@ function PlayerContainer() {
   // メインプレイヤーの状態
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const setShowPlayer = usePlayerStore((state) => state.setShowPlayer);
+  const isMiniPlayerVisible = usePlayerStore(
+    (state) => state.isMiniPlayerVisible
+  );
   const currentSong = useAudioStore((state) => state.currentSong);
   const repeatMode = useAudioStore((state) => state.repeatMode);
   const shuffle = useAudioStore((state) => state.shuffle);
@@ -77,14 +80,16 @@ function PlayerContainer() {
               />
             </View>
           ) : (
-            <View style={styles.miniPlayerContainer}>
-              <MiniPlayer
-                currentSong={currentSong}
-                isPlaying={isPlaying}
-                onPlayPause={() => togglePlayPause()}
-                onPress={() => setShowPlayer(true)}
-              />
-            </View>
+            isMiniPlayerVisible && (
+              <View style={styles.miniPlayerContainer}>
+                <MiniPlayer
+                  currentSong={currentSong}
+                  isPlaying={isPlaying}
+                  onPlayPause={() => togglePlayPause()}
+                  onPress={() => setShowPlayer(true)}
+                />
+              </View>
+            )
           )}
         </>
       )}
@@ -95,7 +100,7 @@ function PlayerContainer() {
 // カスタム比較関数を使用して、必要な場合のみ再レンダリングする
 const MemoizedPlayerContainer = memo(
   PlayerContainer,
-  (prevProps, nextProps) => {
+  (_prevProps, _nextProps) => {
     // PlayerContainerはプロップを受け取らないため、常に同じとみなす
     return true;
   }

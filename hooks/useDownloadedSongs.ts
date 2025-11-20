@@ -3,6 +3,16 @@ import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
 import { CACHED_QUERIES } from "@/constants";
 
 /**
+ * エラーオブジェクトを文字列メッセージに変換する
+ * @param error - エラーオブジェクト
+ * @returns エラーメッセージ文字列、またはnull
+ */
+function formatErrorMessage(error: unknown): string | null {
+  if (!error) return null;
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
  * ダウンロード済みの曲を取得するカスタムフック
  * @returns ダウンロード済みの曲一覧と状態
  */
@@ -30,11 +40,7 @@ export function useDownloadedSongs() {
   return {
     songs,
     isLoading,
-    error: error
-      ? error instanceof Error
-        ? error.message
-        : String(error)
-      : null,
+    error: formatErrorMessage(error),
     refresh: refetch,
   };
 }

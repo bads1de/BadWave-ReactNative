@@ -1,11 +1,5 @@
 import { useEffect, memo } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import MarqueeText from "@/components/common/MarqueeText";
 import Animated, {
   useSharedValue,
@@ -85,8 +79,6 @@ function ModernMiniPlayer({
     </Animated.View>
   );
 }
-
-const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {

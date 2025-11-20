@@ -1,9 +1,6 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { renderHook, act } from "@testing-library/react";
-import {
-  usePlayerState,
-  useQueueOperations,
-} from "@/hooks/TrackPlayer/hooks";
+import { usePlayerState, useQueueOperations } from "@/hooks/TrackPlayer/hooks";
 import TrackPlayer, { Track } from "react-native-track-player";
 import Song from "@/types";
 import { PlayContext } from "@/hooks/TrackPlayer/types";
@@ -102,9 +99,7 @@ describe("TrackPlayer hooks", () => {
     });
 
     it("曲配列からsongMapを正しく生成する", () => {
-      const { result } = renderHook(() =>
-        usePlayerState({ songs: mockSongs })
-      );
+      const { result } = renderHook(() => usePlayerState({ songs: mockSongs }));
 
       expect(result.current.songMap).toEqual({
         "song-1": mockSongs[0],
@@ -161,26 +156,18 @@ describe("TrackPlayer hooks", () => {
 
   describe("useQueueOperations", () => {
     const setIsPlaying = jest.fn();
-    const songMap = mockSongs.reduce(
-      (acc, song) => {
-        acc[song.id] = song;
-        return acc;
-      },
-      {} as Record<string, Song>
-    );
-    const trackMap = mockTracks.reduce(
-      (acc, track) => {
-        acc[track.id as string] = track;
-        return acc;
-      },
-      {} as Record<string, Track>
-    );
+    const songMap = mockSongs.reduce((acc, song) => {
+      acc[song.id] = song;
+      return acc;
+    }, {} as Record<string, Song>);
+    const trackMap = mockTracks.reduce((acc, track) => {
+      acc[track.id as string] = track;
+      return acc;
+    }, {} as Record<string, Track>);
 
     describe("getQueueState", () => {
       it("初期状態のキュー情報を取得する", () => {
-        const { result } = renderHook(() =>
-          useQueueOperations(setIsPlaying, songMap, trackMap)
-        );
+        const { result } = renderHook(() => useQueueOperations(setIsPlaying));
 
         const state = result.current.getQueueState();
 
@@ -848,13 +835,10 @@ describe("TrackPlayer hooks", () => {
           created_at: "2023-01-01T00:00:00.000Z",
         }));
 
-        const largeSongMap = largeSongList.reduce(
-          (acc, song) => {
-            acc[song.id] = song;
-            return acc;
-          },
-          {} as Record<string, Song>
-        );
+        const largeSongMap = largeSongList.reduce((acc, song) => {
+          acc[song.id] = song;
+          return acc;
+        }, {} as Record<string, Song>);
 
         const { result } = renderHook(() =>
           useQueueOperations(setIsPlaying, largeSongMap, trackMap)

@@ -24,7 +24,7 @@ interface SubPlayerProps {
 }
 
 function SubPlayerInner({ onClose }: SubPlayerProps) {
-    const songs = useSubPlayerStore((state) => state.songs);
+  const songs = useSubPlayerStore((state) => state.songs);
   const currentSongIndex = useSubPlayerStore((state) => state.currentSongIndex);
   const setCurrentSongIndex = useSubPlayerStore(
     (state) => state.setCurrentSongIndex
@@ -36,7 +36,6 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
     currentPosition,
     duration,
     stopAndUnloadCurrentSound,
-    isPlaying,
     togglePlayPause,
     seekTo,
   } = useSubPlayerAudio();

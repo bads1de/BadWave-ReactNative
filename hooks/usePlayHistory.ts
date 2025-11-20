@@ -25,7 +25,7 @@ const usePlayHistory = () => {
         console.error("再生の記録中にエラーが発生しました:", error);
       }
     },
-    [supabase, user?.id]
+    [user?.id]
   );
 
   return { recordPlay };

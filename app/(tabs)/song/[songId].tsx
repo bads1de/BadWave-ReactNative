@@ -36,7 +36,7 @@ export default function SongDetailScreen() {
     enabled: !!songId,
   });
 
-  const songsArray = useMemo(() => (song ? [song] : []), [song?.id]);
+  const songsArray = useMemo(() => (song ? [song] : []), [song]);
 
   const { isPlaying, currentSong, togglePlayPause } =
     useAudioPlayer(songsArray);

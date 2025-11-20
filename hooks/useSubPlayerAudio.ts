@@ -518,7 +518,7 @@ export function useSubPlayerAudio() {
             }
           }, 300); // タイミングを少し長めに設定して安定性を確保
         })
-        .catch((error) => {
+        .catch(() => {
           // エラーが発生しても再度読み込みを試行
           setTimeout(() => {
             if (isMounted.current) {

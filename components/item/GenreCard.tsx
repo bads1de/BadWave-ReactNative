@@ -79,7 +79,6 @@ const backgroundImages = {
 const GenreCardInner: React.FC<GenreCardProps> = ({ genre }) => {
   const router = useRouter();
   const scale = useSharedValue(1);
-  const rotate = useSharedValue("0deg");
   const glowOpacity = useSharedValue(0.3);
   const translateY = useSharedValue(0);
 

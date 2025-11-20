@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import getSongs from "@/actions/getSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
-import SpotlightBoard from "@/components/board/SpotlightBoard";
+
 import { CACHED_QUERIES } from "@/constants";
 import SongItem from "@/components/item/SongItem";
 import TrendBoard from "@/components/board/TrendBoard";
@@ -112,11 +112,6 @@ export default function HomeScreen() {
           <View style={styles.forYouSection}>
             <ForYouBoard />
           </View>
-        </View>
-
-        {renderSectionTitle("Spotlights", "flash")}
-        <View style={styles.sectionContent}>
-          <SpotlightBoard />
         </View>
 
         {renderSectionTitle("Playlists", "list")}

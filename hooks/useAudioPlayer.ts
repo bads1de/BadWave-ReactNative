@@ -55,8 +55,7 @@ import {
 export function useAudioPlayer(
   songs: Song[] = [],
   contextType: PlayContextType = null,
-  contextId?: string,
-  sectionId?: string
+  contextId?: string
 ) {
   const { songMap } = usePlayerState({ songs });
   const onPlay = useOnPlay();
@@ -108,13 +107,8 @@ export function useAudioPlayer(
     [playbackState.state]
   );
 
-  const {
-    updateQueueWithContext,
-    toggleShuffle,
-    queueState,
-    getQueueState,
-    updateQueueState,
-  } = useQueueOperations(setTrackPlayerIsPlaying, songMap, {});
+  const { updateQueueWithContext, toggleShuffle, updateQueueState } =
+    useQueueOperations(setTrackPlayerIsPlaying);
 
   /**
    * アクティブトラックが変更されたときの処理
@@ -134,7 +128,7 @@ export function useAudioPlayer(
     setCurrentSong(song);
 
     // キューの状態を更新
-    updateQueueState((state) => ({
+    updateQueueState(() => ({
       lastProcessedTrackId: song.id,
       currentSongId: song.id,
     }));
@@ -164,11 +158,14 @@ export function useAudioPlayer(
   const togglePlayPause = useCallback(
     async (
       song?: Song,
-      contextId?: string,
-      contextType: PlayContextType = "home"
+      overrideContextId?: string,
+      overrideContextType?: PlayContextType
     ) => {
       // 再生可能な曲がない場合は何もしない
       if (!song && !currentSong) return;
+
+      const activeContextType = overrideContextType ?? contextType ?? "home";
+      const activeContextId = overrideContextId ?? contextId;
 
       return safeAsyncOperation(async () => {
         // ケース1: 同じ曲の再生/一時停止切り替え
@@ -185,7 +182,7 @@ export function useAudioPlayer(
             return false;
           }
 
-          const context = { type: contextType, id: contextId };
+          const context = { type: activeContextType, id: activeContextId };
 
           // キューを更新して再生開始
           await updateQueueWithContext(songs, context, songIndex);
@@ -204,6 +201,8 @@ export function useAudioPlayer(
       onPlay,
       songs,
       updateCurrentSongAndState,
+      contextType,
+      contextId,
     ]
   );
 

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
-import TrackPlayer, { Track } from "react-native-track-player";
+import TrackPlayer from "react-native-track-player";
 import Song from "../../types";
 import { PlayContext, QueueState } from "./types";
 import { convertToTracks, safeAsyncOperation } from "./utils";
@@ -23,11 +23,7 @@ export function usePlayerState({ songs }: { songs: Song[] }) {
 /**
  * キュー操作フック
  */
-export function useQueueOperations(
-  setIsPlaying: (isPlaying: boolean) => void,
-  songMap: Record<string, Song>,
-  trackMap: Record<string, Track>
-) {
+export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
   // キューの状態管理
   const queueContext = useRef<QueueState>({
     isShuffleEnabled: false,
@@ -74,7 +70,7 @@ export function useQueueOperations(
    * キューをシャッフルする
    */
   const shuffleQueue = useCallback(async () => {
-    const handleError = (error: unknown) => setIsPlaying(false);
+    const handleError = () => setIsPlaying(false);
 
     return safeAsyncOperation(
       async () => {
@@ -86,7 +82,7 @@ export function useQueueOperations(
 
         // 現在のキューを保存
         const queue = await TrackPlayer.getQueue();
-        updateQueueState((state) => ({ originalQueue: [...queue] }));
+        updateQueueState(() => ({ originalQueue: [...queue] }));
 
         // 現在の曲を除外してシャッフル
         const remainingTracks = queue.filter(
@@ -111,7 +107,7 @@ export function useQueueOperations(
         const newQueue = [currentTrack, ...shuffledTracks];
 
         // キューの状態を更新
-        updateQueueState((state) => ({
+        updateQueueState(() => ({
           currentQueue: newQueue.map((track) => ({
             id: track.id as string,
           })),
@@ -129,7 +125,7 @@ export function useQueueOperations(
    * シャッフルを解除して元のキュー順序に戻す
    */
   const unshuffleQueue = useCallback(async () => {
-    const handleError = (error: unknown) => setIsPlaying(false);
+    const handleError = () => setIsPlaying(false);
 
     return safeAsyncOperation(
       async () => {
@@ -160,7 +156,7 @@ export function useQueueOperations(
         await TrackPlayer.add(remainingTracks);
 
         // シャッフルされたキューを保存
-        updateQueueState((state) => ({
+        updateQueueState(() => ({
           currentQueue: [
             { id: currentTrack.id as string },
             ...remainingTracks.map((track) => ({ id: track.id as string })),
@@ -195,7 +191,7 @@ export function useQueueOperations(
    */
   const updateQueueWithContext = useCallback(
     async (songs: Song[], context: PlayContext, startIndex: number = 0) => {
-      const handleError = (error: unknown) => setIsPlaying(false);
+      const handleError = () => setIsPlaying(false);
 
       return safeAsyncOperation(
         async () => {
@@ -218,7 +214,7 @@ export function useQueueOperations(
           }
 
           // コンテキスト情報を更新
-          updateQueueState((state) => ({
+          updateQueueState(() => ({
             context,
             originalQueue: tracks,
             currentQueue: tracks.map((track) => ({
@@ -261,7 +257,7 @@ export function useQueueOperations(
 
         // キューの状態を更新
         const queue = await TrackPlayer.getQueue();
-        updateQueueState((state) => ({
+        updateQueueState(() => ({
           currentQueue: queue.map((track) => ({
             id: track.id as string,
           })),

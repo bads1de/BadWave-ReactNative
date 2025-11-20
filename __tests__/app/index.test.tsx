@@ -3,7 +3,7 @@ import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import HomeScreen from "@/app/(tabs)/index";
 
-jest.mock("@/components/board/SpotlightBoard", () => ({ __esModule: true, default: () => null }));
+
 jest.mock("@/components/item/SongItem", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/board/TrendBoard", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/Loading", () => ({ __esModule: true, default: () => null }));

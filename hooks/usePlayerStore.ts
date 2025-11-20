@@ -6,14 +6,17 @@ import { create } from "zustand";
  */
 type PlayerState = {
   showPlayer: boolean;
+  isMiniPlayerVisible: boolean;
 };
 
 /**
  * @typedef {object} PlayerActions
  * @property {(value: boolean) => void} setShowPlayer - プレイヤーUIの表示状態を設定する
+ * @property {(value: boolean) => void} setIsMiniPlayerVisible - ミニプレイヤーの表示状態を設定する
  */
 type PlayerActions = {
   setShowPlayer: (value: boolean) => void;
+  setIsMiniPlayerVisible: (value: boolean) => void;
 };
 
 /**
@@ -23,4 +26,6 @@ type PlayerActions = {
 export const usePlayerStore = create<PlayerState & PlayerActions>((set) => ({
   showPlayer: false,
   setShowPlayer: (value) => set({ showPlayer: value }),
+  isMiniPlayerVisible: true,
+  setIsMiniPlayerVisible: (value) => set({ isMiniPlayerVisible: value }),
 }));

@@ -88,6 +88,7 @@ describe("PlayerContainer", () => {
     usePlayerStore.mockImplementation((selector) => selector({
       showPlayer: false,
       setShowPlayer: jest.fn(),
+      isMiniPlayerVisible: true, // 追加
     }));
 
     useSubPlayerStore.mockImplementation((selector) => selector({

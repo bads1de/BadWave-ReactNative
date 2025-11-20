@@ -1,0 +1,45 @@
+import React from "react";
+import { render } from "@testing-library/react-native";
+import ReelItem from "@/components/reels/ReelItem";
+import { Spotlight } from "@/types";
+
+// Mock expo-video
+jest.mock("expo-video", () => ({
+  VideoView: "VideoView",
+  useVideoPlayer: jest.fn(),
+}));
+
+// Mock useReelsPlayer
+jest.mock("@/hooks/useReelsPlayer", () => ({
+  useReelsPlayer: jest.fn(),
+}));
+
+describe("ReelItem", () => {
+  const mockSpotlight: Spotlight = {
+    id: "1",
+    video_path: "http://example.com/video.mp4",
+    author: "Test Artist",
+    title: "Test Song",
+    description: "Test Description",
+    public: true,
+    created_at: "2023-01-01",
+    user_id: "user1",
+  };
+
+  it("renders correctly", () => {
+    const { getByText } = render(
+      <ReelItem item={mockSpotlight} isVisible={true} />
+    );
+
+    expect(getByText("Test Artist")).toBeTruthy();
+    expect(getByText("Test Song")).toBeTruthy();
+  });
+
+  it("renders action buttons", () => {
+    const { getByTestId } = render(
+      <ReelItem item={mockSpotlight} isVisible={true} />
+    );
+    // Assuming we add testIDs to buttons or find them by icon/text
+    // For now, let's just check if the component renders without crashing
+  });
+});

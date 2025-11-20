@@ -40,7 +40,7 @@ const useOnPlay = () => {
         const newCount = Number(songData.count) + 1;
 
         // 3. 更新を実行
-        const { data: updatedData, error: updateError } = await supabase
+        const { error: updateError } = await supabase
           .from("songs")
           .update({ count: newCount })
           .eq("id", id)

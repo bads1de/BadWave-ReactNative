@@ -124,6 +124,7 @@ const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => (
     <LikeButton songId={currentSong.id} />
   </View>
 ));
+SongInfo.displayName = "SongInfo";
 
 const Progress: FC<ProgressProps> = memo(({ position, duration, onSeek }) => (
   <>
@@ -144,6 +145,7 @@ const Progress: FC<ProgressProps> = memo(({ position, duration, onSeek }) => (
     </View>
   </>
 ));
+Progress.displayName = "Progress";
 
 const Controls: FC<ControlsProps> = memo(
   ({
@@ -196,6 +198,7 @@ const Controls: FC<ControlsProps> = memo(
     </View>
   )
 );
+Controls.displayName = "Controls";
 
 const ControlButton: FC<ControlButtonProps> = memo(
   ({ icon, isActive, onPress, repeatMode, testID }) => {
@@ -231,6 +234,7 @@ const ControlButton: FC<ControlButtonProps> = memo(
     );
   }
 );
+ControlButton.displayName = "ControlButton";
 
 const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
   ({ isPlaying, onPress }) => (
@@ -247,6 +251,7 @@ const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
     </TouchableOpacity>
   )
 );
+PlayPauseButton.displayName = "PlayPauseButton";
 
 const MediaBackground: FC<MediaBackgroundProps> = memo(
   ({ videoUrl, imageUrl }) => {
@@ -282,6 +287,7 @@ const MediaBackground: FC<MediaBackgroundProps> = memo(
     );
   }
 );
+MediaBackground.displayName = "MediaBackground";
 
 const PlayerControls: FC<PlayerProps> = memo(
   ({
@@ -314,6 +320,7 @@ const PlayerControls: FC<PlayerProps> = memo(
     </>
   )
 );
+PlayerControls.displayName = "PlayerControls";
 
 /**
  * メインプレーヤーコンポーネント
@@ -398,6 +405,7 @@ const MemoizedPlayer = memo(Player, (prevProps, nextProps) => {
     prevProps.shuffle === nextProps.shuffle
   );
 });
+MemoizedPlayer.displayName = "Player";
 
 export default MemoizedPlayer;
 

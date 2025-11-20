@@ -93,3 +93,5 @@ export const ToastComponent = memo(() => (
     bottomOffset={80}
   />
 ));
+
+ToastComponent.displayName = "ToastComponent";
