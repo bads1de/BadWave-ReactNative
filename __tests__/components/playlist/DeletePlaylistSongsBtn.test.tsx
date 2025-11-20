@@ -96,6 +96,11 @@ describe("DeletePlaylistSongsBtn", () => {
   });
 
   it("disables button while deleting", async () => {
+    // 遅延をシミュレート
+    deletePlaylistSong.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100))
+    );
+
     const { getByTestId } = render(
       <DeletePlaylistSongsBtn
         songId="song1"
@@ -108,7 +113,16 @@ describe("DeletePlaylistSongsBtn", () => {
     const button = getByTestId("delete-playlist-song-button");
     fireEvent.press(button);
 
-    // ボタンが無効化されていることを確認
-    expect(button.props.disabled).toBeTruthy();
+    // 即座に無効化されていることを確認
+    await waitFor(() => {
+      const updatedButton = getByTestId("delete-playlist-song-button");
+      expect(
+        updatedButton.props.disabled ||
+          updatedButton.props.accessibilityState?.disabled
+      ).toBeTruthy();
+    });
+
+    // 処理完了を待つ
+    await waitFor(() => expect(deletePlaylistSong).toHaveBeenCalled());
   });
 });

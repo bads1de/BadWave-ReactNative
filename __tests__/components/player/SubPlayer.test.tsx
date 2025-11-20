@@ -4,11 +4,6 @@ import SubPlayer from "@/components/player/SubPlayer";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 import { useSubPlayerAudio } from "@/hooks/useSubPlayerAudio";
 
-// @expo/vector-iconsのモック
-jest.mock("@expo/vector-icons", () => ({
-  Ionicons: "Ionicons",
-}));
-
 // expo-avのモック
 jest.mock("expo-av", () => ({
   Audio: {
@@ -22,32 +17,6 @@ jest.mock("expo-av", () => ({
   },
   InterruptionModeAndroid: {
     DoNotMix: 0,
-  },
-}));
-
-// Expo関連のモック
-jest.mock("expo-image", () => {
-  const React = require("react");
-  const { View } = require("react-native");
-  return {
-    ImageBackground: ({ children, testID }: any) =>
-      React.createElement(View, { testID: testID || "image-background" }, children),
-  };
-});
-
-jest.mock("expo-linear-gradient", () => ({
-  LinearGradient: ({ children, testID }: any) => {
-    const React = require("react");
-    const { View } = require("react-native");
-    return React.createElement(View, { testID: testID || "linear-gradient" }, children);
-  },
-}));
-
-jest.mock("expo-blur", () => ({
-  BlurView: ({ children, testID }: any) => {
-    const React = require("react");
-    const { View } = require("react-native");
-    return React.createElement(View, { testID: testID || "blur-view" }, children);
   },
 }));
 
@@ -158,9 +127,9 @@ describe("SubPlayer", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-        mockUseSubPlayerStore.mockImplementation((selector) => {
+    mockUseSubPlayerStore.mockImplementation((selector) => {
       const state = {
-        songs: mockSongs,
+        songs: mockSongs || [],
         currentSongIndex: 0,
         setCurrentSongIndex: mockSetCurrentSongIndex,
         showSubPlayer: true,
@@ -241,17 +210,20 @@ describe("SubPlayer", () => {
     });
 
     it("曲のインデックスが変わると表示される情報も変わる", () => {
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: mockSongs,
-        currentSongIndex: 1,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: mockSongs || [],
+          currentSongIndex: 1,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       const { getByText } = render(<SubPlayer onClose={mockOnClose} />);
@@ -356,17 +328,20 @@ describe("SubPlayer", () => {
 
     it("currentSongIndexが異なる場合、異なる曲が表示される", () => {
       // currentSongIndex = 1の場合
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: mockSongs,
-        currentSongIndex: 1,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: mockSongs || [],
+          currentSongIndex: 1,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       const { getByText } = render(<SubPlayer onClose={mockOnClose} />);
@@ -496,17 +471,20 @@ describe("SubPlayer", () => {
 
   describe("エッジケース", () => {
     it("曲リストが空の場合でもエラーが発生しない", () => {
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: [],
-        currentSongIndex: 0,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: [],
+          currentSongIndex: 0,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       expect(() => {
@@ -515,17 +493,20 @@ describe("SubPlayer", () => {
     });
 
     it("曲が1つだけの場合でも正しく表示される", () => {
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: [mockSongs[0]],
-        currentSongIndex: 0,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: [mockSongs[0]],
+          currentSongIndex: 0,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       const { getByText } = render(<SubPlayer onClose={mockOnClose} />);
@@ -535,17 +516,20 @@ describe("SubPlayer", () => {
     });
 
     it("currentSongIndexが範囲外でもエラーが発生しない", () => {
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: mockSongs,
-        currentSongIndex: 999,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: mockSongs || [],
+          currentSongIndex: 999,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       expect(() => {
@@ -563,6 +547,8 @@ describe("SubPlayer", () => {
         stopAndUnloadCurrentSound: mockStopAndUnloadCurrentSound,
       });
 
+      // mockUseSubPlayerStore uses default mock from beforeEach
+
       expect(() => {
         render(<SubPlayer onClose={mockOnClose} />);
       }).not.toThrow();
@@ -576,17 +562,20 @@ describe("SubPlayer", () => {
         },
       ];
 
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: songsWithNullImage,
-        currentSongIndex: 0,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: songsWithNullImage || [],
+          currentSongIndex: 0,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       expect(() => {
@@ -603,17 +592,20 @@ describe("SubPlayer", () => {
         },
       ];
 
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: songsWithLongTitle,
-        currentSongIndex: 0,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: songsWithLongTitle || [],
+          currentSongIndex: 0,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       const { getByText } = render(<SubPlayer onClose={mockOnClose} />);
@@ -630,17 +622,20 @@ describe("SubPlayer", () => {
         },
       ];
 
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: songsWithSpecialChars,
-        currentSongIndex: 0,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 30000,
-        setPreviewDuration: jest.fn(),
-        autoPlay: true,
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: songsWithSpecialChars || [],
+          currentSongIndex: 0,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 30000,
+          setPreviewDuration: jest.fn(),
+          autoPlay: true,
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       const { getByText } = render(<SubPlayer onClose={mockOnClose} />);
@@ -670,17 +665,20 @@ describe("SubPlayer", () => {
       const { rerender } = render(<SubPlayer onClose={mockOnClose} />);
 
       // 依存配列に含まれない値を変更
-      mockUseSubPlayerStore.mockReturnValue({
-        songs: mockSongs,
-        currentSongIndex: 0,
-        setCurrentSongIndex: mockSetCurrentSongIndex,
-        showSubPlayer: true,
-        setShowSubPlayer: jest.fn(),
-        previewDuration: 45000, // 変更
-        setPreviewDuration: jest.fn(),
-        autoPlay: false, // 変更
-        setAutoPlay: jest.fn(),
-        setSongs: jest.fn(),
+      mockUseSubPlayerStore.mockImplementation((selector) => {
+        const state = {
+          songs: mockSongs || [],
+          currentSongIndex: 0,
+          setCurrentSongIndex: mockSetCurrentSongIndex,
+          showSubPlayer: true,
+          setShowSubPlayer: jest.fn(),
+          previewDuration: 45000, // 変更
+          setPreviewDuration: jest.fn(),
+          autoPlay: false, // 変更
+          setAutoPlay: jest.fn(),
+          setSongs: jest.fn(),
+        };
+        return selector(state);
       });
 
       expect(() => {

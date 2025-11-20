@@ -4,13 +4,23 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NextSong from "@/components/player/NextSong";
 import { RepeatMode } from "react-native-track-player";
 
-jest.mock("react-native-track-player", () => ({
-  RepeatMode: {
-    Off: 0,
-    Track: 1,
-    Queue: 2,
-  },
-}));
+jest.mock("react-native-track-player", () => {
+  return {
+    RepeatMode: {
+      Off: 0,
+      Track: 1,
+      Queue: 2,
+    },
+    Event: {
+      PlaybackTrackChanged: "playback-track-changed",
+    },
+    useActiveTrack: jest.fn(),
+    useTrackPlayerEvents: jest.fn(),
+    TrackPlayer: {
+      getTrack: jest.fn(),
+    },
+  };
+});
 
 jest.mock("@/hooks/usePlayerStore", () => ({
   usePlayerStore: jest.fn(),
@@ -27,6 +37,7 @@ jest.mock("@/components/item/SongItem", () => ({
 
 const { usePlayerStore } = require("@/hooks/usePlayerStore");
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useActiveTrack, useTrackPlayerEvents } = require("react-native-track-player");
 
 describe("NextSong", () => {
   let queryClient: QueryClient;
@@ -39,6 +50,13 @@ describe("NextSong", () => {
     });
     useAudioPlayer.mockReturnValue({
       onPlaySong: jest.fn(),
+    });
+    useActiveTrack.mockReturnValue({
+      id: "song1",
+      title: "Current Song",
+    });
+    useTrackPlayerEvents.mockImplementation((events: any[], callback: any) => {
+       // No-op for basic render test
     });
   });
 
