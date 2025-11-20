@@ -91,6 +91,10 @@ async function isPlayerServiceRunning(): Promise<boolean> {
     const playbackState = await TrackPlayer.getPlaybackState();
     return playbackState.state !== State.None;
   } catch (error) {
+    console.error(
+      "プレイヤーのサービスが実行中かどうかをチェックする際に失敗しました:",
+      error
+    );
     return false;
   }
 }

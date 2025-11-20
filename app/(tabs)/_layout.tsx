@@ -6,7 +6,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Header from "@/components/common/Header";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
-import { useAudioStore } from "@/hooks/useAudioStore";
 import PlayerContainer from "@/components/player/PlayerContainer";
 
 /**
@@ -21,7 +20,6 @@ import PlayerContainer from "@/components/player/PlayerContainer";
 export default function TabLayout() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const showHeader = useHeaderStore((state) => state.showHeader);
-  const currentSong = useAudioStore((state) => state.currentSong);
 
   return (
     <>
@@ -104,20 +102,13 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="library"
+          name="reels"
           options={{
             headerShown: false,
             tabBarIcon: ({ focused }) => (
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 50,
-                  height: 40,
-                }}
-              >
+              <View style={styles.iconContainer}>
                 <MaterialCommunityIcons
-                  name="bookshelf"
+                  name="movie-open-play"
                   size={24}
                   color={focused ? "#4c1d95" : "#666"}
                   style={
@@ -139,13 +130,20 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="reels"
+          name="library"
           options={{
             headerShown: false,
             tabBarIcon: ({ focused }) => (
-              <View style={styles.iconContainer}>
+              <View
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 50,
+                  height: 40,
+                }}
+              >
                 <MaterialCommunityIcons
-                  name="movie-open-play"
+                  name="bookshelf"
                   size={24}
                   color={focused ? "#4c1d95" : "#666"}
                   style={

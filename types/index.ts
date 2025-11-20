@@ -1,4 +1,4 @@
-export type SongType = "regular" | "suno";
+export type SongType = "regular";
 
 export default interface Song {
   id: string;

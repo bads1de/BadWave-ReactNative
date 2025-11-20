@@ -13,7 +13,7 @@
 - **バックエンド**: [Supabase](https://supabase.io/) (データベース、認証)
 - **ナビゲーション**: [Expo Router](https://docs.expo.dev/router/introduction/) (ファイルベースルーティング)
 - **データフェッチ**: データフェッチ、キャッシュ、永続化のための [TanStack Query](https://tanstack.com/query/latest)。
-- **状態管理**: グローバルな状態管理 (例: プレイヤーUIの状態) のための [Zustand](https://github.com/pmndrs/zustand)。
+- **状態管理**: グローバルな状態管理 (例: プレイヤー UI の状態) のための [Zustand](https://github.com/pmndrs/zustand)。
 - **オーディオ再生**: バックグラウンドオーディオのための [React Native Track Player](https://react-native-track-player.js.org/)。
 - **ローカルストレージ**: 高速なキーバリューストレージのための [React Native MMKV](https://github.com/mrousavy/react-native-mmkv) と、Supabase セッション永続化のための `AsyncStorage`。
 - **テスト**: [Jest](https://jestjs.io/) と [React Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/)。
@@ -31,7 +31,8 @@ badwave-mobile/
 │   │   ├── _layout.tsx
 │   │   ├── index.tsx   # ホーム画面
 │   │   ├── library.tsx
-│   │   └── search.tsx
+│   │   ├── search.tsx
+│   │   └── reels.tsx     # 新規: Reelsタブのメイン画面
 │   ├── playlist/     # プレイリスト詳細画面など
 │   └── _layout.tsx     # ルートレイアウト
 ├── actions/          # Supabaseとのデータ通信処理
@@ -41,11 +42,15 @@ badwave-mobile/
 ├── components/       # 再利用可能なUIコンポーネント
 │   ├── common/
 │   ├── player/
-│   └── ...
+│   │   ...
+│   └── reels/                # 新規: Reels関連コンポーネント
+│       ├── ReelsList.tsx
+│       └── ReelItem.tsx
 ├── hooks/            # ビジネスロジックと状態管理
 │   ├── useAudioPlayer.ts
 │   ├── usePlayerStore.ts
-│   └── ...
+│   │   ...
+│   └── useReelsPlayer.ts     # 新規: 動画再生ロジックを管理
 ├── lib/              # Supabaseクライアント初期化などのユーティリティ
 │   └── supabase.ts
 ├── services/         # バックグラウンドサービス
@@ -78,26 +83,30 @@ badwave-mobile/
 
 ### ビルドと実行
 
-1.  **依存関係のインストール**:
-    ```bash
-    npm install
-    ```
+1. **依存関係のインストール**:
 
-2.  **アプリケーションの実行**:
-    Expo 開発サーバーを起動します。
-    ```bash
-    npx expo start
-    ```
-    Expo Dev Tools から、Android エミュレーター、iOS シミュレーター、または Expo Go アプリを使用して物理デバイスでアプリを実行できます。
+   ```bash
+   npm install
+   ```
 
-3.  **特定のプラットフォームでの実行**:
-    ```bash
-    # Android で実行
-    npm run android
+2. **アプリケーションの実行**:
+   Expo 開発サーバーを起動します。
 
-    # iOS で実行
-    npm run ios
-    ```
+   ```bash
+   npx expo start
+   ```
+
+   Expo Dev Tools から、Android エミュレーター、iOS シミュレーター、または Expo Go アプリを使用して物理デバイスでアプリを実行できます。
+
+3. **特定のプラットフォームでの実行**:
+
+   ```bash
+   # Android で実行
+   npm run android
+
+   # iOS で実行
+   npm run ios
+   ```
 
 ### テスト
 
@@ -111,9 +120,11 @@ npm test
 
 - **スタイル**: プロジェクトは `StyleSheet.create()` を使用したインラインスタイルと、`constants/theme.ts` で定義されたグローバルテーマの組み合わせを使用しています。
 - **Linting**: コードの品質とスタイルは ESLint を使用して強制されます。リンターを実行するには:
+
   ```bash
   npm run lint
   ```
+
 - **TypeScript**: コードベースは厳密に型付けされています。すべての新しいコードには適切な型を含める必要があります。パスエイリアスは `tsconfig.json` を介して設定されており、ルートディレクトリからの絶対インポート (例: `import MyComponent from '@/components/MyComponent';`) を可能にします。
 - **データフェッチ**: Supabase バックエンドとのすべての対話は `actions/` ディレクトリで定義する必要があります。UI コンポーネントは、適切なキャッシュ、再フェッチ、ロード/エラー状態管理を確実にするために、`@tanstack/react-query` のフックを使用してこれらのアクションを呼び出す必要があります。
 - **状態管理**: UI の複数の離れた部分に影響するグローバルな状態 (オーディオプレイヤーの表示など) は Zustand で管理されます。新しいストアを作成するか、既存のストアを `hooks/` ディレクトリ (例: `usePlayerStore.ts`) に追加します。
