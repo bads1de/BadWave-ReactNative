@@ -15,14 +15,27 @@ if (typeof clearImmediate === 'undefined') {
   };
 }
 
-// React NativeのStatusBarをモック
+// StatusBarのモックは削除（react-native/jest-expoのデフォルトに任せる）
+// もし必要なら以下のようにモックするが、Element type invalidの原因になる可能性あり
+/*
 jest.mock('react-native/Libraries/Components/StatusBar/StatusBar', () => {
   const React = require('react');
+  const { View } = require('react-native');
+  class MockStatusBar extends React.Component {
+    static setBarStyle = jest.fn();
+    static setHidden = jest.fn();
+    static setTranslucent = jest.fn();
+    static setBackgroundColor = jest.fn();
+    render() {
+      return React.createElement(View, { testID: 'status-bar', ...this.props });
+    }
+  }
   return {
     __esModule: true,
-    default: jest.fn().mockImplementation(() => null),
+    default: MockStatusBar,
   };
 });
+*/
 
 // React NativeのInteractionManagerをモック
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
@@ -46,6 +59,73 @@ jest.mock("expo-constants", () => ({
     },
   },
 }));
+
+// Expo UI Components Mocks
+jest.mock("expo-image", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    __esModule: true,
+    Image: (props) => React.createElement(View, { testID: "expo-image", ...props }),
+    ImageBackground: ({ children, ...props }) =>
+      React.createElement(View, { testID: "image-background", ...props }, children),
+  };
+});
+
+jest.mock("expo-linear-gradient", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    __esModule: true,
+    LinearGradient: ({ children, ...props }) =>
+      React.createElement(View, { testID: "linear-gradient", ...props }, children),
+  };
+});
+
+jest.mock("expo-blur", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    __esModule: true,
+    BlurView: ({ children, ...props }) =>
+      React.createElement(View, { testID: "blur-view", ...props }, children),
+  };
+});
+
+// @expo/vector-iconsのモック
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+
+  // 各アイコンファミリーをモックするコンポーネント
+  const MockIcon = (props) => {
+    return React.createElement(View, { testID: props.testID || "icon-mock", ...props });
+  };
+
+  return {
+    __esModule: true,
+    Ionicons: MockIcon,
+    MaterialCommunityIcons: MockIcon,
+    FontAwesome: MockIcon,
+    // 必要に応じて他のアイコンセットを追加
+  };
+});
+
+// expo-video mock
+jest.mock("expo-video", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    __esModule: true,
+    VideoView: (props) => React.createElement(View, { testID: "video-view", ...props }),
+    useVideoPlayer: jest.fn(() => ({
+      loop: true,
+      play: jest.fn(),
+      muted: false,
+    })),
+  };
+});
+
 
 // 各テストファイルで個別にモックを定義するようにします
 // グローバルモックは使用しません

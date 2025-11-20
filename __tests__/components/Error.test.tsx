@@ -17,14 +17,16 @@ describe("Error", () => {
     expect(getByText("テストエラーメッセージ")).toBeTruthy();
   });
 
-  it("メッセージが指定されていない場合は何も表示しない", () => {
+  it("メッセージが指定されていない場合はデフォルトメッセージを表示する", () => {
     const { getByTestId } = render(<Error />);
 
     // エラーコンテナが表示されていることを確認
     expect(getByTestId("error-container")).toBeTruthy();
 
-    // メッセージが空であることを確認
-    expect(getByTestId("error-message").props.children).toBeUndefined();
+    // デフォルトメッセージが表示されることを確認
+    expect(getByTestId("error-message").props.children).toBe(
+      "エラーが発生しました"
+    );
   });
 
   it("アイコンが表示される", () => {
