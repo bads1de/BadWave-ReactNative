@@ -1,4 +1,4 @@
-import React, { useRef, memo, useCallback } from "react";
+import React, { useRef, memo, useCallback, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   Text,
   StatusBar,
+  FlatList,
+  ViewToken,
 } from "react-native";
 import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
-import Swiper from "react-native-swiper";
 import Song from "@/types";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 import { useSubPlayerAudio } from "@/hooks/useSubPlayerAudio";
@@ -29,7 +30,7 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
   const setCurrentSongIndex = useSubPlayerStore(
     (state) => state.setCurrentSongIndex
   );
-  const swiperRef = useRef(null);
+  const flatListRef = useRef<FlatList<Song>>(null);
 
   // useSubPlayerAudio フックを使用して再生機能を統合
   const {
@@ -61,8 +62,8 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
   const progressPosition = currentPosition;
   const progressDuration = duration;
 
-  const renderSong = useCallback(
-    (song: Song, index: number) => {
+  const renderItem = useCallback(
+    ({ item: song, index }: { item: Song; index: number }) => {
       const isActive = index === currentSongIndex;
       return (
         <View
@@ -207,6 +208,59 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
     ]
   );
 
+  const onViewableItemsChanged = useRef(
+    async ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0) {
+        const visibleItem = viewableItems[0];
+        if (
+          visibleItem.index !== null &&
+          visibleItem.index !== currentSongIndex
+        ) {
+          try {
+            // 音声を確実に停止して解放
+            await stopAndUnloadCurrentSound();
+          } catch (error) {
+            console.error("Error stopping audio on index change:", error);
+          } finally {
+            // 確実にインデックスを更新
+            setCurrentSongIndex(visibleItem.index);
+          }
+        }
+      }
+    }
+  ).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
+
+  const getItemLayout = useCallback(
+    (_data: ArrayLike<Song> | null | undefined, index: number) => ({
+      length: height,
+      offset: height * index,
+      index,
+    }),
+    []
+  );
+
+  // 初期レンダリング時に指定されたインデックスへスクロール
+  useEffect(() => {
+    if (
+      flatListRef.current &&
+      currentSongIndex >= 0 &&
+      currentSongIndex < songs.length
+    ) {
+      // 少し遅延させてスクロールを確実にする
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: currentSongIndex,
+          animated: false,
+        });
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 初回マウント時のみ実行
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -220,30 +274,29 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
         </TouchableOpacity>
       </BlurView>
 
-      <Swiper
-        ref={swiperRef}
-        style={styles.wrapper}
-        showsPagination={false}
-        horizontal={false}
-        loop={false}
-        index={currentSongIndex}
-        onIndexChanged={async (index) => {
-          try {
-            // 音声を確実に停止して解放
-            await stopAndUnloadCurrentSound();
-          } catch (error) {
-            console.error("Error stopping audio on index change:", error);
-          } finally {
-            // 確実にインデックスを更新
-            setCurrentSongIndex(index);
-          }
-        }}
-        containerStyle={styles.swiperContainer}
-        scrollEnabled={true}
-        bounces={true}
-      >
-        {songs.map((song, index) => renderSong(song, index))}
-      </Swiper>
+      <FlatList
+        ref={flatListRef}
+        data={songs}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        snapToInterval={height}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={getItemLayout}
+        windowSize={3}
+        removeClippedSubviews={true}
+        initialNumToRender={1}
+        maxToRenderPerBatch={2}
+        // initialScrollIndexはgetItemLayoutがあれば機能するが、
+        // レイアウト計算のタイミングによっては失敗することがあるため、
+        // useEffectでのscrollToIndexと併用、もしくはonLayoutで処理するのも手。
+        // ここではgetItemLayoutがあるのでinitialScrollIndexを指定してみる
+        initialScrollIndex={currentSongIndex}
+      />
     </View>
   );
 }
@@ -271,13 +324,6 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-  },
-  wrapper: {
-    overflow: "visible",
-  },
-  swiperContainer: {
-    height: height,
-    overflow: "visible",
   },
   activeSlide: {
     opacity: 1,
