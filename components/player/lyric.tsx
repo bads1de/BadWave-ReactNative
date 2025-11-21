@@ -1,12 +1,24 @@
 import React, { useState, memo } from "react";
 import {
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
   StyleSheet,
   LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+
+// AndroidのLayoutAnimation用設定
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface LyricProps {
   lyrics: string;
@@ -18,7 +30,7 @@ interface LyricProps {
 
 const Lyric: React.FC<LyricProps> = ({
   lyrics,
-  initialVisibleLines = 3,
+  initialVisibleLines = 4,
   songTitle = "",
   artistName = "",
 }) => {
@@ -39,101 +51,155 @@ const Lyric: React.FC<LyricProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      {/* Song information */}
-      {(songTitle || artistName) && (
-        <View style={styles.songInfoContainer}>
-          {songTitle && <Text style={styles.songTitle}>{songTitle}</Text>}
-          {artistName && <Text style={styles.artistName}>{artistName}</Text>}
-        </View>
-      )}
-
-      {/* Lyrics display */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {displayedLines.map((line, index) => (
-          <Text key={index} style={styles.lyricsText}>
-            {line || " "}
-          </Text>
-        ))}
-      </ScrollView>
-
-      {/* Expand/collapse button */}
-      {lyricsLines.length > initialVisibleLines && (
-        <TouchableOpacity
-          onPress={toggleExpand}
-          activeOpacity={0.7}
-          style={styles.expandButtonContainer}
+    <View style={styles.wrapper}>
+      <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
+        <LinearGradient
+          colors={["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]}
+          style={styles.gradient}
         >
-          <View style={styles.expandButton}>
-            <Text style={styles.expandButtonText}>
-              {isExpanded ? "Show less" : "Show more"}
-            </Text>
+          <View style={styles.header}>
+            <Text style={styles.label}>LYRICS</Text>
+            <MaterialCommunityIcons
+              name="text-box-outline"
+              size={16}
+              color="#a78bfa"
+              style={{ opacity: 0.8 }}
+            />
           </View>
-        </TouchableOpacity>
-      )}
+
+          {/* Song information */}
+          {(songTitle || artistName) && (
+            <View style={styles.songInfoContainer}>
+              {songTitle && <Text style={styles.songTitle}>{songTitle}</Text>}
+              {artistName && (
+                <Text style={styles.artistName}>{artistName}</Text>
+              )}
+            </View>
+          )}
+
+          {/* Lyrics display */}
+          <View style={styles.lyricsContainer}>
+            {displayedLines.map((line, index) => (
+              <Text key={index} style={styles.lyricsText}>
+                {line || " "}
+              </Text>
+            ))}
+            {!isExpanded && lyricsLines.length > initialVisibleLines && (
+              <LinearGradient
+                colors={["transparent", "rgba(30,30,36,0.8)"]}
+                style={styles.fadeOverlay}
+              />
+            )}
+          </View>
+
+          {/* Expand/collapse button */}
+          {lyricsLines.length > initialVisibleLines && (
+            <TouchableOpacity
+              onPress={toggleExpand}
+              activeOpacity={0.7}
+              style={styles.expandButtonContainer}
+            >
+              <View style={styles.expandButton}>
+                <Text style={styles.expandButtonText}>
+                  {isExpanded ? "SHOW LESS" : "SHOW MORE"}
+                </Text>
+                <MaterialCommunityIcons
+                  name={isExpanded ? "chevron-up" : "chevron-down"}
+                  size={16}
+                  color="#a78bfa"
+                />
+              </View>
+            </TouchableOpacity>
+          )}
+        </LinearGradient>
+      </BlurView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#1e1e24",
-    borderRadius: 16,
+  wrapper: {
+    marginHorizontal: 20,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  blurContainer: {
+    width: "100%",
+  },
+  gradient: {
     padding: 20,
-    marginHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.6)",
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
   },
   songInfoContainer: {
-    marginBottom: 12,
-    paddingBottom: 12,
+    marginBottom: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.15)",
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
   songTitle: {
     color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "700",
     marginBottom: 4,
+    letterSpacing: 0.5,
   },
   artistName: {
-    color: "#b3b3cc",
-    fontSize: 16,
-    textAlign: "center",
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 14,
+    fontWeight: "500",
   },
-  scrollContainer: {
-    paddingVertical: 8,
+  lyricsContainer: {
+    position: "relative",
+    marginBottom: 12,
   },
   lyricsText: {
-    color: "#fff",
-    fontSize: 18,
-    lineHeight: 26,
-    textAlign: "center",
-    marginVertical: 3,
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 16,
+    lineHeight: 28,
+    marginBottom: 8,
+    fontWeight: "500",
+  },
+  fadeOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 40,
   },
   expandButtonContainer: {
-    alignItems: "center",
-    marginTop: 12,
+    alignItems: "flex-start",
+    marginTop: 8,
   },
   expandButton: {
-    backgroundColor: "#333340",
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(167, 139, 250, 0.1)",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#4c4c60",
+    borderColor: "rgba(167, 139, 250, 0.2)",
   },
   expandButtonText: {
-    color: "#fff",
-    fontWeight: "500",
-    fontSize: 14,
+    color: "#a78bfa",
+    fontWeight: "700",
+    fontSize: 12,
+    marginRight: 4,
+    letterSpacing: 0.5,
   },
 });
 

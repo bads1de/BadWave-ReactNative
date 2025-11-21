@@ -15,10 +15,17 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
 import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
 import Song from "@/types";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
+// Container padding: 16, Margin: 20, Gap: 12
+// Width available = width - 40 (margin) - 32 (padding)
+// Items = 3, Gaps = 2 * 12 = 24
+// Item width = (width - 40 - 32 - 24) / 3 = (width - 96) / 3
 const ITEM_WIDTH = (width - 96) / 3;
-const ITEM_HEIGHT = ITEM_WIDTH * 1.5;
+const ITEM_HEIGHT = ITEM_WIDTH * 1.4;
 
 // 曲アイテムコンポーネントを抽出してメモ化
 interface TopPlayedSongItemProps {
@@ -35,18 +42,23 @@ const TopPlayedSongItem = memo(
         key={song.id}
         style={styles.songItem}
         onPress={() => onPress(index)}
+        activeOpacity={0.7}
       >
-        <View
-          style={[styles.songImage, { borderRadius: 8, overflow: "hidden" }]}
-        >
+        <View style={styles.imageContainer}>
           <Image
             source={{ uri: song.image_path }}
-            style={{ width: "100%", height: "100%" }}
+            style={styles.songImage}
             contentFit="cover"
             cachePolicy="memory-disk"
-            priority="normal"
             transition={200}
           />
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.6)"]}
+            style={styles.imageGradient}
+          />
+          <View style={styles.playOverlay}>
+            <MaterialCommunityIcons name="play" size={20} color="#fff" />
+          </View>
         </View>
         <View style={styles.songInfo}>
           <Text numberOfLines={1} style={styles.songTitle}>
@@ -60,7 +72,6 @@ const TopPlayedSongItem = memo(
     );
   },
   (prevProps, nextProps) => {
-    // songオブジェクトの主要なプロパティとonPress, indexを比較
     return (
       prevProps.song.id === nextProps.song.id &&
       prevProps.song.title === nextProps.song.title &&
@@ -90,25 +101,14 @@ function TopPlayedSongsList() {
     enabled: !!userId,
   });
 
-  /**
-   * 曲がタップされたときの処理
-   * 最適化: requestAnimationFrameを削除し、Zustandのバッチ更新で同期的に処理
-   * @param songIndex 選択された曲のインデックス
-   */
   const handleSongPress = useCallback(
     async (songIndex: number) => {
       try {
-        // 既存の再生中の曲を一時停止
         if (isPlaying) {
           await TrackPlayer.pause();
         }
-
-        // サブプレイヤーの状態をリセット
         setCurrentSongIndex(-1);
         setSongs([]);
-
-        // Zustandのバッチ更新により、複数の状態更新を同期的に実行
-        // requestAnimationFrameを使用せず、直接状態を更新
         setSongs(topSongs);
         setCurrentSongIndex(songIndex);
         setShowSubPlayer(true);
@@ -119,46 +119,67 @@ function TopPlayedSongsList() {
     [isPlaying, topSongs, setCurrentSongIndex, setSongs, setShowSubPlayer]
   );
 
+  if (topSongs.length === 0) return null;
+
   return (
-    <View style={styles.container}>
-      <View style={styles.cardContainer}>
-        <Text style={styles.sectionTitle}>Top Played Songs</Text>
-        <View style={styles.songsContainer}>
-          {topSongs.map((song, index) => (
-            <TopPlayedSongItem
-              key={song.id}
-              song={song}
-              index={index}
-              onPress={handleSongPress}
+    <View style={styles.wrapper}>
+      <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
+        <LinearGradient
+          colors={["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]}
+          style={styles.gradient}
+        >
+          <View style={styles.header}>
+            <Text style={styles.label}>ON REPEAT</Text>
+            <MaterialCommunityIcons
+              name="fire"
+              size={16}
+              color="#a78bfa"
+              style={{ opacity: 0.8 }}
             />
-          ))}
-        </View>
-      </View>
+          </View>
+          <View style={styles.songsContainer}>
+            {topSongs.slice(0, 3).map((song, index) => (
+              <TopPlayedSongItem
+                key={song.id}
+                song={song}
+                index={index}
+                onPress={handleSongPress}
+              />
+            ))}
+          </View>
+        </LinearGradient>
+      </BlurView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
+    marginHorizontal: 20,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    marginBottom: 32,
+  },
+  blurContainer: {
+    width: "100%",
+  },
+  gradient: {
+    padding: 16,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
-  cardContainer: {
-    backgroundColor: "#1e1e24",
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-    marginBottom: 16,
-    marginLeft: 0,
+  label: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.6)",
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
   },
   songsContainer: {
     flexDirection: "row",
@@ -167,32 +188,54 @@ const styles = StyleSheet.create({
   },
   songItem: {
     width: ITEM_WIDTH,
-    borderRadius: 8,
+  },
+  imageContainer: {
+    width: "100%",
+    height: ITEM_HEIGHT,
+    borderRadius: 12,
     overflow: "hidden",
+    marginBottom: 8,
+    position: "relative",
+    backgroundColor: "#2a2a2a",
   },
   songImage: {
     width: "100%",
-    height: ITEM_HEIGHT,
-    justifyContent: "flex-end",
+    height: "100%",
   },
-  gradient: {
+  imageGradient: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: "70%",
+    height: "40%",
+  },
+  playOverlay: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   songInfo: {
-    padding: 8,
+    paddingHorizontal: 2,
   },
   songTitle: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "bold",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 2,
+    letterSpacing: 0.2,
   },
   songAuthor: {
-    color: "#999",
-    fontSize: 10,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 11,
+    fontWeight: "500",
   },
 });
 

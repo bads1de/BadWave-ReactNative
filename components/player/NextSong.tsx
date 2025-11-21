@@ -9,6 +9,9 @@ import TrackPlayer, {
   RepeatMode,
 } from "react-native-track-player";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import MarqueeText from "../common/MarqueeText";
 
 interface NextSongProps {
   repeatMode: RepeatMode;
@@ -93,92 +96,165 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
     return null;
   }
 
+  const isShuffleMode = shuffle && repeatMode !== RepeatMode.Track;
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        {repeatMode === RepeatMode.Track
-          ? "Repeating:"
-          : shuffle
-          ? "Shuffle Mode"
-          : "Next Song:"}
-      </Text>
-      {shuffle && repeatMode !== RepeatMode.Track ? (
-        <View style={styles.shuffleContainer}>
-          <MaterialCommunityIcons
-            name="shuffle-variant"
-            size={24}
-            color="#fff"
-          />
-          <Text style={styles.shuffleText}>?</Text>
-        </View>
-      ) : (
-        <View style={styles.songContainer}>
-          <Image
-            source={{ uri: nextSong?.artwork }}
-            style={styles.artwork}
-            cachePolicy="memory-disk"
-          />
-          <View style={styles.songInfo}>
-            <Text style={styles.songName}>{nextSong?.title}</Text>
-            <Text style={styles.artist}>{nextSong?.artist}</Text>
+    <View style={styles.wrapper}>
+      <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
+        <LinearGradient
+          colors={["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]}
+          style={styles.gradient}
+        >
+          <View style={styles.header}>
+            <Text style={styles.label}>
+              {repeatMode === RepeatMode.Track
+                ? "REPEATING"
+                : isShuffleMode
+                ? "SHUFFLE MODE"
+                : "UP NEXT"}
+            </Text>
+            {isShuffleMode && (
+              <MaterialCommunityIcons
+                name="shuffle-variant"
+                size={16}
+                color="#a78bfa"
+              />
+            )}
           </View>
-        </View>
-      )}
+
+          {isShuffleMode ? (
+            <View style={styles.shuffleContent}>
+              <View style={styles.shuffleIconContainer}>
+                <MaterialCommunityIcons
+                  name="music-note-eighth"
+                  size={32}
+                  color="#fff"
+                  style={{ opacity: 0.8 }}
+                />
+                <View style={styles.questionMark}>
+                  <MaterialCommunityIcons name="help" size={14} color="#000" />
+                </View>
+              </View>
+              <Text style={styles.shuffleText}>
+                Music will be played randomly
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.songContent}>
+              <Image
+                source={{ uri: nextSong?.artwork }}
+                style={styles.artwork}
+                cachePolicy="memory-disk"
+                contentFit="cover"
+                transition={200}
+              />
+              <View style={styles.songInfo}>
+                <MarqueeText
+                  text={nextSong?.title || ""}
+                  speed={0.3}
+                  fontSize={16}
+                  style={{ marginBottom: 4 }}
+                />
+                <Text style={styles.artist} numberOfLines={1}>
+                  {nextSong?.artist}
+                </Text>
+              </View>
+              <MaterialCommunityIcons
+                name="play-circle-outline"
+                size={28}
+                color="#a78bfa"
+                style={styles.playIcon}
+              />
+            </View>
+          )}
+        </LinearGradient>
+      </BlurView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: "#1e1e24",
-    borderRadius: 16,
-    marginHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
+  wrapper: {
+    marginHorizontal: 20,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
-  title: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "bold",
-    marginBottom: 8,
+  blurContainer: {
+    width: "100%",
   },
-  songContainer: {
+  gradient: {
+    padding: 16,
+  },
+  header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
-  shuffleContainer: {
+  label: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.6)",
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  songContent: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-    gap: 12,
-  },
-  shuffleText: {
-    fontSize: 24,
-    color: "#fff",
-    fontWeight: "bold",
   },
   artwork: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: "#2a2a2a",
   },
   songInfo: {
-    marginLeft: 16,
+    marginLeft: 14,
     flex: 1,
-  },
-  songName: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "600",
+    justifyContent: "center",
   },
   artist: {
-    fontSize: 12,
-    color: "#666",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.6)",
+    fontWeight: "500",
+  },
+  playIcon: {
+    opacity: 0.8,
+  },
+  shuffleContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  shuffleIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(167, 139, 250, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  questionMark: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#a78bfa",
+    borderRadius: 10,
+    width: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#1e1e24",
+  },
+  shuffleText: {
+    marginLeft: 16,
+    fontSize: 14,
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "500",
   },
 });
 
