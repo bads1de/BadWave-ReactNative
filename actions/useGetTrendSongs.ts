@@ -1,5 +1,5 @@
 import Song from "@/types";
-import dayjs from "dayjs";
+import { subMonths, subWeeks, subDays } from "date-fns";
 import { supabase } from "@/lib/supabase";
 
 export type TrendPeriod = "all" | "month" | "week" | "day";
@@ -26,21 +26,21 @@ const getTrendSongs = async (period: TrendPeriod = "all"): Promise<Song[]> => {
       query = query.filter(
         "created_at",
         "gte",
-        dayjs().subtract(1, "month").toISOString()
+        subMonths(new Date(), 1).toISOString()
       );
       break;
     case "week":
       query = query.filter(
         "created_at",
         "gte",
-        dayjs().subtract(1, "week").toISOString()
+        subWeeks(new Date(), 1).toISOString()
       );
       break;
     case "day":
       query = query.filter(
         "created_at",
         "gte",
-        dayjs().subtract(1, "day").toISOString()
+        subDays(new Date(), 1).toISOString()
       );
       break;
     default:
