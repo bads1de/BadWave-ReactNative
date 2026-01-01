@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { onlineManager } from "@tanstack/react-query";
 import { Stack } from "expo-router";
-import { View } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { CACHE_CONFIG } from "@/constants";
 import { mmkvPersister } from "@/lib/mmkv-persister";
@@ -14,6 +14,9 @@ import { ToastComponent } from "@/components/common/CustomToast";
 import TrackPlayer from "react-native-track-player";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import { db } from "@/lib/db/client";
+import migrations from "@/drizzle/migrations";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -52,6 +55,12 @@ export default function RootLayout() {
   const showAuthModal = useAuthStore((state) => state.showAuthModal);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
+  // DBマイグレーション
+  const { success: isMigrated, error: migrationError } = useMigrations(
+    db,
+    migrations
+  );
+
   useEffect(() => {
     // プレイヤーのセットアップ
     const setupPlayerAsync = async () => {
@@ -70,6 +79,41 @@ export default function RootLayout() {
 
     setupPlayerAsync();
   }, [isPlayerReady]);
+
+  // マイグレーションエラー時
+  if (migrationError) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#000",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ color: "#ff4444", fontSize: 16 }}>
+          Database Error: {migrationError.message}
+        </Text>
+      </View>
+    );
+  }
+
+  // マイグレーション実行中
+  if (!isMigrated) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#000",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#7C3AED" />
+        <Text style={{ color: "#fff", marginTop: 16 }}>Initializing...</Text>
+      </View>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

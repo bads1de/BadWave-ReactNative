@@ -129,71 +129,6 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
                   </View>
                 </View>
               </LinearGradient>
-
-              {/* アクションアイコン */}
-              <View style={styles.actionIcons}>
-                <TouchableOpacity style={styles.actionButton}>
-                  <BlurView
-                    intensity={30}
-                    style={styles.blurIconContainer}
-                    tint="dark"
-                  >
-                    <Ionicons
-                      name="person-circle-outline"
-                      size={28}
-                      color="#FF69B4"
-                    />
-                  </BlurView>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <BlurView
-                    intensity={30}
-                    style={styles.blurIconContainer}
-                    tint="dark"
-                  >
-                    <Ionicons name="heart-outline" size={28} color="#FF0080" />
-                  </BlurView>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <BlurView
-                    intensity={30}
-                    style={styles.blurIconContainer}
-                    tint="dark"
-                  >
-                    <Ionicons
-                      name="chatbubble-outline"
-                      size={28}
-                      color="#00dbde"
-                    />
-                  </BlurView>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <BlurView
-                    intensity={30}
-                    style={styles.blurIconContainer}
-                    tint="dark"
-                  >
-                    <Ionicons
-                      name="share-social-outline"
-                      size={28}
-                      color="#7C3AED"
-                    />
-                  </BlurView>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <BlurView
-                    intensity={30}
-                    style={styles.blurIconContainer}
-                    tint="dark"
-                  >
-                    <Ionicons
-                      name="ellipsis-horizontal"
-                      size={28}
-                      color="#00F5A0"
-                    />
-                  </BlurView>
-                </TouchableOpacity>
-              </View>
             </TouchableOpacity>
           </ImageBackground>
         </View>
@@ -243,23 +178,27 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
     []
   );
 
-  // 初期レンダリング時に指定されたインデックスへスクロール
+  // 現在の曲インデックスが変更されたら、リストをその位置までスクロールする
   useEffect(() => {
     if (
       flatListRef.current &&
+      songs.length > 0 &&
       currentSongIndex >= 0 &&
       currentSongIndex < songs.length
     ) {
-      // 少し遅延させてスクロールを確実にする
-      setTimeout(() => {
-        flatListRef.current?.scrollToIndex({
+      // 既に表示されているインデックスの場合はスクロールしない（手動スワイプ時の競合防止）
+      // ただし、初回は必ずスクロール位置を合わせる必要があるため実行する
+      // ここでは簡易的に、常にスクロールを実行する（FlatListは同じ位置へのスクロールなら無視または微修正で済むため）
+      try {
+        flatListRef.current.scrollToIndex({
           index: currentSongIndex,
-          animated: false,
+          animated: true, // アニメーションありで遷移
         });
-      }, 0);
+      } catch (e) {
+        console.warn("Scroll to index failed:", e);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 初回マウント時のみ実行
+  }, [currentSongIndex, songs.length]);
 
   return (
     <View style={styles.container}>

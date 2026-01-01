@@ -42,7 +42,8 @@
           "resizeMode": "cover"
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
