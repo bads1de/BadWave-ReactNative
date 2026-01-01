@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { CACHE_CONFIG } from "@/constants";
 import { mmkvPersister } from "@/lib/mmkv-persister";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { SyncProvider } from "@/providers/SyncProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/modal/AuthModal";
 import { ToastComponent } from "@/components/common/CustomToast";
@@ -133,12 +134,14 @@ export default function RootLayout() {
         }}
       >
         <AuthProvider>
-          <View style={{ flex: 1, backgroundColor: "#000" }}>
-            <StatusBar style="light" />
-            {showAuthModal && <AuthModal />}
-            <Stack screenOptions={{ headerShown: false }} />
-            <ToastComponent />
-          </View>
+          <SyncProvider>
+            <View style={{ flex: 1, backgroundColor: "#000" }}>
+              <StatusBar style="light" />
+              {showAuthModal && <AuthModal />}
+              <Stack screenOptions={{ headerShown: false }} />
+              <ToastComponent />
+            </View>
+          </SyncProvider>
         </AuthProvider>
       </PersistQueryClientProvider>
     </GestureHandlerRootView>

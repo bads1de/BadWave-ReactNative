@@ -1,6 +1,9 @@
 import * as FileSystem from "expo-file-system";
 import { MMKV } from "react-native-mmkv";
+import { eq } from "drizzle-orm";
 import Song from "../types";
+import { db } from "@/lib/db/client";
+import { songs } from "@/lib/db/schema";
 
 /**
  * オフライン再生のためのストレージサービス
@@ -10,7 +13,8 @@ export class OfflineStorageService {
   private storage: MMKV;
   private readonly METADATA_PREFIX = "song-metadata:";
   private readonly DOWNLOAD_DIR = FileSystem.documentDirectory + "downloads/";
-  private readonly IMAGES_DIR = FileSystem.documentDirectory + "downloads/images/";
+  private readonly IMAGES_DIR =
+    FileSystem.documentDirectory + "downloads/images/";
 
   constructor() {
     this.storage = new MMKV({
@@ -74,7 +78,10 @@ export class OfflineStorageService {
       }
 
       // ダウンロード実行
-      const downloadResult = await FileSystem.downloadAsync(imageUrl, localPath);
+      const downloadResult = await FileSystem.downloadAsync(
+        imageUrl,
+        localPath
+      );
 
       if (downloadResult.status === 200) {
         console.log(`Image downloaded successfully: ${songId}`);
@@ -139,11 +146,25 @@ export class OfflineStorageService {
           downloadDate: new Date().toISOString(),
         };
 
-        // メタデータを保存
+        // メタデータを保存 (MMKV - レガシー)
         this.storage.set(
           `${this.METADATA_PREFIX}${song.id}`,
           JSON.stringify(metadata)
         );
+
+        // SQLite にもローカルパスを保存（二重書き込み: 段階的移行用）
+        try {
+          await db
+            .update(songs)
+            .set({
+              songPath: localPath,
+              imagePath: imageLocalPath,
+              downloadedAt: new Date(),
+            })
+            .where(eq(songs.id, song.id));
+        } catch (sqliteError) {
+          console.warn("SQLite update failed (non-critical):", sqliteError);
+        }
 
         return { success: true };
       } else {
@@ -209,8 +230,22 @@ export class OfflineStorageService {
         }
       }
 
-      // メタデータ削除
+      // メタデータ削除 (MMKV - レガシー)
       this.storage.delete(metadataKey);
+
+      // SQLite のローカルパスもクリア（二重削除: 段階的移行用）
+      try {
+        await db
+          .update(songs)
+          .set({
+            songPath: null,
+            imagePath: null,
+            downloadedAt: null,
+          })
+          .where(eq(songs.id, songId));
+      } catch (sqliteError) {
+        console.warn("SQLite update failed (non-critical):", sqliteError);
+      }
 
       return { success: true };
     } catch (error) {
