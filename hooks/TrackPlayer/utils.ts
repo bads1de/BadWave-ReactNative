@@ -32,6 +32,7 @@ export async function convertSongToTrack(song: Song): Promise<Track> {
       title: song.title,
       artist: song.author,
       artwork: song.image_path,
+      originalSong: song, // 元のSongオブジェクトを保持
     };
     return track;
   } catch (error) {
@@ -43,6 +44,7 @@ export async function convertSongToTrack(song: Song): Promise<Track> {
       title: song.title,
       artist: song.author,
       artwork: song.image_path,
+      originalSong: song, // 元のSongオブジェクトを保持
     };
   }
 }

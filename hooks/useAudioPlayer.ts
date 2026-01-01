@@ -117,7 +117,13 @@ export function useAudioPlayer(
     if (!isMounted.current || !activeTrack?.id) return;
 
     // トラックIDに対応する曲情報を取得
-    const song = songMap[activeTrack.id];
+    // 優先順位1: propsとして渡されたsongs (最新の情報である可能性が高い)
+    // 優先順位2: トラックに埋め込まれた元の曲情報 (バックアップ)
+    let song = songMap[activeTrack.id];
+
+    if (!song && activeTrack.originalSong) {
+      song = activeTrack.originalSong as Song;
+    }
 
     if (!song) return;
 
@@ -132,13 +138,7 @@ export function useAudioPlayer(
       lastProcessedTrackId: song.id,
       currentSongId: song.id,
     }));
-  }, [
-    activeTrack?.id,
-    songMap,
-    updateQueueState,
-    setCurrentSong,
-    currentSong?.id,
-  ]);
+  }, [activeTrack, songMap, updateQueueState, setCurrentSong, currentSong?.id]);
 
   /**
    * シャッフルトグル処理用ハンドラー

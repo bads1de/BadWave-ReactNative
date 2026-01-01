@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import TrackPlayer from "react-native-track-player";
 import Song from "../../types";
 import { PlayContext, QueueState } from "./types";
 import { convertToTracks, safeAsyncOperation } from "./utils";
+import { useQueueStore } from "./useQueueStore";
 
 /**
  * プレイヤーの状態管理を行うカスタムフック
@@ -24,23 +25,21 @@ export function usePlayerState({ songs }: { songs: Song[] }) {
  * キュー操作フック
  */
 export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
-  // キューの状態管理
-  const queueContext = useRef<QueueState>({
-    isShuffleEnabled: false,
-    originalQueue: [],
-    currentQueue: [],
-    lastProcessedTrackId: null,
-    currentSongId: null,
-    context: {
-      type: null,
-    },
-  });
+  // キューの状態管理 (Zustandストアを使用)
+  const queueState = useQueueStore();
+  const { setQueueState, resetQueueState } = queueState;
 
   /**
    * キューの状態を安全に取得する
    */
   const getQueueState = useCallback(() => {
-    return { ...queueContext.current };
+    // ストアの現在の状態を返す
+    const {
+      setQueueState: _,
+      resetQueueState: __,
+      ...state
+    } = useQueueStore.getState();
+    return state;
   }, []);
 
   /**
@@ -48,22 +47,9 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
    */
   const updateQueueState = useCallback(
     (updater: (state: QueueState) => Partial<QueueState>) => {
-      // 新しい状態を計算
-      const newPartialState = updater(queueContext.current);
-
-      // 現在の曲IDが変わる場合のみ更新を行う特別な処理
-      // これは最も頻繁に起こる更新なので、特別に最適化
-      if (
-        "currentSongId" in newPartialState &&
-        newPartialState.currentSongId === queueContext.current.currentSongId
-      ) {
-        return; // 同じ曲IDなら更新しない
-      }
-
-      // 状態を更新
-      queueContext.current = { ...queueContext.current, ...newPartialState };
+      setQueueState(updater);
     },
-    []
+    [setQueueState]
   );
 
   /**
@@ -283,20 +269,11 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
   const resetQueue = useCallback(async () => {
     return safeAsyncOperation(async () => {
       await TrackPlayer.reset();
-      updateQueueState(() => ({
-        isShuffleEnabled: false,
-        originalQueue: [],
-        currentQueue: [],
-        lastProcessedTrackId: null,
-        currentSongId: null,
-        context: {
-          type: null,
-        },
-      }));
+      resetQueueState();
 
       return true;
     }, "キューのリセット中にエラーが発生しました");
-  }, [updateQueueState]);
+  }, [resetQueueState]);
 
   // 返却値をメモ化して不要な再計算を防止
   const returnValues = useMemo(
@@ -308,7 +285,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
       updateQueueWithContext,
       getCurrentContext,
       resetQueue,
-      queueState: queueContext,
+      queueState: queueState,
       getQueueState,
       updateQueueState,
     }),
@@ -320,7 +297,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
       updateQueueWithContext,
       getCurrentContext,
       resetQueue,
-      queueContext,
+      queueState,
       getQueueState,
       updateQueueState,
     ]
