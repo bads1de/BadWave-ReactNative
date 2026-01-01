@@ -27,6 +27,41 @@ jest.mock("react-native-mmkv", () => {
   };
 });
 
+// db クライアントをモック
+jest.mock("@/lib/db/client", () => {
+  const mockDb = {
+    select: jest.fn().mockReturnThis(),
+    from: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
+    execute: jest.fn().mockResolvedValue([]),
+    // thenable にするために Promise.resolve を返すようにチェーンの最後を調整
+    then: jest.fn((onFulfilled) => Promise.resolve([]).then(onFulfilled)),
+  };
+  return { db: mockDb };
+});
+
+// drizzle-orm をモック
+jest.mock("drizzle-orm", () => ({
+  eq: jest.fn(),
+  isNotNull: jest.fn(),
+  sql: jest.fn(),
+}));
+
+// expo-sqlite をモック
+jest.mock("expo-sqlite", () => {
+  return {
+    openDatabaseSync: jest.fn(() => ({
+      execAsync: jest.fn(),
+      runAsync: jest.fn(),
+      getFirstAsync: jest.fn(),
+      getAllAsync: jest.fn(),
+    })),
+  };
+});
+
 describe("OfflineStorageService", () => {
   let service: OfflineStorageService;
   let mockMMKV: any;

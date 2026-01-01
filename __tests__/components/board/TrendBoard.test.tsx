@@ -8,10 +8,25 @@ jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("expo-blur", () => ({ BlurView: "BlurView" }));
-jest.mock("@/components/common/CustomButton", () => ({ __esModule: true, default: "CustomButton" }));
-jest.mock("@/components/common/Loading", () => ({ __esModule: true, default: () => null }));
-jest.mock("@/components/common/Error", () => ({ __esModule: true, default: () => null }));
-jest.mock("@/actions/useGetTrendSongs", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/components/common/CustomButton", () => ({
+  __esModule: true,
+  default: "CustomButton",
+}));
+jest.mock("@/components/common/Loading", () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock("@/components/common/Error", () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock("@/hooks/data/useGetLocalTrendSongs", () => ({
+  useGetLocalTrendSongs: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  })),
+}));
 
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
 
@@ -19,7 +34,9 @@ describe("TrendBoard", () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
     useAudioPlayer.mockReturnValue({ onPlaySong: jest.fn() });
   });
 

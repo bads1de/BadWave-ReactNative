@@ -214,6 +214,7 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
       </BlurView>
 
       <FlatList
+        testID="swiper"
         ref={flatListRef}
         data={songs}
         renderItem={renderItem}
@@ -228,7 +229,7 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
         getItemLayout={getItemLayout}
         windowSize={3}
         removeClippedSubviews={true}
-        initialNumToRender={1}
+        initialNumToRender={songs.length}
         maxToRenderPerBatch={2}
         // initialScrollIndexはgetItemLayoutがあれば機能するが、
         // レイアウト計算のタイミングによっては失敗することがあるため、
@@ -325,27 +326,6 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
-  },
-  actionIcons: {
-    position: "absolute",
-    right: 15,
-    bottom: height * 0.3,
-    alignItems: "center",
-    zIndex: 10,
-  },
-  actionButton: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  blurIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   playerControls: {
     width: "100%",

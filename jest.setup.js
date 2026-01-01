@@ -3,13 +3,13 @@
 // jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
 // より堅牢なsetImmediateとclearImmediateのpolyfill
-if (typeof setImmediate === 'undefined') {
+if (typeof setImmediate === "undefined") {
   global.setImmediate = (callback, ...args) => {
     return setTimeout(callback, 0, ...args);
   };
 }
 
-if (typeof clearImmediate === 'undefined') {
+if (typeof clearImmediate === "undefined") {
   global.clearImmediate = (id) => {
     clearTimeout(id);
   };
@@ -38,7 +38,7 @@ jest.mock('react-native/Libraries/Components/StatusBar/StatusBar', () => {
 */
 
 // React NativeのInteractionManagerをモック
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+jest.mock("react-native/Libraries/Interaction/InteractionManager", () => ({
   runAfterInteractions: jest.fn((callback) => {
     callback();
     return { cancel: jest.fn() };
@@ -66,9 +66,14 @@ jest.mock("expo-image", () => {
   const { View } = require("react-native");
   return {
     __esModule: true,
-    Image: (props) => React.createElement(View, { testID: "expo-image", ...props }),
+    Image: (props) =>
+      React.createElement(View, { testID: "expo-image", ...props }),
     ImageBackground: ({ children, ...props }) =>
-      React.createElement(View, { testID: "image-background", ...props }, children),
+      React.createElement(
+        View,
+        { testID: "image-background", ...props },
+        children
+      ),
   };
 });
 
@@ -78,7 +83,11 @@ jest.mock("expo-linear-gradient", () => {
   return {
     __esModule: true,
     LinearGradient: ({ children, ...props }) =>
-      React.createElement(View, { testID: "linear-gradient", ...props }, children),
+      React.createElement(
+        View,
+        { testID: "linear-gradient", ...props },
+        children
+      ),
   };
 });
 
@@ -99,7 +108,10 @@ jest.mock("@expo/vector-icons", () => {
 
   // 各アイコンファミリーをモックするコンポーネント
   const MockIcon = (props) => {
-    return React.createElement(View, { testID: props.testID || "icon-mock", ...props });
+    return React.createElement(View, {
+      testID: props.testID || "icon-mock",
+      ...props,
+    });
   };
 
   return {
@@ -111,13 +123,30 @@ jest.mock("@expo/vector-icons", () => {
   };
 });
 
+// expo-sqlite のモック
+jest.mock("expo-sqlite", () => ({
+  openDatabaseSync: jest.fn(() => ({
+    transaction: jest.fn(),
+    execAsync: jest.fn(),
+    runAsync: jest.fn(),
+    getFirstAsync: jest.fn(),
+    getAllAsync: jest.fn(),
+    prepareAsync: jest.fn(),
+    closeSync: jest.fn(),
+  })),
+  SQLite: {
+    openDatabase: jest.fn(),
+  },
+}));
+
 // expo-video mock
 jest.mock("expo-video", () => {
   const React = require("react");
   const { View } = require("react-native");
   return {
     __esModule: true,
-    VideoView: (props) => React.createElement(View, { testID: "video-view", ...props }),
+    VideoView: (props) =>
+      React.createElement(View, { testID: "video-view", ...props }),
     useVideoPlayer: jest.fn(() => ({
       loop: true,
       play: jest.fn(),
@@ -125,7 +154,6 @@ jest.mock("expo-video", () => {
     })),
   };
 });
-
 
 // 各テストファイルで個別にモックを定義するようにします
 // グローバルモックは使用しません

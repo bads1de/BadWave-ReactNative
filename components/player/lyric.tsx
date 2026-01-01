@@ -7,6 +7,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ScrollView,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -30,14 +31,14 @@ interface LyricProps {
 
 const Lyric: React.FC<LyricProps> = ({
   lyrics,
-  initialVisibleLines = 4,
+  initialVisibleLines = 3,
   songTitle = "",
   artistName = "",
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Split lyrics into lines
-  const lyricsLines = lyrics.split("\n");
+  const lyricsLines = lyrics ? lyrics.split("\n") : [];
 
   // Determine which lines to show based on expanded state
   const displayedLines = isExpanded
@@ -50,68 +51,77 @@ const Lyric: React.FC<LyricProps> = ({
     setIsExpanded(!isExpanded);
   };
 
+  if (lyrics === null || lyrics === undefined) {
+    throw new Error("Lyrics are required");
+  }
+
   return (
     <View style={styles.wrapper}>
       <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
-        <LinearGradient
-          colors={["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]}
-          style={styles.gradient}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={isExpanded}
         >
-          <View style={styles.header}>
-            <Text style={styles.label}>LYRICS</Text>
-            <MaterialCommunityIcons
-              name="text-box-outline"
-              size={16}
-              color="#a78bfa"
-              style={{ opacity: 0.8 }}
-            />
-          </View>
+          <LinearGradient
+            colors={["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]}
+            style={styles.gradient}
+          >
+            <View style={styles.header}>
+              <Text style={styles.label}>LYRICS</Text>
+              <MaterialCommunityIcons
+                name="text-box-outline"
+                size={16}
+                color="#a78bfa"
+                style={{ opacity: 0.8 }}
+              />
+            </View>
 
-          {/* Song information */}
-          {(songTitle || artistName) && (
-            <View style={styles.songInfoContainer}>
-              {songTitle && <Text style={styles.songTitle}>{songTitle}</Text>}
-              {artistName && (
-                <Text style={styles.artistName}>{artistName}</Text>
+            {/* Song information */}
+            {(songTitle || artistName) && (
+              <View style={styles.songInfoContainer}>
+                {songTitle && <Text style={styles.songTitle}>{songTitle}</Text>}
+                {artistName && (
+                  <Text style={styles.artistName}>{artistName}</Text>
+                )}
+              </View>
+            )}
+
+            {/* Lyrics display */}
+            <View style={styles.lyricsContainer}>
+              {displayedLines.map((line, index) => (
+                <Text key={index} style={styles.lyricsText}>
+                  {line || " "}
+                </Text>
+              ))}
+              {!isExpanded && lyricsLines.length > initialVisibleLines && (
+                <LinearGradient
+                  colors={["transparent", "rgba(30,30,36,0.8)"]}
+                  style={styles.fadeOverlay}
+                />
               )}
             </View>
-          )}
 
-          {/* Lyrics display */}
-          <View style={styles.lyricsContainer}>
-            {displayedLines.map((line, index) => (
-              <Text key={index} style={styles.lyricsText}>
-                {line || " "}
-              </Text>
-            ))}
-            {!isExpanded && lyricsLines.length > initialVisibleLines && (
-              <LinearGradient
-                colors={["transparent", "rgba(30,30,36,0.8)"]}
-                style={styles.fadeOverlay}
-              />
+            {/* Expand/collapse button */}
+            {lyricsLines.length > initialVisibleLines && (
+              <TouchableOpacity
+                onPress={toggleExpand}
+                activeOpacity={0.7}
+                style={styles.expandButtonContainer}
+              >
+                <View style={styles.expandButton}>
+                  <Text style={styles.expandButtonText}>
+                    {isExpanded ? "Show less" : "Show more"}
+                  </Text>
+                  <MaterialCommunityIcons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color="#a78bfa"
+                  />
+                </View>
+              </TouchableOpacity>
             )}
-          </View>
-
-          {/* Expand/collapse button */}
-          {lyricsLines.length > initialVisibleLines && (
-            <TouchableOpacity
-              onPress={toggleExpand}
-              activeOpacity={0.7}
-              style={styles.expandButtonContainer}
-            >
-              <View style={styles.expandButton}>
-                <Text style={styles.expandButtonText}>
-                  {isExpanded ? "SHOW LESS" : "SHOW MORE"}
-                </Text>
-                <MaterialCommunityIcons
-                  name={isExpanded ? "chevron-up" : "chevron-down"}
-                  size={16}
-                  color="#a78bfa"
-                />
-              </View>
-            </TouchableOpacity>
-          )}
-        </LinearGradient>
+          </LinearGradient>
+        </ScrollView>
       </BlurView>
     </View>
   );

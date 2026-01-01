@@ -27,6 +27,7 @@ export function useGetLocalSongs() {
         image_path: row.originalImagePath ?? row.imagePath ?? "",
         duration: row.duration ?? undefined,
         genre: row.genre ?? undefined,
+        lyrics: row.lyrics ?? undefined,
         count: String(row.playCount ?? 0),
         like_count: String(row.likeCount ?? 0),
         created_at: row.createdAt ?? "",

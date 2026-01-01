@@ -1,9 +1,6 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import * as utils from "@/hooks/TrackPlayer/utils";
-import {
-  convertSongToTrack,
-  convertToTracks,
-} from "@/hooks/TrackPlayer/utils";
+import { convertSongToTrack, convertToTracks } from "@/hooks/TrackPlayer/utils";
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
 
@@ -86,6 +83,7 @@ describe("TrackPlayer utils - Edge Cases", () => {
         title: incompleteSong.title,
         artist: undefined, // authorがないのでundefined
         artwork: incompleteSong.image_path,
+        originalSong: incompleteSong,
       });
     });
 
@@ -103,6 +101,7 @@ describe("TrackPlayer utils - Edge Cases", () => {
         title: mockSong.title,
         artist: mockSong.author,
         artwork: mockSong.image_path,
+        originalSong: mockSong,
       });
     });
 
@@ -120,6 +119,7 @@ describe("TrackPlayer utils - Edge Cases", () => {
         title: songWithoutImage.title,
         artist: songWithoutImage.author,
         artwork: "", // 空の文字列
+        originalSong: songWithoutImage,
       });
     });
   });
@@ -174,6 +174,7 @@ describe("TrackPlayer utils - Edge Cases", () => {
             title: song.title,
             artist: song.author,
             artwork: song.image_path,
+            originalSong: song,
           })
         );
 

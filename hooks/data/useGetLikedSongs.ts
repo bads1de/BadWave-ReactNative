@@ -44,6 +44,7 @@ export function useGetLikedSongs(userId?: string) {
         song_path: row.song.originalSongPath ?? row.song.songPath ?? "",
         image_path: row.song.originalImagePath ?? row.song.imagePath ?? "",
         genre: row.song.genre ?? undefined,
+        lyrics: row.song.lyrics ?? undefined,
         count: String(row.song.playCount ?? 0),
         like_count: String(row.song.likeCount ?? 0),
         created_at: row.song.createdAt ?? "",

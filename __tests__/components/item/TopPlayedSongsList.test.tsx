@@ -25,8 +25,12 @@ jest.mock("@/actions/getTopPlayedSongs", () => ({
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseUser = useUser as jest.MockedFunction<typeof useUser>;
-const mockUseAudioPlayer = useAudioPlayer as jest.MockedFunction<typeof useAudioPlayer>;
-const mockUseSubPlayerStore = useSubPlayerStore as jest.MockedFunction<typeof useSubPlayerStore>;
+const mockUseAudioPlayer = useAudioPlayer as jest.MockedFunction<
+  typeof useAudioPlayer
+>;
+const mockUseSubPlayerStore = useSubPlayerStore as jest.MockedFunction<
+  typeof useSubPlayerStore
+>;
 
 describe("TopPlayedSongsList", () => {
   // テスト用のモックデータ
@@ -101,7 +105,7 @@ describe("TopPlayedSongsList", () => {
       currentSong: null,
     } as any);
 
-        mockUseSubPlayerStore.mockImplementation((selector) => {
+    mockUseSubPlayerStore.mockImplementation((selector) => {
       const state = {
         setShowSubPlayer: mockSetShowSubPlayer,
         setSongs: mockSetSongs,
@@ -109,6 +113,10 @@ describe("TopPlayedSongsList", () => {
         songs: [],
         currentSongIndex: -1,
         showSubPlayer: false,
+        previewDuration: 0,
+        autoPlay: false,
+        setPreviewDuration: jest.fn(),
+        setAutoPlay: jest.fn(),
       };
       return selector(state);
     });
@@ -119,19 +127,19 @@ describe("TopPlayedSongsList", () => {
   describe("レンダリングテスト", () => {
     it("コンポーネントが正しくレンダリングされる", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
-      expect(getByText("Top Played Songs")).toBeTruthy();
+
+      expect(getByText("ON REPEAT")).toBeTruthy();
     });
 
     it("タイトルが正しく表示される", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
-      expect(getByText("Top Played Songs")).toBeTruthy();
+
+      expect(getByText("ON REPEAT")).toBeTruthy();
     });
 
     it("曲リストが正しく表示される", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText("トップソング1")).toBeTruthy();
       expect(getByText("トップソング2")).toBeTruthy();
       expect(getByText("トップソング3")).toBeTruthy();
@@ -139,7 +147,7 @@ describe("TopPlayedSongsList", () => {
 
     it("曲のアーティスト名が表示される", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText("アーティスト1")).toBeTruthy();
       expect(getByText("アーティスト2")).toBeTruthy();
       expect(getByText("アーティスト3")).toBeTruthy();
@@ -147,7 +155,7 @@ describe("TopPlayedSongsList", () => {
 
     it("各曲に画像が表示される", () => {
       const { UNSAFE_getAllByType } = render(<TopPlayedSongsList />);
-      
+
       const images = UNSAFE_getAllByType("Image");
       expect(images.length).toBe(mockSongs.length);
     });
@@ -156,15 +164,15 @@ describe("TopPlayedSongsList", () => {
   describe("データ表示", () => {
     it("3曲のトップソングが表示される", () => {
       const { getAllByText } = render(<TopPlayedSongsList />);
-      
-      const songs = mockSongs.map(song => getAllByText(song.title));
+
+      const songs = mockSongs.map((song) => getAllByText(song.title));
       expect(songs.length).toBe(mockSongs.length);
     });
 
     it("曲情報が正確に表示される", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
-      mockSongs.forEach(song => {
+
+      mockSongs.forEach((song) => {
         expect(getByText(song.title)).toBeTruthy();
         expect(getByText(song.author)).toBeTruthy();
       });
@@ -172,14 +180,14 @@ describe("TopPlayedSongsList", () => {
 
     it("曲が再生回数順に表示される", () => {
       const { getAllByText } = render(<TopPlayedSongsList />);
-      
+
       // 最初の曲（最も再生回数が多い）が表示される
       expect(getAllByText("トップソング1")).toBeTruthy();
     });
 
     it("画像パスが正しく設定される", () => {
       const { UNSAFE_getAllByType } = render(<TopPlayedSongsList />);
-      
+
       const images = UNSAFE_getAllByType("Image");
       images.forEach((image, index) => {
         expect(image.props.source.uri).toBe(mockSongs[index].image_path);
@@ -188,7 +196,7 @@ describe("TopPlayedSongsList", () => {
 
     it("複数の曲が横並びで表示される", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText("トップソング1")).toBeTruthy();
       expect(getByText("トップソング2")).toBeTruthy();
       expect(getByText("トップソング3")).toBeTruthy();
@@ -198,10 +206,10 @@ describe("TopPlayedSongsList", () => {
   describe("ユーザーインタラクション", () => {
     it("曲をタップすると再生が開始される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(mockSetSongs).toHaveBeenCalledWith(mockSongs);
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(0);
@@ -211,10 +219,10 @@ describe("TopPlayedSongsList", () => {
 
     it("2番目の曲をタップすると正しいインデックスで再生される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング2");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(1);
       });
@@ -222,10 +230,10 @@ describe("TopPlayedSongsList", () => {
 
     it("3番目の曲をタップすると正しいインデックスで再生される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング3");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(2);
       });
@@ -239,10 +247,10 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング2");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(TrackPlayer.pause).toHaveBeenCalled();
       });
@@ -250,10 +258,10 @@ describe("TopPlayedSongsList", () => {
 
     it("曲をタップすると状態がリセットされてから新しい曲が設定される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(-1);
         expect(mockSetSongs).toHaveBeenCalledWith([]);
@@ -262,10 +270,10 @@ describe("TopPlayedSongsList", () => {
 
     it("曲タップ時にサブプレイヤーが表示される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(mockSetShowSubPlayer).toHaveBeenCalledWith(true);
       });
@@ -281,9 +289,9 @@ describe("TopPlayedSongsList", () => {
         refetch: jest.fn(),
       } as any);
 
-      const { getByText, queryByText } = render(<TopPlayedSongsList />);
-      
-      expect(getByText("Top Played Songs")).toBeTruthy();
+      const { queryByText } = render(<TopPlayedSongsList />);
+
+      expect(queryByText("ON REPEAT")).toBeNull();
       expect(queryByText("トップソング1")).toBeNull();
     });
 
@@ -295,9 +303,9 @@ describe("TopPlayedSongsList", () => {
         refetch: jest.fn(),
       } as any);
 
-      const { getByText, queryByText } = render(<TopPlayedSongsList />);
-      
-      expect(getByText("Top Played Songs")).toBeTruthy();
+      const { queryByText } = render(<TopPlayedSongsList />);
+
+      expect(queryByText("ON REPEAT")).toBeNull();
       expect(queryByText("トップソング1")).toBeNull();
     });
 
@@ -309,7 +317,7 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       render(<TopPlayedSongsList />);
-      
+
       // useQueryが有効化されていないことを確認
       const queryCall = mockUseQuery.mock.calls[0][0] as any;
       expect(queryCall.enabled).toBe(false);
@@ -331,7 +339,7 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText("更新されたソング")).toBeTruthy();
     });
 
@@ -372,7 +380,7 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText("トップソング1")).toBeTruthy();
       expect(getByText("アーティスト1")).toBeTruthy();
     });
@@ -413,7 +421,7 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText("トップソング1")).toBeTruthy();
     });
 
@@ -454,7 +462,7 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText(longTitle)).toBeTruthy();
     });
 
@@ -475,13 +483,17 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText(specialTitle)).toBeTruthy();
     });
 
     it("曲タップ時のエラーをキャッチして処理する", async () => {
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-      (TrackPlayer.pause as jest.Mock).mockRejectedValue(new Error("Pause failed"));
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      (TrackPlayer.pause as jest.Mock).mockRejectedValue(
+        new Error("Pause failed")
+      );
 
       mockUseAudioPlayer.mockReturnValue({
         isPlaying: true,
@@ -490,10 +502,10 @@ describe("TopPlayedSongsList", () => {
       } as any);
 
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalled();
       });
@@ -505,36 +517,36 @@ describe("TopPlayedSongsList", () => {
   describe("メモ化とパフォーマンス", () => {
     it("同じpropsで再レンダリングしても不必要な再計算を行わない", () => {
       const { rerender } = render(<TopPlayedSongsList />);
-      
+
       const initialSetSongsCalls = mockSetSongs.mock.calls.length;
-      
+
       rerender(<TopPlayedSongsList />);
-      
+
       // 状態更新関数が追加で呼ばれないことを確認
       expect(mockSetSongs).toHaveBeenCalledTimes(initialSetSongsCalls);
     });
 
     it("TopPlayedSongItemがメモ化されている", () => {
       const { rerender, getByText } = render(<TopPlayedSongsList />);
-      
+
       // 最初のレンダリング
       expect(getByText("トップソング1")).toBeTruthy();
-      
+
       // 同じデータで再レンダリング
       rerender(<TopPlayedSongsList />);
-      
+
       // 再レンダリング後も正しく表示される
       expect(getByText("トップソング1")).toBeTruthy();
     });
 
     it("handleSongPressがuseCallbackでメモ化されている", () => {
       const { rerender, getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       const firstCallCount = mockSetSongs.mock.calls.length;
-      
+
       // 依存配列に含まれない値が変更された場合
       mockUseSubPlayerStore.mockReturnValue({
         setShowSubPlayer: mockSetShowSubPlayer,
@@ -544,9 +556,9 @@ describe("TopPlayedSongsList", () => {
         currentSongIndex: 0, // 変更
         showSubPlayer: true, // 変更
       } as any);
-      
+
       rerender(<TopPlayedSongsList />);
-      
+
       // handleSongPressが再作成されていないことを確認
       expect(mockSetSongs.mock.calls.length).toBe(firstCallCount);
     });
@@ -555,14 +567,14 @@ describe("TopPlayedSongsList", () => {
   describe("コンポーネント構造", () => {
     it("カードコンテナが存在する", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
-      const title = getByText("Top Played Songs");
+
+      const title = getByText("ON REPEAT");
       expect(title).toBeTruthy();
     });
 
     it("曲コンテナが横並びで表示される", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       expect(getByText("トップソング1")).toBeTruthy();
       expect(getByText("トップソング2")).toBeTruthy();
       expect(getByText("トップソング3")).toBeTruthy();
@@ -570,8 +582,8 @@ describe("TopPlayedSongsList", () => {
 
     it("各曲アイテムにタイトルとアーティストが含まれる", () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
-      mockSongs.forEach(song => {
+
+      mockSongs.forEach((song) => {
         expect(getByText(song.title)).toBeTruthy();
         expect(getByText(song.author)).toBeTruthy();
       });
@@ -581,10 +593,10 @@ describe("TopPlayedSongsList", () => {
   describe("状態更新の最適化", () => {
     it("曲タップ時にrequestAnimationFrameを使用せず同期的に状態を更新する", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       // 同期的な更新を検証（waitForを使用しない）
       await waitFor(() => {
         expect(mockSetSongs).toHaveBeenCalledWith(mockSongs);
@@ -595,15 +607,15 @@ describe("TopPlayedSongsList", () => {
 
     it("状態更新が同期的にバッチ処理される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         // 最初にリセット
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(-1);
         expect(mockSetSongs).toHaveBeenCalledWith([]);
-        
+
         // その後新しい値を設定（同期的に）
         expect(mockSetSongs).toHaveBeenCalledWith(mockSongs);
         expect(mockSetCurrentSongIndex).toHaveBeenCalledWith(0);
@@ -613,28 +625,28 @@ describe("TopPlayedSongsList", () => {
 
     it("requestAnimationFrameが使用されていないことを確認", async () => {
       // requestAnimationFrameをモック
-      const rafSpy = jest.spyOn(global, 'requestAnimationFrame');
-      
+      const rafSpy = jest.spyOn(global, "requestAnimationFrame");
+
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(mockSetSongs).toHaveBeenCalledWith(mockSongs);
       });
-      
+
       // requestAnimationFrameが呼ばれていないことを確認
       expect(rafSpy).not.toHaveBeenCalled();
-      
+
       rafSpy.mockRestore();
     });
 
     it("複数の状態更新が一度にまとめて実行される", async () => {
       const { getByText } = render(<TopPlayedSongsList />);
-      
+
       const callOrder: string[] = [];
-      
+
       // 呼び出し順序を記録
       mockSetCurrentSongIndex.mockImplementation((index) => {
         callOrder.push(`setCurrentSongIndex:${index}`);
@@ -645,22 +657,22 @@ describe("TopPlayedSongsList", () => {
       mockSetShowSubPlayer.mockImplementation((show) => {
         callOrder.push(`setShowSubPlayer:${show}`);
       });
-      
+
       const song = getByText("トップソング1");
       fireEvent.press(song);
-      
+
       await waitFor(() => {
         expect(mockSetSongs).toHaveBeenCalled();
         expect(mockSetCurrentSongIndex).toHaveBeenCalled();
         expect(mockSetShowSubPlayer).toHaveBeenCalled();
       });
-      
+
       // 状態更新が連続して呼ばれることを確認
-      expect(callOrder).toContain('setCurrentSongIndex:-1');
-      expect(callOrder).toContain('setSongs:0');
+      expect(callOrder).toContain("setCurrentSongIndex:-1");
+      expect(callOrder).toContain("setSongs:0");
       expect(callOrder).toContain(`setSongs:${mockSongs.length}`);
-      expect(callOrder).toContain('setCurrentSongIndex:0');
-      expect(callOrder).toContain('setShowSubPlayer:true');
+      expect(callOrder).toContain("setCurrentSongIndex:0");
+      expect(callOrder).toContain("setShowSubPlayer:true");
     });
   });
 });

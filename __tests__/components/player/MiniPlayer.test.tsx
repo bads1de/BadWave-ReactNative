@@ -1,11 +1,32 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
+import { Ionicons } from "@expo/vector-icons";
 
 // @expo/vector-iconsのモック
-jest.mock("@expo/vector-icons", () => ({
-  Feather: "Feather",
-}));
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const MockIcon = (props: any) => React.createElement(View, props);
+  return {
+    Ionicons: MockIcon,
+    Feather: MockIcon,
+  };
+});
+
+// expo-blurのモック
+jest.mock("expo-blur", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    BlurView: ({ children, testID, ...props }: any) =>
+      React.createElement(
+        View,
+        { testID: testID || "blur-view", ...props },
+        children
+      ),
+  };
+});
 
 // expo-imageのモック
 jest.mock("expo-image", () => {
@@ -21,7 +42,7 @@ jest.mock("expo-image", () => {
   };
 });
 
-// expo-linear-gradientのモック
+// expo-linear-gradientのモック (互換性のために残す)
 jest.mock("expo-linear-gradient", () => ({
   LinearGradient: ({ children, testID }: any) => {
     const React = require("react");
@@ -49,12 +70,14 @@ jest.mock("@/components/common/MarqueeText", () => {
 jest.mock("react-native-reanimated", () => {
   const React = require("react");
   const { View } = require("react-native");
+  const Animated = {
+    View: ({ children, style, ...props }: any) =>
+      React.createElement(View, { style, ...props }, children),
+    createAnimatedComponent: (cb: any) => cb,
+  };
   return {
     __esModule: true,
-    default: {
-      View: ({ children, style, ...props }: any) =>
-        React.createElement(View, { style, ...props }, children),
-    },
+    default: Animated,
     useSharedValue: (initialValue: any) => ({ value: initialValue }),
     useAnimatedStyle: (callback: any) => callback(),
     withTiming: (value: any) => value,
@@ -69,8 +92,8 @@ describe("MiniPlayer", () => {
     author: "Test Artist",
     image_path: "https://example.com/image.jpg",
     song_path: "https://example.com/song.mp3",
-    video_path: null,
-    lyrics: null,
+    video_path: undefined,
+    lyrics: undefined,
     genre: "pop",
     created_at: "2024-01-01",
     like_count: "10",
@@ -107,7 +130,7 @@ describe("MiniPlayer", () => {
         />
       );
 
-      expect(getByTestId("linear-gradient")).toBeTruthy();
+      expect(getByTestId("blur-view")).toBeTruthy();
       expect(getByTestId("expo-image")).toBeTruthy();
     });
 
@@ -151,7 +174,7 @@ describe("MiniPlayer", () => {
       expect(image.props["data-source"]).toBe(mockSong.image_path);
     });
 
-    it("LinearGradientが表示される", () => {
+    it("BlurViewが表示される", () => {
       const { getByTestId } = render(
         <MiniPlayer
           currentSong={mockSong}
@@ -161,7 +184,7 @@ describe("MiniPlayer", () => {
         />
       );
 
-      expect(getByTestId("linear-gradient")).toBeTruthy();
+      expect(getByTestId("blur-view")).toBeTruthy();
     });
   });
 
@@ -174,10 +197,12 @@ describe("MiniPlayer", () => {
       // すべてのaccessible要素をテストして、onPressでonPlayPauseを呼ぶものを探す
       const playButton = accessibleElements.find((el: any) => {
         // 子要素にFeatherアイコンがあるものを探す
-        const hasFeatherIcon = el.children && el.children.some((child: any) => child.type === "Feather");
+        const hasFeatherIcon =
+          el.children &&
+          el.children.some((child: any) => child.type === Ionicons);
         return hasFeatherIcon;
       });
-      
+
       if (playButton) {
         fireEvent.press(playButton);
       }
@@ -195,8 +220,8 @@ describe("MiniPlayer", () => {
         />
       );
 
-      const featherIcons = UNSAFE_getAllByType("Feather");
-      const playPauseIcon = featherIcons[0];
+      const ionicIcons = UNSAFE_getAllByType(Ionicons);
+      const playPauseIcon = ionicIcons[0];
       expect(playPauseIcon.props.name).toBe("play");
     });
 
@@ -210,8 +235,8 @@ describe("MiniPlayer", () => {
         />
       );
 
-      const featherIcons = UNSAFE_getAllByType("Feather");
-      const playPauseIcon = featherIcons[0];
+      const ionicIcons = UNSAFE_getAllByType(Ionicons);
+      const playPauseIcon = ionicIcons[0];
       expect(playPauseIcon.props.name).toBe("pause");
     });
 
@@ -225,8 +250,8 @@ describe("MiniPlayer", () => {
         />
       );
 
-      let featherIcons = UNSAFE_getAllByType("Feather");
-      expect(featherIcons[0].props.name).toBe("play");
+      let ionicIcons = UNSAFE_getAllByType(Ionicons);
+      expect(ionicIcons[0].props.name).toBe("play");
 
       rerender(
         <MiniPlayer
@@ -237,8 +262,8 @@ describe("MiniPlayer", () => {
         />
       );
 
-      featherIcons = UNSAFE_getAllByType("Feather");
-      expect(featherIcons[0].props.name).toBe("pause");
+      ionicIcons = UNSAFE_getAllByType(Ionicons);
+      expect(ionicIcons[0].props.name).toBe("pause");
     });
 
     it("再生中でも再生/一時停止ボタンがタップ可能", () => {
@@ -246,10 +271,12 @@ describe("MiniPlayer", () => {
 
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       const playButton = accessibleElements.find((el: any) => {
-        const hasFeatherIcon = el.children && el.children.some((child: any) => child.type === "Feather");
+        const hasFeatherIcon =
+          el.children &&
+          el.children.some((child: any) => child.type === Ionicons);
         return hasFeatherIcon;
       });
-      
+
       if (playButton) {
         fireEvent.press(playButton);
       }
@@ -265,7 +292,7 @@ describe("MiniPlayer", () => {
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       // 1つ目がcontentContainer
       const containerButton = accessibleElements[0];
-      
+
       fireEvent.press(containerButton);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
@@ -276,7 +303,7 @@ describe("MiniPlayer", () => {
 
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       const containerButton = accessibleElements[0];
-      
+
       fireEvent.press(containerButton);
 
       expect(mockOnPlayPause).not.toHaveBeenCalled();
@@ -288,10 +315,12 @@ describe("MiniPlayer", () => {
 
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       const playButton = accessibleElements.find((el: any) => {
-        const hasFeatherIcon = el.children && el.children.some((child: any) => child.type === "Feather");
+        const hasFeatherIcon =
+          el.children &&
+          el.children.some((child: any) => child.type === Ionicons);
         return hasFeatherIcon;
       });
-      
+
       if (playButton) {
         fireEvent.press(playButton);
       }
@@ -306,7 +335,9 @@ describe("MiniPlayer", () => {
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       const containerButton = accessibleElements[0];
       const playButton = accessibleElements.find((el: any) => {
-        const hasFeatherIcon = el.children && el.children.some((child: any) => child.type === "Feather");
+        const hasFeatherIcon =
+          el.children &&
+          el.children.some((child: any) => child.type === Ionicons);
         return hasFeatherIcon;
       });
 
@@ -571,7 +602,7 @@ describe("MiniPlayer", () => {
         />
       );
 
-      let icons = UNSAFE_getAllByType("Feather");
+      let icons = UNSAFE_getAllByType(Ionicons);
       expect(icons[0].props.name).toBe("play");
 
       rerender(
@@ -583,7 +614,7 @@ describe("MiniPlayer", () => {
         />
       );
 
-      icons = UNSAFE_getAllByType("Feather");
+      icons = UNSAFE_getAllByType(Ionicons);
       expect(icons[0].props.name).toBe("pause");
     });
 
@@ -672,7 +703,7 @@ describe("MiniPlayer", () => {
 
       // コンポーネントがマウントされることを確認
       await waitFor(() => {
-        expect(getByTestId("linear-gradient")).toBeTruthy();
+        expect(getByTestId("blur-view")).toBeTruthy();
       });
     });
 
@@ -686,8 +717,8 @@ describe("MiniPlayer", () => {
         />
       );
 
-      const gradient = getByTestId("linear-gradient");
-      expect(gradient).toBeTruthy();
+      const blurView = getByTestId("blur-view");
+      expect(blurView).toBeTruthy();
     });
   });
 
@@ -703,7 +734,7 @@ describe("MiniPlayer", () => {
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
-      const icons = UNSAFE_getAllByType("Feather");
+      const icons = UNSAFE_getAllByType(Ionicons);
       expect(icons[0].props.name).toBe("pause");
     });
 
@@ -718,7 +749,7 @@ describe("MiniPlayer", () => {
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
-      const icons = UNSAFE_getAllByType("Feather");
+      const icons = UNSAFE_getAllByType(Ionicons);
       expect(icons[0].props.name).toBe("play");
     });
 
@@ -732,7 +763,7 @@ describe("MiniPlayer", () => {
         />
       );
 
-      let icons = UNSAFE_getAllByType("Feather");
+      let icons = UNSAFE_getAllByType(Ionicons);
       expect(icons[0].props.name).toBe("play");
 
       rerender(
@@ -744,7 +775,7 @@ describe("MiniPlayer", () => {
         />
       );
 
-      icons = UNSAFE_getAllByType("Feather");
+      icons = UNSAFE_getAllByType(Ionicons);
       expect(icons[0].props.name).toBe("pause");
 
       rerender(
@@ -756,7 +787,7 @@ describe("MiniPlayer", () => {
         />
       );
 
-      icons = UNSAFE_getAllByType("Feather");
+      icons = UNSAFE_getAllByType(Ionicons);
       expect(icons[0].props.name).toBe("play");
     });
   });
