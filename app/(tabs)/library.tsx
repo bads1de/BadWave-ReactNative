@@ -15,6 +15,7 @@ import CreatePlaylist from "@/components/playlist/CreatePlaylist";
 import { Playlist } from "@/types";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
+import { BulkDownloadButton } from "@/components/BulkDownloadButton";
 
 type LibraryType = "liked" | "playlists";
 
@@ -147,15 +148,21 @@ export default function LibraryScreen() {
           </View>
           {type === "liked" ? (
             likedSongs && likedSongs.length > 0 ? (
-              <FlashList
-                key={"liked"}
-                data={likedSongs}
-                renderItem={renderLikedSongs}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                contentContainerStyle={styles.listContainer}
-                estimatedItemSize={236}
-              />
+              <>
+                {/* 一括ダウンロードボタン */}
+                <View style={styles.bulkDownloadContainer}>
+                  <BulkDownloadButton songs={likedSongs} size="small" />
+                </View>
+                <FlashList
+                  key={"liked"}
+                  data={likedSongs}
+                  renderItem={renderLikedSongs}
+                  keyExtractor={(item) => item.id}
+                  numColumns={2}
+                  contentContainerStyle={styles.listContainer}
+                  estimatedItemSize={236}
+                />
+              </>
             ) : (
               <View style={[styles.noSongsContainer, { flex: 1 }]}>
                 <Text style={styles.noSongsText}>No songs found.</Text>
@@ -248,6 +255,9 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 100,
+  },
+  bulkDownloadContainer: {
+    marginBottom: 12,
   },
   noSongsContainer: {
     alignItems: "center",

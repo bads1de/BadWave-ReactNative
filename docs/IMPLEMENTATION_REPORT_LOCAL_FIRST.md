@@ -84,8 +84,14 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
     - オフライン時、未ダウンロードの楽曲は自動的に**グレーアウト（半透明化）**され、クリック不可に。
     - `SongItem`, `TopPlayedSongsList` 等で適用済み。
   - `useOfflineGuard`: オフライン時の操作制御用ユーティリティフック
+  - **一括ダウンロード機能**:
+    - `useBulkDownload`: プレイリスト/いいね全体の一括ダウンロード/削除を管理するフック。
+    - `BulkDownloadButton`: 状態に応じたボタン表示（すべてダウンロード/残りをダウンロード/すべて削除）。
+    - `BulkDownloadModal`: ダウンロード進捗をモーダルで表示、キャンセル機能付き。
+    - `library.tsx`: いいね画面に一括ダウンロードボタンを配置。
+    - `playlist/[playlistId].tsx`: プレイリスト詳細画面に一括ダウンロードボタンを配置。
 
 ---
 
-**完了**: Local-First 実装フェーズの主要タスク（Home, Library, Playlist, Offline UX）に加え、ストレージの SQLite 完全移行が完了しました。
+**完了**: Local-First 実装フェーズの主要タスク（Home, Library, Playlist, Offline UX, Bulk Download）に加え、ストレージの SQLite 完全移行が完了しました。
 **Next Step**: アプリ全体の結合テスト（E2E 的な動作確認）や、パフォーマンスチューニング。

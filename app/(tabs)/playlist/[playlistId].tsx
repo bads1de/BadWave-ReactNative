@@ -27,6 +27,7 @@ import { useGetPlaylistSongs } from "@/hooks/data/useGetPlaylistSongs";
 import { useGetLocalPlaylist } from "@/hooks/data/useGetLocalPlaylist";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { useOfflineGuard } from "@/hooks/useOfflineGuard";
+import { BulkDownloadButton } from "@/components/BulkDownloadButton";
 
 const { width } = Dimensions.get("window");
 
@@ -202,10 +203,17 @@ export default function PlaylistDetailScreen() {
               />
             </View>
           )}
+
+          {/* 一括ダウンロードボタン */}
+          {playlistSongs.length > 0 && (
+            <View style={styles.downloadButtonContainer}>
+              <BulkDownloadButton songs={playlistSongs} size="medium" />
+            </View>
+          )}
         </BlurView>
       </View>
     ),
-    [playlist, playlistSongs.length, session?.user.id, router, playlistId]
+    [playlist, playlistSongs, session?.user.id, router, playlistId]
   );
 
   if (isLoading || isLoadingPlaylist) return <Loading />;
@@ -423,6 +431,9 @@ const styles = StyleSheet.create({
   optionsContainer: {
     alignItems: "flex-end",
     marginTop: 8,
+  },
+  downloadButtonContainer: {
+    marginTop: 16,
   },
   listContent: {
     paddingBottom: 96,
