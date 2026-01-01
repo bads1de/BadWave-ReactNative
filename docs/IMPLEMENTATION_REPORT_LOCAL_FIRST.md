@@ -19,8 +19,12 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
   - `useSyncSongs`: 全楽曲メタデータの差分更新 (Upsert)。
   - `useSyncLikedSongs`: 各ユーザーの「いいね」状態の完全同期。
   - `useSyncPlaylists`: プレイリスト構成および内包楽曲の同期。
+  - `useSyncTrendSongs`: トレンドセクション（TrendBoard）の ID リスト同期。
+  - `useSyncRecommendations`: おすすめセクション（ForYou）の同期。
+  - `useSyncSpotlights`: スポットライト情報の同期。
 - **SyncProvider (`providers/SyncProvider.tsx`)**:
   - 認証済みユーザーに対し、バックグラウンドで自動同期を開始。
+  - 同期完了時にローカルクエリのキャッシュを無効化。
 
 ### C. データ取得・操作フック (Local-First)
 
@@ -45,12 +49,29 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
 4. **UI 反映**: 各画面が `useGetLocal...` フックを使って SQLite からデータを表示。
 5. **再生**: `TrackPlayer` が SQLite に `song_path` (ローカルパス) があればオフライン再生、なければストリーミング。
 
-## 4. 現在のステータス
+## 4. テスト実装
+
+- **TDD 原則**: 各フックに対して Jest によるユニットテストを実装済み。
+- **テストカバレッジ**:
+  - `__tests__/hooks/like/useLike.test.tsx`: いいね状態取得・更新。
+  - `__tests__/hooks/playlist/usePlaylist.test.tsx`: プレイリスト取得・作成・曲管理。
+  - `__tests__/hooks/data/useGetLocalSongs.test.tsx`: 全楽曲取得。
+  - `__tests__/hooks/home/useHomeSections.test.tsx`: トレンド・おすすめ・スポットライト取得。
+
+## 5. 現在のステータス
 
 - **インフラ**: 完了 (SQLite/Drizzle/Provider)
-- **フック**: 基本セット（Songs/Likes/Playlists）完了
+- **フック**: ほぼ全機能（Songs/Likes/Playlists/Home Sections）完了
+- **テスト**: 主要フックのテスト完了 (15 テスト)
 - **既存統合**: ダウンロード・削除時の二重書き込み対応完了
+- **UI コンポーネント**: ホーム画面・ライブラリ画面のローカルファースト化完了
+  - `TrendBoard`: `useGetLocalTrendSongs` に切り替え済み
+  - `ForYouBoard`: `useGetLocalRecommendations` に切り替え済み
+  - `HeroBoard`: ジャンルカード表示のため変更不要
+  - `library.tsx`: `useGetLikedSongs` / `useGetPlaylists` に切り替え済み
+- **オーディオ再生**: `getSongLocalPath` で SQLite を優先参照するように変更済み
+- **再生履歴**: オフライン時は Supabase への送信をスキップするように変更済み
 
 ---
 
-**Next Step**: 既存の UI コンポーネント（Home 画面や Library 画面）で、従来の `getSongs` 等の非同期フェッチから、新しい `useGetLocalSongs` への切り替え。
+**Next Step**: オフライン時の UI/UX 改善（同期中インジケーター、オフライン時の操作制限 UI など）

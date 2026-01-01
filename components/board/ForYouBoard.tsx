@@ -1,24 +1,24 @@
 import React, { useCallback, memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { useQuery } from "@tanstack/react-query";
-import { CACHED_QUERIES } from "@/constants";
 import SongItem from "@/components/item/SongItem";
-import getRecommendations from "@/actions/getRecommendations";
+import { useGetLocalRecommendations } from "@/hooks/data/useGetLocalRecommendations";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import Song from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 import Error from "@/components/common/Error";
 import Loading from "@/components/common/Loading";
+import Song from "@/types";
 
 function ForYouBoard() {
+  const { session } = useAuth();
+  const userId = session?.user?.id;
+
+  // SQLite から取得（Local-First）
   const {
     data: recommendations = [],
     isLoading,
     error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.getRecommendations],
-    queryFn: () => getRecommendations(10),
-  });
+  } = useGetLocalRecommendations(userId);
 
   const { togglePlayPause } = useAudioPlayer(recommendations, "forYou");
 

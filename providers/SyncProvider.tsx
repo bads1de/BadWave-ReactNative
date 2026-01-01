@@ -4,6 +4,9 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useSyncSongs } from "@/hooks/sync/useSyncSongs";
 import { useSyncLikedSongs } from "@/hooks/sync/useSyncLikedSongs";
 import { useSyncPlaylists } from "@/hooks/sync/useSyncPlaylists";
+import { useSyncTrendSongs } from "@/hooks/sync/useSyncTrendSongs";
+import { useSyncRecommendations } from "@/hooks/sync/useSyncRecommendations";
+import { useSyncSpotlights } from "@/hooks/sync/useSyncSpotlights";
 import { count } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { songs, likedSongs, playlists } from "@/lib/db/schema";
@@ -48,8 +51,22 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     triggerSync: syncPlaylists,
   } = useSyncPlaylists(userId);
 
+  // ホームセクション用同期
+  const { isSyncing: isSyncingTrends, triggerSync: syncTrends } =
+    useSyncTrendSongs();
+  const { isSyncing: isSyncingRecs, triggerSync: syncRecs } =
+    useSyncRecommendations(userId);
+  const { isSyncing: isSyncingSpots, triggerSync: syncSpots } =
+    useSyncSpotlights();
+
   // 全体の同期状態
-  const isSyncing = isSyncingSongs || isSyncingLiked || isSyncingPlaylists;
+  const isSyncing =
+    isSyncingSongs ||
+    isSyncingLiked ||
+    isSyncingPlaylists ||
+    isSyncingTrends ||
+    isSyncingRecs ||
+    isSyncingSpots;
 
   // エラー集約
   useEffect(() => {

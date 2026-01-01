@@ -27,8 +27,8 @@ export function useGetLocalSongs() {
         image_path: row.originalImagePath ?? row.imagePath ?? "",
         duration: row.duration ?? undefined,
         genre: row.genre ?? undefined,
-        count: row.playCount ?? 0,
-        like_count: row.likeCount ?? 0,
+        count: String(row.playCount ?? 0),
+        like_count: String(row.likeCount ?? 0),
         created_at: row.createdAt ?? "",
         // ローカルパス情報（オフライン再生用）
         local_song_path: row.songPath ?? undefined,

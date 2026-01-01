@@ -1,14 +1,11 @@
 import React, { useCallback } from "react";
 import { SafeAreaView, Text, ScrollView, StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import getSongs from "@/actions/getSongs";
+import { useGetLocalSongs } from "@/hooks/data/useGetLocalSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/usePlayerStore";
-
-import { CACHED_QUERIES } from "@/constants";
 import SongItem from "@/components/item/SongItem";
 import TrendBoard from "@/components/board/TrendBoard";
 import Loading from "@/components/common/Loading";
@@ -35,14 +32,9 @@ import HeroBoard from "@/components/board/HeroBoard";
  */
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
-  const {
-    data: songs = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.songs],
-    queryFn: getSongs,
-  });
+
+  // SQLite から楽曲を取得（Local-First）
+  const { data: songs = [], isLoading, error } = useGetLocalSongs();
 
   const { togglePlayPause, currentSong } = useAudioPlayer(songs, "home");
 

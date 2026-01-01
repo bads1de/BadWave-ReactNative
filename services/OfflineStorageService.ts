@@ -1,6 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import { MMKV } from "react-native-mmkv";
-import { eq } from "drizzle-orm";
+import { eq, isNotNull } from "drizzle-orm";
 import Song from "../types";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
@@ -260,103 +260,118 @@ export class OfflineStorageService {
 
   /**
    * ダウンロード済みの曲一覧を取得
+   * SQLite を優先し、なければ MMKV にフォールバック（段階的移行）
    * @returns ダウンロード済みの曲一覧
    */
   async getDownloadedSongs(): Promise<Song[]> {
     try {
-      // すべてのキーを取得
-      const allKeys = this.storage.getAllKeys() || [];
+      const downloadedSongs: Song[] = [];
 
-      // 曲のメタデータのキーだけを抽出
-      const metadataKeys = allKeys.filter((key) =>
-        key.startsWith(this.METADATA_PREFIX)
-      );
+      // 1. SQLite から songPath が設定されている曲を取得
+      const sqliteResults = await db
+        .select()
+        .from(songs)
+        .where(isNotNull(songs.songPath)); // songPath が NULL でないものを取得
 
-      const songs: Song[] = [];
-
-      // 各メタデータについて処理
-      for (const key of metadataKeys) {
-        const metadataStr = this.storage.getString(key);
-
-        if (metadataStr) {
-          const metadata = JSON.parse(metadataStr);
-
-          // 実際にファイルが存在するか確認
-          const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
-
+      for (const row of sqliteResults) {
+        if (row.songPath) {
+          const fileInfo = await FileSystem.getInfoAsync(row.songPath);
           if (fileInfo.exists) {
-            // 存在すればリストに追加
-            songs.push({
-              id: metadata.id,
-              title: metadata.title,
-              author: metadata.author,
-              image_path: metadata.image_path,
-              song_path: metadata.localPath, // ローカルパスを設定
-              user_id: metadata.user_id || "offline-user",
-              created_at: metadata.created_at || new Date().toISOString(),
+            downloadedSongs.push({
+              id: row.id,
+              title: row.title,
+              author: row.author,
+              image_path: row.imagePath ?? row.originalImagePath ?? "",
+              song_path: row.songPath,
+              user_id: row.userId,
+              created_at: row.createdAt ?? "",
             });
-          } else {
-            // ファイルがなければメタデータを削除
-            this.storage.delete(key);
           }
         }
       }
 
-      return songs;
+      // 2. (不要になる可能性がありますが) MMKV にのみ存在するデータも取得
+      const allKeys = this.storage.getAllKeys() || [];
+      const metadataKeys = allKeys.filter((key) =>
+        key.startsWith(this.METADATA_PREFIX)
+      );
+
+      for (const key of metadataKeys) {
+        const metadataStr = this.storage.getString(key);
+        if (metadataStr) {
+          const metadata = JSON.parse(metadataStr);
+          // SQLite に既に含まれているかチェック
+          const alreadyAdded = downloadedSongs.some(
+            (s) => s.id === metadata.id
+          );
+          if (!alreadyAdded && metadata.localPath) {
+            const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
+            if (fileInfo.exists) {
+              downloadedSongs.push({
+                id: metadata.id,
+                title: metadata.title,
+                author: metadata.author,
+                image_path: metadata.image_path,
+                song_path: metadata.localPath,
+                user_id: metadata.user_id || "offline-user",
+                created_at: metadata.created_at || new Date().toISOString(),
+              });
+            } else {
+              this.storage.delete(key);
+            }
+          }
+        }
+      }
+
+      return downloadedSongs;
     } catch (error) {
       console.error("Error getting downloaded songs:", error);
-
       return [];
     }
   }
 
   /**
    * 曲がダウンロード済みかどうかを確認
+   * SQLite を優先し、なければ MMKV にフォールバック（段階的移行）
    * @param songId 確認する曲のID
    * @returns ダウンロード済みならtrue
    */
   async isSongDownloaded(songId: string): Promise<boolean> {
     try {
-      // メタデータのキーを生成
-      const metadataKey = `${this.METADATA_PREFIX}${songId}`;
-
-      // メタデータが存在するか確認
-      const hasMetadata = this.storage.contains(metadataKey);
-
-      if (!hasMetadata) {
-        return false;
-      }
-
-      // メタデータを取得
-      const metadataStr = this.storage.getString(metadataKey);
-
-      if (!metadataStr) {
-        return false;
-      }
-
-      const metadata = JSON.parse(metadataStr);
-
-      // ファイルが存在するか確認
-      const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
-      return fileInfo.exists;
+      const localPath = await this.getSongLocalPath(songId);
+      return localPath !== null;
     } catch (error) {
       console.error("Error checking if song is downloaded:", error);
-
       return false;
     }
   }
 
   /**
    * 曲のローカルパスを取得
+   * SQLite を優先し、なければ MMKV にフォールバック（段階的移行）
    * @param songId 曲のID
    * @returns ローカルパス（存在しない場合はnull）
    */
   async getSongLocalPath(songId: string): Promise<string | null> {
     try {
-      // メタデータのキーを生成
-      const metadataKey = `${this.METADATA_PREFIX}${songId}`;
+      // 1. SQLite から取得を試みる（優先）
+      const sqliteResult = await db
+        .select({ songPath: songs.songPath })
+        .from(songs)
+        .where(eq(songs.id, songId))
+        .limit(1);
 
-      // メタデータを取得
+      if (sqliteResult.length > 0 && sqliteResult[0].songPath) {
+        const localPath = sqliteResult[0].songPath;
+        // ファイルが存在するか確認
+        const fileInfo = await FileSystem.getInfoAsync(localPath);
+        if (fileInfo.exists) {
+          return localPath;
+        }
+      }
+
+      // 2. MMKV にフォールバック（レガシー互換）
+      const metadataKey = `${this.METADATA_PREFIX}${songId}`;
       const metadataStr = this.storage.getString(metadataKey);
 
       if (!metadataStr) {
@@ -365,18 +380,15 @@ export class OfflineStorageService {
 
       const metadata = JSON.parse(metadataStr);
 
-      // localPathが存在しない場合はnullを返す
       if (!metadata.localPath) {
         return null;
       }
 
       // ファイルが存在するか確認
       const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
-
       return fileInfo.exists ? metadata.localPath : null;
     } catch (error) {
       console.error("Error getting song local path:", error);
-
       return null;
     }
   }

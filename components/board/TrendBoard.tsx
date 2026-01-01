@@ -14,9 +14,7 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import Song from "@/types";
-import { useQuery } from "@tanstack/react-query";
-import { CACHED_QUERIES } from "@/constants";
-import getTrendSongs, { TrendPeriod } from "@/actions/useGetTrendSongs";
+import { useGetLocalTrendSongs } from "@/hooks/data/useGetLocalTrendSongs";
 import CustomButton from "@/components/common/CustomButton";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
@@ -79,8 +77,8 @@ const PeriodSelector = memo(
     period,
     setPeriod,
   }: {
-    period: TrendPeriod;
-    setPeriod: (period: TrendPeriod) => void;
+    period: "all" | "month" | "week" | "day";
+    setPeriod: (period: "all" | "month" | "week" | "day") => void;
   }) => {
     return (
       <View style={styles.periodSelector}>
@@ -134,15 +132,11 @@ const PeriodSelector = memo(
 PeriodSelector.displayName = "PeriodSelector";
 
 function TrendBoard() {
-  const [period, setPeriod] = useState<TrendPeriod>("all");
-  const {
-    data: trends = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.trendsSongs, period],
-    queryFn: () => getTrendSongs(period),
-  });
+  const [period, setPeriod] = useState<"all" | "month" | "week" | "day">("all");
+
+  // SQLite から取得（Local-First）
+  const { data: trends = [], isLoading, error } = useGetLocalTrendSongs(period);
+
   const { togglePlayPause } = useAudioPlayer(trends);
 
   // メモ化されたコールバック

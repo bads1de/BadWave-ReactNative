@@ -1,10 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import React, { useState, useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { CACHED_QUERIES } from "@/constants";
-import getLikedSongs from "@/actions/getLikedSongs";
-import getPlaylists from "@/actions/getPlaylists";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import CustomButton from "@/components/common/CustomButton";
@@ -17,6 +13,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import CreatePlaylist from "@/components/playlist/CreatePlaylist";
 import { Playlist } from "@/types";
+import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
+import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 
 type LibraryType = "liked" | "playlists";
 
@@ -25,26 +23,21 @@ export default function LibraryScreen() {
   const { session } = useAuth();
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const router = useRouter();
+  const userId = session?.user?.id;
 
+  // SQLite から取得（Local-First）
   const {
-    data: likedSongs = [],
+    likedSongs = [],
     isLoading: isLikedLoading,
     error: likedError,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.likedSongs],
-    queryFn: getLikedSongs,
-    enabled: !!session,
-  });
+  } = useGetLikedSongs(userId);
 
+  // SQLite から取得（Local-First）
   const {
-    data: playlists = [],
+    playlists = [],
     isLoading: isPlaylistsLoading,
     error: playlistsError,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.playlists],
-    queryFn: getPlaylists,
-    enabled: !!session,
-  });
+  } = useGetPlaylists(userId);
 
   // コンテキストに応じて曲リストを切り替え
   const currentSongs = useMemo(() => {
