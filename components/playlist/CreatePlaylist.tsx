@@ -6,17 +6,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
+  Alert,
 } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import createPlaylist from "@/actions/createPlaylist";
-
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import Toast from "react-native-toast-message";
 
 function CreatePlaylist() {
   const [modalOpen, setModalOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const queryClient = useQueryClient();
+  const { isOnline } = useNetworkStatus();
 
   const {
     mutate: create,
@@ -55,14 +57,34 @@ function CreatePlaylist() {
     create(playlistName);
   };
 
+  // オフライン時はモーダルを開く前にアラートを表示
+  const handleOpenModal = () => {
+    if (!isOnline) {
+      Alert.alert(
+        "オフラインです",
+        "プレイリストの作成にはインターネット接続が必要です",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    setModalOpen(true);
+  };
+
   return (
     <>
       <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => setModalOpen(true)}
+        style={[styles.createButton, !isOnline && styles.createButtonDisabled]}
+        onPress={handleOpenModal}
         testID="create-playlist-button"
       >
-        <Text style={styles.createButtonText}>+ New Playlist</Text>
+        <Text
+          style={[
+            styles.createButtonText,
+            !isOnline && styles.createButtonTextDisabled,
+          ]}
+        >
+          + New Playlist
+        </Text>
       </TouchableOpacity>
 
       <Modal
@@ -123,10 +145,17 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginBottom: 16,
   },
+  createButtonDisabled: {
+    backgroundColor: "#3d3d3d",
+    opacity: 0.6,
+  },
   createButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  createButtonTextDisabled: {
+    color: "rgba(255,255,255,0.5)",
   },
   centeredView: {
     flex: 1,

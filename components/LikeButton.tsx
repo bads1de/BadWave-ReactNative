@@ -1,5 +1,5 @@
 import { useEffect, useState, memo } from "react";
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, Alert } from "react-native";
 import {
   useQueryClient,
   useMutation,
@@ -11,6 +11,7 @@ import { CACHED_QUERIES } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import Toast from "react-native-toast-message";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface LikeButtonProps {
   songId: string;
@@ -33,6 +34,7 @@ interface LikeButtonProps {
 function LikeButton({ songId, size }: LikeButtonProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
+  const { isOnline } = useNetworkStatus();
   const [isLiked, setIsLiked] = useState(false);
 
   // 楽観的更新の状態追跡
@@ -159,9 +161,20 @@ function LikeButton({ songId, size }: LikeButtonProps) {
     },
   });
 
+  // オフライン時またはミューテーション中は無効化
+  const isDisabled = isPending || !isOnline;
+
   return (
     <TouchableOpacity
       onPress={() => {
+        if (!isOnline) {
+          Alert.alert(
+            "オフラインです",
+            "いいね機能にはインターネット接続が必要です",
+            [{ text: "OK" }]
+          );
+          return;
+        }
         if (!session) {
           Toast.show({
             type: "info",
@@ -172,13 +185,13 @@ function LikeButton({ songId, size }: LikeButtonProps) {
         }
         mutate();
       }}
-      disabled={isPending}
+      disabled={isDisabled}
     >
       <Ionicons
         name={isLiked ? "heart" : "heart-outline"}
         size={size || 24}
         color={isLiked ? "#FF69B4" : "white"}
-        opacity={isPending ? 0.5 : 1}
+        opacity={isDisabled ? 0.4 : 1}
       />
     </TouchableOpacity>
   );

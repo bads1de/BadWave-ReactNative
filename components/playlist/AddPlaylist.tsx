@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Dimensions,
+  Alert,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -26,6 +27,7 @@ import { PlaylistSong } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
 import addPlaylistSong from "@/actions/addPlaylistSong";
 import usePlaylistStatus from "@/hooks/usePlaylistStatus";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { LinearGradient } from "expo-linear-gradient";
 
 interface AddPlaylistProps {
@@ -36,6 +38,7 @@ interface AddPlaylistProps {
 function AddPlaylist({ songId, children }: AddPlaylistProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
+  const { isOnline } = useNetworkStatus();
   const [modalOpen, setModalOpen] = useState(false);
   const [isAdded, setIsAdded] = useState<Record<string, boolean>>({});
   const animation = useSharedValue(0);
@@ -179,10 +182,21 @@ function AddPlaylist({ songId, children }: AddPlaylistProps) {
     };
   });
 
+  // オフライン時またはミューテーション中は無効化
+  const isDisabled = !isOnline;
+
   return (
     <>
       <TouchableOpacity
         onPress={() => {
+          if (!isOnline) {
+            Alert.alert(
+              "オフラインです",
+              "プレイリストへの曲の追加にはインターネット接続が必要です",
+              [{ text: "OK" }]
+            );
+            return;
+          }
           if (!session?.user.id) {
             Toast.show({
               type: "error",
@@ -195,17 +209,23 @@ function AddPlaylist({ songId, children }: AddPlaylistProps) {
           fetchAddedStatus();
           setModalOpen(true);
         }}
-        style={styles.addButton}
+        style={[styles.addButton, isDisabled && styles.addButtonDisabled]}
         testID="add-playlist-button"
       >
         {children || (
           <LinearGradient
-            colors={["#8b5cf6", "#4c1d95"]}
+            colors={
+              isDisabled ? ["#3d3d3d", "#2d2d2d"] : ["#8b5cf6", "#4c1d95"]
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.gradientButton}
           >
-            <Ionicons name="add" size={16} color="white" />
+            <Ionicons
+              name="add"
+              size={16}
+              color={isDisabled ? "rgba(255,255,255,0.4)" : "white"}
+            />
           </LinearGradient>
         )}
       </TouchableOpacity>
@@ -316,6 +336,9 @@ const styles = StyleSheet.create({
   addButton: {
     borderRadius: 50,
     overflow: "hidden",
+  },
+  addButtonDisabled: {
+    opacity: 0.6,
   },
   gradientButton: {
     width: 24,

@@ -16,6 +16,7 @@ import { useRouter } from "expo-router";
 import { Playlist } from "@/types";
 import Song from "@/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 type SearchType = "songs" | "playlists";
 
@@ -24,6 +25,7 @@ function SearchScreen() {
   const [searchType, setSearchType] = useState<SearchType>("songs");
   const debouncedQuery = useDebounce(searchQuery, 500);
   const router = useRouter();
+  const { isOnline } = useNetworkStatus();
 
   const {
     data: searchSongs = [],
@@ -114,6 +116,23 @@ function SearchScreen() {
       : searchPlaylists.length > 0;
 
   const showEmptyState = debouncedQuery.length > 0 && !hasResults;
+
+  if (!isOnline) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Search</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="cloud-offline" size={64} color="#666" />
+          <Text style={styles.emptyText}>You are offline</Text>
+          <Text style={styles.emptySubText}>
+            Search is only available when online
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -288,6 +307,11 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 16,
     marginTop: 16,
+  },
+  emptySubText: {
+    color: "#444",
+    fontSize: 14,
+    marginTop: 8,
   },
 });
 

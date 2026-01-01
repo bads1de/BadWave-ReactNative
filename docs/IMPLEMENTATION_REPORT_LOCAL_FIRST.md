@@ -64,14 +64,22 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
 - **フック**: ほぼ全機能（Songs/Likes/Playlists/Home Sections）完了
 - **テスト**: 主要フックのテスト完了 (15 テスト)
 - **既存統合**: ダウンロード・削除時の二重書き込み対応完了
-- **UI コンポーネント**: ホーム画面・ライブラリ画面のローカルファースト化完了
+- **UI コンポーネント**: ホーム・ライブラリ・プレイリスト詳細のローカルファースト化完了
   - `TrendBoard`: `useGetLocalTrendSongs` に切り替え済み
   - `ForYouBoard`: `useGetLocalRecommendations` に切り替え済み
   - `HeroBoard`: ジャンルカード表示のため変更不要
   - `library.tsx`: `useGetLikedSongs` / `useGetPlaylists` に切り替え済み
+  - `playlist/[playlistId].tsx`: `useGetPlaylistSongs` / `useGetLocalPlaylist` に切り替え済み
 - **オーディオ再生**: `getSongLocalPath` で SQLite を優先参照するように変更済み
 - **再生履歴**: オフライン時は Supabase への送信をスキップするように変更済み
+- **オフライン UI/UX**:
+  - `NetworkStatusBar`: オフライン時・同期中にステータスバーを表示
+  - `LikeButton`: オフライン時はグレーアウト＋アラート表示
+  - `CreatePlaylist`/`AddPlaylist`: オフライン時はグレーアウト＋アラート表示
+  - `search.tsx`: オフライン時は利用不可画面を表示（Spotify 同様の仕様）
+  - `useOfflineGuard`: オフライン時の操作制御用ユーティリティフック
 
 ---
 
-**Next Step**: オフライン時の UI/UX 改善（同期中インジケーター、オフライン時の操作制限 UI など）
+**完了**: Local-First 実装フェーズの主要タスク（Home, Library, Playlist, Offline UX）が完了しました。
+**Next Step**: アプリ全体の結合テスト（E2E 的な動作確認）や、パフォーマンスチューニング。

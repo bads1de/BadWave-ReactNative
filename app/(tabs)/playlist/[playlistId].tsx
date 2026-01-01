@@ -9,25 +9,24 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-import { CACHED_QUERIES } from "@/constants";
 import Song from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
-import getPlaylistSongs from "@/actions/getPlaylistSongs";
-import getPlaylistById from "@/actions/getPlaylistById";
-import deletePlaylistSong from "@/actions/deletePlaylistSong";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import PlaylistOptionsMenu from "@/components/playlist/PlaylistOptionsMenu";
+import { useGetPlaylistSongs } from "@/hooks/data/useGetPlaylistSongs";
+import { useGetLocalPlaylist } from "@/hooks/data/useGetLocalPlaylist";
+import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
+import { useOfflineGuard } from "@/hooks/useOfflineGuard";
 
 const { width } = Dimensions.get("window");
 
@@ -35,7 +34,6 @@ export default function PlaylistDetailScreen() {
   const router = useRouter();
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
   const { session } = useAuth();
-  const queryClient = useQueryClient();
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
 
   useFocusEffect(
@@ -47,51 +45,48 @@ export default function PlaylistDetailScreen() {
     }, [setShowHeader])
   );
 
-  // 削除のミューテーションを追加
-  const { mutate: handleDeleteSong } = useMutation({
-    mutationFn: ({ songId, songType }: { songId: string; songType: string }) =>
-      deletePlaylistSong(playlistId, songId, songType),
-    onSuccess: () => {
-      // キャッシュを更新
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
-      });
-
-      Toast.show({
-        type: "success",
-        text1: "曲を削除しました",
-      });
-    },
-    onError: (error: any) => {
-      Toast.show({
-        type: "error",
-        text1: "エラーが発生しました",
-        text2: error.message,
-      });
-    },
-  });
-
-  // アニメーション関連の変数と関数を削除
-
+  // ローカルファースト同期データの取得
   const {
-    data: playlistSongs = [],
+    songs: playlistSongs = [],
     isLoading,
     error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
-    queryFn: () => getPlaylistSongs(playlistId),
-    enabled: !!playlistId,
-  });
+  } = useGetPlaylistSongs(playlistId);
 
   const {
-    data: playlist,
+    playlist,
     isLoading: isLoadingPlaylist,
     error: playlistError,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.playlistById, playlistId],
-    queryFn: () => getPlaylistById(playlistId),
-    enabled: !!playlistId,
-  });
+  } = useGetLocalPlaylist(playlistId);
+
+  // プレイリスト編集フック（削除用）- オンライン必須
+  const { removeSong } = useMutatePlaylistSong(session?.user?.id);
+  const { guardAction } = useOfflineGuard();
+
+  // 曲削除ハンドラ（オフラインガード付き）
+  const handleDeleteSong = useCallback(
+    (songId: string) => {
+      const action = async () => {
+        try {
+          await removeSong.mutateAsync({ songId, playlistId });
+          Toast.show({
+            type: "success",
+            text1: "曲を削除しました",
+          });
+        } catch (error: any) {
+          Toast.show({
+            type: "error",
+            text1: "エラーが発生しました",
+            text2: error.message,
+          });
+        }
+      };
+      guardAction(
+        action,
+        "プレイリストの編集にはインターネット接続が必要です"
+      )();
+    },
+    [removeSong, playlistId, guardAction]
+  );
 
   const { togglePlayPause } = useAudioPlayer(
     playlistSongs,
@@ -108,7 +103,7 @@ export default function PlaylistDetailScreen() {
         showStats={true}
         onDelete={
           session?.user.id === playlist?.user_id
-            ? () => handleDeleteSong({ songId: item.id, songType: "regular" })
+            ? () => handleDeleteSong(item.id)
             : undefined
         }
       />

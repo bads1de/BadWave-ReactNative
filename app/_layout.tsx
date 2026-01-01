@@ -12,6 +12,7 @@ import { SyncProvider } from "@/providers/SyncProvider";
 import { useAuthStore } from "@/hooks/useAuthStore";
 import AuthModal from "@/components/modal/AuthModal";
 import { ToastComponent } from "@/components/common/CustomToast";
+import NetworkStatusBar from "@/components/common/NetworkStatusBar";
 import TrackPlayer from "react-native-track-player";
 import { playbackService, setupPlayer } from "@/services/PlayerService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -137,6 +138,7 @@ export default function RootLayout() {
           <SyncProvider>
             <View style={{ flex: 1, backgroundColor: "#000" }}>
               <StatusBar style="light" />
+              <NetworkStatusBar />
               {showAuthModal && <AuthModal />}
               <Stack screenOptions={{ headerShown: false }} />
               <ToastComponent />
