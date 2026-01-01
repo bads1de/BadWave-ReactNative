@@ -139,6 +139,32 @@ jest.mock("expo-sqlite", () => ({
   },
 }));
 
+// NetInfo mock
+jest.mock("@react-native-community/netinfo", () => ({
+  useNetInfo: jest.fn().mockReturnValue({
+    isConnected: true,
+    isInternetReachable: true,
+  }),
+  fetch: jest.fn().mockResolvedValue({
+    isConnected: true,
+    isInternetReachable: true,
+  }),
+  addEventListener: jest.fn((handler) => {
+    return jest.fn(); // return unsubscribe function
+  }),
+  NetInfoStateType: {
+    unknown: "unknown",
+    none: "none",
+    cellular: "cellular",
+    wifi: "wifi",
+    bluetooth: "bluetooth",
+    ethernet: "ethernet",
+    wimax: "wimax",
+    vpn: "vpn",
+    other: "other",
+  },
+}));
+
 // expo-video mock
 jest.mock("expo-video", () => {
   const React = require("react");

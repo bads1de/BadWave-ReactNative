@@ -13,6 +13,14 @@ jest.mock("@/actions/getUser");
 jest.mock("@/hooks/useAudioPlayer");
 jest.mock("@/hooks/useSubPlayerStore");
 jest.mock("react-native-track-player");
+jest.mock("@/hooks/useDownloadedSongs", () => ({
+  useDownloadedSongs: jest.fn(() => ({
+    songs: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  })),
+}));
 
 jest.mock("expo-image", () => ({
   Image: "Image",

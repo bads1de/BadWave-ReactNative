@@ -35,11 +35,12 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
   - `useLikeMutation`, `useMutatePlaylistSong`, `useCreatePlaylist`。
   - オフライン時は操作を制限し、オンライン時に Supabase と SQLite の両方を更新することで整合性を維持。
 
-### D. 段階的移行 (Transition Strategy)
+### D. ストレージ移行 (Transition Strategy)
 
-- **二重書き込みの導入**:
-  - 既存の `OfflineStorageService.ts` (MMKV) を修正し、ダウンロード/削除時に **MMKV と SQLite の両方に書き込む** 仕組みを実装。
-  - 既存の再生ロジックやテストを壊さずに、徐々にデータソースを SQLite へ移行可能。
+- **MMKV の完全廃止**:
+  - `OfflineStorageService.ts` から `react-native-mmkv` 依存を完全に削除。
+  - 楽曲メタデータはすべて SQLite の `songs` テーブル (`song_path`, `image_path` カラム) で一元管理。
+  - ファイルシステム (`expo-file-system`) と SQLite の整合性を確保。
 
 ## 3. データフロー
 
@@ -57,29 +58,34 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
   - `__tests__/hooks/playlist/usePlaylist.test.tsx`: プレイリスト取得・作成・曲管理。
   - `__tests__/hooks/data/useGetLocalSongs.test.tsx`: 全楽曲取得。
   - `__tests__/hooks/home/useHomeSections.test.tsx`: トレンド・おすすめ・スポットライト取得。
+  - `__tests__/services/OfflineStorageService.test.ts`: SQLite ベースのオフラインストレージ管理。
+  - `__tests__/components/SongItem.test.tsx`: オフライン時の表示制御テスト。
 
 ## 5. 現在のステータス
 
 - **インフラ**: 完了 (SQLite/Drizzle/Provider)
 - **フック**: ほぼ全機能（Songs/Likes/Playlists/Home Sections）完了
-- **テスト**: 主要フックのテスト完了 (15 テスト)
-- **既存統合**: ダウンロード・削除時の二重書き込み対応完了
+- **テスト**: 主要フックおよびコンポーネントのテスト完了
+- **既存統合**: MMKV 廃止と SQLite への完全移行完了
 - **UI コンポーネント**: ホーム・ライブラリ・プレイリスト詳細のローカルファースト化完了
   - `TrendBoard`: `useGetLocalTrendSongs` に切り替え済み
   - `ForYouBoard`: `useGetLocalRecommendations` に切り替え済み
   - `HeroBoard`: ジャンルカード表示のため変更不要
   - `library.tsx`: `useGetLikedSongs` / `useGetPlaylists` に切り替え済み
   - `playlist/[playlistId].tsx`: `useGetPlaylistSongs` / `useGetLocalPlaylist` に切り替え済み
-- **オーディオ再生**: `getSongLocalPath` で SQLite を優先参照するように変更済み
+- **オーディオ再生**: `getSongLocalPath` で SQLite を参照するように変更済み
 - **再生履歴**: オフライン時は Supabase への送信をスキップするように変更済み
 - **オフライン UI/UX**:
   - `NetworkStatusBar`: オフライン時・同期中にステータスバーを表示
   - `LikeButton`: オフライン時はグレーアウト＋アラート表示
   - `CreatePlaylist`/`AddPlaylist`: オフライン時はグレーアウト＋アラート表示
   - `search.tsx`: オフライン時は利用不可画面を表示（Spotify 同様の仕様）
+  - **楽曲リスト表示**:
+    - オフライン時、未ダウンロードの楽曲は自動的に**グレーアウト（半透明化）**され、クリック不可に。
+    - `SongItem`, `TopPlayedSongsList` 等で適用済み。
   - `useOfflineGuard`: オフライン時の操作制御用ユーティリティフック
 
 ---
 
-**完了**: Local-First 実装フェーズの主要タスク（Home, Library, Playlist, Offline UX）が完了しました。
+**完了**: Local-First 実装フェーズの主要タスク（Home, Library, Playlist, Offline UX）に加え、ストレージの SQLite 完全移行が完了しました。
 **Next Step**: アプリ全体の結合テスト（E2E 的な動作確認）や、パフォーマンスチューニング。

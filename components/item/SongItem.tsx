@@ -20,22 +20,24 @@ import Song from "@/types";
 import { useRouter } from "expo-router";
 import MarqueeText from "../common/MarqueeText";
 import { DownloadButton } from "../DownloadButton";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface SongItemProps {
   song: Song;
   onClick: (id: string) => void;
   dynamicSize?: boolean;
-  songType?: string;
 }
 
-function SongItem({
-  song,
-  onClick,
-  dynamicSize = false,
-  songType = "regular",
-}: SongItemProps) {
+function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  // ネットワーク状態監視
+  const { isOnline } = useNetworkStatus();
+
+  // オフラインかつ未ダウンロードの場合は無効化
+  const isDownloaded = !!song.local_song_path;
+  const isDisabled = !isOnline && !isDownloaded;
 
   // Reanimatedの共有値を使用
   const scaleAnim = useSharedValue(1);
@@ -63,9 +65,10 @@ function SongItem({
       opacityAnim.value = withTiming(1, { duration: 500 });
       isFirstRender.current = false;
     }
-  }, [isImageLoaded]);
+  }, [isImageLoaded, opacityAnim]);
 
   const handlePressIn = () => {
+    if (isDisabled) return;
     scaleAnim.value = withSpring(0.95, {
       damping: 8,
       stiffness: 100,
@@ -73,13 +76,20 @@ function SongItem({
   };
 
   const handlePressOut = () => {
+    if (isDisabled) return;
     scaleAnim.value = withSpring(1, {
       damping: 5,
       stiffness: 40,
     });
   };
 
+  const handlePress = () => {
+    if (isDisabled) return;
+    onClick(song.id);
+  };
+
   const handleTitlePress = () => {
+    if (isDisabled) return;
     router.push({
       pathname: `/song/[songId]`,
       params: { songId: song.id },
@@ -95,20 +105,22 @@ function SongItem({
           transform: [{ scale: scaleAnim.value }],
           opacity: opacityAnim.value,
         })),
+        isDisabled && { opacity: 0.5 }, // 無効時は半透明に
       ]}
     >
       <TouchableOpacity
-        style={styles.container}
-        onPress={() => onClick(song.id)}
+        style={[styles.container, isDisabled && { backgroundColor: "#000" }]} // 無効時は少し暗く
+        onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}
         testID="song-container"
+        disabled={isDisabled}
       >
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: song.image_path }}
-            style={styles.image}
+            style={[styles.image, isDisabled && { opacity: 0.5 }]} // 画像も薄く
             onLoad={() => setIsImageLoaded(true)}
             contentFit="cover"
             cachePolicy="disk"
@@ -124,6 +136,7 @@ function SongItem({
               onPress={handleTitlePress}
               testID="song-title-button"
               style={styles.titleContainer}
+              disabled={isDisabled}
             >
               <MarqueeText
                 text={song.title}
@@ -171,8 +184,7 @@ export default memo(SongItem, (prevProps, nextProps) => {
     prevProps.song.image_path === nextProps.song.image_path &&
     prevProps.song.count === nextProps.song.count &&
     prevProps.song.like_count === nextProps.song.like_count &&
-    prevProps.dynamicSize === nextProps.dynamicSize &&
-    prevProps.songType === nextProps.songType
+    prevProps.dynamicSize === nextProps.dynamicSize
   );
 });
 

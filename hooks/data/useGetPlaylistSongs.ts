@@ -48,6 +48,8 @@ export function useGetPlaylistSongs(playlistId?: string) {
         count: String(row.song.playCount ?? 0),
         like_count: String(row.song.likeCount ?? 0),
         created_at: row.song.createdAt ?? "",
+        local_song_path: row.song.songPath ?? undefined,
+        local_image_path: row.song.imagePath ?? undefined,
       }));
     },
     staleTime: CACHE_CONFIG.staleTime,

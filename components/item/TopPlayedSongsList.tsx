@@ -18,6 +18,8 @@ import Song from "@/types";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
 
 const { width } = Dimensions.get("window");
 // Container padding: 16, Margin: 20, Gap: 12
@@ -27,27 +29,28 @@ const { width } = Dimensions.get("window");
 const ITEM_WIDTH = (width - 96) / 3;
 const ITEM_HEIGHT = ITEM_WIDTH * 1.4;
 
-// 曲アイテムコンポーネントを抽出してメモ化
 interface TopPlayedSongItemProps {
   song: Song;
   index: number;
   onPress: (index: number) => void;
+  isDisabled: boolean;
 }
 
 // メモ化された曲アイテムコンポーネント
 const TopPlayedSongItem = memo(
-  ({ song, index, onPress }: TopPlayedSongItemProps) => {
+  ({ song, index, onPress, isDisabled }: TopPlayedSongItemProps) => {
     return (
       <TouchableOpacity
         key={song.id}
-        style={styles.songItem}
-        onPress={() => onPress(index)}
+        style={[styles.songItem, isDisabled && { opacity: 0.5 }]} // 無効時は半透明
+        onPress={() => !isDisabled && onPress(index)}
         activeOpacity={0.7}
+        disabled={isDisabled}
       >
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: song.image_path }}
-            style={styles.songImage}
+            style={[styles.songImage, isDisabled && { opacity: 0.5 }]}
             contentFit="cover"
             cachePolicy="memory-disk"
             transition={200}
@@ -56,9 +59,11 @@ const TopPlayedSongItem = memo(
             colors={["transparent", "rgba(0,0,0,0.6)"]}
             style={styles.imageGradient}
           />
-          <View style={styles.playOverlay}>
-            <MaterialCommunityIcons name="play" size={20} color="#fff" />
-          </View>
+          {!isDisabled && (
+            <View style={styles.playOverlay}>
+              <MaterialCommunityIcons name="play" size={20} color="#fff" />
+            </View>
+          )}
         </View>
         <View style={styles.songInfo}>
           <Text numberOfLines={1} style={styles.songTitle}>
@@ -78,7 +83,8 @@ const TopPlayedSongItem = memo(
       prevProps.song.author === nextProps.song.author &&
       prevProps.song.image_path === nextProps.song.image_path &&
       prevProps.index === nextProps.index &&
-      prevProps.onPress === nextProps.onPress
+      prevProps.onPress === nextProps.onPress &&
+      prevProps.isDisabled === nextProps.isDisabled
     );
   }
 );
@@ -94,6 +100,9 @@ function TopPlayedSongsList() {
   const setCurrentSongIndex = useSubPlayerStore(
     (state) => state.setCurrentSongIndex
   );
+
+  const { isOnline } = useNetworkStatus();
+  const { songs: downloadedSongs } = useDownloadedSongs();
 
   const { data: topSongs = [] } = useQuery({
     queryKey: [CACHED_QUERIES.topPlayedSongs, userId],
@@ -138,14 +147,24 @@ function TopPlayedSongsList() {
             />
           </View>
           <View style={styles.songsContainer}>
-            {topSongs.slice(0, 3).map((song, index) => (
-              <TopPlayedSongItem
-                key={song.id}
-                song={song}
-                index={index}
-                onPress={handleSongPress}
-              />
-            ))}
+            {topSongs.slice(0, 3).map((song, index) => {
+              // ダウンロード済みかチェック
+              // topSongsにはlocal_song_pathがないので、downloadedSongsリストと照合
+              const isDownloaded = downloadedSongs.some(
+                (d) => d.id === song.id
+              );
+              const isDisabled = !isOnline && !isDownloaded;
+
+              return (
+                <TopPlayedSongItem
+                  key={song.id}
+                  song={song}
+                  index={index}
+                  onPress={handleSongPress}
+                  isDisabled={isDisabled}
+                />
+              );
+            })}
           </View>
         </LinearGradient>
       </BlurView>

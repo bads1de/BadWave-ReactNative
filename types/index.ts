@@ -13,6 +13,8 @@ export default interface Song {
   like_count?: string;
   lyrics?: string;
   created_at: string;
+  local_song_path?: string;
+  local_image_path?: string;
 }
 
 export interface Playlist {
