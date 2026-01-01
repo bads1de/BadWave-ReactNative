@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
 import ReelsList from "@/components/reels/ReelsList";
 import { Spotlight } from "@/types";
 

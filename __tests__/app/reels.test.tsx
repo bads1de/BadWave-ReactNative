@@ -3,6 +3,8 @@ import { render, screen, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ReelsScreen from "@/app/(tabs)/reels";
 
+import getSpotlights from "@/actions/getSpotlights";
+
 // Mock dependencies
 jest.mock("@/actions/getSpotlights", () => jest.fn());
 jest.mock("@/components/reels/ReelsList", () => {
@@ -28,8 +30,6 @@ jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
   useIsFocused: jest.fn(() => true),
 }));
-
-import getSpotlights from "@/actions/getSpotlights";
 
 const queryClient = new QueryClient({
   defaultOptions: {

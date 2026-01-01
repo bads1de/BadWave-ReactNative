@@ -1,4 +1,4 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 import { renderHook, act } from "@testing-library/react";
 import { useQueueOperations } from "@/hooks/TrackPlayer/hooks";
 import Song from "@/types";

@@ -1,5 +1,4 @@
 import * as FileSystem from "expo-file-system";
-import { MMKV } from "react-native-mmkv";
 import { eq, isNotNull } from "drizzle-orm";
 import Song from "../types";
 import { db } from "@/lib/db/client";
@@ -8,19 +7,14 @@ import { songs } from "@/lib/db/schema";
 /**
  * オフライン再生のためのストレージサービス
  * 曲のダウンロード、削除、メタデータの管理を行う
+ * (SQLite Version)
  */
 export class OfflineStorageService {
-  private storage: MMKV;
-  private readonly METADATA_PREFIX = "song-metadata:";
   private readonly DOWNLOAD_DIR = FileSystem.documentDirectory + "downloads/";
   private readonly IMAGES_DIR =
     FileSystem.documentDirectory + "downloads/images/";
 
   constructor() {
-    this.storage = new MMKV({
-      id: "offline-storage",
-    });
-
     this.ensureDownloadDirectory();
   }
 
@@ -99,7 +93,7 @@ export class OfflineStorageService {
   }
 
   /**
-   * 曲をダウンロードし、メタデータを保存
+   * 曲をダウンロードし、ローカルDBにパスを保存
    * @param song ダウンロードする曲
    * @returns ダウンロード結果
    */
@@ -118,6 +112,8 @@ export class OfflineStorageService {
 
       if (fileInfo.exists) {
         console.log(`Song already downloaded: ${song.title}`);
+        // DBの状態も念のため更新
+        await this.updateSongPathInDb(song.id, localPath, null);
         return { success: true };
       }
 
@@ -134,37 +130,8 @@ export class OfflineStorageService {
           song.id
         );
 
-        // ダウンロード成功時、メタデータを作成
-        const metadata = {
-          id: song.id,
-          title: song.title,
-          author: song.author,
-          image_path: imageLocalPath || song.image_path, // ローカルパスがあればそれを使用
-          user_id: song.user_id,
-          created_at: song.created_at,
-          localPath,
-          downloadDate: new Date().toISOString(),
-        };
-
-        // メタデータを保存 (MMKV - レガシー)
-        this.storage.set(
-          `${this.METADATA_PREFIX}${song.id}`,
-          JSON.stringify(metadata)
-        );
-
-        // SQLite にもローカルパスを保存（二重書き込み: 段階的移行用）
-        try {
-          await db
-            .update(songs)
-            .set({
-              songPath: localPath,
-              imagePath: imageLocalPath,
-              downloadedAt: new Date(),
-            })
-            .where(eq(songs.id, song.id));
-        } catch (sqliteError) {
-          console.warn("SQLite update failed (non-critical):", sqliteError);
-        }
+        // SQLite にローカルパスを保存
+        await this.updateSongPathInDb(song.id, localPath, imageLocalPath);
 
         return { success: true };
       } else {
@@ -188,6 +155,34 @@ export class OfflineStorageService {
   }
 
   /**
+   * SQLite の曲情報を更新するためのヘルパー
+   */
+  private async updateSongPathInDb(
+    songId: string,
+    songPath: string | null,
+    imagePath: string | null
+  ) {
+    try {
+      const updateData: any = {
+        songPath: songPath,
+        downloadedAt: songPath ? new Date() : null,
+      };
+
+      if (imagePath) {
+        updateData.imagePath = imagePath;
+      } else if (songPath === null) {
+        // 削除時は画像パスも消す
+        updateData.imagePath = null;
+      }
+
+      await db.update(songs).set(updateData).where(eq(songs.id, songId));
+    } catch (error) {
+      console.error("Failed to update song path in DB:", error);
+      throw error;
+    }
+  }
+
+  /**
    * ダウンロードした曲を削除
    * @param songId 削除する曲のID
    * @returns 削除結果
@@ -196,19 +191,15 @@ export class OfflineStorageService {
     songId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // メタデータのキーを生成
-      const metadataKey = `${this.METADATA_PREFIX}${songId}`;
+      // SQLite からパスを取得
+      const localPath = await this.getSongLocalPath(songId);
 
-      // メタデータを取得
-      const metadataStr = this.storage.getString(metadataKey);
-
-      if (!metadataStr) {
-        // メタデータが存在しない場合は成功とみなす
+      if (!localPath) {
+        // パスがない（既に削除済みか未ダウンロード）場合は成功とみなすが、
+        // DBの状態整合性のため更新処理は走らせる
+        await this.updateSongPathInDb(songId, null, null);
         return { success: true };
       }
-
-      const metadata = JSON.parse(metadataStr);
-      const localPath = metadata.localPath;
 
       // ファイルが存在するか確認
       const fileInfo = await FileSystem.getInfoAsync(localPath);
@@ -219,7 +210,7 @@ export class OfflineStorageService {
           await FileSystem.deleteAsync(localPath);
         } catch (unlinkError) {
           console.error("Error unlinking file:", unlinkError);
-
+          // ファイル削除に失敗してもDBは更新すべきか？ -> 整合性が取れなくなるのでエラーを返す
           return {
             success: false,
             error:
@@ -230,22 +221,17 @@ export class OfflineStorageService {
         }
       }
 
-      // メタデータ削除 (MMKV - レガシー)
-      this.storage.delete(metadataKey);
-
-      // SQLite のローカルパスもクリア（二重削除: 段階的移行用）
-      try {
-        await db
-          .update(songs)
-          .set({
-            songPath: null,
-            imagePath: null,
-            downloadedAt: null,
-          })
-          .where(eq(songs.id, songId));
-      } catch (sqliteError) {
-        console.warn("SQLite update failed (non-critical):", sqliteError);
+      // 関連する画像ファイルも削除（ベストエフォート）
+      const imagePath = await this.getImageLocalPath(songId);
+      if (imagePath) {
+        const imageInfo = await FileSystem.getInfoAsync(imagePath);
+        if (imageInfo.exists) {
+          await FileSystem.deleteAsync(imagePath).catch(() => {});
+        }
       }
+
+      // SQLite のローカルパス情報をクリア
+      await this.updateSongPathInDb(songId, null, null);
 
       return { success: true };
     } catch (error) {
@@ -260,21 +246,24 @@ export class OfflineStorageService {
 
   /**
    * ダウンロード済みの曲一覧を取得
-   * SQLite を優先し、なければ MMKV にフォールバック（段階的移行）
+   * SQLite から songPath が設定されている曲を返す
    * @returns ダウンロード済みの曲一覧
    */
   async getDownloadedSongs(): Promise<Song[]> {
     try {
-      const downloadedSongs: Song[] = [];
-
-      // 1. SQLite から songPath が設定されている曲を取得
       const sqliteResults = await db
         .select()
         .from(songs)
-        .where(isNotNull(songs.songPath)); // songPath が NULL でないものを取得
+        .where(isNotNull(songs.songPath));
+
+      const downloadedSongs: Song[] = [];
 
       for (const row of sqliteResults) {
         if (row.songPath) {
+          // ファイルの存在確認を行うべきか？
+          // パフォーマンスのため、基本的にはDBを信じるが、
+          // 整合性チェックのために行う場合はここに入れる。
+          // いったんファイルシステムのチェックも入れる（非同期ループになるので注意）
           const fileInfo = await FileSystem.getInfoAsync(row.songPath);
           if (fileInfo.exists) {
             downloadedSongs.push({
@@ -285,40 +274,8 @@ export class OfflineStorageService {
               song_path: row.songPath,
               user_id: row.userId,
               created_at: row.createdAt ?? "",
+              // 必要に応じて他のフィールドもマッピング
             });
-          }
-        }
-      }
-
-      // 2. (不要になる可能性がありますが) MMKV にのみ存在するデータも取得
-      const allKeys = this.storage.getAllKeys() || [];
-      const metadataKeys = allKeys.filter((key) =>
-        key.startsWith(this.METADATA_PREFIX)
-      );
-
-      for (const key of metadataKeys) {
-        const metadataStr = this.storage.getString(key);
-        if (metadataStr) {
-          const metadata = JSON.parse(metadataStr);
-          // SQLite に既に含まれているかチェック
-          const alreadyAdded = downloadedSongs.some(
-            (s) => s.id === metadata.id
-          );
-          if (!alreadyAdded && metadata.localPath) {
-            const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
-            if (fileInfo.exists) {
-              downloadedSongs.push({
-                id: metadata.id,
-                title: metadata.title,
-                author: metadata.author,
-                image_path: metadata.image_path,
-                song_path: metadata.localPath,
-                user_id: metadata.user_id || "offline-user",
-                created_at: metadata.created_at || new Date().toISOString(),
-              });
-            } else {
-              this.storage.delete(key);
-            }
           }
         }
       }
@@ -332,7 +289,6 @@ export class OfflineStorageService {
 
   /**
    * 曲がダウンロード済みかどうかを確認
-   * SQLite を優先し、なければ MMKV にフォールバック（段階的移行）
    * @param songId 確認する曲のID
    * @returns ダウンロード済みならtrue
    */
@@ -348,13 +304,11 @@ export class OfflineStorageService {
 
   /**
    * 曲のローカルパスを取得
-   * SQLite を優先し、なければ MMKV にフォールバック（段階的移行）
    * @param songId 曲のID
    * @returns ローカルパス（存在しない場合はnull）
    */
   async getSongLocalPath(songId: string): Promise<string | null> {
     try {
-      // 1. SQLite から取得を試みる（優先）
       const sqliteResult = await db
         .select({ songPath: songs.songPath })
         .from(songs)
@@ -363,32 +317,34 @@ export class OfflineStorageService {
 
       if (sqliteResult.length > 0 && sqliteResult[0].songPath) {
         const localPath = sqliteResult[0].songPath;
-        // ファイルが存在するか確認
         const fileInfo = await FileSystem.getInfoAsync(localPath);
         if (fileInfo.exists) {
           return localPath;
         }
       }
-
-      // 2. MMKV にフォールバック（レガシー互換）
-      const metadataKey = `${this.METADATA_PREFIX}${songId}`;
-      const metadataStr = this.storage.getString(metadataKey);
-
-      if (!metadataStr) {
-        return null;
-      }
-
-      const metadata = JSON.parse(metadataStr);
-
-      if (!metadata.localPath) {
-        return null;
-      }
-
-      // ファイルが存在するか確認
-      const fileInfo = await FileSystem.getInfoAsync(metadata.localPath);
-      return fileInfo.exists ? metadata.localPath : null;
+      return null;
     } catch (error) {
       console.error("Error getting song local path:", error);
+      return null;
+    }
+  }
+
+  /**
+   * 画像のローカルパスを取得（内部用）
+   */
+  private async getImageLocalPath(songId: string): Promise<string | null> {
+    try {
+      const sqliteResult = await db
+        .select({ imagePath: songs.imagePath })
+        .from(songs)
+        .where(eq(songs.id, songId))
+        .limit(1);
+
+      if (sqliteResult.length > 0) {
+        return sqliteResult[0].imagePath;
+      }
+      return null;
+    } catch {
       return null;
     }
   }
@@ -399,11 +355,9 @@ export class OfflineStorageService {
    */
   async clearAllDownloads(): Promise<{ success: boolean; error?: string }> {
     try {
-      // すべてのダウンロード済み曲を取得
-      const songs = await this.getDownloadedSongs();
+      const songsList = await this.getDownloadedSongs();
 
-      // 各曲を削除
-      for (const song of songs) {
+      for (const song of songsList) {
         await this.deleteSong(song.id);
       }
 
