@@ -30,7 +30,7 @@ jest.mock("@/providers/AuthProvider", () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock("@/hooks/useAuthStore", () => ({
+jest.mock("@/hooks/stores/useAuthStore", () => ({
   useAuthStore: jest.fn(),
 }));
 
@@ -43,7 +43,7 @@ jest.mock("@expo/vector-icons", () => ({
 }));
 
 const { useAuth } = require("@/providers/AuthProvider");
-const { useAuthStore } = require("@/hooks/useAuthStore");
+const { useAuthStore } = require("@/hooks/stores/useAuthStore");
 
 describe("AuthModal", () => {
   let queryClient: QueryClient;
@@ -63,3 +63,4 @@ describe("AuthModal", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

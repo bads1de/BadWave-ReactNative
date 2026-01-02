@@ -20,7 +20,7 @@ import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import CustomAlertDialog from "../common/CustomAlertDialog";
-import { useBulkDownload } from "@/hooks/useBulkDownload";
+import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "@/components/BulkDownloadModal";
 import Song from "@/types";
 
@@ -491,3 +491,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+

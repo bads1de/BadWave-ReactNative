@@ -20,10 +20,10 @@ jest.mock("@/components/common/Error", () => {
   // @ts-ignore
   return ({ message }) => <Text>Error: {message}</Text>;
 });
-jest.mock("@/hooks/useHeaderStore", () => ({
+jest.mock("@/hooks/stores/useHeaderStore", () => ({
   useHeaderStore: jest.fn(() => jest.fn()),
 }));
-jest.mock("@/hooks/usePlayerStore", () => ({
+jest.mock("@/hooks/stores/usePlayerStore", () => ({
   usePlayerStore: jest.fn(() => jest.fn()),
 }));
 jest.mock("@/hooks/useNetworkStatus", () => ({
@@ -120,7 +120,7 @@ describe("ReelsScreen", () => {
     const setShowHeader = jest.fn();
     const setIsMiniPlayerVisible = jest.fn();
     // @ts-ignore
-    require("@/hooks/useHeaderStore").useHeaderStore.mockImplementation(
+    require("@/hooks/stores/useHeaderStore").useHeaderStore.mockImplementation(
       // @ts-ignore
       (selector) => {
         if (selector.toString().includes("setShowHeader")) {
@@ -130,7 +130,7 @@ describe("ReelsScreen", () => {
       }
     );
     // @ts-ignore
-    require("@/hooks/usePlayerStore").usePlayerStore.mockImplementation(
+    require("@/hooks/stores/usePlayerStore").usePlayerStore.mockImplementation(
       // @ts-ignore
       (selector) => {
         if (selector.toString().includes("setIsMiniPlayerVisible")) {
@@ -151,3 +151,4 @@ describe("ReelsScreen", () => {
     expect(setIsMiniPlayerVisible).toHaveBeenCalledWith(false);
   });
 });
+

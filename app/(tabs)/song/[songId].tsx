@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 
-import { useHeaderStore } from "@/hooks/useHeaderStore";
+import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import { useRouter } from "expo-router";
 
 export default function SongDetailScreen() {
@@ -228,3 +228,4 @@ const styles = StyleSheet.create({
     textShadowRadius: 10,
   },
 });
+

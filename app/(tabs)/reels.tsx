@@ -18,8 +18,8 @@ import { useIsFocused } from "@react-navigation/native";
 import ReelsList from "@/components/reels/ReelsList";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import { useHeaderStore } from "@/hooks/useHeaderStore";
-import { usePlayerStore } from "@/hooks/usePlayerStore";
+import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
+import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useGetLocalSpotlights } from "@/hooks/data/useGetLocalSpotlights";
 import { Ionicons } from "@expo/vector-icons";
@@ -93,3 +93,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+

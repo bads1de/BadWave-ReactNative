@@ -10,7 +10,7 @@ jest.mock("expo-blur", () => ({
   BlurView: "BlurView",
 }));
 
-jest.mock("@/hooks/useDownloadStatus", () => ({
+jest.mock("@/hooks/downloads/useDownloadStatus", () => ({
   useDownloadStatus: () => ({ data: false }),
   useDownloadSong: () => ({ mutate: jest.fn(), isPending: false }),
   useDeleteDownloadedSong: () => ({ mutate: jest.fn(), isPending: false }),
@@ -143,3 +143,4 @@ describe("ListItemOptionsMenu", () => {
     expect(getByTestId("add-to-playlist-option")).toBeTruthy();
   });
 });
+

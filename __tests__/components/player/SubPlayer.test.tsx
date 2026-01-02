@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import SubPlayer from "@/components/player/SubPlayer";
-import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
 import { useSubPlayerAudio } from "@/hooks/useSubPlayerAudio";
 
 // expo-avのモック
@@ -34,7 +34,7 @@ jest.mock("@react-native-community/slider", () => {
 });
 
 // カスタムフックのモック
-jest.mock("@/hooks/useSubPlayerStore");
+jest.mock("@/hooks/stores/useSubPlayerStore");
 jest.mock("@/hooks/useSubPlayerAudio");
 
 const mockUseSubPlayerStore = useSubPlayerStore as jest.MockedFunction<
@@ -692,3 +692,4 @@ describe("SubPlayer", () => {
     });
   });
 });
+

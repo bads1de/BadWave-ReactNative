@@ -3,11 +3,11 @@ import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Header from "@/components/common/Header";
 
-jest.mock("@/hooks/useHeaderStore", () => ({
+jest.mock("@/hooks/stores/useHeaderStore", () => ({
   useHeaderStore: jest.fn(),
 }));
 
-jest.mock("@/hooks/useAuthStore", () => ({
+jest.mock("@/hooks/stores/useAuthStore", () => ({
   useAuthStore: jest.fn(),
 }));
 
@@ -23,8 +23,8 @@ jest.mock("expo-image", () => ({
   Image: "Image",
 }));
 
-const { useHeaderStore } = require("@/hooks/useHeaderStore");
-const { useAuthStore } = require("@/hooks/useAuthStore");
+const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");
+const { useAuthStore } = require("@/hooks/stores/useAuthStore");
 const { useAuth } = require("@/providers/AuthProvider");
 
 describe("Header", () => {
@@ -49,3 +49,4 @@ describe("Header", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

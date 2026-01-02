@@ -179,8 +179,10 @@ describe("AddPlaylist", () => {
 
     // usePlaylistStatus のモック
     (usePlaylistStatus as jest.Mock).mockReturnValue({
-      isAdded: { p1: true, p2: false },
-      fetchAddedStatus: mockFetchAddedStatus,
+      data: { p1: true, p2: false },
+      refetch: mockFetchAddedStatus,
+      isLoading: false,
+      error: null,
     });
   });
 
@@ -293,8 +295,10 @@ describe("AddPlaylist", () => {
 
     // usePlaylistStatusのモックを再設定
     (usePlaylistStatus as jest.Mock).mockReturnValue({
-      isAdded: { p1: false, p2: false }, // すべて未追加に設定
-      fetchAddedStatus: mockFetchAddedStatus,
+      data: { p1: false, p2: false }, // すべて未追加に設定
+      refetch: mockFetchAddedStatus,
+      isLoading: false,
+      error: null,
     });
 
     // useMutation の onSuccess コールバックを直接呼び出すように設定
@@ -412,8 +416,10 @@ describe("AddPlaylist", () => {
 
     // usePlaylistStatusのモックを再設定
     (usePlaylistStatus as jest.Mock).mockReturnValue({
-      isAdded: { p1: false, p2: false }, // すべて未追加に設定
-      fetchAddedStatus: mockFetchAddedStatus,
+      data: { p1: false, p2: false },
+      refetch: mockFetchAddedStatus,
+      isLoading: false,
+      error: null,
     });
 
     // useMutation のエラー状態をモック
@@ -460,8 +466,10 @@ describe("AddPlaylist", () => {
 
     // usePlaylistStatusのモックを再設定
     (usePlaylistStatus as jest.Mock).mockReturnValue({
-      isAdded: { p1: false, p2: false, p3: false }, // すべて未追加に設定
-      fetchAddedStatus: mockFetchAddedStatus,
+      data: { p1: false, p2: false, p3: false }, // すべて未追加に設定
+      refetch: mockFetchAddedStatus,
+      isLoading: false,
+      error: null,
     });
 
     // プレイリストデータを追加
@@ -528,8 +536,10 @@ describe("AddPlaylist", () => {
 
     // usePlaylistStatusのモックを再設定
     (usePlaylistStatus as jest.Mock).mockReturnValue({
-      isAdded: { p1: false, p2: false }, // すべて未追加に設定
-      fetchAddedStatus: mockFetchAddedStatus,
+      data: { p1: false, p2: false },
+      refetch: mockFetchAddedStatus,
+      isLoading: false,
+      error: null,
     });
 
     const { getByTestId, queryByTestId } = render(

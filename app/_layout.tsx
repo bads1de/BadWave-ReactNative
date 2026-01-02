@@ -9,7 +9,7 @@ import { CACHE_CONFIG } from "@/constants";
 import { mmkvPersister } from "@/lib/mmkv-persister";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { SyncProvider } from "@/providers/SyncProvider";
-import { useAuthStore } from "@/hooks/useAuthStore";
+import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import AuthModal from "@/components/modal/AuthModal";
 import { ToastComponent } from "@/components/common/CustomToast";
 import NetworkStatusBar from "@/components/common/NetworkStatusBar";
@@ -149,3 +149,4 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+

@@ -4,16 +4,16 @@ import TopPlayedSongsList from "@/components/item/TopPlayedSongsList";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
 import TrackPlayer from "react-native-track-player";
 
 // モックの設定
 jest.mock("@tanstack/react-query");
 jest.mock("@/actions/getUser");
 jest.mock("@/hooks/useAudioPlayer");
-jest.mock("@/hooks/useSubPlayerStore");
+jest.mock("@/hooks/stores/useSubPlayerStore");
 jest.mock("react-native-track-player");
-jest.mock("@/hooks/useDownloadedSongs", () => ({
+jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
   useDownloadedSongs: jest.fn(() => ({
     songs: [],
     isLoading: false,
@@ -684,3 +684,5 @@ describe("TopPlayedSongsList", () => {
     });
   });
 });
+
+

@@ -125,7 +125,7 @@ function HeroBoard() {
 
     // フェードイン
     opacity.value = withTiming(1, { duration: 500 });
-  }, [nextIndex, opacity]);
+  }, [nextIndex, opacity, isMounted]);
 
   // 次のジャンルに切り替える関数（メモ化）
   const changeGenre = useCallback(() => {
@@ -137,7 +137,7 @@ function HeroBoard() {
         runOnJS(updateGenre)();
       }
     });
-  }, [opacity, updateGenre]);
+  }, [opacity, updateGenre, isMounted]);
 
   // タイマーを設定
   useEffect(() => {
@@ -154,7 +154,7 @@ function HeroBoard() {
         timerRef.current = null;
       }
     };
-  }, [changeGenre]);
+  }, [changeGenre, isMounted]);
 
   // ジャンルページに移動
   const navigateToGenre = () => {

@@ -16,11 +16,11 @@ jest.mock("expo-av", () => ({
   },
 }));
 
-jest.mock("@/hooks/useSubPlayerStore", () => ({
+jest.mock("@/hooks/stores/useSubPlayerStore", () => ({
   useSubPlayerStore: jest.fn(),
 }));
 
-const { useSubPlayerStore } = require("@/hooks/useSubPlayerStore");
+const { useSubPlayerStore } = require("@/hooks/stores/useSubPlayerStore");
 const { Audio } = require("expo-av");
 
 describe("useSubPlayerAudio", () => {
@@ -84,3 +84,4 @@ describe("useSubPlayerAudio", () => {
     expect(result.current.duration).toBe(0);
   });
 });
+

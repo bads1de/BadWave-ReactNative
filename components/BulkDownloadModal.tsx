@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import type { BulkDownloadProgress } from "@/hooks/useBulkDownload";
+import type { BulkDownloadProgress } from "@/hooks/downloads/useBulkDownload";
 
 interface BulkDownloadModalProps {
   visible: boolean;
@@ -217,3 +217,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+

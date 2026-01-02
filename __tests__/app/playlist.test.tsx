@@ -8,7 +8,7 @@ jest.mock("@/components/common/Loading", () => ({ __esModule: true, default: () 
 jest.mock("@/components/common/Error", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/playlist/PlaylistOptionsMenu", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
-jest.mock("@/hooks/useHeaderStore", () => ({ useHeaderStore: jest.fn() }));
+jest.mock("@/hooks/stores/useHeaderStore", () => ({ useHeaderStore: jest.fn() }));
 jest.mock("@/providers/AuthProvider", () => ({ useAuth: jest.fn() }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-image", () => ({ Image: "Image" }));
@@ -26,7 +26,7 @@ jest.mock("@/actions/getPlaylistById", () => ({ __esModule: true, default: jest.
 jest.mock("@/actions/deletePlaylistSong", () => ({ __esModule: true, default: jest.fn() }));
 
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
-const { useHeaderStore } = require("@/hooks/useHeaderStore");
+const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");
 const { useAuth } = require("@/providers/AuthProvider");
 const { useRouter, useLocalSearchParams } = require("expo-router");
 
@@ -58,3 +58,4 @@ describe("PlaylistDetailScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

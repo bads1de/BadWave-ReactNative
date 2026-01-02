@@ -5,7 +5,7 @@ import {
   InterruptionModeAndroid,
   AVPlaybackStatus,
 } from "expo-av";
-import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
 import Song from "@/types";
 
 /**
@@ -549,3 +549,4 @@ export function useSubPlayerAudio() {
     stopAndUnloadCurrentSound: stopAndUnloadSound, // 音声を停止して解放する関数
   };
 }
+

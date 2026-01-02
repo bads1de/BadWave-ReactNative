@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import { usePlayerStore } from "@/hooks/usePlayerStore";
+import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 
 describe("usePlayerStore", () => {
   beforeEach(() => {
@@ -47,3 +47,4 @@ describe("usePlayerStore", () => {
     expect(result2.current.showPlayer).toBe(true);
   });
 });
+

@@ -7,7 +7,7 @@ jest.mock("@/components/item/ListItem", () => ({ __esModule: true, default: () =
 jest.mock("@/components/common/Loading", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/Error", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
-jest.mock("@/hooks/useHeaderStore", () => ({ useHeaderStore: jest.fn() }));
+jest.mock("@/hooks/stores/useHeaderStore", () => ({ useHeaderStore: jest.fn() }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-router", () => ({
   useRouter: jest.fn(),
@@ -20,7 +20,7 @@ jest.mock("react-native-safe-area-context", () => ({
 jest.mock("@/actions/getSongsByGenre", () => ({ __esModule: true, default: jest.fn() }));
 
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
-const { useHeaderStore } = require("@/hooks/useHeaderStore");
+const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");
 const { useRouter, useLocalSearchParams } = require("expo-router");
 
 describe("GenreSongsScreen", () => {
@@ -50,3 +50,4 @@ describe("GenreSongsScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

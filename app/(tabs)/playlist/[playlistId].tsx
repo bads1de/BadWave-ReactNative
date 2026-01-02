@@ -18,7 +18,7 @@ import Toast from "react-native-toast-message";
 import Song from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useHeaderStore } from "@/hooks/useHeaderStore";
+import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
@@ -454,3 +454,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+

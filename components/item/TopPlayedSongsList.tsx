@@ -13,13 +13,13 @@ import { CACHED_QUERIES } from "@/constants";
 import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
-import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
 import Song from "@/types";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
-import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
+import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 
 const { width } = Dimensions.get("window");
 // Container padding: 16, Margin: 20, Gap: 12
@@ -261,3 +261,5 @@ const styles = StyleSheet.create({
 });
 
 export default memo(TopPlayedSongsList);
+
+

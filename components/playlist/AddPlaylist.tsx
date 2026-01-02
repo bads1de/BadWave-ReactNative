@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useCallback } from "react";
+import React, { useState, useEffect, memo, useCallback, useMemo } from "react";
 import {
   TouchableOpacity,
   Modal,
@@ -23,7 +23,7 @@ import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
-import { PlaylistSong } from "@/types";
+import { PlaylistSong, Playlist } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
 import addPlaylistSong from "@/actions/addPlaylistSong";
 import usePlaylistStatus from "@/hooks/usePlaylistStatus";
@@ -36,6 +36,8 @@ interface AddPlaylistProps {
   currentPlaylistId?: string;
 }
 
+const DEFAULT_PLAYLISTS: Playlist[] = [];
+
 function AddPlaylist({
   songId,
   children,
@@ -45,33 +47,19 @@ function AddPlaylist({
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
   const [modalOpen, setModalOpen] = useState(false);
-  const [isAdded, setIsAdded] = useState<Record<string, boolean>>({});
   const animation = useSharedValue(0);
   const { width } = Dimensions.get("window");
 
-  const { data: playlists = [] } = useQuery({
+  const { data: playlists = DEFAULT_PLAYLISTS } = useQuery({
     queryKey: [CACHED_QUERIES.playlists],
     queryFn: getPlaylists,
   });
 
-  const { isAdded: queryAddedStatus, fetchAddedStatus } = usePlaylistStatus({
-    songId,
-    playlists,
-  });
-
-  useEffect(() => {
-    fetchAddedStatus();
-  }, [songId]);
-
-  useEffect(() => {
-    setIsAdded((prev) => {
-      const newState = { ...prev, ...queryAddedStatus };
-      if (currentPlaylistId) {
-        newState[currentPlaylistId] = true;
-      }
-      return newState;
+  const { data: playlistStatus = {}, refetch: fetchAddedStatus } =
+    usePlaylistStatus({
+      songId,
+      playlists,
     });
-  }, [queryAddedStatus, currentPlaylistId]);
 
   useEffect(() => {
     if (modalOpen) {
@@ -82,7 +70,7 @@ function AddPlaylist({
     } else {
       animation.value = withTiming(0, { duration: 200 });
     }
-  }, [modalOpen]);
+  }, [modalOpen, animation]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (playlistId: string) => {
@@ -91,14 +79,24 @@ function AddPlaylist({
       return addPlaylistSong({ playlistId, userId: session.user.id, songId });
     },
     onMutate: async (playlistId) => {
+      // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlistSongs],
       });
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlistStatus, songId],
+      });
 
+      // Snapshot the previous values
       const previousPlaylistSongs = queryClient.getQueryData<PlaylistSong[]>([
         CACHED_QUERIES.playlistSongs,
       ]);
+      const previousStatus = queryClient.getQueryData<string[]>([
+        CACHED_QUERIES.playlistStatus,
+        songId,
+      ]);
 
+      // Optimistically update playlistSongs
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs],
         (old: PlaylistSong[] = []) => [
@@ -113,16 +111,24 @@ function AddPlaylist({
         ]
       );
 
-      setIsAdded((prev) => ({ ...prev, [playlistId]: true }));
+      // Optimistically update playlistStatus (Cache is string[])
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlistStatus, songId],
+        (old: string[] = []) => [...old, playlistId]
+      );
 
-      return { previousPlaylistSongs };
+      return { previousPlaylistSongs, previousStatus };
     },
     onError: (error, playlistId, context) => {
+      // Rollback
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs],
         context?.previousPlaylistSongs
       );
-      setIsAdded((prev) => ({ ...prev, [playlistId]: false }));
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlistStatus, songId],
+        context?.previousStatus
+      );
 
       Toast.show({
         type: "error",
@@ -134,12 +140,23 @@ function AddPlaylist({
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlistSongs],
       });
-
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlists],
       });
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlistStatus, songId],
+      });
     },
   });
+
+  // UI表示用に現在のプレイリストの状態を合成したものを取得
+  const displayStatus = useMemo(() => {
+    const status = { ...playlistStatus };
+    if (currentPlaylistId) {
+      status[currentPlaylistId] = true;
+    }
+    return status;
+  }, [playlistStatus, currentPlaylistId]);
 
   const handleAddToPlaylist = useCallback(
     (playlistId: string) => {
@@ -153,7 +170,7 @@ function AddPlaylist({
       }
 
       // Check if the song is already added to this playlist
-      if (isAdded[playlistId]) {
+      if (displayStatus[playlistId]) {
         Toast.show({
           type: "info",
           text1: "追加済みです",
@@ -169,7 +186,7 @@ function AddPlaylist({
 
       mutate(playlistId);
     },
-    [session, mutate, isAdded]
+    [session, mutate, displayStatus]
   );
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -292,17 +309,18 @@ function AddPlaylist({
                         key={playlist.id}
                         style={[
                           styles.playlistItem,
-                          isAdded[playlist.id] && styles.addedPlaylistItem,
+                          displayStatus[playlist.id] &&
+                            styles.addedPlaylistItem,
                           index === playlists.length - 1 &&
                             styles.lastPlaylistItem,
                         ]}
                         onPress={() => handleAddToPlaylist(playlist.id)}
-                        disabled={isPending || isAdded[playlist.id]}
+                        disabled={isPending || displayStatus[playlist.id]}
                         activeOpacity={0.7}
                         testID="playlist-item"
                       >
                         <View style={styles.checkboxContainer}>
-                          {isAdded[playlist.id] ? (
+                          {displayStatus[playlist.id] ? (
                             <LinearGradient
                               colors={["#8b5cf6", "#4c1d95"]}
                               style={styles.checkboxGradient}
@@ -322,12 +340,13 @@ function AddPlaylist({
                         <Text
                           style={[
                             styles.playlistName,
-                            isAdded[playlist.id] && styles.addedPlaylistName,
+                            displayStatus[playlist.id] &&
+                              styles.addedPlaylistName,
                           ]}
                         >
                           {playlist.title}
                         </Text>
-                        {isAdded[playlist.id] && (
+                        {displayStatus[playlist.id] && (
                           <Text style={styles.addedText}>追加済み</Text>
                         )}
                       </TouchableOpacity>

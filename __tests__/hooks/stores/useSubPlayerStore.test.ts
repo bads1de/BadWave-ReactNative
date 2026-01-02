@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
 
 describe("useSubPlayerStore", () => {
   beforeEach(() => {
@@ -105,3 +105,4 @@ describe("useSubPlayerStore", () => {
     expect(result2.current.showSubPlayer).toBe(true);
   });
 });
+

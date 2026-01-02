@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import Song from "@/types";
-import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
 import { useSubPlayerAudio } from "@/hooks/useSubPlayerAudio";
 import { BlurView } from "expo-blur";
 
@@ -366,3 +366,4 @@ const styles = StyleSheet.create({
 });
 
 export default memo(SubPlayerInner);
+

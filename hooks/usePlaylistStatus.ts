@@ -1,65 +1,45 @@
-import { useState, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
+import { useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import Toast from "react-native-toast-message";
 import { Playlist } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { CACHED_QUERIES } from "@/constants";
+import getSongPlaylistStatus from "@/actions/getSongPlaylistStatus";
 
-/**
- * usePlaylistStatus フックは、プレイリストの状態を管理します。
- *
- * @param {Object} props - プレイリストの状態を管理するためのプロパティ。
- * @param {string} props.songId - 曲の ID。
- * @param {Playlist[]} props.playlists - プレイリストのリスト。
- *
- * @returns {Object} プレイリストの状態と操作を含むオブジェクト。
- */
 interface UsePlaylistStatusProps {
   songId: string;
   playlists: Playlist[];
 }
 
+/**
+ * usePlaylistStatus フックは、特定の曲が各プレイリストに含まれているかどうかを管理します。
+ * TanStack Query を使用してフェッチとキャッシュを管理します。
+ *
+ * @param {Object} props - プロパティ。
+ * @param {string} props.songId - 曲の ID。
+ * @param {Playlist[]} props.playlists - プレイリストのリスト。
+ *
+ * @returns {Object} useQuery の結果オブジェクト。data には Record<string, boolean> が含まれます。
+ */
 const usePlaylistStatus = ({ songId, playlists }: UsePlaylistStatusProps) => {
   const { session } = useAuth();
-  const [isAdded, setIsAdded] = useState<Record<string, boolean>>({});
 
-  const fetchAddedStatus = useCallback(async () => {
-    if (!session?.user.id) {
-      setIsAdded({});
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from("playlist_songs")
-        .select("playlist_id")
-        .eq("song_id", songId)
-        .eq("user_id", session.user.id)
-        .eq("song_type", "regular");
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      const statusMap = playlists.reduce((acc, playlist) => {
-        acc[playlist.id] = data.some(
-          (item) => item.playlist_id === playlist.id
-        );
-        return acc;
-      }, {} as Record<string, boolean>);
-
-      setIsAdded(statusMap);
-    } catch (error: any) {
-      console.error("Error fetching playlist status:", error);
-
-      Toast.show({
-        type: "error",
-        text1: "エラーが発生しました",
-        text2: error.message,
+  const selectFn = useCallback(
+    (data: string[]) => {
+      const statusMap: Record<string, boolean> = {};
+      playlists.forEach((playlist) => {
+        statusMap[playlist.id] = data.includes(playlist.id);
       });
-    }
-  }, [songId, playlists, session?.user.id]);
+      return statusMap;
+    },
+    [playlists]
+  );
 
-  return { isAdded, fetchAddedStatus };
+  return useQuery({
+    queryKey: [CACHED_QUERIES.playlistStatus, songId],
+    queryFn: () => getSongPlaylistStatus(songId),
+    select: selectFn,
+    enabled: !!songId && !!session?.user.id,
+  });
 };
 
 export default usePlaylistStatus;

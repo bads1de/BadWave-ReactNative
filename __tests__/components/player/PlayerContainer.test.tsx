@@ -33,22 +33,22 @@ jest.mock("@/hooks/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
 }));
 
-jest.mock("@/hooks/useAudioStore", () => ({
+jest.mock("@/hooks/stores/useAudioStore", () => ({
   useAudioStore: jest.fn(),
 }));
 
-jest.mock("@/hooks/usePlayerStore", () => ({
+jest.mock("@/hooks/stores/usePlayerStore", () => ({
   usePlayerStore: jest.fn(),
 }));
 
-jest.mock("@/hooks/useSubPlayerStore", () => ({
+jest.mock("@/hooks/stores/useSubPlayerStore", () => ({
   useSubPlayerStore: jest.fn(),
 }));
 
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
-const { useAudioStore } = require("@/hooks/useAudioStore");
-const { usePlayerStore } = require("@/hooks/usePlayerStore");
-const { useSubPlayerStore } = require("@/hooks/useSubPlayerStore");
+const { useAudioStore } = require("@/hooks/stores/useAudioStore");
+const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
+const { useSubPlayerStore } = require("@/hooks/stores/useSubPlayerStore");
 
 describe("PlayerContainer", () => {
   const mockSong = {
@@ -140,3 +140,4 @@ describe("PlayerContainer", () => {
     expect(queryByTestId("full-player")).toBeNull();
   });
 });
+

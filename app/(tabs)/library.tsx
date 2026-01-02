@@ -10,7 +10,7 @@ import Song from "@/types";
 import PlaylistItem from "@/components/item/PlaylistItem";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/providers/AuthProvider";
-import { useAuthStore } from "@/hooks/useAuthStore";
+import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import CreatePlaylist from "@/components/playlist/CreatePlaylist";
 import { Playlist } from "@/types";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
@@ -268,3 +268,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
+

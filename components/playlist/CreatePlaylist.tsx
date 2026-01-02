@@ -36,7 +36,7 @@ function CreatePlaylist() {
         text1: "プレイリストを作成しました",
       });
     },
-    onError: (err) => {
+    onError: () => {
       Toast.show({
         type: "error",
         text1: "通信エラーが発生しました",

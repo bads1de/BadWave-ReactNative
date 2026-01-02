@@ -14,7 +14,7 @@ import {
   useDownloadStatus,
   useDownloadSong,
   useDeleteDownloadedSong,
-} from "@/hooks/useDownloadStatus";
+} from "@/hooks/downloads/useDownloadStatus";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useLikeStatus } from "@/hooks/data/useLikeStatus";
 import { useLikeMutation } from "@/hooks/mutations/useLikeMutation";
@@ -304,3 +304,4 @@ const styles = StyleSheet.create({
     color: "#ff4444",
   },
 });
+

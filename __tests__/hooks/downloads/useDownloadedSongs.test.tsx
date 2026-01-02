@@ -1,5 +1,5 @@
 import { renderHook } from "@testing-library/react-native";
-import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
+import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
@@ -56,3 +56,4 @@ describe("useDownloadedSongs", () => {
     expect(typeof result.current.refresh).toBe("function");
   });
 });
+

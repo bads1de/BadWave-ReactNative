@@ -3,7 +3,7 @@ import {
   useDownloadStatus,
   useDownloadSong,
   useDeleteDownloadedSong,
-} from "@/hooks/useDownloadStatus";
+} from "@/hooks/downloads/useDownloadStatus";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
@@ -56,9 +56,7 @@ describe("useDownloadStatus", () => {
     mockOfflineStorageService =
       new OfflineStorageService() as jest.Mocked<OfflineStorageService>;
 
-    const {
-      getOfflineStorageService,
-    } = require("../../hooks/TrackPlayer/utils");
+    const { getOfflineStorageService } = require("@/hooks/TrackPlayer/utils");
     (getOfflineStorageService as jest.Mock).mockReturnValue(
       mockOfflineStorageService
     );

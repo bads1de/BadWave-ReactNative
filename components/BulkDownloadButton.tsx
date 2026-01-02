@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useBulkDownload } from "@/hooks/useBulkDownload";
+import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "./BulkDownloadModal";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
@@ -218,3 +218,4 @@ const styles = StyleSheet.create({
     color: "#ef4444",
   },
 });
+

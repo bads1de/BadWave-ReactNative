@@ -8,7 +8,7 @@ import TrackPlayer, {
 } from "react-native-track-player";
 import Song from "@/types";
 import useOnPlay from "@/hooks/useOnPlay";
-import { useAudioStore, useAudioActions } from "@/hooks/useAudioStore";
+import { useAudioStore, useAudioActions } from "@/hooks/stores/useAudioStore";
 import {
   usePlayerState,
   useQueueOperations,
@@ -290,3 +290,4 @@ export function useAudioPlayer(
 }
 
 export { RepeatMode, State };
+

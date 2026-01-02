@@ -4,9 +4,9 @@ import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
 import SubPlayer from "@/components/player/SubPlayer";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useAudioStore } from "@/hooks/useAudioStore";
-import { usePlayerStore } from "@/hooks/usePlayerStore";
-import { useSubPlayerStore } from "@/hooks/useSubPlayerStore";
+import { useAudioStore } from "@/hooks/stores/useAudioStore";
+import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
+import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
 
 /**
  * プレーヤーコンテナコンポーネント
@@ -143,3 +143,4 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
 });
+

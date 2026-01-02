@@ -4,11 +4,19 @@ const mockSingle = jest.fn().mockResolvedValue({ data: {}, error: null });
 const mockOrder = jest
   .fn()
   .mockReturnValue({ limit: mockLimit, data: [], error: null });
-const mockEq2 = jest.fn().mockResolvedValue({ data: {}, error: null });
-const mockEq = jest
-  .fn()
-  .mockReturnValue({ single: mockSingle, order: mockOrder, eq: mockEq2 });
-const mockSelect = jest.fn().mockReturnValue({ eq: mockEq, order: mockOrder });
+const mockEqChain = {
+  eq: jest.fn(),
+  order: mockOrder,
+  single: mockSingle,
+  then: jest.fn(),
+};
+mockEqChain.eq.mockReturnValue(mockEqChain);
+mockEqChain.then.mockImplementation((onFulfilled) => {
+  return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+});
+
+const mockEq = jest.fn().mockReturnValue(mockEqChain);
+const mockSelect = jest.fn().mockReturnValue(mockEqChain);
 const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
 const mockInsert = jest.fn().mockResolvedValue({ data: {}, error: null });
 const mockDelete = jest.fn().mockResolvedValue({ data: {}, error: null });
@@ -45,8 +53,8 @@ export const supabase = {
 export const mockFunctions = {
   mockFrom,
   mockSelect,
-  mockEq,
-  mockEq2,
+  mockEq: mockEqChain.eq,
+  mockThen: mockEqChain.then,
   mockSingle,
   mockUpdate,
   mockInsert,

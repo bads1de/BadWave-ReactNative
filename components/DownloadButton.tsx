@@ -11,7 +11,7 @@ import {
   useDownloadStatus,
   useDownloadSong,
   useDeleteDownloadedSong,
-} from "@/hooks/useDownloadStatus";
+} from "@/hooks/downloads/useDownloadStatus";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface DownloadButtonProps {
@@ -147,3 +147,4 @@ export const DownloadButton = memo(
     );
   }
 );
+

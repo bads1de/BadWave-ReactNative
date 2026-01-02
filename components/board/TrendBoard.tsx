@@ -19,7 +19,7 @@ import CustomButton from "@/components/common/CustomButton";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
-import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
+import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 
 interface TrendItemProps {
   song: Song;
@@ -342,3 +342,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+

@@ -23,7 +23,7 @@ jest.mock("@/hooks/useOnPlay", () => ({
   default: jest.fn()
 }));
 
-jest.mock("@/hooks/useAudioStore", () => ({
+jest.mock("@/hooks/stores/useAudioStore", () => ({
   useAudioStore: jest.fn(),
   useAudioActions: jest.fn()
 }));
@@ -36,7 +36,7 @@ jest.mock("@/hooks/TrackPlayer", () => ({
 }));
 
 const TrackPlayer = require("react-native-track-player");
-const { useAudioStore, useAudioActions } = require("@/hooks/useAudioStore");
+const { useAudioStore, useAudioActions } = require("@/hooks/stores/useAudioStore");
 const { usePlayerState, useQueueOperations } = require("@/hooks/TrackPlayer");
 
 describe("useAudioPlayer", () => {

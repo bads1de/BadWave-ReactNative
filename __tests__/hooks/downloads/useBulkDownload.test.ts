@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
-import { useBulkDownload } from "@/hooks/useBulkDownload";
+import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
 import Song from "@/types";
 
@@ -341,3 +341,4 @@ describe("useBulkDownload", () => {
     });
   });
 });
+

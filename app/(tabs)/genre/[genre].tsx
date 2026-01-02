@@ -12,7 +12,7 @@ import Error from "@/components/common/Error";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useLocalSearchParams } from "expo-router";
 import { CACHED_QUERIES } from "@/constants";
-import { useHeaderStore } from "@/hooks/useHeaderStore";
+import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
@@ -150,3 +150,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+

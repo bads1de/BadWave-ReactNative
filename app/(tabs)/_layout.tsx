@@ -4,8 +4,8 @@ import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Header from "@/components/common/Header";
-import { usePlayerStore } from "@/hooks/usePlayerStore";
-import { useHeaderStore } from "@/hooks/useHeaderStore";
+import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
+import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import PlayerContainer from "@/components/player/PlayerContainer";
 
 /**
@@ -166,3 +166,4 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
   },
 });
+

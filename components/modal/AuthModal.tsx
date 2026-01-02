@@ -14,7 +14,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { useAuthStore } from "@/hooks/useAuthStore";
+import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
@@ -363,3 +363,4 @@ const styles = StyleSheet.create({
 
 // メモ化してエクスポート
 export default memo(AuthModalInner);
+

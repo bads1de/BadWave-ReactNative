@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import { useHeaderStore } from "@/hooks/useHeaderStore";
+import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 
 describe("useHeaderStore", () => {
   beforeEach(() => {
@@ -47,3 +47,4 @@ describe("useHeaderStore", () => {
     expect(result2.current.showHeader).toBe(false);
   });
 });
+

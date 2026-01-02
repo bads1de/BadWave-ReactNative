@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
+import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 import Library from "@/app/(tabs)/library";
@@ -10,7 +10,7 @@ jest.mock("@/app/(tabs)/library", () => {
   const React = require("react");
   const { View, Text, TouchableOpacity } = require("react-native");
   const FlashList = require("@shopify/flash-list").FlashList;
-  const { useDownloadedSongs } = require("@/hooks/useDownloadedSongs");
+  const { useDownloadedSongs } = require("@/hooks/downloads/useDownloadedSongs");
   const SongItem = require("@/components/item/SongItem").default;
   const Error = require("@/components/common/Error").default;
   const Loading = require("@/components/common/Loading").default;
@@ -135,7 +135,7 @@ jest.mock("react-native-track-player", () => ({
 }));
 
 // モック
-jest.mock("../../hooks/useDownloadedSongs", () => ({
+jest.mock("../../hooks/downloads/useDownloadedSongs", () => ({
   useDownloadedSongs: jest.fn().mockReturnValue({
     songs: [],
     isLoading: false,
@@ -173,7 +173,7 @@ jest.mock("../../providers/AuthProvider", () => ({
     session: { user: { id: "test-user" } },
   }),
 }));
-jest.mock("@/hooks/useAuthStore", () => ({
+jest.mock("@/hooks/stores/useAuthStore", () => ({
   useAuthStore: jest.fn().mockReturnValue({
     user: { id: "test-user" },
   }),
@@ -489,3 +489,6 @@ describe("Library Screen - Downloads Tab", () => {
     expect(queryByTestId("loading")).toBeTruthy();
   });
 });
+
+
+

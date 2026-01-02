@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
-import { useAuthStore } from "@/hooks/useAuthStore";
+import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { useAuth } from "@/providers/AuthProvider";
 import { useUser } from "@/actions/getUser";
 import { memo } from "react";
@@ -79,3 +79,4 @@ const styles = StyleSheet.create({
 
 // メモ化してエクスポート
 export default memo(Header);
+
