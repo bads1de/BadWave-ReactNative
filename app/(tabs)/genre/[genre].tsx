@@ -14,11 +14,14 @@ import { useLocalSearchParams } from "expo-router";
 import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/useHeaderStore";
 import Song from "@/types";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
   const { genre } = useLocalSearchParams<{ genre: string }>();
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
+  const { isOnline } = useNetworkStatus();
+
   const {
     data: genreSongs = [],
     isLoading,
@@ -26,7 +29,7 @@ export default function GenreSongsScreen() {
   } = useQuery({
     queryKey: [CACHED_QUERIES.songsByGenre, genre],
     queryFn: () => getSongsByGenre(genre),
-    enabled: !!genre,
+    enabled: !!genre && isOnline,
   });
 
   useFocusEffect(
@@ -50,6 +53,29 @@ export default function GenreSongsScreen() {
 
   // keyExtractor関数をメモ化
   const keyExtractor = useCallback((item: Song) => item.id, []);
+
+  if (!isOnline) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="chevron-back" size={28} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.title}>{genre}</Text>
+        </View>
+        <View style={[styles.container, styles.center]}>
+          <Ionicons name="cloud-offline" size={64} color="#666" />
+          <Text style={styles.emptyText}>You are offline</Text>
+          <Text style={styles.emptySubText}>
+            Genre search is only available when online
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
@@ -108,5 +134,19 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
     paddingBottom: 96,
+  },
+  center: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    color: "#666",
+    fontSize: 16,
+    marginTop: 16,
+  },
+  emptySubText: {
+    color: "#444",
+    fontSize: 14,
+    marginTop: 8,
   },
 });

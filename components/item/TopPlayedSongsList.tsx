@@ -128,6 +128,8 @@ function TopPlayedSongsList() {
     [isPlaying, topSongs, setCurrentSongIndex, setSongs, setShowSubPlayer]
   );
 
+  if (!isOnline) return null; // オフライン時は非表示
+
   if (topSongs.length === 0) return null;
 
   return (

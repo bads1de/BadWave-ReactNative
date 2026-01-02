@@ -1,5 +1,10 @@
 import React, { useCallback, memo } from "react";
-import { TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import {
@@ -7,6 +12,7 @@ import {
   useDownloadSong,
   useDeleteDownloadedSong,
 } from "@/hooks/useDownloadStatus";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface DownloadButtonProps {
   song: Song;
@@ -35,6 +41,9 @@ function DownloadButtonComponent({
   color = "white",
   style = {},
 }: DownloadButtonProps) {
+  // ネットワーク状態を取得
+  const { isOnline } = useNetworkStatus();
+
   // ダウンロード状態を取得
   const { data: isDownloaded = false, isLoading: isStatusLoading } =
     useDownloadStatus(song.id);
@@ -51,10 +60,18 @@ function DownloadButtonComponent({
 
   // ダウンロード処理
   const handleDownload = useCallback(() => {
+    if (!isOnline) {
+      Alert.alert(
+        "オフラインです",
+        "ダウンロードにはインターネット接続が必要です",
+        [{ text: "OK" }]
+      );
+      return;
+    }
     downloadMutation.mutate(song);
-  }, [downloadMutation, song]);
+  }, [downloadMutation, song, isOnline]);
 
-  // 削除処理
+  // 削除処理（ローカルファイル削除なのでオフラインでも可能）
   const handleDelete = useCallback(() => {
     deleteMutation.mutate(song.id);
   }, [deleteMutation, song.id]);
@@ -85,13 +102,22 @@ function DownloadButtonComponent({
   }
 
   // 未ダウンロード
+  // オフライン時は無効化
+  const isDownloadDisabled = !isOnline;
+
   return (
     <TouchableOpacity
       testID="download-button"
       onPress={handleDownload}
       style={[styles.button, style]}
+      disabled={isDownloadDisabled}
     >
-      <Ionicons name="cloud-download-outline" size={size} color={color} />
+      <Ionicons
+        name="cloud-download-outline"
+        size={size}
+        color={color}
+        style={{ opacity: isDownloadDisabled ? 0.4 : 1 }}
+      />
     </TouchableOpacity>
   );
 }

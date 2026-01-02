@@ -84,6 +84,11 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
     - オフライン時、未ダウンロードの楽曲は自動的に**グレーアウト（半透明化）**され、クリック不可に。
     - `SongItem`, `TopPlayedSongsList` 等で適用済み。
   - `useOfflineGuard`: オフライン時の操作制御用ユーティリティフック
+  - **各画面のオフライン対応**:
+    - `reels.tsx`: `useGetLocalSpotlights` に切り替え、オフライン時は「You are offline」を表示。
+    - `genre/[genre].tsx`: オフライン時は「You are offline」を表示（オンライン検索専用）。
+    - `song/[songId].tsx`: `useGetLocalSongById` (新規) に切り替え、オフラインでも詳細表示可能に。
+    - `search.tsx`: オフライン時は利用不可画面を表示。
   - **一括ダウンロード機能**:
     - `useBulkDownload`: プレイリスト/いいね全体の一括ダウンロード/削除を管理するフック。
     - `BulkDownloadButton`: 状態に応じたボタン表示（すべてダウンロード/残りをダウンロード/すべて削除）。

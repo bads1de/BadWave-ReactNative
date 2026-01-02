@@ -8,8 +8,7 @@ import {
 } from "react-native";
 import { ImageBackground } from "expo-image";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
-import getSongById from "@/actions/getSongById";
+import { useGetLocalSongById } from "@/hooks/data/useGetLocalSongById";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
@@ -17,7 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
-import { CACHED_QUERIES } from "@/constants";
+
 import { useHeaderStore } from "@/hooks/useHeaderStore";
 import { useRouter } from "expo-router";
 
@@ -26,15 +25,8 @@ export default function SongDetailScreen() {
   const { songId } = useLocalSearchParams<{ songId: string }>();
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
 
-  const {
-    data: song,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.song, songId],
-    queryFn: () => getSongById(songId),
-    enabled: !!songId,
-  });
+  /* Local-first: SQLite から取得 */
+  const { data: song, isLoading, error } = useGetLocalSongById(songId);
 
   const songsArray = useMemo(() => (song ? [song] : []), [song]);
 

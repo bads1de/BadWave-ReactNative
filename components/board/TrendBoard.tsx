@@ -18,56 +18,75 @@ import { useGetLocalTrendSongs } from "@/hooks/data/useGetLocalTrendSongs";
 import CustomButton from "@/components/common/CustomButton";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useDownloadedSongs } from "@/hooks/useDownloadedSongs";
 
 interface TrendItemProps {
   song: Song;
   index: number;
   onPlay: (song: Song) => void;
+  isDisabled: boolean;
 }
 
 const { width } = Dimensions.get("window");
 const ITEM_WIDTH = width * 0.6;
 
 // TrendItemをメモ化
-const TrendItem = memo(({ song, index, onPlay }: TrendItemProps) => {
-  return (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={() => onPlay(song)}
-      activeOpacity={0.7}
-    >
-      <ImageBackground
-        source={{ uri: song.image_path }}
-        style={styles.image}
-        contentFit="cover"
+const TrendItem = memo(
+  ({ song, index, onPlay, isDisabled }: TrendItemProps) => {
+    return (
+      <TouchableOpacity
+        style={[
+          styles.itemContainer,
+          isDisabled && styles.itemContainerDisabled,
+        ]}
+        onPress={() => !isDisabled && onPlay(song)}
+        activeOpacity={0.7}
+        disabled={isDisabled}
       >
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.9)"]}
-          style={styles.gradient}
-        />
-      </ImageBackground>
-      <BlurView intensity={20} style={styles.blurContainer}>
-        <View style={styles.rankContainer}>
-          <Text style={styles.rankText}>#{index + 1}</Text>
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.titleText} numberOfLines={1}>
-            {song.title}
-          </Text>
-          <Text style={styles.authorText} numberOfLines={1}>
-            {song.author}
-          </Text>
-          <View style={styles.statsContainer}>
-            <Ionicons name="play-circle" size={16} color="#fff" />
-            <Text style={styles.statsText}>
-              {Number(song.count).toLocaleString()}
-            </Text>
+        <ImageBackground
+          source={{ uri: song.image_path }}
+          style={[styles.image, isDisabled && { opacity: 0.5 }]}
+          contentFit="cover"
+        >
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.9)"]}
+            style={styles.gradient}
+          />
+        </ImageBackground>
+        <BlurView intensity={20} style={styles.blurContainer}>
+          <View style={styles.rankContainer}>
+            <Text style={styles.rankText}>#{index + 1}</Text>
           </View>
-        </View>
-      </BlurView>
-    </TouchableOpacity>
-  );
-});
+          <View style={styles.textContainer}>
+            <Text
+              style={[styles.titleText, isDisabled && { opacity: 0.5 }]}
+              numberOfLines={1}
+            >
+              {song.title}
+            </Text>
+            <Text
+              style={[styles.authorText, isDisabled && { opacity: 0.5 }]}
+              numberOfLines={1}
+            >
+              {song.author}
+            </Text>
+            <View style={styles.statsContainer}>
+              <Ionicons
+                name="play-circle"
+                size={16}
+                color={isDisabled ? "#666" : "#fff"}
+              />
+              <Text style={[styles.statsText, isDisabled && { color: "#666" }]}>
+                {Number(song.count).toLocaleString()}
+              </Text>
+            </View>
+          </View>
+        </BlurView>
+      </TouchableOpacity>
+    );
+  }
+);
 
 TrendItem.displayName = "TrendItem";
 
@@ -133,6 +152,8 @@ PeriodSelector.displayName = "PeriodSelector";
 
 function TrendBoard() {
   const [period, setPeriod] = useState<"all" | "month" | "week" | "day">("all");
+  const { isOnline } = useNetworkStatus();
+  const { songs: downloadedSongs } = useDownloadedSongs();
 
   // SQLite から取得（Local-First）
   const { data: trends = [], isLoading, error } = useGetLocalTrendSongs(period);
@@ -170,9 +191,19 @@ function TrendBoard() {
           data={trends}
           horizontal
           keyExtractor={keyExtractor}
-          renderItem={({ item, index }) => (
-            <TrendItem song={item} index={index} onPlay={onPlay} />
-          )}
+          renderItem={({ item, index }) => {
+            // ダウンロード済みかチェック
+            const isDownloaded = downloadedSongs.some((d) => d.id === item.id);
+            const isDisabled = !isOnline && !isDownloaded;
+            return (
+              <TrendItem
+                song={item}
+                index={index}
+                onPlay={onPlay}
+                isDisabled={isDisabled}
+              />
+            );
+          }}
           showsHorizontalScrollIndicator={false}
           snapToInterval={ITEM_WIDTH + 16}
           decelerationRate="fast"
@@ -209,6 +240,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+  },
+  itemContainerDisabled: {
+    opacity: 0.5,
   },
   image: {
     width: "100%",

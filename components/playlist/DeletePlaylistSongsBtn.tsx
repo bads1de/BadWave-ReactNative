@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { TouchableOpacity, StyleSheet } from "react-native";
+import { TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylistSong from "@/actions/deletePlaylistSong";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface DeletePlaylistSongsBtnProps {
   songId: string;
@@ -19,6 +20,7 @@ const DeletePlaylistSongsBtn: React.FC<DeletePlaylistSongsBtnProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
+  const { isOnline } = useNetworkStatus();
 
   const { mutate: deleteSong } = useMutation({
     mutationFn: () => deletePlaylistSong(playlistId, songId, songType),
@@ -47,21 +49,31 @@ const DeletePlaylistSongsBtn: React.FC<DeletePlaylistSongsBtnProps> = ({
     if (isDeleting) {
       return;
     }
+    if (!isOnline) {
+      Alert.alert(
+        "オフラインです",
+        "曲の削除にはインターネット接続が必要です",
+        [{ text: "OK" }]
+      );
+      return;
+    }
     setIsDeleting(true);
     deleteSong();
   };
 
+  const isDisabled = isDeleting || !isOnline;
+
   return (
     <TouchableOpacity
-      style={styles.deleteButton}
+      style={[styles.deleteButton, isDisabled && styles.deleteButtonDisabled]}
       onPress={handleDelete}
-      disabled={isDeleting}
+      disabled={isDisabled}
       testID="delete-playlist-song-button"
     >
       <Ionicons
         name="trash-outline"
         size={20}
-        color={isDeleting ? "gray" : "red"}
+        color={isDisabled ? "gray" : "red"}
       />
     </TouchableOpacity>
   );
@@ -75,6 +87,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 15,
     padding: 5,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.5,
   },
 });
 

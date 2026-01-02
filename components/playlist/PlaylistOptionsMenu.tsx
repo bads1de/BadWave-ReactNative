@@ -6,9 +6,11 @@ import {
   StyleSheet,
   Modal,
   TextInput,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/providers/AuthProvider";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylist from "@/actions/deletePlaylist";
@@ -39,8 +41,16 @@ export default function PlaylistOptionsMenu({
   const { session } = useAuth();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { isOnline } = useNetworkStatus();
 
   const isOwner = session?.user.id === userId;
+
+  // オフライン時のアラート表示ヘルパー
+  const showOfflineAlert = () => {
+    Alert.alert("オフラインです", "この操作にはインターネット接続が必要です", [
+      { text: "OK" },
+    ]);
+  };
 
   const { mutate: togglePublicMutation } = useMutation({
     mutationFn: (newPublicState: boolean) =>
@@ -121,14 +131,31 @@ export default function PlaylistOptionsMenu({
   });
 
   const handleDeleteConfirm = () => {
+    if (!isOnline) {
+      showOfflineAlert();
+      return;
+    }
     setShowDeleteDialog(false);
     deleteMutation();
   };
 
   const handleRename = () => {
+    if (!isOnline) {
+      showOfflineAlert();
+      setShowRenameModal(false);
+      return;
+    }
     if (newTitle.trim()) {
       renameMutation();
     }
+  };
+
+  const handleTogglePublic = () => {
+    if (!isOnline) {
+      showOfflineAlert();
+      return;
+    }
+    togglePublicMutation(!isPublic);
   };
 
   return (
@@ -158,37 +185,81 @@ export default function PlaylistOptionsMenu({
             {isOwner && (
               <>
                 <TouchableOpacity
-                  style={styles.menuItem}
+                  style={[
+                    styles.menuItem,
+                    !isOnline && styles.menuItemDisabled,
+                  ]}
                   onPress={() => {
+                    if (!isOnline) {
+                      showOfflineAlert();
+                      return;
+                    }
                     setShowRenameModal(true);
                     setShowOptionsModal(false);
                   }}
                 >
-                  <Ionicons name="pencil-outline" size={24} color="#fff" />
-                  <Text style={styles.menuText}>プレイリスト名を変更</Text>
+                  <Ionicons
+                    name="pencil-outline"
+                    size={24}
+                    color={isOnline ? "#fff" : "#666"}
+                  />
+                  <Text
+                    style={[
+                      styles.menuText,
+                      !isOnline && styles.menuTextDisabled,
+                    ]}
+                  >
+                    プレイリスト名を変更
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => togglePublicMutation(!isPublic)}
+                  style={[
+                    styles.menuItem,
+                    !isOnline && styles.menuItemDisabled,
+                  ]}
+                  onPress={handleTogglePublic}
                 >
                   <Ionicons
                     name={isPublic ? "eye-off-outline" : "eye-outline"}
                     size={24}
-                    color="#fff"
+                    color={isOnline ? "#fff" : "#666"}
                   />
-                  <Text style={styles.menuText}>
+                  <Text
+                    style={[
+                      styles.menuText,
+                      !isOnline && styles.menuTextDisabled,
+                    ]}
+                  >
                     {isPublic ? "非公開にする" : "公開する"}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.menuItem}
+                  style={[
+                    styles.menuItem,
+                    !isOnline && styles.menuItemDisabled,
+                  ]}
                   onPress={() => {
+                    if (!isOnline) {
+                      showOfflineAlert();
+                      return;
+                    }
                     setShowDeleteDialog(true);
                     setShowOptionsModal(false);
                   }}
                 >
-                  <Ionicons name="trash-outline" size={24} color="red" />
-                  <Text style={styles.deleteText}>プレイリストを削除</Text>
+                  <Ionicons
+                    name="trash-outline"
+                    size={24}
+                    color={isOnline ? "red" : "#666"}
+                  />
+                  <Text
+                    style={[
+                      styles.deleteText,
+                      !isOnline && styles.menuTextDisabled,
+                    ]}
+                  >
+                    プレイリストを削除
+                  </Text>
                 </TouchableOpacity>
               </>
             )}
@@ -275,6 +346,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 12,
     fontWeight: "500",
+  },
+  menuTextDisabled: {
+    color: "#666",
+  },
+  menuItemDisabled: {
+    opacity: 0.6,
   },
   deleteText: {
     color: "#DC2626",
