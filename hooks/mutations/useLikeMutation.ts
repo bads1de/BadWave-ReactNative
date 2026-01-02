@@ -5,38 +5,43 @@ import { db } from "@/lib/db/client";
 import { likedSongs, songs } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { withSupabaseRetry } from "@/lib/utils/retry";
+import { AUTH_ERRORS, LIKE_ERRORS } from "@/constants/errorMessages";
 
 /**
  * いいねカウント更新のヘルパー関数（Supabase用）
+ * リトライ機能付きでSupabaseとローカルDBの両方を更新
  */
 async function updateLikeCount(songId: string, increment: number) {
-  try {
-    const { data, error: fetchError } = await supabase
+  // Supabaseのlike_countを取得・更新（リトライ付き）
+  const result = await withSupabaseRetry(async () => {
+    return await supabase
       .from("songs")
       .select("like_count")
       .eq("id", songId)
       .single();
+  });
 
-    if (fetchError) {
-      throw fetchError;
-    }
+  if (result.error) {
+    throw result.error;
+  }
 
-    const currentCount = parseInt(String(data?.like_count ?? 0), 10) || 0;
-    const newLikeCount = Math.max(0, currentCount + increment);
+  const currentCount = parseInt(String(result.data?.like_count ?? 0), 10) || 0;
+  const newLikeCount = Math.max(0, currentCount + increment);
 
-    await supabase
+  // Supabaseを更新（リトライ付き）
+  await withSupabaseRetry(async () => {
+    return await supabase
       .from("songs")
       .update({ like_count: newLikeCount })
       .eq("id", songId);
+  });
 
-    // ローカルDBも更新
-    await db
-      .update(songs)
-      .set({ likeCount: newLikeCount })
-      .where(eq(songs.id, songId));
-  } catch (error) {
-    console.error("Error updating like count:", error);
-  }
+  // ローカルDBも更新
+  await db
+    .update(songs)
+    .set({ likeCount: newLikeCount })
+    .where(eq(songs.id, songId));
 }
 
 /**
@@ -53,24 +58,28 @@ export function useLikeMutation(songId: string, userId?: string) {
   return useMutation({
     mutationFn: async (isCurrentlyLiked: boolean) => {
       if (!userId) {
-        throw new Error("ユーザーIDが必要です");
+        throw new Error(AUTH_ERRORS.USER_ID_REQUIRED);
       }
 
       if (!isOnline) {
-        throw new Error("オフライン時はいいね操作ができません");
+        throw new Error(LIKE_ERRORS.OFFLINE);
       }
 
       if (isCurrentlyLiked) {
         // いいねを解除
-        // 1. Supabase から削除（先に実行）
-        const { error: supabaseError } = await supabase
-          .from("liked_songs_regular")
-          .delete()
-          .eq("user_id", userId)
-          .eq("song_id", songId);
+        // 1. Supabase から削除（先に実行、リトライ付き）
+        const result = await withSupabaseRetry(async () => {
+          return await supabase
+            .from("liked_songs_regular")
+            .delete()
+            .eq("user_id", userId)
+            .eq("song_id", songId);
+        });
 
-        if (supabaseError) {
-          throw new Error(`Supabase削除エラー: ${supabaseError.message}`);
+        if (result.error) {
+          throw new Error(
+            `${LIKE_ERRORS.SUPABASE_DELETE_FAILED}: ${result.error.message}`
+          );
         }
 
         // 2. like_count を更新
@@ -84,16 +93,18 @@ export function useLikeMutation(songId: string, userId?: string) {
           );
       } else {
         // いいねを追加
-        // 1. Supabase に追加（先に実行）
-        const { error: supabaseError } = await supabase
-          .from("liked_songs_regular")
-          .insert({
+        // 1. Supabase に追加（先に実行、リトライ付き）
+        const result = await withSupabaseRetry(async () => {
+          return await supabase.from("liked_songs_regular").insert({
             user_id: userId,
             song_id: songId,
           });
+        });
 
-        if (supabaseError) {
-          throw new Error(`Supabase追加エラー: ${supabaseError.message}`);
+        if (result.error) {
+          throw new Error(
+            `${LIKE_ERRORS.SUPABASE_INSERT_FAILED}: ${result.error.message}`
+          );
         }
 
         // 2. like_count を更新

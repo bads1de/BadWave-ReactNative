@@ -5,6 +5,8 @@ import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { withSupabaseRetry } from "@/lib/utils/retry";
+import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
 
 /**
  * プレイリスト曲の操作（追加・削除）を行うカスタムフック
@@ -28,25 +30,27 @@ export function useMutatePlaylistSong(userId?: string) {
       playlistId: string;
     }) => {
       if (!userId) {
-        throw new Error("ユーザーIDが必要です");
+        throw new Error(AUTH_ERRORS.USER_ID_REQUIRED);
       }
 
       if (!isOnline) {
-        throw new Error("オフライン時はプレイリストの編集ができません");
+        throw new Error(PLAYLIST_ERRORS.EDIT_OFFLINE);
       }
 
-      // 1. Supabase に追加（先に実行）
-      const { error: supabaseError } = await supabase
-        .from("playlist_songs")
-        .insert({
+      // 1. Supabase に追加（先に実行、リトライ付き）
+      const result = await withSupabaseRetry(async () => {
+        return await supabase.from("playlist_songs").insert({
           playlist_id: playlistId,
           user_id: userId,
           song_id: songId,
           song_type: "regular",
         });
+      });
 
-      if (supabaseError) {
-        throw new Error(`Supabase追加エラー: ${supabaseError.message}`);
+      if (result.error) {
+        throw new Error(
+          `${PLAYLIST_ERRORS.SUPABASE_INSERT_FAILED}: ${result.error.message}`
+        );
       }
 
       // 2. ローカルDBに追加（Supabase成功後）
@@ -85,23 +89,27 @@ export function useMutatePlaylistSong(userId?: string) {
       playlistId: string;
     }) => {
       if (!userId) {
-        throw new Error("ユーザーIDが必要です");
+        throw new Error(AUTH_ERRORS.USER_ID_REQUIRED);
       }
 
       if (!isOnline) {
-        throw new Error("オフライン時はプレイリストの編集ができません");
+        throw new Error(PLAYLIST_ERRORS.EDIT_OFFLINE);
       }
 
-      // 1. Supabase から削除（先に実行）
-      const { error: supabaseError } = await supabase
-        .from("playlist_songs")
-        .delete()
-        .eq("playlist_id", playlistId)
-        .eq("user_id", userId)
-        .eq("song_id", songId);
+      // 1. Supabase から削除（先に実行、リトライ付き）
+      const result = await withSupabaseRetry(async () => {
+        return await supabase
+          .from("playlist_songs")
+          .delete()
+          .eq("playlist_id", playlistId)
+          .eq("user_id", userId)
+          .eq("song_id", songId);
+      });
 
-      if (supabaseError) {
-        throw new Error(`Supabase削除エラー: ${supabaseError.message}`);
+      if (result.error) {
+        throw new Error(
+          `${PLAYLIST_ERRORS.SUPABASE_DELETE_FAILED}: ${result.error.message}`
+        );
       }
 
       // 2. ローカルDBから削除（Supabase成功後）

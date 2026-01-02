@@ -4,6 +4,8 @@ import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { withSupabaseRetry } from "@/lib/utils/retry";
+import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
 
 /**
  * プレイリスト作成のミューテーションフック
@@ -24,39 +26,43 @@ export function useCreatePlaylist(userId?: string) {
       isPublic?: boolean;
     }) => {
       if (!userId) {
-        throw new Error("ユーザーIDが必要です");
+        throw new Error(AUTH_ERRORS.USER_ID_REQUIRED);
       }
 
       if (!isOnline) {
-        throw new Error("オフライン時はプレイリストを作成できません");
+        throw new Error(PLAYLIST_ERRORS.OFFLINE);
       }
 
-      // 1. Supabase に作成（IDはSupabaseで生成）
-      const { data, error } = await supabase
-        .from("playlists")
-        .insert({
-          user_id: userId,
-          title,
-          is_public: isPublic,
-        })
-        .select()
-        .single();
+      // 1. Supabase に作成（IDはSupabaseで生成、リトライ付き）
+      const result = await withSupabaseRetry(async () => {
+        return await supabase
+          .from("playlists")
+          .insert({
+            user_id: userId,
+            title,
+            is_public: isPublic,
+          })
+          .select()
+          .single();
+      });
 
-      if (error) {
-        throw new Error(error.message);
+      if (result.error) {
+        throw new Error(
+          `${PLAYLIST_ERRORS.SUPABASE_INSERT_FAILED}: ${result.error.message}`
+        );
       }
 
       // 2. SQLite にも保存
       await db.insert(playlists).values({
-        id: data.id,
+        id: result.data.id,
         userId,
         title,
         isPublic,
-        createdAt: data.created_at,
-        imagePath: data.image_path,
+        createdAt: result.data.created_at,
+        imagePath: result.data.image_path,
       });
 
-      return data;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
