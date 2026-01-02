@@ -26,7 +26,7 @@ import { CACHED_QUERIES } from "@/constants";
 import { PlaylistSong, Playlist } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
 import addPlaylistSong from "@/actions/addPlaylistSong";
-import usePlaylistStatus from "@/hooks/usePlaylistStatus";
+import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { LinearGradient } from "expo-linear-gradient";
 

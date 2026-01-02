@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
-import usePlaylistStatus from "@/hooks/usePlaylistStatus";
+import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
 import getSongPlaylistStatus from "@/actions/getSongPlaylistStatus";
 import { useAuth } from "@/providers/AuthProvider";
 

@@ -3,7 +3,7 @@ import { render, fireEvent, act } from "@testing-library/react-native";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../providers/AuthProvider";
 import Toast from "react-native-toast-message";
-import usePlaylistStatus from "../../hooks/usePlaylistStatus";
+import usePlaylistStatus from "../../hooks/data/usePlaylistStatus";
 
 // AsyncStorageのモック
 jest.mock("@react-native-async-storage/async-storage", () => ({
