@@ -110,11 +110,20 @@ export function useAudioPlayer(
   const { updateQueueWithContext, toggleShuffle, updateQueueState } =
     useQueueOperations(setTrackPlayerIsPlaying);
 
+  // 前回処理したトラックIDを追跡するためのRef
+  const lastProcessedTrackIdRef = useRef<string | null>(null);
+
   /**
    * アクティブトラックが変更されたときの処理
+   *
+   * 注意: lastProcessedTrackIdRefで二重実行を防いでいるため、
+   * 依存配列の関数が変わっても同じトラックに対して複数回実行されることはない
    */
   useEffect(() => {
     if (!isMounted.current || !activeTrack?.id) return;
+
+    // 前回処理済みのトラックなら何もしない（無限ループ防止）
+    if (lastProcessedTrackIdRef.current === activeTrack.id) return;
 
     // トラックIDに対応する曲情報を取得
     // 優先順位1: propsとして渡されたsongs (最新の情報である可能性が高い)
@@ -127,8 +136,8 @@ export function useAudioPlayer(
 
     if (!song) return;
 
-    // 現在の曲と同じなら更新しない
-    if (currentSong?.id === song.id) return;
+    // 処理済みトラックIDを記録
+    lastProcessedTrackIdRef.current = activeTrack.id;
 
     // 現在の曲を更新
     setCurrentSong(song);
@@ -138,7 +147,7 @@ export function useAudioPlayer(
       lastProcessedTrackId: song.id,
       currentSongId: song.id,
     }));
-  }, [activeTrack, songMap, updateQueueState, setCurrentSong, currentSong?.id]);
+  }, [activeTrack, songMap, setCurrentSong, updateQueueState]);
 
   /**
    * シャッフルトグル処理用ハンドラー
@@ -290,4 +299,3 @@ export function useAudioPlayer(
 }
 
 export { RepeatMode, State };
-

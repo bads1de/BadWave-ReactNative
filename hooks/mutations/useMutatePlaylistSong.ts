@@ -35,7 +35,21 @@ export function useMutatePlaylistSong(userId?: string) {
         throw new Error("オフライン時はプレイリストの編集ができません");
       }
 
-      // 1. SQLite に追加
+      // 1. Supabase に追加（先に実行）
+      const { error: supabaseError } = await supabase
+        .from("playlist_songs")
+        .insert({
+          playlist_id: playlistId,
+          user_id: userId,
+          song_id: songId,
+          song_type: "regular",
+        });
+
+      if (supabaseError) {
+        throw new Error(`Supabase追加エラー: ${supabaseError.message}`);
+      }
+
+      // 2. ローカルDBに追加（Supabase成功後）
       const newId = `${playlistId}_${songId}_${Date.now()}`;
       await db.insert(playlistSongs).values({
         id: newId,
@@ -43,18 +57,6 @@ export function useMutatePlaylistSong(userId?: string) {
         songId,
         addedAt: new Date().toISOString(),
       });
-
-      // 2. Supabase に追加
-      const { error } = await supabase.from("playlist_songs").insert({
-        playlist_id: playlistId,
-        user_id: userId,
-        song_id: songId,
-        song_type: "regular",
-      });
-
-      if (error) {
-        console.warn("[Playlist] Supabase insert failed:", error);
-      }
 
       return { songId, playlistId };
     },
@@ -90,7 +92,19 @@ export function useMutatePlaylistSong(userId?: string) {
         throw new Error("オフライン時はプレイリストの編集ができません");
       }
 
-      // 1. SQLite から削除
+      // 1. Supabase から削除（先に実行）
+      const { error: supabaseError } = await supabase
+        .from("playlist_songs")
+        .delete()
+        .eq("playlist_id", playlistId)
+        .eq("user_id", userId)
+        .eq("song_id", songId);
+
+      if (supabaseError) {
+        throw new Error(`Supabase削除エラー: ${supabaseError.message}`);
+      }
+
+      // 2. ローカルDBから削除（Supabase成功後）
       await db
         .delete(playlistSongs)
         .where(
@@ -99,18 +113,6 @@ export function useMutatePlaylistSong(userId?: string) {
             eq(playlistSongs.songId, songId)
           )
         );
-
-      // 2. Supabase から削除
-      const { error } = await supabase
-        .from("playlist_songs")
-        .delete()
-        .eq("playlist_id", playlistId)
-        .eq("user_id", userId)
-        .eq("song_id", songId);
-
-      if (error) {
-        console.warn("[Playlist] Supabase delete failed:", error);
-      }
 
       return { songId, playlistId };
     },

@@ -1,197 +1,88 @@
-import { useEffect, useState, memo } from "react";
+import { memo } from "react";
 import { TouchableOpacity, Alert } from "react-native";
-import {
-  useQueryClient,
-  useMutation,
-  useMutationState,
-} from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { CACHED_QUERIES } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
-import Song from "@/types";
 import Toast from "react-native-toast-message";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useLikeStatus } from "@/hooks/data/useLikeStatus";
+import { useLikeMutation } from "@/hooks/mutations/useLikeMutation";
 
 interface LikeButtonProps {
   songId: string;
   size?: number;
+  testID?: string;
 }
 
 /**
  * @file LikeButton.tsx
  * @description 曲に対する「いいね」機能を提供するボタンコンポーネントです。
  *
- * このコンポーネントは、ユーザーが曲に「いいね」を付けたり外したりする機能を提供します。
- * ユーザーの認証状態を確認し、未認証の場合はログインを促します。
+ * ローカルファースト設計:
+ * - いいね状態は useLikeStatus (SQLite) から取得
+ * - いいね操作は useLikeMutation (SQLite + Supabase) で実行
  *
  * @component
  * @param {LikeButtonProps} props - コンポーネントのプロパティ
  * @param {string} props.songId - いいね対象の曲ID
  * @param {number} [props.size=24] - アイコンのサイズ
+ * @param {string} [props.testID] - テスト用ID
  * @returns {JSX.Element} いいねボタン
  */
-function LikeButton({ songId, size }: LikeButtonProps) {
-  const queryClient = useQueryClient();
+function LikeButton({ songId, size = 24, testID }: LikeButtonProps) {
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
-  const [isLiked, setIsLiked] = useState(false);
+  const userId = session?.user.id;
 
-  // 楽観的更新の状態追跡
-  const pendingMutations = useMutationState({
-    filters: { mutationKey: [CACHED_QUERIES.likedSongs], status: "pending" },
-    select: (mutation) => mutation.state.variables,
-  });
+  // ローカルファースト: SQLite からいいね状態を取得
+  const { isLiked, isLoading } = useLikeStatus(songId, userId);
 
-  const isPending = pendingMutations.length > 0;
-
-  // 初期いいね状態取得
-  useEffect(() => {
-    const checkLikedStatus = async () => {
-      if (!session?.user.id) return;
-
-      const { data } = await supabase
-        .from("liked_songs_regular")
-        .select()
-        .match({ user_id: session.user.id, song_id: songId });
-
-      setIsLiked(!!data?.length);
-    };
-
-    checkLikedStatus();
-  }, [session, songId]);
-
-  // いいね数更新関数
-  const updateLikeCount = async (increment: number) => {
-    const { data: songData } = await supabase
-      .from("songs")
-      .select("like_count")
-      .eq("id", songId)
-      .single();
-
-    const newCount = (songData?.like_count || 0) + increment;
-
-    await supabase
-      .from("songs")
-      .update({ like_count: newCount })
-      .eq("id", songId);
-  };
-
-  // ミューテーション処理
-  const { mutate } = useMutation({
-    mutationKey: [CACHED_QUERIES.likedSongs, songId],
-    mutationFn: async () => {
-      if (!session?.user.id) throw new Error("未認証ユーザー");
-
-      if (isLiked) {
-        await supabase
-          .from("liked_songs_regular")
-          .delete()
-          .match({ user_id: session.user.id, song_id: songId });
-        await updateLikeCount(-1);
-      } else {
-        await supabase
-          .from("liked_songs_regular")
-          .insert({ user_id: session.user.id, song_id: songId });
-        await updateLikeCount(1);
-      }
-      return !isLiked;
-    },
-    onMutate: async () => {
-      await queryClient.cancelQueries({
-        queryKey: [CACHED_QUERIES.likedSongs],
-      });
-      await queryClient.cancelQueries({ queryKey: [CACHED_QUERIES.songs] });
-
-      const previousSongs = queryClient.getQueryData<Song[]>([
-        CACHED_QUERIES.songs,
-      ]);
-      const previousLiked = queryClient.getQueryData<Song[]>([
-        CACHED_QUERIES.likedSongs,
-      ]);
-
-      // 楽観的更新
-      queryClient.setQueryData([CACHED_QUERIES.songs], (old: Song[] = []) =>
-        old.map((song) =>
-          song.id === songId
-            ? {
-                ...song,
-                like_count: Number(song.like_count ?? 0) + (isLiked ? -1 : 1),
-              }
-            : song
-        )
-      );
-
-      queryClient.setQueryData(
-        [CACHED_QUERIES.likedSongs],
-        (old: Song[] = []) =>
-          isLiked
-            ? old.filter((song) => song.id !== songId)
-            : [...old, ...(previousSongs?.filter((s) => s.id === songId) || [])]
-      );
-
-      return { previousSongs, previousLiked };
-    },
-    onError: (err, _, context) => {
-      queryClient.setQueryData([CACHED_QUERIES.songs], context?.previousSongs);
-      queryClient.setQueryData(
-        [CACHED_QUERIES.likedSongs],
-        context?.previousLiked
-      );
-
-      Toast.show({
-        type: "error",
-        text1: "通信エラーが発生しました",
-        text2: "しばらくしてから再試行してください",
-      });
-    },
-    onSuccess: (result) => {
-      if (typeof result === "boolean") {
-        setIsLiked(result);
-      }
-
-      Toast.show({
-        type: "success",
-        text1: result ? "いいねしました！" : "いいねを解除しました",
-      });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.likedSongs] });
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.songs] });
-    },
-  });
+  // ローカルファースト: SQLite + Supabase に書き込み
+  const { mutate, isPending } = useLikeMutation(songId, userId);
 
   // オフライン時またはミューテーション中は無効化
-  const isDisabled = isPending || !isOnline;
+  const isDisabled = isPending || !isOnline || isLoading;
+
+  const handlePress = () => {
+    // オフライン時はアラート表示
+    if (!isOnline) {
+      Alert.alert(
+        "オフラインです",
+        "いいね機能にはインターネット接続が必要です",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // 未ログイン時はToast表示
+    if (!session) {
+      Toast.show({
+        type: "info",
+        text1: "ログインが必要です",
+        text2: "いいね機能を使うにはログインしてください",
+      });
+      return;
+    }
+
+    // ミューテーション中は何もしない
+    if (isPending) {
+      return;
+    }
+
+    // いいね操作を実行（現在の状態を渡す）
+    mutate(isLiked);
+  };
 
   return (
     <TouchableOpacity
-      onPress={() => {
-        if (!isOnline) {
-          Alert.alert(
-            "オフラインです",
-            "いいね機能にはインターネット接続が必要です",
-            [{ text: "OK" }]
-          );
-          return;
-        }
-        if (!session) {
-          Toast.show({
-            type: "info",
-            text1: "ログインが必要です",
-            text2: "いいね機能を使うにはログインしてください",
-          });
-          return;
-        }
-        mutate();
-      }}
+      onPress={handlePress}
       disabled={isDisabled}
+      testID={testID}
     >
       <Ionicons
         name={isLiked ? "heart" : "heart-outline"}
-        size={size || 24}
+        size={size}
         color={isLiked ? "#FF69B4" : "white"}
-        opacity={isDisabled ? 0.4 : 1}
+        style={{ opacity: isDisabled ? 0.4 : 1 }}
       />
     </TouchableOpacity>
   );
@@ -200,6 +91,8 @@ function LikeButton({ songId, size }: LikeButtonProps) {
 // カスタム比較関数を使用してメモ化
 export default memo(LikeButton, (prevProps, nextProps) => {
   return (
-    prevProps.songId === nextProps.songId && prevProps.size === nextProps.size
+    prevProps.songId === nextProps.songId &&
+    prevProps.size === nextProps.size &&
+    prevProps.testID === nextProps.testID
   );
 });

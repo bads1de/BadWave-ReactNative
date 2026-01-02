@@ -33,13 +33,8 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
   const flatListRef = useRef<FlatList<Song>>(null);
 
   // useSubPlayerAudio フックを使用して再生機能を統合
-  const {
-    currentPosition,
-    duration,
-    stopAndUnloadCurrentSound,
-    togglePlayPause,
-    seekTo,
-  } = useSubPlayerAudio();
+  const { currentPosition, duration, stopAndUnloadCurrentSound } =
+    useSubPlayerAudio();
 
   /**
    * プレーヤーが閉じられるときに音声を確実に停止する処理
@@ -79,11 +74,7 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
             contentFit="cover"
             cachePolicy="memory-disk"
           >
-            <TouchableOpacity
-              style={styles.imageOverlay}
-              activeOpacity={1}
-              onPress={togglePlayPause}
-            >
+            <TouchableOpacity style={styles.imageOverlay} activeOpacity={1}>
               {/* 上部のグラデーション */}
               <LinearGradient
                 colors={["rgba(0,0,0,0.7)", "transparent"]}
@@ -124,7 +115,6 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
                       minimumTrackTintColor="transparent"
                       maximumTrackTintColor="transparent"
                       thumbTintColor="transparent"
-                      onSlidingComplete={seekTo}
                     />
                   </View>
                 </View>
@@ -134,13 +124,7 @@ function SubPlayerInner({ onClose }: SubPlayerProps) {
         </View>
       );
     },
-    [
-      currentSongIndex,
-      progressPosition,
-      progressDuration,
-      togglePlayPause,
-      seekTo,
-    ]
+    [currentSongIndex, progressPosition, progressDuration]
   );
 
   const onViewableItemsChanged = useRef(
@@ -366,4 +350,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(SubPlayerInner);
-

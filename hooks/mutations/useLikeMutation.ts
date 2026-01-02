@@ -62,64 +62,64 @@ export function useLikeMutation(songId: string, userId?: string) {
 
       if (isCurrentlyLiked) {
         // いいねを解除
-        // 1. SQLite から削除
-        await db
-          .delete(likedSongs)
-          .where(
-            and(eq(likedSongs.userId, userId), eq(likedSongs.songId, songId))
-          );
-
-        // 2. Supabase から削除
-        const { error } = await supabase
+        // 1. Supabase から削除（先に実行）
+        const { error: supabaseError } = await supabase
           .from("liked_songs_regular")
           .delete()
           .eq("user_id", userId)
           .eq("song_id", songId);
 
-        if (error) {
-          console.warn("[Like] Supabase delete failed:", error);
-        } else {
-          await updateLikeCount(songId, -1);
+        if (supabaseError) {
+          throw new Error(`Supabase削除エラー: ${supabaseError.message}`);
         }
+
+        // 2. like_count を更新
+        await updateLikeCount(songId, -1);
+
+        // 3. ローカルDBから削除（Supabase成功後）
+        await db
+          .delete(likedSongs)
+          .where(
+            and(eq(likedSongs.userId, userId), eq(likedSongs.songId, songId))
+          );
       } else {
         // いいねを追加
-        // 1. SQLite に追加
+        // 1. Supabase に追加（先に実行）
+        const { error: supabaseError } = await supabase
+          .from("liked_songs_regular")
+          .insert({
+            user_id: userId,
+            song_id: songId,
+          });
+
+        if (supabaseError) {
+          throw new Error(`Supabase追加エラー: ${supabaseError.message}`);
+        }
+
+        // 2. like_count を更新
+        await updateLikeCount(songId, 1);
+
+        // 3. ローカルDBに追加（Supabase成功後）
         await db.insert(likedSongs).values({
           userId,
           songId,
           likedAt: new Date().toISOString(),
         });
-
-        // 2. Supabase に追加
-        const { error } = await supabase.from("liked_songs_regular").insert({
-          user_id: userId,
-          song_id: songId,
-        });
-
-        if (error) {
-          console.warn("[Like] Supabase insert failed:", error);
-        } else {
-          await updateLikeCount(songId, 1);
-        }
       }
 
       return !isCurrentlyLiked;
     },
     onSuccess: async (newLikeStatus) => {
-      console.log("[Like] Mutation success, status:", newLikeStatus);
-
       // キャッシュを更新
       queryClient.setQueryData(
         [CACHED_QUERIES.likedSongs, "status", songId, userId],
         newLikeStatus
       );
 
-      // 関連クエリを無効化（強制リフェッチ）
+      // いいね曲リストのみ無効化（最小限の無効化で高速化）
       await queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.likedSongs],
-        refetchType: "all",
       });
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.trendsSongs] });
     },
     onError: (error) => {
       console.error("Like mutation error:", error);
