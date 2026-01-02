@@ -1,7 +1,6 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import * as utils from "@/hooks/TrackPlayer/utils";
 
-
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
 
@@ -46,15 +45,17 @@ describe("TrackPlayer utils", () => {
 
   describe("convertSongToTrack", () => {
     it("should convert a song to a track with remote URL when not downloaded", async () => {
-      jest.spyOn(utils, "convertSongToTrack").mockImplementation(async (song) => {
-        return {
-          id: song.id,
-          url: song.song_path,
-          title: song.title,
-          artist: song.author,
-          artwork: song.image_path,
-        };
-      });
+      jest
+        .spyOn(utils, "convertSongToTrack")
+        .mockImplementation(async (song) => {
+          return {
+            id: song.id,
+            url: song.song_path,
+            title: song.title,
+            artist: song.author,
+            artwork: song.image_path,
+          };
+        });
 
       const track = await utils.convertSongToTrack(mockSong);
 
@@ -70,15 +71,17 @@ describe("TrackPlayer utils", () => {
     it("should convert a song to a track with local path when downloaded", async () => {
       const localPath = "/local/path/to/song.mp3";
 
-      jest.spyOn(utils, "convertSongToTrack").mockImplementation(async (song) => {
-        return {
-          id: song.id,
-          url: localPath,
-          title: song.title,
-          artist: song.author,
-          artwork: song.image_path,
-        };
-      });
+      jest
+        .spyOn(utils, "convertSongToTrack")
+        .mockImplementation(async (song) => {
+          return {
+            id: song.id,
+            url: localPath,
+            title: song.title,
+            artist: song.author,
+            artwork: song.image_path,
+          };
+        });
 
       const track = await utils.convertSongToTrack(mockSong);
 
@@ -141,15 +144,17 @@ describe("TrackPlayer utils", () => {
         created_at: "2023-01-01T00:00:00.000Z",
       } as unknown as Song;
 
-      jest.spyOn(utils, "convertSongToTrack").mockImplementation(async (song) => {
-        return {
-          id: song.id,
-          url: song.song_path,
-          title: song.title,
-          artist: song.author || "Unknown Artist",
-          artwork: song.image_path || null,
-        };
-      });
+      jest
+        .spyOn(utils, "convertSongToTrack")
+        .mockImplementation(async (song) => {
+          return {
+            id: song.id,
+            url: song.song_path,
+            title: song.title,
+            artist: song.author || "Unknown Artist",
+            artwork: song.image_path || undefined,
+          };
+        });
 
       const track = await utils.convertSongToTrack(incompleteSong);
 
@@ -171,15 +176,17 @@ describe("TrackPlayer utils", () => {
           ),
       };
 
-      jest.spyOn(utils, "convertSongToTrack").mockImplementation(async (song) => {
-        return {
-          id: song.id,
-          url: song.song_path,
-          title: song.title,
-          artist: song.author,
-          artwork: song.image_path,
-        };
-      });
+      jest
+        .spyOn(utils, "convertSongToTrack")
+        .mockImplementation(async (song) => {
+          return {
+            id: song.id,
+            url: song.song_path,
+            title: song.title,
+            artist: song.author,
+            artwork: song.image_path,
+          };
+        });
 
       const track = await utils.convertSongToTrack(longTitleSong);
 
@@ -191,7 +198,7 @@ describe("TrackPlayer utils", () => {
         artwork: longTitleSong.image_path,
       });
 
-      expect(track.title.length).toBe(longTitleSong.title.length);
+      expect(track.title?.length).toBe(longTitleSong.title.length);
     });
 
     it("should return empty array for empty input", async () => {
@@ -220,19 +227,21 @@ describe("TrackPlayer utils", () => {
         },
       ];
 
-      jest.spyOn(utils, "convertSongToTrack").mockImplementation(async (song) => {
-        if (song.id === "song-1") {
-          throw new Error("Conversion error");
-        } else {
-          return {
-            id: song.id,
-            url: song.song_path,
-            title: song.title,
-            artist: song.author,
-            artwork: song.image_path,
-          };
-        }
-      });
+      jest
+        .spyOn(utils, "convertSongToTrack")
+        .mockImplementation(async (song) => {
+          if (song.id === "song-1") {
+            throw new Error("Conversion error");
+          } else {
+            return {
+              id: song.id,
+              url: song.song_path,
+              title: song.title,
+              artist: song.author,
+              artwork: song.image_path,
+            };
+          }
+        });
 
       const tracks = await utils.convertToTracks(mockSongs);
 
@@ -253,20 +262,22 @@ describe("TrackPlayer utils", () => {
         },
       ];
 
-      jest.spyOn(utils, "convertSongToTrack").mockImplementation(async (song) => {
-        if (song.id === "song-1") {
-          throw new Error("Conversion error");
-        } else {
-          return {
-            id: song.id,
-            url: "/local/path/to/song2.mp3",
-            title: song.title,
-            artist: song.author,
-            artwork: song.image_path,
-          };
-        }
-      });
-      
+      jest
+        .spyOn(utils, "convertSongToTrack")
+        .mockImplementation(async (song) => {
+          if (song.id === "song-1") {
+            throw new Error("Conversion error");
+          } else {
+            return {
+              id: song.id,
+              url: "/local/path/to/song2.mp3",
+              title: song.title,
+              artist: song.author,
+              artwork: song.image_path,
+            };
+          }
+        });
+
       jest.spyOn(utils, "convertToTracks").mockImplementation(async (songs) => {
         if (!songs || songs.length === 0) return [];
 
@@ -307,6 +318,41 @@ describe("TrackPlayer utils", () => {
       const instance2 = utils.getOfflineStorageService();
 
       expect(instance1).toBe(instance2);
+    });
+  });
+  describe("shuffleArray", () => {
+    it("should return a new array with the same elements", () => {
+      const input = [1, 2, 3, 4, 5];
+      const result = utils.shuffleArray(input);
+
+      expect(result).not.toBe(input);
+      expect(result.length).toBe(input.length);
+      expect(result.sort()).toEqual([...input].sort());
+    });
+
+    it("should shuffle elements (probabilistic)", () => {
+      // 非常に小さい確率で元の配列と同じになる可能性があるが、
+      // 要素数が多い場合はほぼ確実にシャッフルされる
+      const input = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const result = utils.shuffleArray(input);
+
+      // 少なくとも1回は元の順序と異なることを期待する（統計的なテスト）
+      // 注意: 運悪く同じになる可能性があるため、厳密なテストではない
+      expect(JSON.stringify(result)).not.toBe(JSON.stringify(input));
+    });
+
+    it("should handle empty array", () => {
+      const input: any[] = [];
+      const result = utils.shuffleArray(input);
+      expect(result).toEqual([]);
+      expect(result).not.toBe(input);
+    });
+
+    it("should handle single element array", () => {
+      const input = [1];
+      const result = utils.shuffleArray(input);
+      expect(result).toEqual([1]);
+      expect(result).not.toBe(input);
     });
   });
 });

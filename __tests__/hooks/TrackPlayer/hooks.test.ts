@@ -11,12 +11,16 @@ import * as utils from "@/hooks/TrackPlayer/utils";
 jest.mock("react-native-track-player");
 
 // utilsのモック
-jest.mock("@/hooks/TrackPlayer/utils", () => ({
-  convertToTracks: jest.fn(),
-  safeAsyncOperation: jest.fn(),
-  logError: jest.fn(),
-  getOfflineStorageService: jest.fn(),
-}));
+jest.mock("@/hooks/TrackPlayer/utils", () => {
+  const actual = jest.requireActual("@/hooks/TrackPlayer/utils") as any;
+  return {
+    ...actual,
+    convertToTracks: jest.fn(),
+    safeAsyncOperation: jest.fn(),
+    logError: jest.fn(),
+    getOfflineStorageService: jest.fn(),
+  };
+});
 
 describe("TrackPlayer hooks", () => {
   // テスト用のモックデータ

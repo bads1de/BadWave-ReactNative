@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import TrackPlayer from "react-native-track-player";
 import Song from "../../types";
 import { PlayContext, QueueState } from "./types";
-import { convertToTracks, safeAsyncOperation } from "./utils";
+import { convertToTracks, safeAsyncOperation, shuffleArray } from "./utils";
 import { useQueueStore } from "./useQueueStore";
 
 /**
@@ -75,15 +75,8 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
           (track) => track.id !== currentTrack.id
         );
 
-        // シャッフルする - Fisher-Yatesアルゴリズムを使用して最適化
-        const shuffledTracks = [...remainingTracks];
-        for (let i = shuffledTracks.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffledTracks[i], shuffledTracks[j]] = [
-            shuffledTracks[j],
-            shuffledTracks[i],
-          ];
-        }
+        // シャッフルする
+        const shuffledTracks = shuffleArray(remainingTracks);
 
         // キューをクリアして再構築
         await TrackPlayer.removeUpcomingTracks();
