@@ -7,9 +7,6 @@ import { useSyncPlaylists } from "@/hooks/sync/useSyncPlaylists";
 import { useSyncTrendSongs } from "@/hooks/sync/useSyncTrendSongs";
 import { useSyncRecommendations } from "@/hooks/sync/useSyncRecommendations";
 import { useSyncSpotlights } from "@/hooks/sync/useSyncSpotlights";
-import { count } from "drizzle-orm";
-import { db } from "@/lib/db/client";
-import { songs, likedSongs, playlists } from "@/lib/db/schema";
 
 interface SyncContextValue {
   isSyncing: boolean;
@@ -52,12 +49,21 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   } = useSyncPlaylists(userId);
 
   // ホームセクション用同期
-  const { isSyncing: isSyncingTrends, triggerSync: syncTrends } =
-    useSyncTrendSongs();
-  const { isSyncing: isSyncingRecs, triggerSync: syncRecs } =
-    useSyncRecommendations(userId);
-  const { isSyncing: isSyncingSpots, triggerSync: syncSpots } =
-    useSyncSpotlights();
+  const {
+    isSyncing: isSyncingTrends,
+    triggerSync: syncTrends,
+    syncError: trendsError,
+  } = useSyncTrendSongs();
+  const {
+    isSyncing: isSyncingRecs,
+    triggerSync: syncRecs,
+    syncError: recsError,
+  } = useSyncRecommendations(userId);
+  const {
+    isSyncing: isSyncingSpots,
+    triggerSync: syncSpots,
+    syncError: spotsError,
+  } = useSyncSpotlights();
 
   // 全体の同期状態
   const isSyncing =
@@ -70,11 +76,24 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   // エラー集約
   useEffect(() => {
-    const error = songsError || likedError || playlistsError;
+    const error =
+      songsError ||
+      likedError ||
+      playlistsError ||
+      trendsError ||
+      recsError ||
+      spotsError;
     if (error) {
       setSyncError(error as Error);
     }
-  }, [songsError, likedError, playlistsError]);
+  }, [
+    songsError,
+    likedError,
+    playlistsError,
+    trendsError,
+    recsError,
+    spotsError,
+  ]);
 
   // 同期完了時にタイムスタンプを更新
   useEffect(() => {
@@ -87,55 +106,26 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   // 手動同期トリガー
   const triggerSync = () => {
     if (!isOnline) {
-      console.log("[Sync] Skipped: offline");
       return;
     }
     if (!userId) {
-      console.log("[Sync] Skipped: no user");
       return;
     }
 
-    console.log("[Sync] Manual sync triggered");
     syncSongs();
     syncLiked();
     syncPlaylists();
+    syncTrends();
+    syncRecs();
+    syncSpots();
   };
 
   // 初回マウント時に同期を開始（オンライン & 認証済みの場合）
   useEffect(() => {
     if (isOnline && userId) {
-      console.log("[Sync] Initial sync started for user:", userId);
       // 同期フックは enabled: !!userId で自動的に実行される
     }
   }, [isOnline, userId]);
-
-  // --- デバッグ用: 書き込み確認ログ ---
-  useEffect(() => {
-    if (!isSyncing && userId && isOnline) {
-      const checkDb = async () => {
-        try {
-          const songsCount = await db.select({ value: count() }).from(songs);
-          const likedCount = await db
-            .select({ value: count() })
-            .from(likedSongs);
-          const playlistsCount = await db
-            .select({ value: count() })
-            .from(playlists);
-
-          console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-          console.log("        📊 DB SYNC CHECK       ");
-          console.log(`  songs:        ${songsCount[0].value}`);
-          console.log(`  liked_songs:  ${likedCount[0].value}`);
-          console.log(`  playlists:    ${playlistsCount[0].value}`);
-          console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        } catch (e) {
-          console.error("[DB Debug] Failed to count records:", e);
-        }
-      };
-      checkDb();
-    }
-  }, [isSyncing, userId, isOnline]);
-  // ----------------------------------
 
   const value: SyncContextValue = {
     isSyncing,

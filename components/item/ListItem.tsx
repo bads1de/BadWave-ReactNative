@@ -5,7 +5,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import ListItemOptionsMenu from "./ListItemOptionsMenu";
-import { DownloadButton } from "../DownloadButton";
 
 interface ListItemProps {
   song: Song;
@@ -14,7 +13,7 @@ interface ListItemProps {
   imageSize?: "small" | "medium" | "large";
   onDelete?: () => void;
   testID?: string;
-  showDownloadButton?: boolean; // 互換性のために残していますが、常にtrueとして扱われます
+  currentPlaylistId?: string;
 }
 
 function ListItem({
@@ -24,7 +23,7 @@ function ListItem({
   imageSize = "medium",
   onDelete,
   testID,
-  showDownloadButton = true, // 常にtrueとして扱います
+  currentPlaylistId,
 }: ListItemProps) {
   const getImageSize = () => {
     switch (imageSize) {
@@ -89,17 +88,13 @@ function ListItem({
               </View>
             </View>
           )}
-
-          {/* ダウンロードボタンは常に表示 */}
-          <View
-            testID="download-button-container"
-            style={styles.downloadButtonContainer}
-          >
-            <DownloadButton song={song} size={18} />
-          </View>
         </View>
       </View>
-      {onDelete && <ListItemOptionsMenu onDelete={onDelete} />}
+      <ListItemOptionsMenu
+        song={song}
+        onDelete={onDelete}
+        currentPlaylistId={currentPlaylistId}
+      />
     </TouchableOpacity>
   );
 }
@@ -160,18 +155,7 @@ const styles = StyleSheet.create({
   rightContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingRight: 30,
-    position: "relative",
-  },
-  downloadButtonContainer: {
-    marginLeft: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    right: 0,
-  },
-  hidden: {
-    display: "none",
+    paddingRight: 8,
   },
 });
 
@@ -190,6 +174,6 @@ export default memo(ListItem, (prevProps, nextProps) => {
     prevProps.imageSize === nextProps.imageSize &&
     prevProps.onDelete === nextProps.onDelete &&
     prevProps.testID === nextProps.testID &&
-    prevProps.showDownloadButton === nextProps.showDownloadButton
+    prevProps.currentPlaylistId === nextProps.currentPlaylistId
   );
 });

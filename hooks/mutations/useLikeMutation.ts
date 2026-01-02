@@ -105,15 +105,20 @@ export function useLikeMutation(songId: string, userId?: string) {
 
       return !isCurrentlyLiked;
     },
-    onSuccess: (newLikeStatus) => {
+    onSuccess: async (newLikeStatus) => {
+      console.log("[Like] Mutation success, status:", newLikeStatus);
+
       // キャッシュを更新
       queryClient.setQueryData(
         [CACHED_QUERIES.likedSongs, "status", songId, userId],
         newLikeStatus
       );
 
-      // 関連クエリを無効化
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.likedSongs] });
+      // 関連クエリを無効化（強制リフェッチ）
+      await queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.likedSongs],
+        refetchType: "all",
+      });
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.trendsSongs] });
     },
     onError: (error) => {

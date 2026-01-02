@@ -27,7 +27,6 @@ import { useGetPlaylistSongs } from "@/hooks/data/useGetPlaylistSongs";
 import { useGetLocalPlaylist } from "@/hooks/data/useGetLocalPlaylist";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { useOfflineGuard } from "@/hooks/useOfflineGuard";
-import { BulkDownloadButton } from "@/components/BulkDownloadButton";
 
 const { width } = Dimensions.get("window");
 
@@ -107,9 +106,16 @@ export default function PlaylistDetailScreen() {
             ? () => handleDeleteSong(item.id)
             : undefined
         }
+        currentPlaylistId={playlistId}
       />
     ),
-    [togglePlayPause, session?.user.id, playlist?.user_id, handleDeleteSong]
+    [
+      togglePlayPause,
+      session?.user.id,
+      playlist?.user_id,
+      handleDeleteSong,
+      playlistId,
+    ]
   );
 
   // keyExtractor関数をメモ化
@@ -193,23 +199,16 @@ export default function PlaylistDetailScreen() {
             </View>
           </View>
 
-          {session?.user.id === playlist?.user_id && (
-            <View style={styles.optionsContainer}>
-              <PlaylistOptionsMenu
-                playlistId={playlistId}
-                userId={playlist?.user_id}
-                currentTitle={playlist?.title}
-                isPublic={playlist?.is_public}
-              />
-            </View>
-          )}
-
-          {/* 一括ダウンロードボタン */}
-          {playlistSongs.length > 0 && (
-            <View style={styles.downloadButtonContainer}>
-              <BulkDownloadButton songs={playlistSongs} size="medium" />
-            </View>
-          )}
+          {/* オプションメニュー（誰でも使用可能） */}
+          <View style={styles.optionsContainer}>
+            <PlaylistOptionsMenu
+              playlistId={playlistId}
+              userId={playlist?.user_id}
+              currentTitle={playlist?.title}
+              isPublic={playlist?.is_public}
+              songs={playlistSongs}
+            />
+          </View>
         </BlurView>
       </View>
     ),

@@ -15,10 +15,9 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
 
-jest.mock("@/components/item/ListItemOptionsMenu", () => ({ __esModule: true, default: "ListItemOptionsMenu" }));
-
-jest.mock("@/components/DownloadButton", () => ({
-  DownloadButton: () => null,
+jest.mock("@/components/item/ListItemOptionsMenu", () => ({
+  __esModule: true,
+  default: "ListItemOptionsMenu",
 }));
 
 describe("ListItem", () => {
@@ -103,43 +102,13 @@ describe("ListItem", () => {
     expect(getByTestId("list-item")).toBeTruthy();
   });
 
-  it("showDownloadButton=trueの場合、ダウンロードボタンを表示する", () => {
-    const mockOnPress = jest.fn();
-    const { getByTestId } = render(
-      <ListItem
-        song={mockSong}
-        onPress={mockOnPress}
-        showDownloadButton={true}
-        testID="list-item"
-      />
-    );
-
-    // ダウンロードボタンが表示されていることを確認
-    expect(getByTestId("download-button-container")).toBeTruthy();
-  });
-
-  it("showDownloadButton=falseを指定しても、ダウンロードボタンを常に表示する", () => {
-    const mockOnPress = jest.fn();
-    const { getByTestId } = render(
-      <ListItem
-        song={mockSong}
-        onPress={mockOnPress}
-        showDownloadButton={false}
-        testID="list-item"
-      />
-    );
-
-    // ダウンロードボタンが表示されていることを確認
-    expect(getByTestId("download-button-container")).toBeTruthy();
-  });
-
-  it("デフォルトでダウンロードボタンを表示する", () => {
+  it("オプションメニューが常に表示される", () => {
     const mockOnPress = jest.fn();
     const { getByTestId } = render(
       <ListItem song={mockSong} onPress={mockOnPress} testID="list-item" />
     );
 
-    // デフォルトでダウンロードボタンが表示されていることを確認
-    expect(getByTestId("download-button-container")).toBeTruthy();
+    // ListItemOptionsMenuがレンダリングされていることを確認
+    expect(getByTestId("list-item")).toBeTruthy();
   });
 });

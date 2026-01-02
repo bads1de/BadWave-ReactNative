@@ -20,12 +20,16 @@ import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import CustomAlertDialog from "../common/CustomAlertDialog";
+import { useBulkDownload } from "@/hooks/useBulkDownload";
+import { BulkDownloadModal } from "@/components/BulkDownloadModal";
+import Song from "@/types";
 
 interface PlaylistOptionsMenuProps {
   playlistId: string;
   userId?: string;
   currentTitle?: string;
   isPublic?: boolean;
+  songs?: Song[];
 }
 
 export default function PlaylistOptionsMenu({
@@ -33,6 +37,7 @@ export default function PlaylistOptionsMenu({
   userId,
   currentTitle,
   isPublic = false,
+  songs = [],
 }: PlaylistOptionsMenuProps) {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -44,6 +49,21 @@ export default function PlaylistOptionsMenu({
   const { isOnline } = useNetworkStatus();
 
   const isOwner = session?.user.id === userId;
+
+  // 一括ダウンロード
+  const {
+    status: bulkStatus,
+    progress: bulkProgress,
+    startDownload,
+    startDelete,
+    cancel: cancelBulk,
+    error: bulkError,
+    downloadedCount,
+    isDownloading,
+  } = useBulkDownload(songs);
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkMode, setBulkMode] = useState<"download" | "delete">("download");
+  const allDownloaded = bulkStatus === "all";
 
   // オフライン時のアラート表示ヘルパー
   const showOfflineAlert = () => {
@@ -158,6 +178,24 @@ export default function PlaylistOptionsMenu({
     togglePublicMutation(!isPublic);
   };
 
+  const handleBulkDownload = () => {
+    if (!isOnline) {
+      showOfflineAlert();
+      return;
+    }
+    setShowOptionsModal(false);
+    setBulkMode("download");
+    setShowBulkModal(true);
+    startDownload();
+  };
+
+  const handleBulkDelete = () => {
+    setShowOptionsModal(false);
+    setBulkMode("delete");
+    setShowBulkModal(true);
+    startDelete();
+  };
+
   return (
     <>
       <TouchableOpacity
@@ -263,9 +301,59 @@ export default function PlaylistOptionsMenu({
                 </TouchableOpacity>
               </>
             )}
+
+            {/* 一括ダウンロード（誰でも使用可能） */}
+            {songs.length > 0 && (
+              <>
+                {!allDownloaded ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.menuItem,
+                      !isOnline && styles.menuItemDisabled,
+                    ]}
+                    onPress={handleBulkDownload}
+                  >
+                    <Ionicons
+                      name="cloud-download-outline"
+                      size={24}
+                      color={isOnline ? "#fff" : "#666"}
+                    />
+                    <Text
+                      style={[
+                        styles.menuText,
+                        !isOnline && styles.menuTextDisabled,
+                      ]}
+                    >
+                      すべてダウンロード ({songs.length - downloadedCount}曲)
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={handleBulkDelete}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#FF6B6B" />
+                    <Text style={[styles.menuText, { color: "#FF6B6B" }]}>
+                      ダウンロード済みを削除 ({downloadedCount}曲)
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* 一括ダウンロードモーダル */}
+      <BulkDownloadModal
+        visible={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
+        mode={bulkMode}
+        progress={bulkProgress}
+        error={bulkError}
+        onCancel={cancelBulk}
+        isDownloading={isDownloading}
+      />
 
       <Modal
         visible={showRenameModal}

@@ -33,9 +33,14 @@ import { LinearGradient } from "expo-linear-gradient";
 interface AddPlaylistProps {
   songId: string;
   children?: React.ReactNode;
+  currentPlaylistId?: string;
 }
 
-function AddPlaylist({ songId, children }: AddPlaylistProps) {
+function AddPlaylist({
+  songId,
+  children,
+  currentPlaylistId,
+}: AddPlaylistProps) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
@@ -59,8 +64,14 @@ function AddPlaylist({ songId, children }: AddPlaylistProps) {
   }, [songId]);
 
   useEffect(() => {
-    setIsAdded(queryAddedStatus);
-  }, [queryAddedStatus]);
+    setIsAdded((prev) => {
+      const newState = { ...prev, ...queryAddedStatus };
+      if (currentPlaylistId) {
+        newState[currentPlaylistId] = true;
+      }
+      return newState;
+    });
+  }, [queryAddedStatus, currentPlaylistId]);
 
   useEffect(() => {
     if (modalOpen) {
@@ -456,5 +467,8 @@ const styles = StyleSheet.create({
 
 // カスタム比較関数を使用してメモ化
 export default memo(AddPlaylist, (prevProps, nextProps) => {
-  return prevProps.songId === nextProps.songId;
+  return (
+    prevProps.songId === nextProps.songId &&
+    prevProps.currentPlaylistId === nextProps.currentPlaylistId
+  );
 });
