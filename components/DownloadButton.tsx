@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Alert,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
@@ -19,6 +20,7 @@ interface DownloadButtonProps {
   size?: number;
   color?: string;
   style?: object;
+  readOnly?: boolean;
 }
 
 /**
@@ -40,6 +42,7 @@ function DownloadButtonComponent({
   size = 24,
   color = "white",
   style = {},
+  readOnly = false,
 }: DownloadButtonProps) {
   // ネットワーク状態を取得
   const { isOnline } = useNetworkStatus();
@@ -85,6 +88,20 @@ function DownloadButtonComponent({
         color={color}
         style={[styles.button, style]}
       />
+    );
+  }
+
+  // アイコンのみを表示（readOnly の場合）
+  if (readOnly) {
+    return (
+      <View style={[styles.button, style]} testID="download-status-icon">
+        <Ionicons
+          name={isDownloaded ? "cloud-done" : "cloud-download-outline"}
+          size={size}
+          color={color}
+          style={{ opacity: !isDownloaded && !isOnline ? 0.4 : 1 }}
+        />
+      </View>
     );
   }
 
@@ -147,4 +164,3 @@ export const DownloadButton = memo(
     );
   }
 );
-

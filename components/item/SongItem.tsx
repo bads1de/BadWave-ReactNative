@@ -22,6 +22,7 @@ import { useRouter } from "expo-router";
 import MarqueeText from "../common/MarqueeText";
 import { DownloadButton } from "../DownloadButton";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import ListItemOptionsMenu from "./ListItemOptionsMenu";
 
 interface SongItemProps {
   song: Song;
@@ -138,6 +139,9 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
             locations={[0.5, 0.75, 1]}
             style={styles.gradientOverlay}
           />
+          <View style={styles.menuContainer}>
+            <ListItemOptionsMenu song={song} />
+          </View>
           <View style={styles.textOverlay}>
             <TouchableOpacity
               onPress={handleTitlePress}
@@ -168,6 +172,7 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
                 song={song}
                 size={16}
                 style={styles.downloadButton}
+                readOnly={true}
               />
             </View>
           </View>
@@ -289,6 +294,12 @@ const styles = StyleSheet.create({
   downloadButton: {
     marginLeft: "auto",
     padding: 0,
+  },
+  menuContainer: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    zIndex: 10,
   },
   cardGlow: {
     position: "absolute",

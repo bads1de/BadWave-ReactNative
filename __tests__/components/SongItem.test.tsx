@@ -28,6 +28,11 @@ jest.mock("@/components/DownloadButton", () => ({
   DownloadButton: "DownloadButton",
 }));
 
+jest.mock("@/components/item/ListItemOptionsMenu", () => {
+  const { View } = require("react-native");
+  return (props: any) => <View testID="list-item-options-menu" />;
+});
+
 jest.mock("@/components/common/MarqueeText", () => {
   const MockMarqueeText = (props: any) => {
     const { Text } = require("react-native");
@@ -108,10 +113,10 @@ describe("SongItem", () => {
     expect(getByText("テスト曲")).toBeTruthy();
   });
 
-  it("songTypeを指定できる", () => {
+  it("SongItemがレンダリングされる", () => {
     const mockOnClick = jest.fn();
     const { getByText } = render(
-      <SongItem song={mockSong} onClick={mockOnClick} songType="suno" />
+      <SongItem song={mockSong} onClick={mockOnClick} />
     );
 
     // コンポーネントが正しくレンダリングされていることを確認

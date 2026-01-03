@@ -15,6 +15,8 @@ import { supabase } from "@/lib/supabase";
 import { useUser } from "@/actions/getUser";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { THEMES, ThemeType } from "@/constants/ThemeColors";
+import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
+import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 
 /**
  * @file (tabs)/account.tsx
@@ -26,7 +28,12 @@ import { THEMES, ThemeType } from "@/constants/ThemeColors";
 export default function AccountScreen() {
   const router = useRouter();
   const { data: user } = useUser();
+  const userId = user?.id;
   const { colors, currentTheme, setTheme } = useThemeStore();
+
+  // 実データの取得
+  const { playlists } = useGetPlaylists(userId);
+  const { likedSongs } = useGetLikedSongs(userId);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -37,12 +44,6 @@ export default function AccountScreen() {
     {
       icon: "cog-outline",
       label: "Settings",
-      border: true,
-      onPress: () => {},
-    },
-    {
-      icon: "shield-checkmark-outline",
-      label: "Privacy & Social",
       border: true,
       onPress: () => {},
     },
@@ -97,23 +98,13 @@ export default function AccountScreen() {
           <Text style={[styles.userName, { color: colors.text }]}>
             {user?.full_name || "Guest User"}
           </Text>
-          <View style={styles.badgeContainer}>
-            <LinearGradient
-              colors={[colors.accentFrom, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.premiumBadge}
-            >
-              <Text style={[styles.premiumText, { color: colors.text }]}>
-                FREE PLAN
-              </Text>
-            </LinearGradient>
-          </View>
 
           {/* 統計情報（ダミー） */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.text }]}>12</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>
+                {playlists.length}
+              </Text>
               <Text style={[styles.statLabel, { color: colors.subText }]}>
                 Playlists
               </Text>
@@ -123,19 +114,10 @@ export default function AccountScreen() {
             />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.text }]}>
-                142
+                {likedSongs.length}
               </Text>
               <Text style={[styles.statLabel, { color: colors.subText }]}>
                 Liked
-              </Text>
-            </View>
-            <View
-              style={[styles.statDivider, { backgroundColor: colors.border }]}
-            />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.text }]}>0</Text>
-              <Text style={[styles.statLabel, { color: colors.subText }]}>
-                Following
               </Text>
             </View>
           </View>
@@ -301,19 +283,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
   },
-  badgeContainer: {
-    marginBottom: 24,
-  },
-  premiumBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  premiumText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    letterSpacing: 1,
-  },
+
   statsContainer: {
     flexDirection: "row",
     alignItems: "center",
