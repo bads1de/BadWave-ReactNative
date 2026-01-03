@@ -242,4 +242,71 @@ describe("OfflineStorageService", () => {
       expect(path).toBeNull();
     });
   });
+
+  describe("getDownloadedSongsSize", () => {
+    it("should return total size of downloaded songs and images", async () => {
+      const mockRows = [
+        {
+          id: "1",
+          title: "Song 1",
+          songPath: "/path/1.mp3",
+          imagePath: "/path/1.jpg",
+          userId: "user1",
+        },
+        {
+          id: "2",
+          title: "Song 2",
+          songPath: "/path/2.mp3",
+          imagePath: "/path/2.jpg",
+          userId: "user1",
+        },
+      ];
+
+      (db.then as jest.Mock).mockImplementation((cb) =>
+        Promise.resolve(mockRows).then(cb)
+      );
+
+      // ファイルサイズのモック
+      (FileSystem.getInfoAsync as jest.Mock)
+        .mockResolvedValueOnce({ exists: true, size: 1000000 }) // song 1
+        .mockResolvedValueOnce({ exists: true, size: 50000 }) // image 1
+        .mockResolvedValueOnce({ exists: true, size: 2000000 }) // song 2
+        .mockResolvedValueOnce({ exists: true, size: 60000 }); // image 2
+
+      const size = await service.getDownloadedSongsSize();
+      expect(size).toBe(3110000); // 1000000 + 50000 + 2000000 + 60000
+    });
+
+    it("should return 0 when no songs are downloaded", async () => {
+      (db.then as jest.Mock).mockImplementation((cb) =>
+        Promise.resolve([]).then(cb)
+      );
+
+      const size = await service.getDownloadedSongsSize();
+      expect(size).toBe(0);
+    });
+
+    it("should skip files that don't exist", async () => {
+      const mockRows = [
+        {
+          id: "1",
+          title: "Song 1",
+          songPath: "/path/1.mp3",
+          imagePath: "/path/1.jpg",
+          userId: "user1",
+        },
+      ];
+
+      (db.then as jest.Mock).mockImplementation((cb) =>
+        Promise.resolve(mockRows).then(cb)
+      );
+
+      (FileSystem.getInfoAsync as jest.Mock)
+        .mockResolvedValueOnce({ exists: false }) // song doesn't exist
+        .mockResolvedValueOnce({ exists: true, size: 50000 }); // image exists
+
+      const size = await service.getDownloadedSongsSize();
+      expect(size).toBe(50000);
+    });
+  });
 });

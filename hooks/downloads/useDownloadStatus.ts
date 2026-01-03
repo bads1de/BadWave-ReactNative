@@ -44,6 +44,10 @@ export function useDownloadSong() {
         queryClient.invalidateQueries({
           queryKey: [CACHED_QUERIES.downloadedSongs],
         });
+        // ストレージサイズも更新
+        queryClient.invalidateQueries({
+          queryKey: ["storageSize"],
+        });
       }
     },
   });
@@ -72,6 +76,10 @@ export function useDeleteDownloadedSong() {
         // ダウンロード済み曲リストを無効化して再取得を促す
         queryClient.invalidateQueries({
           queryKey: [CACHED_QUERIES.downloadedSongs],
+        });
+        // ストレージサイズも更新
+        queryClient.invalidateQueries({
+          queryKey: ["storageSize"],
         });
       }
     },

@@ -6,6 +6,7 @@ import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useUser } from "@/actions/getUser";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
+import { useStorageInfo } from "@/hooks/useStorageInfo";
 import { THEMES } from "@/constants/ThemeColors";
 
 // Mocks
@@ -36,6 +37,16 @@ jest.mock("@/actions/getUser");
 jest.mock("@/hooks/data/useGetPlaylists");
 jest.mock("@/hooks/data/useGetLikedSongs");
 jest.mock("@/providers/SyncProvider");
+jest.mock("@/hooks/useStorageInfo", () => ({
+  useStorageInfo: jest.fn(),
+  formatBytes: (bytes: number) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  },
+}));
 
 describe("AccountScreen", () => {
   const mockSetTheme = jest.fn();
@@ -62,6 +73,16 @@ describe("AccountScreen", () => {
       lastSyncTime: new Date("2023-01-01T12:00:00Z"),
       triggerSync: mockTriggerSync,
       syncError: null,
+    });
+    (useStorageInfo as jest.Mock).mockReturnValue({
+      downloadedSize: 50000000,
+      downloadedCount: 5,
+      isLoading: false,
+      error: null,
+      clearAllDownloads: jest.fn(),
+      deleteAllDownloads: jest.fn(),
+      clearQueryCache: jest.fn(),
+      refreshStorageInfo: jest.fn(),
     });
   });
 
@@ -101,5 +122,80 @@ describe("AccountScreen", () => {
     const { getByText } = render(<AccountScreen />);
     expect(getByText("Syncing now...")).toBeTruthy();
     expect(getByText("Syncing...")).toBeTruthy(); // This is the button text
+  });
+
+  it("renders storage section with download info", () => {
+    const { getByText, getByTestId } = render(<AccountScreen />);
+
+    expect(getByText("Storage")).toBeTruthy();
+    expect(getByText("Downloads")).toBeTruthy();
+    expect(getByText(/5 songs/)).toBeTruthy();
+    expect(getByText(/47\.7 MB/)).toBeTruthy();
+    expect(getByTestId("delete-all-downloads-button")).toBeTruthy();
+    expect(getByTestId("clear-cache-button")).toBeTruthy();
+  });
+
+  it("triggers deleteAllDownloads when delete all button is pressed and confirmed in modal", async () => {
+    const mockDeleteAllDownloads = jest.fn();
+    (useStorageInfo as jest.Mock).mockReturnValue({
+      downloadedSize: 50000000,
+      downloadedCount: 5,
+      isLoading: false,
+      error: null,
+      clearAllDownloads: jest.fn(),
+      deleteAllDownloads: mockDeleteAllDownloads,
+      clearQueryCache: jest.fn(),
+      refreshStorageInfo: jest.fn(),
+    });
+
+    const { getByTestId, getByText, queryByText } = render(<AccountScreen />);
+
+    // 最初はモーダルは非表示なので存在しないはず
+    expect(queryByText("Delete Downloads?")).toBeNull();
+
+    fireEvent.press(getByTestId("delete-all-downloads-button"));
+
+    // ボタンプレス後はモーダルが表示されるはず
+    expect(getByText("Delete Downloads?")).toBeTruthy();
+
+    // モーダル内の確認ボタンを探して押す
+    const confirmButton = getByTestId("modal-confirm-button");
+    fireEvent.press(confirmButton);
+
+    expect(mockDeleteAllDownloads).toHaveBeenCalled();
+  });
+
+  it("triggers clearQueryCache when clear cache button is pressed", () => {
+    const mockClearQueryCache = jest.fn();
+    (useStorageInfo as jest.Mock).mockReturnValue({
+      downloadedSize: 50000000,
+      downloadedCount: 5,
+      isLoading: false,
+      error: null,
+      clearAllDownloads: jest.fn(),
+      clearQueryCache: mockClearQueryCache,
+      refreshStorageInfo: jest.fn(),
+    });
+
+    const { getByTestId } = render(<AccountScreen />);
+    fireEvent.press(getByTestId("clear-cache-button"));
+
+    expect(mockClearQueryCache).toHaveBeenCalled();
+  });
+
+  it("disables delete all button when no downloads", () => {
+    (useStorageInfo as jest.Mock).mockReturnValue({
+      downloadedSize: 0,
+      downloadedCount: 0,
+      isLoading: false,
+      error: null,
+      clearAllDownloads: jest.fn(),
+      clearQueryCache: jest.fn(),
+      refreshStorageInfo: jest.fn(),
+    });
+
+    const { getByText } = render(<AccountScreen />);
+    expect(getByText(/0 songs/)).toBeTruthy();
+    expect(getByText(/0 B/)).toBeTruthy();
   });
 });

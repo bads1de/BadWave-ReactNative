@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import { THEMES, ThemeType } from "@/constants/ThemeColors";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useSync } from "@/providers/SyncProvider";
+import { useStorageInfo, formatBytes } from "@/hooks/useStorageInfo";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 
 /**
  * @file (tabs)/account.tsx
@@ -37,6 +39,15 @@ export default function AccountScreen() {
   const { playlists } = useGetPlaylists(userId);
   const { likedSongs } = useGetLikedSongs(userId);
   const { isSyncing, lastSyncTime, triggerSync } = useSync();
+  const {
+    downloadedSize,
+    downloadedCount,
+    isLoading: isStorageLoading,
+    deleteAllDownloads,
+    clearQueryCache,
+  } = useStorageInfo();
+
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -218,6 +229,102 @@ export default function AccountScreen() {
           </View>
         </View>
 
+        {/* ストレージセクション */}
+        <View style={styles.menuContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
+            Storage
+          </Text>
+          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+            {/* ダウンロード済み楽曲 */}
+            <View
+              style={[
+                styles.storageItem,
+                { borderBottomWidth: 1, borderBottomColor: colors.border },
+              ]}
+            >
+              <View style={styles.storageInfo}>
+                <View style={styles.storageIconContainer}>
+                  <Ionicons
+                    name="download-outline"
+                    size={22}
+                    color={colors.text}
+                  />
+                </View>
+                <View>
+                  <Text style={[styles.storageLabel, { color: colors.text }]}>
+                    Downloads
+                  </Text>
+                  <Text
+                    style={[styles.storageStatus, { color: colors.subText }]}
+                  >
+                    {isStorageLoading
+                      ? "Loading..."
+                      : `${downloadedCount} songs • ${formatBytes(
+                          downloadedSize
+                        )}`}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.storageButton,
+                  { backgroundColor: "rgba(239, 68, 68, 0.1)" },
+                  downloadedCount === 0 && { opacity: 0.5 },
+                ]}
+                onPress={() => setIsDeleteModalVisible(true)}
+                disabled={downloadedCount === 0}
+                activeOpacity={0.7}
+                testID="delete-all-downloads-button"
+              >
+                <Text style={[styles.storageButtonText, { color: "#EF4444" }]}>
+                  Delete All
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* キャッシュ */}
+            <View style={styles.storageItem}>
+              <View style={styles.storageInfo}>
+                <View style={styles.storageIconContainer}>
+                  <Ionicons
+                    name="trash-outline"
+                    size={22}
+                    color={colors.text}
+                  />
+                </View>
+                <View>
+                  <Text style={[styles.storageLabel, { color: colors.text }]}>
+                    Cache
+                  </Text>
+                  <Text
+                    style={[styles.storageStatus, { color: colors.subText }]}
+                  >
+                    Clear cached data
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.storageButton,
+                  { backgroundColor: colors.accentFrom + "20" },
+                ]}
+                onPress={clearQueryCache}
+                activeOpacity={0.7}
+                testID="clear-cache-button"
+              >
+                <Text
+                  style={[
+                    styles.storageButtonText,
+                    { color: colors.accentFrom },
+                  ]}
+                >
+                  Clear
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
         {/* メニューリスト */}
         <View style={styles.menuContainer}>
           <Text style={[styles.sectionTitle, { color: colors.subText }]}>
@@ -275,6 +382,21 @@ export default function AccountScreen() {
           Version 1.0.0
         </Text>
       </ScrollView>
+
+      <ConfirmModal
+        visible={isDeleteModalVisible}
+        title="Delete Downloads?"
+        description={`Are you sure you want to delete all ${downloadedCount} downloaded songs? This action cannot be undone.`}
+        confirmLabel="Delete All"
+        cancelLabel="Keep Songs"
+        icon="trash"
+        isDestructive={true}
+        onConfirm={async () => {
+          setIsDeleteModalVisible(false);
+          await deleteAllDownloads();
+        }}
+        onCancel={() => setIsDeleteModalVisible(false)}
+      />
     </View>
   );
 }
@@ -451,5 +573,41 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 14,
     fontWeight: "bold",
+  },
+  storageItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
+  storageInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  storageIconContainer: {
+    width: 32,
+    alignItems: "center",
+    marginRight: 12,
+  },
+  storageLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  storageStatus: {
+    fontSize: 12,
+  },
+  storageButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    minWidth: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  storageButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
 });

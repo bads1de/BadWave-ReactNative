@@ -153,6 +153,10 @@ export function useBulkDownload(songs: Song[]): UseBulkDownloadResult {
     queryClient.invalidateQueries({
       queryKey: [CACHED_QUERIES.downloadedSongs],
     });
+    // ストレージサイズも更新
+    queryClient.invalidateQueries({
+      queryKey: ["storageSize"],
+    });
 
     // ダウンロード状態を再チェック
     await checkDownloadStatus();
@@ -197,6 +201,10 @@ export function useBulkDownload(songs: Song[]): UseBulkDownloadResult {
     // キャッシュを無効化
     queryClient.invalidateQueries({
       queryKey: [CACHED_QUERIES.downloadedSongs],
+    });
+    // ストレージサイズも更新
+    queryClient.invalidateQueries({
+      queryKey: ["storageSize"],
     });
 
     // ダウンロード状態を再チェック

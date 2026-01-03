@@ -350,6 +350,48 @@ export class OfflineStorageService {
   }
 
   /**
+   * ダウンロード済み楽曲の合計サイズを取得（バイト単位）
+   * @returns ダウンロード済み楽曲と画像の合計サイズ
+   */
+  async getDownloadedSongsSize(): Promise<number> {
+    try {
+      // SQLiteからsongPathが設定されている曲を取得
+      const sqliteResults = await db
+        .select({
+          songPath: songs.songPath,
+          imagePath: songs.imagePath,
+        })
+        .from(songs)
+        .where(isNotNull(songs.songPath));
+
+      let totalSize = 0;
+
+      for (const row of sqliteResults) {
+        // 曲ファイルのサイズを取得
+        if (row.songPath) {
+          const songInfo = await FileSystem.getInfoAsync(row.songPath);
+          if (songInfo.exists && "size" in songInfo) {
+            totalSize += songInfo.size;
+          }
+        }
+
+        // 画像ファイルのサイズを取得
+        if (row.imagePath) {
+          const imageInfo = await FileSystem.getInfoAsync(row.imagePath);
+          if (imageInfo.exists && "size" in imageInfo) {
+            totalSize += imageInfo.size;
+          }
+        }
+      }
+
+      return totalSize;
+    } catch (error) {
+      console.error("Error getting downloaded songs size:", error);
+      return 0;
+    }
+  }
+
+  /**
    * すべてのダウンロード済み曲を削除
    * @returns 削除結果
    */
