@@ -137,6 +137,13 @@ export default function TabLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="account"
+          options={{
+            headerShown: false,
+            href: null,
+          }}
+        />
       </Tabs>
       <PlayerContainer />
     </>
@@ -166,4 +173,3 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
   },
 });
-

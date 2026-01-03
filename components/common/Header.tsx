@@ -1,11 +1,13 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { useAuth } from "@/providers/AuthProvider";
 import { useUser } from "@/actions/getUser";
 import { memo } from "react";
 
 function Header() {
+  const router = useRouter();
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const { data: user } = useUser();
   const { session } = useAuth();
@@ -20,8 +22,9 @@ function Header() {
       <Text style={styles.title}>BadWave</Text>
       {session ? (
         <TouchableOpacity
-          onPress={() => setShowAuthModal(true)}
+          onPress={() => router.push("/account" as any)}
           style={styles.userIcon}
+          testID="user-icon-button"
         >
           <Image
             source={{ uri: user?.avatar_url! }}
@@ -79,4 +82,3 @@ const styles = StyleSheet.create({
 
 // メモ化してエクスポート
 export default memo(Header);
-

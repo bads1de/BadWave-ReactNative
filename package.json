@@ -83,6 +83,7 @@
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.3.0",
     "babel-plugin-inline-import": "^3.0.0",
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "drizzle-kit": "^0.31.8",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~8.0.1",
