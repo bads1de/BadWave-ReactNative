@@ -21,6 +21,8 @@ import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useSync } from "@/providers/SyncProvider";
 import { useStorageInfo, formatBytes } from "@/hooks/useStorageInfo";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { SettingSection } from "@/components/common/SettingSection";
+import { SettingItem } from "@/components/common/SettingItem";
 
 /**
  * @file (tabs)/account.tsx
@@ -98,7 +100,7 @@ export default function AccountScreen() {
             {user?.full_name || "Guest User"}
           </Text>
 
-          {/* 統計情報（ダミー） */}
+          {/* 統計情報 */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.text }]}>
@@ -123,73 +125,63 @@ export default function AccountScreen() {
         </View>
 
         {/* テーマ切り替えセクション */}
-        <View style={styles.menuContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
-            Appearance
-          </Text>
-          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.themeSelector}
-            >
-              {(Object.keys(THEMES) as ThemeType[]).map((themeKey) => (
-                <TouchableOpacity
-                  key={themeKey}
+        <SettingSection title="Appearance">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.themeSelector}
+          >
+            {(Object.keys(THEMES) as ThemeType[]).map((themeKey) => (
+              <TouchableOpacity
+                key={themeKey}
+                style={[
+                  styles.themeOption,
+                  currentTheme === themeKey && {
+                    borderColor: colors.accentFrom,
+                    borderWidth: 2,
+                  },
+                ]}
+                onPress={() => setTheme(themeKey)}
+              >
+                <LinearGradient
+                  colors={THEMES[themeKey].colors.accentGradient}
+                  style={styles.themePreview}
+                />
+                <Text
                   style={[
-                    styles.themeOption,
-                    currentTheme === themeKey && {
-                      borderColor: colors.accentFrom,
-                      borderWidth: 2,
+                    styles.themeLabel,
+                    {
+                      color:
+                        currentTheme === themeKey
+                          ? colors.text
+                          : colors.subText,
                     },
                   ]}
-                  onPress={() => setTheme(themeKey)}
                 >
-                  <LinearGradient
-                    colors={THEMES[themeKey].colors.accentGradient}
-                    style={styles.themePreview}
-                  />
-                  <Text
-                    style={[
-                      styles.themeLabel,
-                      {
-                        color:
-                          currentTheme === themeKey
-                            ? colors.text
-                            : colors.subText,
-                      },
-                    ]}
-                  >
-                    {THEMES[themeKey].label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
+                  {THEMES[themeKey].label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </SettingSection>
 
         {/* 同期セクション */}
-        <View style={styles.menuContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
-            Synchronization
-          </Text>
-          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
-            <View style={styles.syncContent}>
-              <View style={styles.syncInfo}>
-                <Text style={[styles.syncLabel, { color: colors.text }]}>
-                  Local Database
-                </Text>
-                <Text style={[styles.syncStatus, { color: colors.subText }]}>
-                  {isSyncing
-                    ? "Syncing now..."
-                    : lastSyncTime
-                    ? `Last Synced: ${lastSyncTime.toLocaleString()}`
-                    : "Last Synced: Never"}
-                </Text>
-              </View>
+        <SettingSection title="Synchronization">
+          <SettingItem
+            icon="sync-outline"
+            title="Sync Database"
+            description={
+              isSyncing
+                ? "Syncing now..."
+                : lastSyncTime
+                ? `Last: ${lastSyncTime.toLocaleString()}`
+                : "Never synced"
+            }
+            isLast
+            rightElement={
               <TouchableOpacity
                 style={[
-                  styles.syncButton,
+                  styles.smallButton,
                   { backgroundColor: colors.accentFrom },
                   isSyncing && { opacity: 0.6 },
                 ]}
@@ -198,61 +190,29 @@ export default function AccountScreen() {
                 activeOpacity={0.7}
               >
                 {isSyncing ? (
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <ActivityIndicator
-                      size="small"
-                      color="#FFF"
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text style={styles.syncButtonText}>Syncing...</Text>
-                  </View>
+                  <ActivityIndicator size="small" color="#FFF" />
                 ) : (
-                  <Text style={styles.syncButtonText}>Sync Now</Text>
+                  <Text style={styles.smallButtonText}>Sync</Text>
                 )}
               </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+            }
+          />
+        </SettingSection>
 
         {/* ストレージセクション */}
-        <View style={styles.menuContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
-            Storage
-          </Text>
-          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
-            {/* ダウンロード済み楽曲 */}
-            <View
-              style={[
-                styles.storageItem,
-                { borderBottomWidth: 1, borderBottomColor: colors.border },
-              ]}
-            >
-              <View style={styles.storageInfo}>
-                <View style={styles.storageIconContainer}>
-                  <Ionicons
-                    name="download-outline"
-                    size={22}
-                    color={colors.text}
-                  />
-                </View>
-                <View>
-                  <Text style={[styles.storageLabel, { color: colors.text }]}>
-                    Downloads
-                  </Text>
-                  <Text
-                    style={[styles.storageStatus, { color: colors.subText }]}
-                  >
-                    {isStorageLoading
-                      ? "Loading..."
-                      : `${downloadedCount} songs • ${formatBytes(
-                          downloadedSize
-                        )}`}
-                  </Text>
-                </View>
-              </View>
+        <SettingSection title="Storage">
+          <SettingItem
+            icon="download-outline"
+            title="Downloads"
+            description={
+              isStorageLoading
+                ? "Loading..."
+                : `${downloadedCount} songs • ${formatBytes(downloadedSize)}`
+            }
+            rightElement={
               <TouchableOpacity
                 style={[
-                  styles.storageButton,
+                  styles.smallButton,
                   { backgroundColor: "rgba(239, 68, 68, 0.1)" },
                   downloadedCount === 0 && { opacity: 0.5 },
                 ]}
@@ -261,36 +221,23 @@ export default function AccountScreen() {
                 activeOpacity={0.7}
                 testID="delete-all-downloads-button"
               >
-                <Text style={[styles.storageButtonText, { color: "#EF4444" }]}>
-                  Delete All
+                <Text style={[styles.smallButtonText, { color: "#EF4444" }]}>
+                  Delete
                 </Text>
               </TouchableOpacity>
-            </View>
-
-            {/* キャッシュ */}
-            <View style={styles.storageItem}>
-              <View style={styles.storageInfo}>
-                <View style={styles.storageIconContainer}>
-                  <Ionicons
-                    name="trash-outline"
-                    size={22}
-                    color={colors.text}
-                  />
-                </View>
-                <View>
-                  <Text style={[styles.storageLabel, { color: colors.text }]}>
-                    Cache
-                  </Text>
-                  <Text
-                    style={[styles.storageStatus, { color: colors.subText }]}
-                  >
-                    Clear cached data
-                  </Text>
-                </View>
-              </View>
+            }
+            onPress={() => setIsDeleteModalVisible(true)}
+            disabled={downloadedCount === 0}
+          />
+          <SettingItem
+            icon="trash-outline"
+            title="Clear Cache"
+            description="Clear cached query data"
+            isLast
+            rightElement={
               <TouchableOpacity
                 style={[
-                  styles.storageButton,
+                  styles.smallButton,
                   { backgroundColor: colors.accentFrom + "20" },
                 ]}
                 onPress={clearQueryCache}
@@ -298,31 +245,26 @@ export default function AccountScreen() {
                 testID="clear-cache-button"
               >
                 <Text
-                  style={[
-                    styles.storageButtonText,
-                    { color: colors.accentFrom },
-                  ]}
+                  style={[styles.smallButtonText, { color: colors.accentFrom }]}
                 >
                   Clear
                 </Text>
               </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+            }
+            onPress={clearQueryCache}
+          />
+        </SettingSection>
 
-        {/* ログアウトボタン */}
-        <TouchableOpacity
-          style={[
-            styles.logoutButton,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-          onPress={handleLogout}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.logoutText, { color: colors.text }]}>
-            Log out
-          </Text>
-        </TouchableOpacity>
+        {/* ログアウト */}
+        <SettingSection>
+          <SettingItem
+            icon="log-out-outline"
+            title="Log Out"
+            destructive
+            onPress={handleLogout}
+            isLast
+          />
+        </SettingSection>
 
         <Text style={[styles.versionText, { color: colors.subText }]}>
           Version 1.0.0
@@ -424,21 +366,6 @@ const styles = StyleSheet.create({
     width: 1,
     height: 30,
   },
-  menuContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 12,
-    paddingLeft: 4,
-  },
-  menuCard: {
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-
   themeSelector: {
     padding: 16,
     gap: 12,
@@ -459,86 +386,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
   },
-  logoutButton: {
-    marginHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 30,
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
   versionText: {
     textAlign: "center",
     fontSize: 12,
     marginTop: 20,
   },
-  syncContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-  },
-  syncInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  syncLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  syncStatus: {
-    fontSize: 12,
-  },
-  syncButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    minWidth: 100,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  syncButtonText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  storageItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-  },
-  storageInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  storageIconContainer: {
-    width: 32,
-    alignItems: "center",
-    marginRight: 12,
-  },
-  storageLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  storageStatus: {
-    fontSize: 12,
-  },
-  storageButton: {
+  smallButton: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    minWidth: 80,
+    paddingVertical: 6,
+    borderRadius: 14,
+    minWidth: 60,
     alignItems: "center",
     justifyContent: "center",
   },
-  storageButtonText: {
+  smallButtonText: {
+    color: "#FFF",
     fontSize: 12,
     fontWeight: "600",
   },
