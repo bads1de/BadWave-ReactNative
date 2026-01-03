@@ -11,6 +11,7 @@
 - **フレームワーク**: [React Native](https://reactnative.dev/) と [Expo](https://expo.dev/)
 - **言語**: [TypeScript](https://www.typescriptlang.org/) (厳格モード)
 - **バックエンド**: [Supabase](https://supabase.io/) (データベース、認証)
+- **ローカル DB**: [Drizzle ORM](https://orm.drizzle.team/) + SQLite (expo-sqlite)
 - **ナビゲーション**: [Expo Router](https://docs.expo.dev/router/introduction/) (ファイルベースルーティング)
 - **データフェッチ**: データフェッチ、キャッシュ、永続化のための [TanStack Query](https://tanstack.com/query/latest)。
 - **状態管理**: グローバルな状態管理 (例: プレイヤー UI の状態) のための [Zustand](https://github.com/pmndrs/zustand)。
@@ -20,7 +21,7 @@
 
 ### アーキテクチャ
 
-このプロジェクトは、明確な関心事の分離を伴う機能指向のアーキテクチャに従っています。
+このプロジェクトは、**ローカルファースト**アーキテクチャを採用しています。UI はローカル SQLite から読み込み、バックグラウンドで Supabase と同期します。
 
 #### ファイル階層図
 
@@ -32,7 +33,7 @@ badwave-mobile/
 │   │   ├── index.tsx   # ホーム画面
 │   │   ├── library.tsx
 │   │   ├── search.tsx
-│   │   └── reels.tsx     # 新規: Reelsタブのメイン画面
+│   │   └── reels.tsx     # Reelsタブのメイン画面
 │   ├── playlist/     # プレイリスト詳細画面など
 │   └── _layout.tsx     # ルートレイアウト
 ├── actions/          # Supabaseとのデータ通信処理
@@ -42,37 +43,65 @@ badwave-mobile/
 ├── components/       # 再利用可能なUIコンポーネント
 │   ├── common/
 │   ├── player/
-│   │   ...
-│   └── reels/                # 新規: Reels関連コンポーネント
-│       ├── ReelsList.tsx
-│       └── ReelItem.tsx
+│   ├── item/         # SongItem, ListItem, PlaylistItem など
+│   └── reels/        # Reels関連コンポーネント
+├── constants/        # 定数
+│   ├── index.ts      # キャッシュキー、設定など
+│   └── errorMessages.ts  # エラーメッセージ定数
 ├── hooks/            # ビジネスロジックと状態管理
-│   ├── useAudioPlayer.ts
-│   ├── usePlayerStore.ts
-│   │   ...
-│   └── useReelsPlayer.ts     # 新規: 動画再生ロジックを管理
-├── lib/              # Supabaseクライアント初期化などのユーティリティ
-│   └── supabase.ts
+│   ├── data/         # ローカルDB読み込み用フック (useGetLocalSongs など)
+│   ├── sync/         # Supabase → ローカルDB同期フック
+│   ├── mutations/    # データ変更用フック (useLikeMutation など)
+│   ├── stores/       # Zustand ストア
+│   └── ...
+├── lib/              # ユーティリティ
+│   ├── supabase.ts   # Supabaseクライアント
+│   ├── db/           # ローカルSQLite設定・スキーマ
+│   └── utils/        # ユーティリティ関数
+│       └── retry.ts  # リトライ機能
 ├── services/         # バックグラウンドサービス
 │   └── PlayerService.ts
 ├── providers/        # React Context プロバイダー
-│   └── AuthProvider.tsx
+│   ├── AuthProvider.tsx
+│   └── SyncProvider.tsx  # バックグラウンド同期
 └── __tests__/        # Jestによるテスト (ソース構造をミラーリング)
     └── ...
 ```
 
 #### 各ディレクトリの役割
 
-- **`app/`**: Expo Router によって管理されるすべての画面とルートが含まれます。メインナビゲーションは `app/(tabs)/_layout.tsx` で定義されたタブバーです。
-- **`actions/`**: Supabase バックエンドと対話する非同期関数 (例: `getSongs`、`createPlaylist`) を保持します。これらは API コールと同等です。
-- **`components/`**: アプリケーション全体で使用される再利用可能な React コンポーネント。
-- **`hooks/`**: ビジネスロジック、状態管理の購読 (Zustand)、オーディオプレイヤーなどのサービスとの対話をカプセル化するカスタムフック。コアオーディオロジックは `useAudioPlayer.ts` にあります。
-- **`lib/`**: サードパーティサービス (例: `supabase.ts`) の初期化と共有ユーティリティ関数が含まれます。
-- **`providers/`**: `AuthProvider` などの React コンテキストプロバイダー。
-- **`services/`**: バックグラウンドサービスとネイティブ API との直接的な対話を管理します。特に `PlayerService.ts` は `react-native-track-player` インスタンスを設定します。
-- **`__tests__/`**: ソースディレクトリの構造をミラーリングしたすべての Jest テストが含まれます。
+- **`app/`**: Expo Router によって管理されるすべての画面とルートが含まれます。
+- **`actions/`**: Supabase バックエンドと対話する非同期関数を保持します。
+- **`components/`**: 再利用可能な React コンポーネント。すべてのリストアイテムは `React.memo` で最適化されています。
+- **`hooks/`**: ビジネスロジックをカプセル化するカスタムフック。
+  - `data/`: ローカル SQLite からデータを読み込むフック
+  - `sync/`: Supabase からローカルへの同期フック
+  - `mutations/`: データ変更用フック（楽観的更新対応）
+- **`lib/`**: サードパーティサービスの初期化と共有ユーティリティ関数。
+- **`providers/`**: React コンテキストプロバイダー。
+- **`services/`**: バックグラウンドサービス。
 
-## 2. はじめに
+## 2. データフロー（ローカルファースト）
+
+```
+[読み込み] UI ← useGetLocal* ← SQLite (即座に表示)
+[同期]    Supabase → useSync* → SQLite (バックグラウンド)
+[書き込み] UI → useMutation → Supabase → SQLite
+```
+
+### ミューテーションの特徴
+
+1. **楽観的更新**: `onMutate`で即座に UI を更新、失敗時はロールバック
+2. **リトライ機能**: `withSupabaseRetry`でネットワークエラー時に自動リトライ
+3. **エラーメッセージ**: `constants/errorMessages.ts`で一元管理
+
+### 同期の特徴
+
+1. **トランザクション**: SQLite トランザクションでデータ整合性を保証
+2. **差分同期**: Upsert + 差分削除（完全削除ではない）
+3. **安全なロールバック**: 失敗時は自動ロールバック
+
+## 3. はじめに
 
 ### 前提条件
 
@@ -90,42 +119,42 @@ badwave-mobile/
    ```
 
 2. **アプリケーションの実行**:
-   Expo 開発サーバーを起動します。
 
    ```bash
    npx expo start
    ```
 
-   Expo Dev Tools から、Android エミュレーター、iOS シミュレーター、または Expo Go アプリを使用して物理デバイスでアプリを実行できます。
-
 3. **特定のプラットフォームでの実行**:
 
    ```bash
-   # Android で実行
    npm run android
-
-   # iOS で実行
    npm run ios
    ```
 
 ### テスト
 
-テストスイートを実行するには、`test` スクリプトを使用します。
-
 ```bash
 npm test
 ```
 
-## 3. 開発規約
+## 4. 開発規約
 
-- **スタイル**: プロジェクトは `StyleSheet.create()` を使用したインラインスタイルと、`constants/theme.ts` で定義されたグローバルテーマの組み合わせを使用しています。
-- **Linting**: コードの品質とスタイルは ESLint を使用して強制されます。リンターを実行するには:
+- **スタイル**: `StyleSheet.create()` を使用。
+- **コンポーネント最適化**: リストアイテムは `React.memo` + カスタム比較関数を使用。
+- **TypeScript**: 厳密な型付け。`any`の使用は避ける。
+- **エラーハンドリング**: `constants/errorMessages.ts`の定数を使用。
+- **リトライ**: ネットワーク依存の操作には`withSupabaseRetry`を使用。
+- **楽観的更新**: ユーザー操作に対する即座のフィードバックを実現。
+- **TDD**: テスト駆動開発を推奨。
 
-  ```bash
-  npm run lint
-  ```
+### コミット規約
 
-- **TypeScript**: コードベースは厳密に型付けされています。すべての新しいコードには適切な型を含める必要があります。パスエイリアスは `tsconfig.json` を介して設定されており、ルートディレクトリからの絶対インポート (例: `import MyComponent from '@/components/MyComponent';`) を可能にします。
-- **データフェッチ**: Supabase バックエンドとのすべての対話は `actions/` ディレクトリで定義する必要があります。UI コンポーネントは、適切なキャッシュ、再フェッチ、ロード/エラー状態管理を確実にするために、`@tanstack/react-query` のフックを使用してこれらのアクションを呼び出す必要があります。
-- **状態管理**: UI の複数の離れた部分に影響するグローバルな状態 (オーディオプレイヤーの表示など) は Zustand で管理されます。新しいストアを作成するか、既存のストアを `hooks/` ディレクトリ (例: `usePlayerStore.ts`) に追加します。
-- **コミット**: コミットメッセージには Conventional Commits の標準に従ってください。
+Conventional Commits の標準に従ってください。
+
+```
+feat: 新機能
+fix: バグ修正
+refactor: リファクタリング
+test: テスト追加
+docs: ドキュメント更新
+```

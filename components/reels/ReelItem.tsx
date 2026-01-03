@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ interface ReelItemProps {
   onFinish?: () => void;
 }
 
-export default function ReelItem({ item, isVisible, onFinish }: ReelItemProps) {
+function ReelItem({ item, isVisible, onFinish }: ReelItemProps) {
   const player = useReelsPlayer(item.video_path, isVisible, onFinish);
 
   return (
@@ -54,17 +54,27 @@ export default function ReelItem({ item, isVisible, onFinish }: ReelItemProps) {
   );
 }
 
-const ActionButton = ({
-  icon,
-  label,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-}) => (
-  <TouchableOpacity style={styles.actionButton} disabled={true}>
-    <Ionicons name={icon} size={30} color="#fff" style={{ opacity: 0.6 }} />
-    <Text style={styles.actionLabel}>{label}</Text>
-  </TouchableOpacity>
+// メモ化してエクスポート
+export default memo(ReelItem, (prevProps, nextProps) => {
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.isVisible === nextProps.isVisible
+  );
+});
+
+const ActionButton = memo(
+  ({
+    icon,
+    label,
+  }: {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+  }) => (
+    <TouchableOpacity style={styles.actionButton} disabled={true}>
+      <Ionicons name={icon} size={30} color="#fff" style={{ opacity: 0.6 }} />
+      <Text style={styles.actionLabel}>{label}</Text>
+    </TouchableOpacity>
+  )
 );
 
 const styles = StyleSheet.create({

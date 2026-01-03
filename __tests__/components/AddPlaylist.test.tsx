@@ -105,7 +105,7 @@ jest.mock("react-native-toast-message", () => ({
   show: jest.fn(),
 }));
 
-jest.mock("../../hooks/usePlaylistStatus", () => ({
+jest.mock("../../hooks/data/usePlaylistStatus", () => ({
   __esModule: true,
   default: jest.fn(),
 }));

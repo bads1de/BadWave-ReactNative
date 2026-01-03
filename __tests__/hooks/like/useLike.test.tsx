@@ -141,7 +141,7 @@ describe("useLikeMutation", () => {
       }
     });
 
-    expect(error?.message).toBe("オフライン時はいいね操作ができません");
+    expect(error?.message).toBe("いいね機能にはインターネット接続が必要です");
   });
 
   it("いいねを追加できる", async () => {

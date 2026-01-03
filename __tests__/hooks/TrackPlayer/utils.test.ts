@@ -163,7 +163,7 @@ describe("TrackPlayer utils", () => {
         url: incompleteSong.song_path,
         title: incompleteSong.title,
         artist: "Unknown Artist",
-        artwork: null,
+        artwork: undefined,
       });
     });
 
@@ -285,7 +285,8 @@ describe("TrackPlayer utils", () => {
           songs.map(async (song) => {
             try {
               return await utils.convertSongToTrack(song);
-            } catch (error) {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch {
               return {
                 id: song.id,
                 url: song.song_path,

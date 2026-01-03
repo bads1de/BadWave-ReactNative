@@ -71,8 +71,8 @@ describe("useSubPlayerAudio", () => {
     expect(result.current).toHaveProperty("isPlaying");
     expect(result.current).toHaveProperty("currentPosition");
     expect(result.current).toHaveProperty("duration");
-    expect(result.current).toHaveProperty("togglePlayPause");
-    expect(result.current).toHaveProperty("seekTo");
+    expect(result.current).toHaveProperty("playNextSong");
+    expect(result.current).toHaveProperty("playPrevSong");
     expect(result.current).toHaveProperty("stopAndUnloadCurrentSound");
   });
 
@@ -84,4 +84,3 @@ describe("useSubPlayerAudio", () => {
     expect(result.current.duration).toBe(0);
   });
 });
-

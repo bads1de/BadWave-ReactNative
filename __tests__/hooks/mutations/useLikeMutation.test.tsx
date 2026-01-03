@@ -37,7 +37,7 @@ jest.mock("@/lib/utils/retry", () => ({
   withSupabaseRetry: jest.fn((fn) => fn()),
 }));
 
-const { supabase } = require("@/lib/supabase");
+const _supabase = require("@/lib/supabase").supabase;
 const { db } = require("@/lib/db/client");
 const { useNetworkStatus } = require("@/hooks/useNetworkStatus");
 const { withSupabaseRetry } = require("@/lib/utils/retry");
@@ -75,7 +75,7 @@ describe("useLikeMutation - Optimistic Update", () => {
       );
 
       // Supabaseモック（時間がかかる）
-      withSupabaseRetry.mockImplementation(async (fn: () => Promise<any>) => {
+      withSupabaseRetry.mockImplementation(async (_fn: () => Promise<any>) => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         return { data: null, error: null };
       });
@@ -146,7 +146,7 @@ describe("useLikeMutation - Optimistic Update", () => {
       );
 
       // Supabaseモック
-      withSupabaseRetry.mockImplementation(async (fn: () => Promise<any>) => {
+      withSupabaseRetry.mockImplementation(async (_fn: () => Promise<any>) => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         return { data: null, error: null };
       });
