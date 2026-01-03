@@ -120,19 +120,44 @@ export function useLikeMutation(songId: string, userId?: string) {
 
       return !isCurrentlyLiked;
     },
-    onSuccess: async (newLikeStatus) => {
-      // キャッシュを更新
+    // 楽観的更新: mutate呼び出し時に即座にキャッシュを更新
+    onMutate: async (isCurrentlyLiked: boolean) => {
+      // 1. 既存のクエリをキャンセル（競合防止）
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.likedSongs, "status", songId, userId],
+      });
+
+      // 2. 現在のキャッシュをスナップショット（ロールバック用）
+      const previousLikeStatus = queryClient.getQueryData<boolean>([
+        CACHED_QUERIES.likedSongs,
+        "status",
+        songId,
+        userId,
+      ]);
+
+      // 3. 楽観的にキャッシュを更新（即座にUIに反映）
       queryClient.setQueryData(
         [CACHED_QUERIES.likedSongs, "status", songId, userId],
-        newLikeStatus
+        !isCurrentlyLiked
       );
 
+      // 4. ロールバック用のコンテキストを返す
+      return { previousLikeStatus };
+    },
+    onSuccess: async () => {
       // いいね曲リストのみ無効化（最小限の無効化で高速化）
       await queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.likedSongs],
       });
     },
-    onError: (error) => {
+    onError: (error, _variables, context) => {
+      // エラー時はキャッシュを元に戻す（ロールバック）
+      if (context?.previousLikeStatus !== undefined) {
+        queryClient.setQueryData(
+          [CACHED_QUERIES.likedSongs, "status", songId, userId],
+          context.previousLikeStatus
+        );
+      }
       console.error("Like mutation error:", error);
     },
   });

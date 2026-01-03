@@ -64,6 +64,35 @@ export function useMutatePlaylistSong(userId?: string) {
 
       return { songId, playlistId };
     },
+    // 楽観的更新
+    onMutate: async ({ songId, playlistId }) => {
+      // 1. 既存のクエリをキャンセル
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
+      });
+
+      // 2. 現在のキャッシュをスナップショット
+      const previousSongs = queryClient.getQueryData<any[]>([
+        CACHED_QUERIES.playlistSongs,
+        playlistId,
+      ]);
+
+      // 3. 楽観的にキャッシュを更新（曲を追加）
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlistSongs, playlistId],
+        (old: any[] | undefined) => [
+          ...(old || []),
+          {
+            id: `temp_${Date.now()}`,
+            songId,
+            playlistId,
+            addedAt: new Date().toISOString(),
+          },
+        ]
+      );
+
+      return { previousSongs };
+    },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlistSongs, variables.playlistId],
@@ -72,7 +101,14 @@ export function useMutatePlaylistSong(userId?: string) {
         queryKey: [CACHED_QUERIES.playlists],
       });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // ロールバック
+      if (context?.previousSongs) {
+        queryClient.setQueryData(
+          [CACHED_QUERIES.playlistSongs, variables.playlistId],
+          context.previousSongs
+        );
+      }
       console.error("Error adding song to playlist:", error);
     },
   });
@@ -124,6 +160,28 @@ export function useMutatePlaylistSong(userId?: string) {
 
       return { songId, playlistId };
     },
+    // 楽観的更新
+    onMutate: async ({ songId, playlistId }) => {
+      // 1. 既存のクエリをキャンセル
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
+      });
+
+      // 2. 現在のキャッシュをスナップショット
+      const previousSongs = queryClient.getQueryData<any[]>([
+        CACHED_QUERIES.playlistSongs,
+        playlistId,
+      ]);
+
+      // 3. 楽観的にキャッシュを更新（曲を削除）
+      queryClient.setQueryData(
+        [CACHED_QUERIES.playlistSongs, playlistId],
+        (old: any[] | undefined) =>
+          (old || []).filter((song: any) => song.songId !== songId)
+      );
+
+      return { previousSongs };
+    },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlistSongs, variables.playlistId],
@@ -132,7 +190,14 @@ export function useMutatePlaylistSong(userId?: string) {
         queryKey: [CACHED_QUERIES.playlists],
       });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // ロールバック
+      if (context?.previousSongs) {
+        queryClient.setQueryData(
+          [CACHED_QUERIES.playlistSongs, variables.playlistId],
+          context.previousSongs
+        );
+      }
       console.error("Error removing song from playlist:", error);
     },
   });

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { eq } from "drizzle-orm";
+import { eq, and, notInArray } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { likedSongs } from "@/lib/db/schema";
@@ -8,6 +8,11 @@ import { CACHED_QUERIES } from "@/constants";
 
 /**
  * Supabase からいいねデータを取得し、ローカル SQLite に同期するフック
+ *
+ * 安全な同期ロジック:
+ * 1. トランザクション内でUpsert（挿入または更新）
+ * 2. リモートにないデータを削除
+ * 3. 失敗時は自動ロールバック
  *
  * @param userId ユーザーID
  */
@@ -32,20 +37,43 @@ export function useSyncLikedSongs(userId?: string) {
       }
 
       if (!remoteLikes || remoteLikes.length === 0) {
+        // リモートが空の場合、ローカルも空にする（トランザクション内で）
+        await db.transaction(async (tx) => {
+          await tx.delete(likedSongs).where(eq(likedSongs.userId, userId));
+        });
         return { synced: 0 };
       }
 
-      // 現在のローカルいいねを削除（完全同期）
-      await db.delete(likedSongs).where(eq(likedSongs.userId, userId));
+      // トランザクション内で安全に同期
+      await db.transaction(async (tx) => {
+        // 1. リモートデータをUpsert（挿入または更新）
+        for (const like of remoteLikes) {
+          await tx
+            .insert(likedSongs)
+            .values({
+              userId,
+              songId: like.song_id,
+              likedAt: like.created_at ?? new Date().toISOString(),
+            })
+            .onConflictDoUpdate({
+              target: [likedSongs.userId, likedSongs.songId],
+              set: {
+                likedAt: like.created_at ?? new Date().toISOString(),
+              },
+            });
+        }
 
-      // リモートデータを SQLite に挿入
-      for (const like of remoteLikes) {
-        await db.insert(likedSongs).values({
-          userId,
-          songId: like.song_id,
-          likedAt: like.created_at ?? new Date().toISOString(),
-        });
-      }
+        // 2. リモートにないデータを削除（Upsert完了後）
+        const remoteSongIds = remoteLikes.map((like) => like.song_id);
+        await tx
+          .delete(likedSongs)
+          .where(
+            and(
+              eq(likedSongs.userId, userId),
+              notInArray(likedSongs.songId, remoteSongIds)
+            )
+          );
+      });
 
       return { synced: remoteLikes.length };
     },

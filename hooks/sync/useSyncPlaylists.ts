@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { eq } from "drizzle-orm";
+import { eq, and, notInArray } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
@@ -8,6 +8,11 @@ import { CACHED_QUERIES } from "@/constants";
 
 /**
  * Supabase からプレイリストデータを取得し、ローカル SQLite に同期するフック
+ *
+ * 安全な同期ロジック:
+ * 1. プレイリストはUpsert（挿入または更新）
+ * 2. プレイリスト曲はトランザクション内でUpsert + 差分削除
+ * 3. 失敗時は自動ロールバック
  *
  * @param userId ユーザーID
  */
@@ -70,22 +75,45 @@ export function useSyncPlaylists(userId?: string) {
           continue;
         }
 
-        if (remoteSongs && remoteSongs.length > 0) {
-          // 既存のプレイリスト曲を削除
-          await db
-            .delete(playlistSongs)
-            .where(eq(playlistSongs.playlistId, playlist.id));
+        // トランザクション内で安全に同期
+        await db.transaction(async (tx) => {
+          if (remoteSongs && remoteSongs.length > 0) {
+            // 1. リモートデータをUpsert
+            for (const song of remoteSongs) {
+              await tx
+                .insert(playlistSongs)
+                .values({
+                  id: song.id,
+                  playlistId: song.playlist_id,
+                  songId: song.song_id,
+                  addedAt: song.created_at,
+                })
+                .onConflictDoUpdate({
+                  target: playlistSongs.id,
+                  set: {
+                    songId: song.song_id,
+                    addedAt: song.created_at,
+                  },
+                });
+            }
 
-          // 新しい曲を挿入
-          for (const song of remoteSongs) {
-            await db.insert(playlistSongs).values({
-              id: song.id,
-              playlistId: song.playlist_id,
-              songId: song.song_id,
-              addedAt: song.created_at,
-            });
+            // 2. リモートにないデータを削除（Upsert完了後）
+            const remoteSongIds = remoteSongs.map((s) => s.id);
+            await tx
+              .delete(playlistSongs)
+              .where(
+                and(
+                  eq(playlistSongs.playlistId, playlist.id),
+                  notInArray(playlistSongs.id, remoteSongIds)
+                )
+              );
+          } else {
+            // リモートが空の場合、ローカルも空にする
+            await tx
+              .delete(playlistSongs)
+              .where(eq(playlistSongs.playlistId, playlist.id));
           }
-        }
+        });
       }
 
       return { synced: remotePlaylists.length };
