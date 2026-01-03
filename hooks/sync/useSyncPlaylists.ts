@@ -19,7 +19,7 @@ import { CACHED_QUERIES } from "@/constants";
 export function useSyncPlaylists(userId?: string) {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: [CACHED_QUERIES.playlists, "sync", userId],
     queryFn: async () => {
       if (!userId) {
@@ -134,7 +134,7 @@ export function useSyncPlaylists(userId?: string) {
 
   return {
     syncedCount: data?.synced ?? 0,
-    isSyncing: isLoading,
+    isSyncing: isFetching,
     syncError: error,
     triggerSync: refetch,
   };

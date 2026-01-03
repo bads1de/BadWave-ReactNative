@@ -15,7 +15,7 @@ export function useSyncTrendSongs(
   const queryClient = useQueryClient();
   const cacheKey = `trend_${period}`;
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: [CACHED_QUERIES.trendsSongs, period, "sync"],
     queryFn: async () => {
       // Supabase からトレンド曲を取得
@@ -86,7 +86,7 @@ export function useSyncTrendSongs(
 
   return {
     syncedCount: data?.synced ?? 0,
-    isSyncing: isLoading,
+    isSyncing: isFetching,
     syncError: error,
     triggerSync: refetch,
   };

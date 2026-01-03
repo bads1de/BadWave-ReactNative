@@ -11,7 +11,7 @@ import { CACHED_QUERIES } from "@/constants";
 export function useSyncSpotlights() {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: [CACHED_QUERIES.spotlights, "sync"],
     queryFn: async () => {
       const { data: remoteSpotlights, error } = await supabase
@@ -70,7 +70,7 @@ export function useSyncSpotlights() {
 
   return {
     syncedCount: data?.synced ?? 0,
-    isSyncing: isLoading,
+    isSyncing: isFetching,
     syncError: error,
     triggerSync: refetch,
   };

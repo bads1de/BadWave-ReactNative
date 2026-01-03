@@ -31,6 +31,8 @@ export const CACHED_QUERIES = {
   playlistStatus: "playlistStatus",
 } as const;
 
+export const SYNC_STORAGE_KEY = "@last_sync_time";
+
 export const CACHE_CONFIG = {
   staleTime: 1000 * 60 * 10, // 10分間
   gcTime: 1000 * 60 * 60 * 24 * 7, // 7日間

@@ -14,7 +14,7 @@ export function useSyncRecommendations(userId?: string) {
     ? `home_recommendations_${userId}`
     : "home_recommendations";
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: [CACHED_QUERIES.getRecommendations, userId, "sync"],
     queryFn: async () => {
       if (!userId) {
@@ -73,7 +73,7 @@ export function useSyncRecommendations(userId?: string) {
 
   return {
     syncedCount: data?.synced ?? 0,
-    isSyncing: isLoading,
+    isSyncing: isFetching,
     syncError: error,
     triggerSync: refetch,
   };

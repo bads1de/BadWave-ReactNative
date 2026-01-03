@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,7 @@ import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { THEMES, ThemeType } from "@/constants/ThemeColors";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
+import { useSync } from "@/providers/SyncProvider";
 
 /**
  * @file (tabs)/account.tsx
@@ -34,6 +36,7 @@ export default function AccountScreen() {
   // 実データの取得
   const { playlists } = useGetPlaylists(userId);
   const { likedSongs } = useGetLikedSongs(userId);
+  const { isSyncing, lastSyncTime, triggerSync } = useSync();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -166,6 +169,52 @@ export default function AccountScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        </View>
+
+        {/* 同期セクション */}
+        <View style={styles.menuContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
+            Synchronization
+          </Text>
+          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+            <View style={styles.syncContent}>
+              <View style={styles.syncInfo}>
+                <Text style={[styles.syncLabel, { color: colors.text }]}>
+                  Local Database
+                </Text>
+                <Text style={[styles.syncStatus, { color: colors.subText }]}>
+                  {isSyncing
+                    ? "Syncing now..."
+                    : lastSyncTime
+                    ? `Last Synced: ${lastSyncTime.toLocaleString()}`
+                    : "Last Synced: Never"}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.syncButton,
+                  { backgroundColor: colors.accentFrom },
+                  isSyncing && { opacity: 0.6 },
+                ]}
+                onPress={triggerSync}
+                disabled={isSyncing}
+                activeOpacity={0.7}
+              >
+                {isSyncing ? (
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <ActivityIndicator
+                      size="small"
+                      color="#FFF"
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text style={styles.syncButtonText}>Syncing...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.syncButtonText}>Sync Now</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -371,5 +420,36 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     marginTop: 20,
+  },
+  syncContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
+  syncInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  syncLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  syncStatus: {
+    fontSize: 12,
+  },
+  syncButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minWidth: 100,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  syncButtonText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });

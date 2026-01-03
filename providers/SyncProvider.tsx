@@ -7,6 +7,8 @@ import { useSyncPlaylists } from "@/hooks/sync/useSyncPlaylists";
 import { useSyncTrendSongs } from "@/hooks/sync/useSyncTrendSongs";
 import { useSyncRecommendations } from "@/hooks/sync/useSyncRecommendations";
 import { useSyncSpotlights } from "@/hooks/sync/useSyncSpotlights";
+import { storage } from "@/lib/mmkv-storage";
+import { SYNC_STORAGE_KEY } from "@/constants";
 
 interface SyncContextValue {
   isSyncing: boolean;
@@ -26,7 +28,10 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { isOnline } = useNetworkStatus();
   const userId = session?.user?.id;
 
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(() => {
+    const saved = storage.getString(SYNC_STORAGE_KEY);
+    return saved ? new Date(saved) : null;
+  });
   const [syncError, setSyncError] = useState<Error | null>(null);
 
   // 各同期フック
@@ -95,30 +100,42 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     spotsError,
   ]);
 
-  // 同期完了時にタイムスタンプを更新
-  useEffect(() => {
-    if (!isSyncing && lastSyncTime === null && userId && isOnline) {
-      // 初回同期が完了
-      setLastSyncTime(new Date());
-    }
-  }, [isSyncing, lastSyncTime, userId, isOnline]);
-
   // 手動同期トリガー
-  const triggerSync = () => {
-    if (!isOnline) {
-      return;
-    }
-    if (!userId) {
+  const triggerSync = async () => {
+    if (!isOnline || !userId || isSyncing) {
       return;
     }
 
-    syncSongs();
-    syncLiked();
-    syncPlaylists();
-    syncTrends();
-    syncRecs();
-    syncSpots();
+    const startTime = Date.now();
+
+    // 全ての同期を開始
+    await Promise.all([
+      syncSongs(),
+      syncLiked(),
+      syncPlaylists(),
+      syncTrends(),
+      syncRecs(),
+      syncSpots(),
+    ]);
+
+    // 最低1秒間は同期中を表示し続ける（視覚的フィードバックのため）
+    const duration = Date.now() - startTime;
+    if (duration < 1000) {
+      await new Promise((resolve) => setTimeout(resolve, 1000 - duration));
+    }
   };
+
+  // 同期ステータスを監視して、同期完了時に更新
+  const prevIsSyncing = React.useRef(isSyncing);
+
+  useEffect(() => {
+    if (prevIsSyncing.current && !isSyncing && !syncError && userId) {
+      const now = new Date();
+      setLastSyncTime(now);
+      storage.set(SYNC_STORAGE_KEY, now.toISOString());
+    }
+    prevIsSyncing.current = isSyncing;
+  }, [isSyncing, syncError, userId]);
 
   // 初回マウント時に同期を開始（オンライン & 認証済みの場合）
   useEffect(() => {

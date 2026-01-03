@@ -12,7 +12,7 @@ import { CACHED_QUERIES } from "@/constants";
 export function useSyncSongs() {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: [CACHED_QUERIES.songs, "sync"],
     queryFn: async () => {
       // Supabase から全楽曲を取得
@@ -84,7 +84,7 @@ export function useSyncSongs() {
 
   return {
     syncedCount: data?.synced ?? 0,
-    isSyncing: isLoading,
+    isSyncing: isFetching,
     syncError: error,
     triggerSync: refetch,
   };
