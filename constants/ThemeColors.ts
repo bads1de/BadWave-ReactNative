@@ -6,13 +6,7 @@
  * button, active-tab, glow などの詳細な値を管理します。
  */
 
-export type ThemeType =
-  | "violet"
-  | "emerald"
-  | "rose"
-  | "amber"
-  | "sky"
-  | "monochrome";
+export type ThemeType = "violet" | "emerald" | "rose" | "amber" | "sky";
 
 export interface ThemeDefinition {
   name: ThemeType;
@@ -169,31 +163,6 @@ export const THEMES: Record<ThemeType, ThemeDefinition> = {
 
       gradient: ["#0c4a6e", "#000000"],
       accentGradient: ["#0ea5e9", "#6366f1", "#8b5cf6"],
-    },
-  },
-  monochrome: {
-    name: "monochrome",
-    label: "Mono",
-    colors: {
-      background: "#000000",
-      card: "#181818",
-      text: "#FFFFFF",
-      subText: "#A7A7A7",
-      border: "#333333",
-
-      primary: "#71717a",
-      primaryDark: "#27272a",
-      primaryLight: "#d4d4d8",
-
-      accentFrom: "#71717a",
-      accentVia: "#a1a1aa",
-      accentTo: "#d4d4d8",
-
-      activeTab: "#27272a",
-      glow: "#71717a",
-
-      gradient: ["#27272a", "#000000"],
-      accentGradient: ["#71717a", "#a1a1aa", "#d4d4d8"],
     },
   },
 };

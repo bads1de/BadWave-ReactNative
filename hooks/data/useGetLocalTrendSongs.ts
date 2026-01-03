@@ -53,6 +53,10 @@ export function useGetLocalTrendSongs(
         count: String(row.playCount ?? 0),
         like_count: String(row.likeCount ?? 0),
         created_at: row.createdAt ?? "",
+        local_song_path: row.songPath ?? undefined,
+        local_image_path: row.imagePath ?? undefined,
+        local_video_path: row.videoPath ?? undefined,
+        video_path: row.originalVideoPath ?? row.videoPath ?? undefined,
       }));
     },
     staleTime: CACHE_CONFIG.staleTime,

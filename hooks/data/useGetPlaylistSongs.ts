@@ -50,6 +50,9 @@ export function useGetPlaylistSongs(playlistId?: string) {
         created_at: row.song.createdAt ?? "",
         local_song_path: row.song.songPath ?? undefined,
         local_image_path: row.song.imagePath ?? undefined,
+        local_video_path: row.song.videoPath ?? undefined,
+        video_path:
+          row.song.originalVideoPath ?? row.song.videoPath ?? undefined,
       }));
     },
     staleTime: CACHE_CONFIG.staleTime,

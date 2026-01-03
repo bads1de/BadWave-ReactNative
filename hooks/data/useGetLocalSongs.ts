@@ -34,6 +34,8 @@ export function useGetLocalSongs() {
         // ローカルパス情報（オフライン再生用）
         local_song_path: row.songPath ?? undefined,
         local_image_path: row.imagePath ?? undefined,
+        local_video_path: row.videoPath ?? undefined,
+        video_path: row.originalVideoPath ?? row.videoPath ?? undefined,
       }));
     },
     staleTime: Infinity, // ローカルDBなので常に新鮮とみなす

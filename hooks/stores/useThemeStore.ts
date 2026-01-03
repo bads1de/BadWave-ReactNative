@@ -34,6 +34,10 @@ export const useThemeStore = create<ThemeState>()(
       partialize: (state) => ({ currentTheme: state.currentTheme }),
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // Validate stored theme, fallback to default if invalid (e.g. removed 'monochrome')
+          if (!THEMES[state.currentTheme]) {
+            state.currentTheme = "violet";
+          }
           state.colors = THEMES[state.currentTheme].colors;
         }
       },

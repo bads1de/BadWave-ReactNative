@@ -54,21 +54,6 @@ export default function AccountScreen() {
     router.replace("/");
   };
 
-  const menuItems = [
-    {
-      icon: "cog-outline",
-      label: "Settings",
-      border: true,
-      onPress: () => {},
-    },
-    {
-      icon: "information-circle-outline",
-      label: "About BadWave",
-      border: false,
-      onPress: () => {},
-    },
-  ];
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" />
@@ -325,45 +310,6 @@ export default function AccountScreen() {
           </View>
         </View>
 
-        {/* メニューリスト */}
-        <View style={styles.menuContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
-            General
-          </Text>
-          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.menuItem,
-                  item.border && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: colors.border,
-                  },
-                ]}
-                onPress={item.onPress}
-                activeOpacity={0.7}
-              >
-                <View style={styles.menuIconContainer}>
-                  <Ionicons
-                    name={item.icon as any}
-                    size={22}
-                    color={colors.text}
-                  />
-                </View>
-                <Text style={[styles.menuLabel, { color: colors.text }]}>
-                  {item.label}
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={colors.subText}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
         {/* ログアウトボタン */}
         <TouchableOpacity
           style={[
@@ -492,21 +438,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
   },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  menuIconContainer: {
-    width: 32,
-    alignItems: "center",
-    marginRight: 12,
-  },
-  menuLabel: {
-    flex: 1,
-    fontSize: 16,
-  },
+
   themeSelector: {
     padding: 16,
     gap: 12,

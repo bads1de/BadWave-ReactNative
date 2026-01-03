@@ -15,6 +15,7 @@ export default interface Song {
   created_at: string;
   local_song_path?: string;
   local_image_path?: string;
+  local_video_path?: string;
 }
 
 export interface Playlist {
