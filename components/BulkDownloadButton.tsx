@@ -5,6 +5,7 @@ import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "./BulkDownloadModal";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 interface BulkDownloadButtonProps {
   songs: Song[];
@@ -13,6 +14,13 @@ interface BulkDownloadButtonProps {
   /** ボタンのサイズ */
   size?: "small" | "medium" | "large";
 }
+
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 /**
  * 一括ダウンロード/削除ボタン
@@ -27,6 +35,7 @@ export function BulkDownloadButton({
 }: BulkDownloadButtonProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<"download" | "delete">("download");
+  const { colors } = useThemeStore();
 
   const { isOnline } = useNetworkStatus();
 
@@ -119,9 +128,15 @@ export function BulkDownloadButton({
     return null;
   }
 
+  const primaryStyle = {
+    backgroundColor: hexToRgba(colors.primary, 0.2),
+    borderWidth: 1,
+    borderColor: hexToRgba(colors.primary, 0.3),
+  };
+
   const buttonStyles = [
     styles.button,
-    variant === "primary" ? styles.primaryButton : styles.secondaryButton,
+    variant === "primary" ? primaryStyle : styles.secondaryButton, // styles.primaryButtonの代わりに動的スタイルを使用
     size === "small" && styles.smallButton,
     size === "large" && styles.largeButton,
     status === "all" && styles.deleteButton,
@@ -132,6 +147,7 @@ export function BulkDownloadButton({
     size === "small" && styles.smallText,
     size === "large" && styles.largeText,
     status === "all" && styles.deleteText,
+    { color: status === "all" ? "#ef4444" : colors.text }, // テキスト色もテーマ適用
   ];
 
   const iconSize = size === "small" ? 16 : size === "large" ? 24 : 20;
@@ -147,7 +163,7 @@ export function BulkDownloadButton({
         <Ionicons
           name={config.icon}
           size={iconSize}
-          color={status === "all" ? "#ef4444" : "#fff"}
+          color={status === "all" ? "#ef4444" : colors.text}
           style={styles.icon}
         />
         <Text style={textStyles}>{config.label}</Text>
@@ -218,4 +234,3 @@ const styles = StyleSheet.create({
     color: "#ef4444",
   },
 });
-

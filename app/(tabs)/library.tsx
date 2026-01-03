@@ -1,3 +1,14 @@
+/**
+ * @file library.tsx
+ * @description ユーザーのライブラリ画面コンポーネントです。
+ *
+ * この画面では、以下のコンテンツを切り替えて表示します。
+ * - 「いいね」した曲のリスト
+ * - 作成したプレイリストのリスト
+ *
+ * 認証状態に応じて、ログインを促すメッセージを表示したり、
+ * プレイリストの作成機能を提供します。
+ */
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import React, { useState, useCallback, useMemo } from "react";
@@ -16,6 +27,7 @@ import { Playlist } from "@/types";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { BulkDownloadButton } from "@/components/BulkDownloadButton";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 type LibraryType = "liked" | "playlists";
 
@@ -25,6 +37,7 @@ export default function LibraryScreen() {
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const router = useRouter();
   const userId = session?.user?.id;
+  const { colors } = useThemeStore();
 
   // SQLite から取得（Local-First）
   const {
@@ -97,19 +110,38 @@ export default function LibraryScreen() {
       />
     );
 
+  const activeButtonStyle = {
+    backgroundColor: colors.primary,
+    shadowColor: colors.glow,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 5,
+  };
+
+  const activeTextStyle = {
+    color: colors.text,
+    textShadowColor: colors.glow,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Library</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Library</Text>
       {!session ? (
         <View style={styles.loginContainer}>
-          <Text style={styles.loginMessage}>
+          <Text style={[styles.loginMessage, { color: colors.text }]}>
             Please login to view your library
           </Text>
           <CustomButton
             label="Login"
             isActive
             onPress={() => setShowAuthModal(true)}
-            activeStyle={styles.loginButton}
+            activeStyle={[
+              styles.loginButton,
+              { backgroundColor: colors.primary },
+            ]}
             inactiveStyle={styles.loginButton}
             activeTextStyle={styles.loginButtonText}
             inactiveTextStyle={styles.loginButtonText}
@@ -127,20 +159,32 @@ export default function LibraryScreen() {
               <CustomButton
                 label="Liked"
                 isActive={type === "liked"}
-                activeStyle={styles.typeButtonActive}
-                inactiveStyle={styles.typeButton}
-                activeTextStyle={styles.typeButtonTextActive}
-                inactiveTextStyle={styles.typeButtonText}
+                activeStyle={[styles.typeButtonActive, activeButtonStyle]}
+                inactiveStyle={[
+                  styles.typeButton,
+                  { backgroundColor: colors.card },
+                ]}
+                activeTextStyle={[styles.typeButtonTextActive, activeTextStyle]}
+                inactiveTextStyle={[
+                  styles.typeButtonText,
+                  { color: colors.subText },
+                ]}
                 onPress={() => setType("liked")}
                 testID="button-Liked"
               />
               <CustomButton
                 label="Playlists"
                 isActive={type === "playlists"}
-                activeStyle={styles.typeButtonActive}
-                inactiveStyle={styles.typeButton}
-                activeTextStyle={styles.typeButtonTextActive}
-                inactiveTextStyle={styles.typeButtonText}
+                activeStyle={[styles.typeButtonActive, activeButtonStyle]}
+                inactiveStyle={[
+                  styles.typeButton,
+                  { backgroundColor: colors.card },
+                ]}
+                activeTextStyle={[styles.typeButtonTextActive, activeTextStyle]}
+                inactiveTextStyle={[
+                  styles.typeButtonText,
+                  { color: colors.subText },
+                ]}
                 onPress={() => setType("playlists")}
                 testID="button-Playlists"
               />
@@ -165,7 +209,9 @@ export default function LibraryScreen() {
               </>
             ) : (
               <View style={[styles.noSongsContainer, { flex: 1 }]}>
-                <Text style={styles.noSongsText}>No songs found.</Text>
+                <Text style={[styles.noSongsText, { color: colors.subText }]}>
+                  No songs found.
+                </Text>
               </View>
             )
           ) : playlists && playlists.length > 0 ? (
@@ -180,7 +226,9 @@ export default function LibraryScreen() {
             />
           ) : (
             <View style={[styles.noSongsContainer, { flex: 1 }]}>
-              <Text style={styles.noSongsText}>No playlists found.</Text>
+              <Text style={[styles.noSongsText, { color: colors.subText }]}>
+                No playlists found.
+              </Text>
             </View>
           )}
         </>
@@ -268,4 +316,3 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-

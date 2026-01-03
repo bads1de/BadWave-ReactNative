@@ -46,6 +46,16 @@ jest.mock("@/hooks/data/useGetPlaylists", () => ({
   })),
 }));
 
+jest.mock("@/hooks/stores/useThemeStore", () => ({
+  useThemeStore: jest.fn(() => ({
+    colors: require("@/constants/ThemeColors").THEMES.violet.colors,
+  })),
+}));
+
+jest.mock("@/components/BulkDownloadButton", () => ({
+  BulkDownloadButton: () => null,
+}));
+
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
 const { useAuth } = require("@/providers/AuthProvider");
 const { useAuthStore } = require("@/hooks/stores/useAuthStore");
@@ -76,4 +86,3 @@ describe("LibraryScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
-

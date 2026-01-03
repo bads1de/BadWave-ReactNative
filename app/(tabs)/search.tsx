@@ -17,6 +17,7 @@ import { Playlist } from "@/types";
 import Song from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 type SearchType = "songs" | "playlists";
 
@@ -26,6 +27,7 @@ function SearchScreen() {
   const debouncedQuery = useDebounce(searchQuery, 500);
   const router = useRouter();
   const { isOnline } = useNetworkStatus();
+  const { colors } = useThemeStore();
 
   const {
     data: searchSongs = [],
@@ -119,9 +121,13 @@ function SearchScreen() {
 
   if (!isOnline) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Search</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            Search
+          </Text>
         </View>
         <View style={styles.emptyContainer}>
           <Ionicons name="cloud-offline" size={64} color="#666" />
@@ -135,13 +141,20 @@ function SearchScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Search</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Search</Text>
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
+        <View
+          style={[
+            styles.searchInputContainer,
+            { backgroundColor: colors.card },
+          ]}
+        >
           <Ionicons
             name="search"
             size={20}
@@ -149,7 +162,7 @@ function SearchScreen() {
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search by song or playlist name..."
             placeholderTextColor="#666"
             value={searchQuery}
@@ -170,8 +183,14 @@ function SearchScreen() {
           <CustomButton
             label="Songs"
             isActive={searchType === "songs"}
-            activeStyle={styles.activeButton}
-            inactiveStyle={styles.inactiveButton}
+            activeStyle={[
+              styles.activeButton,
+              { backgroundColor: colors.primary },
+            ]}
+            inactiveStyle={[
+              styles.inactiveButton,
+              { backgroundColor: colors.card },
+            ]}
             activeTextStyle={styles.activeButtonText}
             inactiveTextStyle={styles.inactiveButtonText}
             onPress={() => setSearchType("songs")}
@@ -179,8 +198,14 @@ function SearchScreen() {
           <CustomButton
             label="Playlists"
             isActive={searchType === "playlists"}
-            activeStyle={styles.activeButton}
-            inactiveStyle={styles.inactiveButton}
+            activeStyle={[
+              styles.activeButton,
+              { backgroundColor: colors.primary },
+            ]}
+            inactiveStyle={[
+              styles.inactiveButton,
+              { backgroundColor: colors.card },
+            ]}
             activeTextStyle={styles.activeButtonText}
             inactiveTextStyle={styles.inactiveButtonText}
             onPress={() => setSearchType("playlists")}

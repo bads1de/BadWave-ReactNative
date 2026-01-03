@@ -1,21 +1,71 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+} from "react-native";
 import { useRouter } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { Image as ExpoImage } from "expo-image";
+import { supabase } from "@/lib/supabase";
+import { useUser } from "@/actions/getUser";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { THEMES, ThemeType } from "@/constants/ThemeColors";
 
 /**
  * @file (tabs)/account.tsx
  * @description アカウントページ
  *
- * ユーザーのアカウント情報や設定を表示するページです。
- * タブナビゲーションの一部として定義されますが、タブバーには表示されません（href: null）。
- * これにより、PlayerContainer（ミニプレイヤー）が表示された状態で遷移できます。
+ * デスクトップ版のテーマカラーをサポートしたモダンなアカウント設定画面。
+ * テーマ切り替え機能を含みます。
  */
 export default function AccountScreen() {
   const router = useRouter();
+  const { data: user } = useUser();
+  const { colors, currentTheme, setTheme } = useThemeStore();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.replace("/");
+  };
+
+  const menuItems = [
+    {
+      icon: "cog-outline",
+      label: "Settings",
+      border: true,
+      onPress: () => {},
+    },
+    {
+      icon: "shield-checkmark-outline",
+      label: "Privacy & Social",
+      border: true,
+      onPress: () => {},
+    },
+    {
+      icon: "information-circle-outline",
+      label: "About BadWave",
+      border: false,
+      onPress: () => {},
+    },
+  ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" />
+
+      {/* 背景グラデーション (動的) */}
+      <LinearGradient
+        colors={colors.gradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 0.4 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+
       {/* ヘッダー */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -23,16 +73,177 @@ export default function AccountScreen() {
           style={styles.backButton}
           testID="back-button"
         >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>アカウント</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          Account
+        </Text>
         <View style={styles.placeholder} />
       </View>
 
-      {/* コンテンツ（空） */}
-      <View style={styles.content}>
-        <Text style={styles.emptyText}>Coming Soon...</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* プロフィールセクション */}
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            <ExpoImage
+              source={{
+                uri: user?.avatar_url || "https://via.placeholder.com/150",
+              }}
+              style={[styles.avatar, { borderColor: colors.text }]}
+              contentFit="cover"
+              transition={200}
+            />
+          </View>
+          <Text style={[styles.userName, { color: colors.text }]}>
+            {user?.full_name || "Guest User"}
+          </Text>
+          <View style={styles.badgeContainer}>
+            <LinearGradient
+              colors={[colors.accentFrom, colors.primaryDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.premiumBadge}
+            >
+              <Text style={[styles.premiumText, { color: colors.text }]}>
+                FREE PLAN
+              </Text>
+            </LinearGradient>
+          </View>
+
+          {/* 統計情報（ダミー） */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: colors.text }]}>12</Text>
+              <Text style={[styles.statLabel, { color: colors.subText }]}>
+                Playlists
+              </Text>
+            </View>
+            <View
+              style={[styles.statDivider, { backgroundColor: colors.border }]}
+            />
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: colors.text }]}>
+                142
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.subText }]}>
+                Liked
+              </Text>
+            </View>
+            <View
+              style={[styles.statDivider, { backgroundColor: colors.border }]}
+            />
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: colors.text }]}>0</Text>
+              <Text style={[styles.statLabel, { color: colors.subText }]}>
+                Following
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* テーマ切り替えセクション */}
+        <View style={styles.menuContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
+            Appearance
+          </Text>
+          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.themeSelector}
+            >
+              {(Object.keys(THEMES) as ThemeType[]).map((themeKey) => (
+                <TouchableOpacity
+                  key={themeKey}
+                  style={[
+                    styles.themeOption,
+                    currentTheme === themeKey && {
+                      borderColor: colors.accentFrom,
+                      borderWidth: 2,
+                    },
+                  ]}
+                  onPress={() => setTheme(themeKey)}
+                >
+                  <LinearGradient
+                    colors={THEMES[themeKey].colors.accentGradient}
+                    style={styles.themePreview}
+                  />
+                  <Text
+                    style={[
+                      styles.themeLabel,
+                      {
+                        color:
+                          currentTheme === themeKey
+                            ? colors.text
+                            : colors.subText,
+                      },
+                    ]}
+                  >
+                    {THEMES[themeKey].label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+
+        {/* メニューリスト */}
+        <View style={styles.menuContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.subText }]}>
+            General
+          </Text>
+          <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+            {menuItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.menuItem,
+                  item.border && {
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.border,
+                  },
+                ]}
+                onPress={item.onPress}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuIconContainer}>
+                  <Ionicons
+                    name={item.icon as any}
+                    size={22}
+                    color={colors.text}
+                  />
+                </View>
+                <Text style={[styles.menuLabel, { color: colors.text }]}>
+                  {item.label}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.subText}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ログアウトボタン */}
+        <TouchableOpacity
+          style={[
+            styles.logoutButton,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          onPress={handleLogout}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.logoutText, { color: colors.text }]}>
+            Log out
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={[styles.versionText, { color: colors.subText }]}>
+          Version 1.0.0
+        </Text>
+      </ScrollView>
     </View>
   );
 }
@@ -40,35 +251,155 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 30,
-    paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#222",
+    paddingTop: 50,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    zIndex: 10,
   },
   backButton: {
     padding: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
   headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
   placeholder: {
     width: 40,
   },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  scrollContent: {
+    paddingBottom: 100,
   },
-  emptyText: {
-    color: "#666",
+  profileSection: {
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  avatarContainer: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  badgeContainer: {
+    marginBottom: 24,
+  },
+  premiumBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  premiumText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    letterSpacing: 1,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    paddingHorizontal: 40,
+  },
+  statItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 12,
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+  },
+  menuContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 12,
+    paddingLeft: 4,
+  },
+  menuCard: {
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  menuIconContainer: {
+    width: 32,
+    alignItems: "center",
+    marginRight: 12,
+  },
+  menuLabel: {
+    flex: 1,
     fontSize: 16,
+  },
+  themeSelector: {
+    padding: 16,
+    gap: 12,
+  },
+  themeOption: {
+    alignItems: "center",
+    marginRight: 12,
+    borderRadius: 12,
+    padding: 4,
+  },
+  themePreview: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 8,
+  },
+  themeLabel: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  logoutButton: {
+    marginHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  versionText: {
+    textAlign: "center",
+    fontSize: 12,
+    marginTop: 20,
   },
 });

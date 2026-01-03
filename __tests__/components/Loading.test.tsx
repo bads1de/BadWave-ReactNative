@@ -2,6 +2,15 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import Loading from "../../components/common/Loading";
 
+jest.mock("@/hooks/stores/useThemeStore", () => ({
+  useThemeStore: jest.fn(() => ({
+    colors: {
+      primary: "#8b5cf6",
+      background: "#000000",
+    },
+  })),
+}));
+
 describe("Loading", () => {
   it("デフォルトのサイズと色でローディングインジケータを表示する", () => {
     const { getByTestId } = render(<Loading />);
@@ -13,7 +22,7 @@ describe("Loading", () => {
     expect(getByTestId("loading-indicator")).toBeTruthy();
 
     // デフォルトの色が設定されていることを確認
-    expect(getByTestId("loading-indicator").props.color).toBe("#4c1d95");
+    expect(getByTestId("loading-indicator").props.color).toBe("#8b5cf6");
   });
 
   it("カスタムサイズでローディングインジケータを表示する", () => {
@@ -47,10 +56,10 @@ describe("Loading", () => {
   });
 
   it("メモ化されたコンポーネントが正しくレンダリングされる", () => {
-    const { rerender, getByTestId } = render(<Loading color="#4c1d95" />);
+    const { rerender, getByTestId } = render(<Loading color="#8b5cf6" />);
 
     // 初期の色が設定されていることを確認
-    expect(getByTestId("loading-indicator").props.color).toBe("#4c1d95");
+    expect(getByTestId("loading-indicator").props.color).toBe("#8b5cf6");
 
     // 異なる色で再レンダリング
     rerender(<Loading color="#ff0000" />);

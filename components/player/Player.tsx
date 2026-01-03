@@ -22,6 +22,8 @@ import LikeButton from "../LikeButton";
 import Lyric from "./lyric";
 import NextSong from "./NextSong";
 import TopPlayedSongsList from "../item/TopPlayedSongsList";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { ThemeDefinition } from "@/constants/ThemeColors";
 
 /**
  * @fileoverview 音楽プレーヤーのUIコンポーネント
@@ -30,50 +32,58 @@ import TopPlayedSongsList from "../item/TopPlayedSongsList";
 
 /**
  * プレーヤーコンポーネントのプロパティ
- * @interface PlayerProps
- * @property {boolean} isPlaying - 現在の再生状態
- * @property {Song} currentSong - 現在再生中の曲情報
- * @property {number} position - 現在の再生位置（秒）
- * @property {number} duration - 曲の総再生時間（秒）
- * @property {Function} onPlayPause - 再生/一時停止時のコールバック
- * @property {Function} onNext - 次の曲へ移動時のコールバック
- * @property {Function} onPrev - 前の曲へ移動時のコールバック
- * @property {Function} onSeek - シーク時のコールバック
- * @property {Function} onClose - プレーヤーを閉じる時のコールバック
- * @property {RepeatMode} repeatMode - リピートモードの状態
- * @property {Function} setRepeatMode - リピートモード変更時のコールバック
- * @property {boolean} shuffle - シャッフルモードの状態
- * @property {Function} setShuffle - シャッフルモード変更時のコールバック
  */
-
 interface PlayerProps {
+  /** 再生中かどうか */
   isPlaying: boolean;
+  /** 現在の楽曲情報 */
   currentSong: Song;
+  /** 再生位置 (ミリ秒) */
   position: number;
+  /** 楽曲の長さ (ミリ秒) */
   duration: number;
+  /** 再生/一時停止の切り替えハンドラ */
   onPlayPause: () => void;
+  /** 次の曲への遷移ハンドラ */
   onNext: () => void;
+  /** 前の曲への遷移ハンドラ */
   onPrev: () => void;
+  /** シーク操作時のハンドラ */
   onSeek: (millis: number) => void;
+  /** プレーヤーを閉じる際のハンドラ */
   onClose: () => void;
+  /** リピートモード (Off, Track, Queue) */
   repeatMode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
+  /** リピートモードの変更ハンドラ */
   setRepeatMode: (
     mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue
   ) => void;
+  /** シャッフル再生が有効かどうか */
   shuffle: boolean;
+  /** シャッフル設定の変更ハンドラ */
   setShuffle: (value: boolean) => void;
 }
 
+/**
+ * 楽曲情報表示部分のプロパティ
+ */
 interface SongInfoProps {
   currentSong: Song;
 }
 
+/**
+ * 進捗バー (Slider) 部分のプロパティ
+ */
 interface ProgressProps {
   position: number;
   duration: number;
   onSeek: (millis: number) => void;
+  colors: ThemeDefinition["colors"];
 }
 
+/**
+ * 再生コントロールボタン群のプロパティ
+ */
 interface ControlsProps {
   isPlaying: boolean;
   onPlayPause: () => void;
@@ -85,21 +95,32 @@ interface ControlsProps {
   setRepeatMode: (
     mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue
   ) => void;
+  colors: ThemeDefinition["colors"];
 }
 
+/**
+ * 個別のコントロールボタンのプロパティ
+ */
 interface ControlButtonProps {
   icon: keyof typeof Ionicons.glyphMap;
   isActive?: boolean;
   onPress: () => void;
   repeatMode?: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
   testID?: string;
+  activeColor?: string;
 }
 
+/**
+ * 再生/一時停止ボタンのプロパティ
+ */
 interface PlayPauseButtonProps {
   isPlaying: boolean;
   onPress: () => void;
 }
 
+/**
+ * メディア背景 (ビデオまたは画像) のプロパティ
+ */
 interface MediaBackgroundProps {
   videoUrl?: string | null;
   imageUrl?: string | null;
@@ -126,25 +147,31 @@ const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => (
 ));
 SongInfo.displayName = "SongInfo";
 
-const Progress: FC<ProgressProps> = memo(({ position, duration, onSeek }) => (
-  <>
-    <Slider
-      style={styles.slider}
-      minimumValue={0}
-      maximumValue={duration}
-      value={position}
-      onSlidingComplete={onSeek}
-      minimumTrackTintColor="#4c1d95"
-      maximumTrackTintColor="#777"
-      thumbTintColor="#4c1d95"
-      testID="seek-slider"
-    />
-    <View style={styles.timeContainer}>
-      <Text style={styles.timeText}>{formatTime(position)}</Text>
-      <Text style={styles.timeText}>{formatTime(duration)}</Text>
-    </View>
-  </>
-));
+const Progress: FC<ProgressProps> = memo(
+  ({ position, duration, onSeek, colors }) => (
+    <>
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={duration}
+        value={position}
+        onSlidingComplete={onSeek}
+        minimumTrackTintColor={colors.primary}
+        maximumTrackTintColor={colors.subText}
+        thumbTintColor={colors.primary}
+        testID="seek-slider"
+      />
+      <View style={styles.timeContainer}>
+        <Text style={[styles.timeText, { color: colors.subText }]}>
+          {formatTime(position)}
+        </Text>
+        <Text style={[styles.timeText, { color: colors.subText }]}>
+          {formatTime(duration)}
+        </Text>
+      </View>
+    </>
+  )
+);
 Progress.displayName = "Progress";
 
 const Controls: FC<ControlsProps> = memo(
@@ -157,6 +184,7 @@ const Controls: FC<ControlsProps> = memo(
     setShuffle,
     repeatMode,
     setRepeatMode,
+    colors,
   }) => (
     <View style={styles.controls}>
       <ControlButton
@@ -164,17 +192,20 @@ const Controls: FC<ControlsProps> = memo(
         isActive={shuffle}
         onPress={() => setShuffle(!shuffle)}
         testID="shuffle-button"
+        activeColor={colors.primary}
       />
       <ControlButton
         icon="play-skip-back"
         onPress={onPrev}
         testID="prev-button"
+        activeColor={colors.primary}
       />
       <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} />
       <ControlButton
         icon="play-skip-forward"
         onPress={onNext}
         testID="next-button"
+        activeColor={colors.primary}
       />
       <ControlButton
         icon="repeat"
@@ -194,6 +225,7 @@ const Controls: FC<ControlsProps> = memo(
         }}
         repeatMode={repeatMode}
         testID="repeat-button"
+        activeColor={colors.primary}
       />
     </View>
   )
@@ -201,8 +233,8 @@ const Controls: FC<ControlsProps> = memo(
 Controls.displayName = "Controls";
 
 const ControlButton: FC<ControlButtonProps> = memo(
-  ({ icon, isActive, onPress, repeatMode, testID }) => {
-    // リピートボタンの場合、モードに応じて異なるアイコンを表示
+  ({ icon, isActive, onPress, repeatMode, testID, activeColor }) => {
+    // リピートボタンの場合
     if (icon === "repeat") {
       return (
         <View>
@@ -214,10 +246,12 @@ const ControlButton: FC<ControlButtonProps> = memo(
             <Ionicons
               name={isActive ? "repeat" : "repeat-outline"}
               size={25}
-              color={isActive ? "#4c1d95" : "#fff"}
+              color={isActive ? activeColor : "#fff"}
             />
             {isActive && (
-              <Text style={[styles.repeatModeIndicator, { color: "#4c1d95" }]}>
+              <Text
+                style={[styles.repeatModeIndicator, { color: activeColor }]}
+              >
                 {repeatMode === RepeatMode.Track ? "1" : ""}
               </Text>
             )}
@@ -229,7 +263,11 @@ const ControlButton: FC<ControlButtonProps> = memo(
     // 通常のコントロールボタン
     return (
       <TouchableOpacity onPress={onPress} testID={testID}>
-        <Ionicons name={icon} size={25} color={isActive ? "#4c1d95" : "#fff"} />
+        <Ionicons
+          name={icon}
+          size={25}
+          color={isActive ? activeColor : "#fff"}
+        />
       </TouchableOpacity>
     );
   }
@@ -289,75 +327,54 @@ const MediaBackground: FC<MediaBackgroundProps> = memo(
 );
 MediaBackground.displayName = "MediaBackground";
 
-const PlayerControls: FC<PlayerProps> = memo(
-  ({
-    isPlaying,
-    position,
-    duration,
-    onPlayPause,
-    onNext,
-    onPrev,
-    onSeek,
-    shuffle,
-    setShuffle,
-    repeatMode,
-    setRepeatMode,
-    currentSong,
-  }) => (
-    <>
-      <SongInfo currentSong={currentSong} />
-      <Progress position={position} duration={duration} onSeek={onSeek} />
-      <Controls
-        isPlaying={isPlaying}
-        onPlayPause={onPlayPause}
-        onNext={onNext}
-        onPrev={onPrev}
-        shuffle={shuffle}
-        setShuffle={setShuffle}
-        repeatMode={repeatMode}
-        setRepeatMode={setRepeatMode}
-      />
-    </>
-  )
-);
+const PlayerControls: FC<PlayerProps & { colors: ThemeDefinition["colors"] }> =
+  memo(
+    ({
+      isPlaying,
+      position,
+      duration,
+      onPlayPause,
+      onNext,
+      onPrev,
+      onSeek,
+      shuffle,
+      setShuffle,
+      repeatMode,
+      setRepeatMode,
+      currentSong,
+      colors,
+    }) => (
+      <>
+        <SongInfo currentSong={currentSong} />
+        <Progress
+          position={position}
+          duration={duration}
+          onSeek={onSeek}
+          colors={colors}
+        />
+        <Controls
+          isPlaying={isPlaying}
+          onPlayPause={onPlayPause}
+          onNext={onNext}
+          onPrev={onPrev}
+          shuffle={shuffle}
+          setShuffle={setShuffle}
+          repeatMode={repeatMode}
+          setRepeatMode={setRepeatMode}
+          colors={colors}
+        />
+      </>
+    )
+  );
 PlayerControls.displayName = "PlayerControls";
 
-/**
- * メインプレーヤーコンポーネント
- * @description
- * 以下の機能を提供するUIコンポーネントです：
- * - 曲情報の表示（タイトル、アーティスト、アートワーク）
- * - 再生コントロール（再生/一時停止、次へ、前へ）
- * - シークバーによる再生位置制御
- * - リピート/シャッフルモードの切り替え
- * - プレイリストへの追加
- * - いいね機能
- *
- * @example
- * ```tsx
- * <Player
- *   isPlaying={isPlaying}
- *   currentSong={currentSong}
- *   position={position}
- *   duration={duration}
- *   onPlayPause={handlePlayPause}
- *   onNext={handleNext}
- *   onPrev={handlePrev}
- *   onSeek={handleSeek}
- *   onClose={handleClose}
- *   repeatMode={repeatMode}
- *   setRepeatMode={setRepeatMode}
- *   shuffle={shuffle}
- *   setShuffle={setShuffle}
- * />
- * ```
- */
 function Player(props: PlayerProps) {
   const { currentSong, onClose, shuffle, repeatMode } = props;
+  const { colors } = useThemeStore();
 
   return (
     <ScrollView
-      style={styles.scrollContainer}
+      style={[styles.scrollContainer, { backgroundColor: colors.background }]}
       contentContainerStyle={{ flexGrow: 1 }}
     >
       <View style={styles.playerContainer}>
@@ -375,11 +392,11 @@ function Player(props: PlayerProps) {
         </TouchableOpacity>
 
         <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,1)"]}
+          colors={["transparent", "rgba(0,0,0,0.7)", colors.background]}
           locations={[0, 0.5, 1]}
           style={styles.bottomContainer}
         >
-          <PlayerControls {...props} />
+          <PlayerControls {...props} colors={colors} />
         </LinearGradient>
       </View>
 

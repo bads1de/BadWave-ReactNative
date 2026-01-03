@@ -8,7 +8,10 @@ import getPublicPlaylists from "@/actions/getPublicPlaylists";
 import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback } from "react";
 
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+
 function PlaylistBoard() {
+  const { colors } = useThemeStore();
   const { data: playlists = [] } = useQuery({
     queryKey: [CACHED_QUERIES.getPublicPlaylists],
     queryFn: () => getPublicPlaylists(10),
@@ -54,9 +57,9 @@ function PlaylistBoard() {
                 flex: 1,
                 borderRadius: 12,
                 overflow: "hidden",
-                backgroundColor: "rgba(23, 23, 23, 0.4)",
+                backgroundColor: colors.card + "66", // 40% opacity (元の 23,23,23, 0.4 に相当)
                 borderWidth: 1,
-                borderColor: "rgba(255, 255, 255, 0.05)",
+                borderColor: colors.glow + "0D", // 5% opacity (元の 255,255,255, 0.05 に相当)
               }}
             >
               {/* アートワーク */}

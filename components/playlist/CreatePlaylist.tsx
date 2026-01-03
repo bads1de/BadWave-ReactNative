@@ -14,11 +14,14 @@ import createPlaylist from "@/actions/createPlaylist";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import Toast from "react-native-toast-message";
 
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+
 function CreatePlaylist() {
   const [modalOpen, setModalOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const queryClient = useQueryClient();
   const { isOnline } = useNetworkStatus();
+  const { colors } = useThemeStore();
 
   const {
     mutate: create,
@@ -73,13 +76,18 @@ function CreatePlaylist() {
   return (
     <>
       <TouchableOpacity
-        style={[styles.createButton, !isOnline && styles.createButtonDisabled]}
+        style={[
+          styles.createButton,
+          { backgroundColor: colors.primary },
+          !isOnline && styles.createButtonDisabled,
+        ]}
         onPress={handleOpenModal}
         testID="create-playlist-button"
       >
         <Text
           style={[
             styles.createButtonText,
+            { color: "#fff" }, // Always white for contrast on primary
             !isOnline && styles.createButtonTextDisabled,
           ]}
         >
@@ -96,30 +104,53 @@ function CreatePlaylist() {
         }}
       >
         <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>Enter playlist name:</Text>
+          <View
+            style={[
+              styles.modalView,
+              { backgroundColor: colors.card, shadowColor: colors.glow },
+            ]}
+          >
+            <Text style={[styles.modalText, { color: colors.text }]}>
+              Enter playlist name:
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.background + "80", // Half transparent background
+                  color: colors.text,
+                },
+              ]}
               onChangeText={setPlaylistName}
               value={playlistName}
               placeholder="My Playlist"
-              placeholderTextColor="rgba(255,255,255,0.6)"
+              placeholderTextColor={colors.subText + "80"}
               testID="playlist-name-input"
             />
             {error && <Text style={styles.errorText}>{error.message}</Text>}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={[styles.button, styles.buttonCancel]}
+                style={[
+                  styles.button,
+                  styles.buttonCancel,
+                  { backgroundColor: colors.background + "40" },
+                ]}
                 onPress={() => {
                   setModalOpen(false);
                   setPlaylistName("");
                 }}
                 testID="cancel-button"
               >
-                <Text style={styles.textStyle}>Cancel</Text>
+                <Text style={[styles.textStyle, { color: colors.text }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.button, styles.buttonCreate]}
+                style={[
+                  styles.button,
+                  styles.buttonCreate,
+                  { backgroundColor: colors.primary },
+                ]}
                 onPress={handleCreatePlaylist}
                 disabled={isPending}
                 testID="create-button"

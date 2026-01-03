@@ -6,20 +6,23 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useUser } from "@/actions/getUser";
 import { memo } from "react";
 
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+
 function Header() {
   const router = useRouter();
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const { data: user } = useUser();
   const { session } = useAuth();
+  const { colors } = useThemeStore();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Image
         source={require("@/assets/images/logo.png")}
         style={styles.logo}
         contentFit="contain"
       />
-      <Text style={styles.title}>BadWave</Text>
+      <Text style={[styles.title, { color: colors.text }]}>BadWave</Text>
       {session ? (
         <TouchableOpacity
           onPress={() => router.push("/account" as any)}
@@ -35,7 +38,7 @@ function Header() {
       ) : (
         <TouchableOpacity
           onPress={() => setShowAuthModal(true)}
-          style={styles.loginButton}
+          style={[styles.loginButton, { backgroundColor: colors.primary }]}
         >
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
@@ -51,14 +54,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 30,
     paddingHorizontal: 15,
-    backgroundColor: "#000",
   },
   logo: {
     width: 40,
     height: 40,
   },
   title: {
-    color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -69,14 +70,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   loginButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: "#4c4c4c",
-    borderRadius: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   loginText: {
     color: "#fff",
     fontSize: 15,
+    fontWeight: "600",
   },
 });
 

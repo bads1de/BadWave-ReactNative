@@ -6,20 +6,23 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Header from "@/components/common/Header";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import PlayerContainer from "@/components/player/PlayerContainer";
 
-/**
- * @file _layout.tsx
- * @description タブベースのナビゲーションレイアウトを定義するコンポーネントです。
- *
- * このコンポーネントは、アプリケーションの主要な3つのタブ（ホーム、検索、ライブラリ）の
- * スタイル、アイコン、表示設定を構成します。
- * また、グローバルなヘッダーとプレイヤーUI (`PlayerContainer`) の表示/非表示を
- * 状態に応じて制御します。
- */
 export default function TabLayout() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const showHeader = useHeaderStore((state) => state.showHeader);
+  const { colors } = useThemeStore();
+
+  const getFocusedIconStyle = () => ({
+    textShadowColor: colors.glow,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
+    shadowColor: colors.glow,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 20,
+    shadowOpacity: 0.8,
+  });
 
   return (
     <>
@@ -27,20 +30,20 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           tabBarPosition: "bottom",
-          headerStyle: { backgroundColor: "#000" },
-          headerTintColor: "#fff",
-          headerTitleStyle: { color: "#fff" },
+          headerStyle: { backgroundColor: colors.background },
+          headerTintColor: colors.text,
+          headerTitleStyle: { color: colors.text },
           tabBarStyle: showPlayer
             ? { display: "none" }
             : {
-                backgroundColor: "#000",
+                backgroundColor: colors.background,
                 borderTopWidth: 0,
                 height: 60,
                 paddingBottom: 8,
                 paddingTop: 8,
               },
-          tabBarActiveTintColor: "#fff",
-          tabBarInactiveTintColor: "#666",
+          tabBarActiveTintColor: colors.activeTab,
+          tabBarInactiveTintColor: colors.subText,
           tabBarShowLabel: false,
           tabBarItemStyle: { borderRadius: 10 },
         }}
@@ -54,8 +57,8 @@ export default function TabLayout() {
                 <FontAwesome
                   name="home"
                   size={24}
-                  color={focused ? "#4c1d95" : "#666"}
-                  style={focused ? styles.focusedIcon : {}}
+                  color={focused ? colors.activeTab : colors.subText}
+                  style={focused ? getFocusedIconStyle() : {}}
                 />
               </View>
             ),
@@ -70,8 +73,8 @@ export default function TabLayout() {
                 <MaterialCommunityIcons
                   name="magnify"
                   size={24}
-                  color={focused ? "#4c1d95" : "#666"}
-                  style={focused ? styles.focusedIcon : {}}
+                  color={focused ? colors.activeTab : colors.subText}
+                  style={focused ? getFocusedIconStyle() : {}}
                 />
               </View>
             ),
@@ -86,8 +89,8 @@ export default function TabLayout() {
                 <MaterialCommunityIcons
                   name="movie-open-play"
                   size={24}
-                  color={focused ? "#4c1d95" : "#666"}
-                  style={focused ? styles.focusedIcon : {}}
+                  color={focused ? colors.activeTab : colors.subText}
+                  style={focused ? getFocusedIconStyle() : {}}
                 />
               </View>
             ),
@@ -109,8 +112,8 @@ export default function TabLayout() {
                 <MaterialCommunityIcons
                   name="bookshelf"
                   size={24}
-                  color={focused ? "#4c1d95" : "#666"}
-                  style={focused ? styles.focusedIcon : {}}
+                  color={focused ? colors.activeTab : colors.subText}
+                  style={focused ? getFocusedIconStyle() : {}}
                 />
               </View>
             ),
@@ -162,14 +165,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 50,
     height: 40,
-  },
-  focusedIcon: {
-    textShadowColor: "#4c1d95",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
-    shadowColor: "#6d28d9",
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 20,
-    shadowOpacity: 0.8,
   },
 });

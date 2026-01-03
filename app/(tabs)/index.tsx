@@ -15,6 +15,8 @@ import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
 
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+
 /**
  * @file index.tsx
  * @description アプリケーションのホーム画面コンポーネントです。
@@ -32,6 +34,7 @@ import HeroBoard from "@/components/board/HeroBoard";
  */
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
+  const { colors } = useThemeStore();
 
   // SQLite から楽曲を取得（Local-First）
   const { data: songs = [], isLoading, error } = useGetLocalSongs();
@@ -54,10 +57,10 @@ export default function HomeScreen() {
     (title: string, icon: React.ComponentProps<typeof Ionicons>["name"]) => (
       <View style={styles.sectionTitleContainer}>
         <LinearGradient
-          colors={["#4C1D95", "#7C3AED"]}
+          colors={[colors.accentFrom, colors.accentTo]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={styles.titleGradient}
+          style={[styles.titleGradient, { shadowColor: colors.glow }]}
         >
           <Ionicons
             name={icon}
@@ -67,23 +70,33 @@ export default function HomeScreen() {
           />
         </LinearGradient>
         <View style={styles.titleTextContainer}>
-          <Text style={styles.sectionTitle}>{title}</Text>
-          <View style={styles.titleUnderline} />
+          <Text
+            style={[
+              styles.sectionTitle,
+              { textShadowColor: colors.glow + "80" }, // 50% opacity
+            ]}
+          >
+            {title}
+          </Text>
+          <View
+            style={[
+              styles.titleUnderline,
+              { backgroundColor: colors.accentFrom },
+            ]}
+          />
         </View>
       </View>
     ),
-    []
+    [colors]
   );
 
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={["#000", "#050505"]}
-        style={styles.backgroundGradient}
-      />
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         contentContainerStyle={[styles.listWrapper, { paddingBottom: 96 }]}
         showsVerticalScrollIndicator={false}
@@ -93,21 +106,48 @@ export default function HomeScreen() {
         </View>
 
         {renderSectionTitle("Trends", "trending-up")}
-        <View style={styles.sectionContent}>
+        <View
+          style={[
+            styles.sectionContent,
+            {
+              backgroundColor: colors.card + "CC",
+              shadowColor: colors.glow,
+              borderColor: colors.glow + "1A",
+            },
+          ]}
+        >
           <View style={styles.trendSection}>
             <TrendBoard />
           </View>
         </View>
 
         {renderSectionTitle("For You", "heart")}
-        <View style={styles.sectionContent}>
+        <View
+          style={[
+            styles.sectionContent,
+            {
+              backgroundColor: colors.card + "CC",
+              shadowColor: colors.glow,
+              borderColor: colors.glow + "1A",
+            },
+          ]}
+        >
           <View style={styles.forYouSection}>
             <ForYouBoard />
           </View>
         </View>
 
         {renderSectionTitle("Playlists", "list")}
-        <View style={styles.sectionContent}>
+        <View
+          style={[
+            styles.sectionContent,
+            {
+              backgroundColor: colors.card + "CC",
+              shadowColor: colors.glow,
+              borderColor: colors.glow + "1A",
+            },
+          ]}
+        >
           <PlaylistBoard />
         </View>
 
@@ -115,7 +155,17 @@ export default function HomeScreen() {
         {isLoading ? (
           <Loading />
         ) : songs && songs.length > 0 ? (
-          <View style={[styles.sectionContent, styles.songsSection]}>
+          <View
+            style={[
+              styles.sectionContent,
+              styles.songsSection,
+              {
+                backgroundColor: colors.card + "CC",
+                shadowColor: colors.glow,
+                borderColor: colors.glow + "1A",
+              },
+            ]}
+          >
             <View style={styles.songsList}>
               <FlashList
                 data={songs}
@@ -141,13 +191,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#050505",
-  },
-  backgroundGradient: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
   },
   listWrapper: {
     padding: 16,
@@ -207,16 +250,14 @@ const styles = StyleSheet.create({
   },
   sectionContent: {
     marginBottom: 24,
-    backgroundColor: "rgba(20, 20, 20, 0.8)",
+    backgroundColor: "rgba(20, 20, 20, 0.8)", // デフォルト値、JSX側で上書き
     borderRadius: 16,
     padding: 16,
-    shadowColor: "#7C3AED",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 5,
     borderWidth: 1,
-    borderColor: "rgba(124, 58, 237, 0.1)",
   },
   horizontalScroll: {
     paddingVertical: 8,
@@ -273,4 +314,3 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 });
-

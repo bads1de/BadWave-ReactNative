@@ -21,6 +21,8 @@ import Error from "@/components/common/Error";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+
 interface TrendItemProps {
   song: Song;
   index: number;
@@ -34,6 +36,7 @@ const ITEM_WIDTH = width * 0.6;
 // TrendItemをメモ化
 const TrendItem = memo(
   ({ song, index, onPlay, isDisabled }: TrendItemProps) => {
+    const { colors } = useThemeStore();
     return (
       <TouchableOpacity
         style={[
@@ -55,7 +58,12 @@ const TrendItem = memo(
           />
         </ImageBackground>
         <BlurView intensity={20} style={styles.blurContainer}>
-          <View style={styles.rankContainer}>
+          <View
+            style={[
+              styles.rankContainer,
+              { backgroundColor: colors.activeTab },
+            ]}
+          >
             <Text style={styles.rankText}>#{index + 1}</Text>
           </View>
           <View style={styles.textContainer}>
@@ -75,7 +83,7 @@ const TrendItem = memo(
               <Ionicons
                 name="play-circle"
                 size={16}
-                color={isDisabled ? "#666" : "#fff"}
+                color={isDisabled ? "#666" : colors.primary}
               />
               <Text style={[styles.statsText, isDisabled && { color: "#666" }]}>
                 {Number(song.count).toLocaleString()}
@@ -99,6 +107,13 @@ const PeriodSelector = memo(
     period: "all" | "month" | "week" | "day";
     setPeriod: (period: "all" | "month" | "week" | "day") => void;
   }) => {
+    const { colors } = useThemeStore();
+
+    const activeButtonStyle = {
+      backgroundColor: colors.primary,
+      shadowColor: colors.primary,
+    };
+
     return (
       <View style={styles.periodSelector}>
         <ScrollView
@@ -109,7 +124,7 @@ const PeriodSelector = memo(
           <CustomButton
             label="All"
             isActive={period === "all"}
-            activeStyle={styles.periodButtonActive}
+            activeStyle={[styles.periodButtonActive, activeButtonStyle]}
             inactiveStyle={styles.periodButton}
             activeTextStyle={styles.periodButtonTextActive}
             inactiveTextStyle={styles.periodButtonText}
@@ -118,7 +133,7 @@ const PeriodSelector = memo(
           <CustomButton
             label="Month"
             isActive={period === "month"}
-            activeStyle={styles.periodButtonActive}
+            activeStyle={[styles.periodButtonActive, activeButtonStyle]}
             inactiveStyle={styles.periodButton}
             activeTextStyle={styles.periodButtonTextActive}
             inactiveTextStyle={styles.periodButtonText}
@@ -127,7 +142,7 @@ const PeriodSelector = memo(
           <CustomButton
             label="Week"
             isActive={period === "week"}
-            activeStyle={styles.periodButtonActive}
+            activeStyle={[styles.periodButtonActive, activeButtonStyle]}
             inactiveStyle={styles.periodButton}
             activeTextStyle={styles.periodButtonTextActive}
             inactiveTextStyle={styles.periodButtonText}
@@ -136,7 +151,7 @@ const PeriodSelector = memo(
           <CustomButton
             label="Day"
             isActive={period === "day"}
-            activeStyle={styles.periodButtonActive}
+            activeStyle={[styles.periodButtonActive, activeButtonStyle]}
             inactiveStyle={styles.periodButton}
             activeTextStyle={styles.periodButtonTextActive}
             inactiveTextStyle={styles.periodButtonText}
@@ -342,4 +357,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-

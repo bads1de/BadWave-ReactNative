@@ -17,6 +17,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useRouter } from "expo-router";
 import MarqueeText from "../common/MarqueeText";
 import { DownloadButton } from "../DownloadButton";
@@ -31,6 +32,7 @@ interface SongItemProps {
 function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const { colors } = useThemeStore();
 
   // ネットワーク状態監視
   const { isOnline } = useNetworkStatus();
@@ -101,6 +103,7 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
       style={[
         styles.containerWrapper,
         dynamicStyle,
+        { shadowColor: colors.glow },
         useAnimatedStyle(() => ({
           transform: [{ scale: scaleAnim.value }],
           opacity: opacityAnim.value,
@@ -109,7 +112,11 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
       ]}
     >
       <TouchableOpacity
-        style={[styles.container, isDisabled && { backgroundColor: "#000" }]} // 無効時は少し暗く
+        style={[
+          styles.container,
+          { borderColor: colors.glow + "33" }, // 20% opacity
+          isDisabled && { backgroundColor: "#000" },
+        ]} // 無効時は少し暗く
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -166,7 +173,7 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
           </View>
         </View>
         <LinearGradient
-          colors={["rgba(124, 58, 237, 0.1)", "rgba(124, 58, 237, 0.05)"]}
+          colors={[colors.accentFrom + "1A", colors.accentFrom + "0D"]}
           style={styles.cardGlow}
         />
       </TouchableOpacity>
