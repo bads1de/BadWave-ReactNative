@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useMemo, memo } from "react";
-import { View, TextInput, StyleSheet, SafeAreaView, Text } from "react-native";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -11,7 +18,6 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { CACHED_QUERIES } from "@/constants";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import CustomButton from "@/components/common/CustomButton";
 import { useRouter } from "expo-router";
 import { Playlist } from "@/types";
 import Song from "@/types";
@@ -28,6 +34,7 @@ function SearchScreen() {
   const router = useRouter();
   const { isOnline } = useNetworkStatus();
   const { colors } = useThemeStore();
+  const [isFocused, setIsFocused] = useState(false);
 
   const {
     data: searchSongs = [],
@@ -93,21 +100,45 @@ function SearchScreen() {
   // ListEmptyComponentをメモ化
   const songsEmptyComponent = useMemo(() => {
     return debouncedQuery.length === 0 ? (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="search" size={64} color="#666" />
-        <Text style={styles.emptyText}>Search for songs</Text>
+      <View style={[styles.emptyContainer, { opacity: 0.5 }]}>
+        <View
+          style={[
+            styles.iconCircle,
+            { backgroundColor: colors.card, shadowColor: colors.glow },
+          ]}
+        >
+          <Ionicons name="search" size={32} color={colors.primary} />
+        </View>
+        <Text style={[styles.emptyText, { color: colors.text }]}>
+          Search for songs
+        </Text>
+        <Text style={[styles.emptySubText, { color: colors.subText }]}>
+          Find your favorite tracks
+        </Text>
       </View>
     ) : null;
-  }, [debouncedQuery.length]);
+  }, [debouncedQuery.length, colors]);
 
   const playlistsEmptyComponent = useMemo(() => {
     return debouncedQuery.length === 0 ? (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="list" size={64} color="#666" />
-        <Text style={styles.emptyText}>Search for playlists</Text>
+      <View style={[styles.emptyContainer, { opacity: 0.5 }]}>
+        <View
+          style={[
+            styles.iconCircle,
+            { backgroundColor: colors.card, shadowColor: colors.glow },
+          ]}
+        >
+          <Ionicons name="albums-outline" size={32} color={colors.primary} />
+        </View>
+        <Text style={[styles.emptyText, { color: colors.text }]}>
+          Search for playlists
+        </Text>
+        <Text style={[styles.emptySubText, { color: colors.subText }]}>
+          Discover new collections
+        </Text>
       </View>
     ) : null;
-  }, [debouncedQuery.length]);
+  }, [debouncedQuery.length, colors]);
 
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
@@ -130,9 +161,11 @@ function SearchScreen() {
           </Text>
         </View>
         <View style={styles.emptyContainer}>
-          <Ionicons name="cloud-offline" size={64} color="#666" />
-          <Text style={styles.emptyText}>You are offline</Text>
-          <Text style={styles.emptySubText}>
+          <Ionicons name="cloud-offline" size={64} color={colors.subText} />
+          <Text style={[styles.emptyText, { color: colors.text }]}>
+            You are offline
+          </Text>
+          <Text style={[styles.emptySubText, { color: colors.subText }]}>
             Search is only available when online
           </Text>
         </View>
@@ -145,78 +178,129 @@ function SearchScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Search</Text>
+        <Text
+          style={[
+            styles.headerTitle,
+            {
+              color: colors.text,
+              textShadowColor: colors.glow,
+              textShadowRadius: 10,
+            },
+          ]}
+        >
+          Search
+        </Text>
       </View>
 
-      <View style={styles.searchContainer}>
+      <View style={styles.searchSection}>
         <View
           style={[
             styles.searchInputContainer,
-            { backgroundColor: colors.card },
+            {
+              backgroundColor: colors.card,
+              borderColor: isFocused ? colors.primary : "transparent",
+              borderWidth: 1,
+              shadowColor: isFocused ? colors.primary : "transparent",
+              shadowOpacity: isFocused ? 0.3 : 0,
+              shadowRadius: 8,
+            },
           ]}
         >
           <Ionicons
             name="search"
             size={20}
-            color="#666"
+            color={isFocused ? colors.primary : colors.subText}
             style={styles.searchIcon}
           />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search by song or playlist name..."
-            placeholderTextColor="#666"
+            placeholder="Search songs or playlists..."
+            placeholderTextColor={colors.subText}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
           />
           {searchQuery.length > 0 && (
-            <Ionicons
-              name="close-circle"
-              size={20}
-              color="#666"
-              style={styles.clearIcon}
-              onPress={() => setSearchQuery("")}
-            />
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={colors.subText}
+                style={styles.clearIcon}
+              />
+            </TouchableOpacity>
           )}
         </View>
 
-        <View style={styles.buttonContainer}>
-          <CustomButton
-            label="Songs"
-            isActive={searchType === "songs"}
-            activeStyle={[
-              styles.activeButton,
-              { backgroundColor: colors.primary },
-            ]}
-            inactiveStyle={[
-              styles.inactiveButton,
-              { backgroundColor: colors.card },
-            ]}
-            activeTextStyle={styles.activeButtonText}
-            inactiveTextStyle={styles.inactiveButtonText}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
             onPress={() => setSearchType("songs")}
-          />
-          <CustomButton
-            label="Playlists"
-            isActive={searchType === "playlists"}
-            activeStyle={[
-              styles.activeButton,
-              { backgroundColor: colors.primary },
+            style={[
+              styles.tabItem,
+              {
+                backgroundColor:
+                  searchType === "songs" ? colors.primary + "20" : colors.card,
+                borderColor:
+                  searchType === "songs" ? colors.primary : "transparent",
+              },
             ]}
-            inactiveStyle={[
-              styles.inactiveButton,
-              { backgroundColor: colors.card },
-            ]}
-            activeTextStyle={styles.activeButtonText}
-            inactiveTextStyle={styles.inactiveButtonText}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    searchType === "songs" ? colors.primary : colors.subText,
+                },
+              ]}
+            >
+              Songs
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => setSearchType("playlists")}
-          />
+            style={[
+              styles.tabItem,
+              {
+                backgroundColor:
+                  searchType === "playlists"
+                    ? colors.primary + "20"
+                    : colors.card,
+                borderColor:
+                  searchType === "playlists" ? colors.primary : "transparent",
+              },
+            ]}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    searchType === "playlists"
+                      ? colors.primary
+                      : colors.subText,
+                },
+              ]}
+            >
+              Playlists
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       {showEmptyState ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="search-outline" size={64} color="#666" />
-          <Text style={styles.emptyText}>No results found</Text>
+          <Ionicons name="search-outline" size={64} color={colors.subText} />
+          <Text style={[styles.emptyText, { color: colors.text }]}>
+            No results found
+          </Text>
+          <Text style={[styles.emptySubText, { color: colors.subText }]}>
+            Try adjusting your search terms
+          </Text>
         </View>
       ) : (
         <>
@@ -227,7 +311,7 @@ function SearchScreen() {
               keyExtractor={keyExtractor}
               renderItem={renderSongItem}
               contentContainerStyle={styles.listContainer}
-              estimatedItemSize={100}
+              estimatedItemSize={70}
               ListEmptyComponent={songsEmptyComponent}
             />
           ) : (
@@ -241,7 +325,7 @@ function SearchScreen() {
                 ...styles.playlistContainer,
               }}
               numColumns={2}
-              estimatedItemSize={200}
+              estimatedItemSize={210}
               ListEmptyComponent={playlistsEmptyComponent}
             />
           )}
@@ -254,65 +338,55 @@ function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
   headerTitle: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
-  searchContainer: {
+  searchSection: {
     paddingHorizontal: 16,
     marginBottom: 8,
   },
   searchInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#111",
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 50,
     marginBottom: 16,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 12,
   },
   clearIcon: {
     marginLeft: 8,
   },
   searchInput: {
     flex: 1,
-    color: "#fff",
-    padding: 12,
     fontSize: 16,
+    height: "100%",
   },
-  buttonContainer: {
+  tabContainer: {
     flexDirection: "row",
-    marginBottom: 16,
     gap: 12,
+    marginBottom: 8,
   },
-  activeButton: {
-    backgroundColor: "#4c1d95",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
+  tabItem: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
   },
-  inactiveButton: {
-    backgroundColor: "#222",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-  },
-  activeButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-  },
-  inactiveButtonText: {
-    color: "#999",
+  tabText: {
+    fontSize: 14,
     fontWeight: "600",
   },
   listContainer: {
@@ -326,17 +400,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingTop: 100,
+    paddingTop: 60,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   emptyText: {
-    color: "#666",
-    fontSize: 16,
-    marginTop: 16,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
   },
   emptySubText: {
-    color: "#444",
     fontSize: 14,
-    marginTop: 8,
+    marginBottom: 8,
   },
 });
 

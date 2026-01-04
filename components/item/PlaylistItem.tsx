@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useRef, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,14 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { Playlist } from "@/types";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 interface PlaylistItemProps {
   playlist: Playlist;
@@ -18,132 +25,176 @@ interface PlaylistItemProps {
 
 function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
   const { width } = useWindowDimensions();
-  const itemWidth = (width - 48) / 2.2;
-  const dynamicStyles = { width: itemWidth, height: itemWidth * 1.2 };
+  const { colors } = useThemeStore();
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  // カラム数2で計算 (パディングなどを考慮)
+  const itemWidth = (width - 48) / 2;
+  const itemHeight = itemWidth * 1.3; // アスペクト比調整
+
+  // Animations
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    // 画像ロード完了後、または初回レンダリング時にフェードイン
+    if (isImageLoaded && isFirstRender.current) {
+      opacity.value = withTiming(1, { duration: 500 });
+      isFirstRender.current = false;
+    }
+  }, [isImageLoaded, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, { damping: 10, stiffness: 100 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 10, stiffness: 100 });
+  };
 
   return (
-    <TouchableOpacity
-      style={[styles.container, dynamicStyles]}
-      onPress={() => onPress(playlist)}
-      activeOpacity={0.7}
-      testID={testID}
+    <Animated.View
+      style={[styles.wrapper, animatedStyle, { width: itemWidth }]}
     >
-      {/* 装飾的な背景カード */}
-      <View style={styles.decorativeCard1} />
-      <View style={styles.decorativeCard2} />
+      <TouchableOpacity
+        style={[
+          styles.container,
+          {
+            height: itemHeight,
+            backgroundColor: colors.card,
+            borderColor: colors.glow + "33", // 20% opacity
+            shadowColor: colors.glow,
+          },
+        ]}
+        onPress={() => onPress(playlist)}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1} // Reanimatedで制御するため1に設定
+        testID={testID}
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: playlist.image_path }}
+            style={styles.image}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            onLoad={() => setIsImageLoaded(true)}
+            transition={300}
+          />
+          {!isImageLoaded && (
+            <View
+              style={[styles.placeholder, { backgroundColor: colors.border }]}
+            />
+          )}
 
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: playlist.image_path }}
-          style={styles.image}
-          contentFit="cover"
-          cachePolicy="memory-disk"
-        />
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.9)"]}
-          style={styles.gradient}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-        />
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.6)", "rgba(0,0,0,0.95)"]}
+            locations={[0.5, 0.8, 1]}
+            style={styles.gradient}
+          />
 
-        <LinearGradient
-          colors={["#fc00ff", "#00dbde"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.neonGradient}
-        />
+          {/* カード下部のアクセント光沢 */}
+          <LinearGradient
+            colors={[colors.accentFrom + "00", colors.accentFrom + "66"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.bottomGlow}
+          />
+        </View>
 
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={2}>
+          <Text
+            style={[styles.title, { textShadowColor: colors.glow }]}
+            numberOfLines={2}
+          >
             {playlist.title}
           </Text>
+          <View style={styles.authorContainer}>
+            <Text
+              style={[styles.author, { color: colors.subText }]}
+              numberOfLines={1}
+            >
+              Playlist
+            </Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     margin: 8,
-    position: "relative",
+  },
+  container: {
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   imageContainer: {
     flex: 1,
     position: "relative",
-    zIndex: 1,
-    borderRadius: 15,
-    overflow: "hidden",
-    backgroundColor: "#1a1a1a",
   },
   image: {
     width: "100%",
     height: "100%",
-    borderRadius: 15,
+  },
+  placeholder: {
+    ...StyleSheet.absoluteFillObject,
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
   },
-  neonGradient: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.3,
+  bottomGlow: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 40,
+    zIndex: 1,
   },
   content: {
     position: "absolute",
-    bottom: 12,
-    left: 12,
-    right: 12,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
+    zIndex: 3,
   },
   title: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
     marginBottom: 4,
-    textShadowColor: "rgba(255, 255, 255, 0.5)",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 5,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+    lineHeight: 20,
   },
-  statsContainer: {
+  authorContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-  statsText: {
-    color: "#fff",
-    fontSize: 12,
-    marginLeft: 4,
+  author: {
+    fontSize: 11,
+    fontWeight: "500",
     opacity: 0.8,
-  },
-  decorativeCard1: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(252, 0, 255, 0.1)",
-    borderRadius: 15,
-    transform: [
-      { rotate: "5deg" },
-      { scale: 0.98 },
-      { translateX: 8 },
-      { translateY: 2 },
-    ],
-  },
-  decorativeCard2: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0, 219, 222, 0.1)",
-    borderRadius: 15,
-    transform: [
-      { rotate: "-7deg" },
-      { scale: 0.96 },
-      { translateX: -4 },
-      { translateY: 4 },
-    ],
   },
 });
 
 // メモ化してエクスポート
 export default memo(PlaylistItem, (prevProps, nextProps) => {
-  // プレイリストの主要なプロパティ、onPress、testIDを比較
   return (
     prevProps.playlist.id === nextProps.playlist.id &&
     prevProps.playlist.title === nextProps.playlist.title &&
