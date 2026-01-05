@@ -42,8 +42,6 @@ function PlayerContainer() {
     seekTo,
     setRepeat,
     setShuffle,
-    progressPosition,
-    progressDuration,
   } = useAudioPlayer();
 
   // メインプレイヤーが表示されない条件
@@ -66,8 +64,6 @@ function PlayerContainer() {
               <Player
                 isPlaying={isPlaying}
                 currentSong={currentSong}
-                position={progressPosition}
-                duration={progressDuration}
                 onPlayPause={() => togglePlayPause()}
                 onNext={playNextSong}
                 onPrev={playPrevSong}

@@ -4,7 +4,6 @@ import TrackPlayer, {
   usePlaybackState,
   RepeatMode,
   useActiveTrack,
-  useProgress,
 } from "react-native-track-player";
 import Song from "@/types";
 import useOnPlay from "@/hooks/useOnPlay";
@@ -30,8 +29,6 @@ import {
  *   isPlaying: boolean,
  *   repeatMode: RepeatMode,
  *   shuffle: boolean,
- *   progressPosition: number,
- *   progressDuration: number,
  *   togglePlayPause: (song?: Song, contextId?: string, contextType?: PlayContextType) => Promise<boolean | undefined>,
  *   seekTo: (millis: number) => Promise<boolean | undefined>,
  *   playNextSong: () => Promise<boolean | undefined>,
@@ -43,8 +40,6 @@ import {
  *   - `isPlaying`: 現在再生中かどうかを示す真偽値。
  *   - `repeatMode`: 現在のリピートモード (`Off`, `Track`, `Queue`)。
  *   - `shuffle`: 現在シャッフルモードが有効かどうかを示す真偽値。
- *   - `progressPosition`: 現在の再生位置（ミリ秒）。
- *   - `progressDuration`: 現在の曲の総再生時間（ミリ秒）。
  *   - `togglePlayPause`: 曲の再生・一時停止を切り替えます。
  *   - `seekTo`: 指定した再生位置に移動します。
  *   - `playNextSong`: キューの次の曲を再生します。
@@ -70,7 +65,6 @@ export function useAudioPlayer(
 
   // 複合アクションを取得
   const { updateCurrentSongAndState } = useAudioActions();
-  const { position, duration } = useProgress(200);
 
   const isMounted = useRef(true);
   const activeTrack = useActiveTrack();
@@ -81,10 +75,6 @@ export function useAudioPlayer(
     () => playbackState.state === State.Playing,
     [playbackState.state]
   );
-
-  // 進捗情報を計算（秒からミリ秒に変換）
-  const progressPosition = position * 1000;
-  const progressDuration = duration * 1000;
 
   // コンポーネントのアンマウント時の処理
   useEffect(() => {
@@ -270,8 +260,6 @@ export function useAudioPlayer(
       isPlaying,
       repeatMode,
       shuffle,
-      progressPosition,
-      progressDuration,
       togglePlayPause,
       seekTo,
       playNextSong,
@@ -284,8 +272,6 @@ export function useAudioPlayer(
       isPlaying,
       repeatMode,
       shuffle,
-      progressPosition,
-      progressDuration,
       togglePlayPause,
       seekTo,
       playNextSong,

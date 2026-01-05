@@ -10,11 +10,9 @@ import {
 } from "react-native";
 import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
 import { VideoView, useVideoPlayer } from "expo-video";
 import Song from "@/types";
-import { formatTime } from "@/lib/utils";
 import { RepeatMode } from "react-native-track-player";
 import MarqueeText from "../common/MarqueeText";
 import AddPlaylist from "../playlist/AddPlaylist";
@@ -24,6 +22,7 @@ import NextSong from "./NextSong";
 import TopPlayedSongsList from "../item/TopPlayedSongsList";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { ThemeDefinition } from "@/constants/ThemeColors";
+import PlayerProgress from "./PlayerProgress";
 
 /**
  * @fileoverview 音楽プレーヤーのUIコンポーネント
@@ -38,10 +37,6 @@ interface PlayerProps {
   isPlaying: boolean;
   /** 現在の楽曲情報 */
   currentSong: Song;
-  /** 再生位置 (ミリ秒) */
-  position: number;
-  /** 楽曲の長さ (ミリ秒) */
-  duration: number;
   /** 再生/一時停止の切り替えハンドラ */
   onPlayPause: () => void;
   /** 次の曲への遷移ハンドラ */
@@ -69,16 +64,6 @@ interface PlayerProps {
  */
 interface SongInfoProps {
   currentSong: Song;
-}
-
-/**
- * 進捗バー (Slider) 部分のプロパティ
- */
-interface ProgressProps {
-  position: number;
-  duration: number;
-  onSeek: (millis: number) => void;
-  colors: ThemeDefinition["colors"];
 }
 
 /**
@@ -146,33 +131,6 @@ const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => (
   </View>
 ));
 SongInfo.displayName = "SongInfo";
-
-const Progress: FC<ProgressProps> = memo(
-  ({ position, duration, onSeek, colors }) => (
-    <>
-      <Slider
-        style={styles.slider}
-        minimumValue={0}
-        maximumValue={duration}
-        value={position}
-        onSlidingComplete={onSeek}
-        minimumTrackTintColor={colors.primary}
-        maximumTrackTintColor={colors.subText}
-        thumbTintColor={colors.primary}
-        testID="seek-slider"
-      />
-      <View style={styles.timeContainer}>
-        <Text style={[styles.timeText, { color: colors.subText }]}>
-          {formatTime(position)}
-        </Text>
-        <Text style={[styles.timeText, { color: colors.subText }]}>
-          {formatTime(duration)}
-        </Text>
-      </View>
-    </>
-  )
-);
-Progress.displayName = "Progress";
 
 const Controls: FC<ControlsProps> = memo(
   ({
@@ -331,8 +289,6 @@ const PlayerControls: FC<PlayerProps & { colors: ThemeDefinition["colors"] }> =
   memo(
     ({
       isPlaying,
-      position,
-      duration,
       onPlayPause,
       onNext,
       onPrev,
@@ -346,12 +302,7 @@ const PlayerControls: FC<PlayerProps & { colors: ThemeDefinition["colors"] }> =
     }) => (
       <>
         <SongInfo currentSong={currentSong} />
-        <Progress
-          position={position}
-          duration={duration}
-          onSeek={onSeek}
-          colors={colors}
-        />
+        <PlayerProgress onSeek={onSeek} />
         <Controls
           isPlaying={isPlaying}
           onPlayPause={onPlayPause}
@@ -370,7 +321,7 @@ PlayerControls.displayName = "PlayerControls";
 
 function Player(props: PlayerProps) {
   const { currentSong, onClose, shuffle, repeatMode } = props;
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   return (
     <ScrollView
@@ -416,8 +367,6 @@ const MemoizedPlayer = memo(Player, (prevProps, nextProps) => {
   return (
     prevProps.currentSong.id === nextProps.currentSong.id &&
     prevProps.isPlaying === nextProps.isPlaying &&
-    prevProps.position === nextProps.position &&
-    prevProps.duration === nextProps.duration &&
     prevProps.repeatMode === nextProps.repeatMode &&
     prevProps.shuffle === nextProps.shuffle
   );

@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -104,6 +104,12 @@ function TopPlayedSongsList() {
   const { isOnline } = useNetworkStatus();
   const { songs: downloadedSongs } = useDownloadedSongs();
 
+  // ダウンロード済み曲のIDセットを作成（O(1)検索用）
+  const downloadedSongIds = useMemo(
+    () => new Set(downloadedSongs.map((d) => d.id)),
+    [downloadedSongs]
+  );
+
   const { data: topSongs = [] } = useQuery({
     queryKey: [CACHED_QUERIES.topPlayedSongs, userId],
     queryFn: () => getTopPlayedSongs(userId),
@@ -150,11 +156,9 @@ function TopPlayedSongsList() {
           </View>
           <View style={styles.songsContainer}>
             {topSongs.slice(0, 3).map((song, index) => {
-              // ダウンロード済みかチェック
-              // topSongsにはlocal_song_pathがないので、downloadedSongsリストと照合
-              const isDownloaded = downloadedSongs.some(
-                (d) => d.id === song.id
-              );
+              // ダウンロード済みかチェック（Setを使用してO(1)で検索）
+              // topSongsにはlocal_song_pathがないので、downloadedSongIdsと照合
+              const isDownloaded = downloadedSongIds.has(song.id);
               const isDisabled = !isOnline && !isDownloaded;
 
               return (

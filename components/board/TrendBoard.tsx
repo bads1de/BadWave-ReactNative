@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -170,6 +170,12 @@ function TrendBoard() {
   const { isOnline } = useNetworkStatus();
   const { songs: downloadedSongs } = useDownloadedSongs();
 
+  // ダウンロード済み曲のIDセットを作成（O(1)検索用）
+  const downloadedSongIds = useMemo(
+    () => new Set(downloadedSongs.map((d) => d.id)),
+    [downloadedSongs]
+  );
+
   // SQLite から取得（Local-First）
   const { data: trends = [], isLoading, error } = useGetLocalTrendSongs(period);
 
@@ -185,6 +191,23 @@ function TrendBoard() {
 
   // キー抽出関数をメモ化
   const keyExtractor = useCallback((item: Song) => item.id, []);
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: Song; index: number }) => {
+      // ダウンロード済みかチェック（Setを使用してO(1)で検索）
+      const isDownloaded = downloadedSongIds.has(item.id);
+      const isDisabled = !isOnline && !isDownloaded;
+      return (
+        <TrendItem
+          song={item}
+          index={index}
+          onPlay={onPlay}
+          isDisabled={isDisabled}
+        />
+      );
+    },
+    [downloadedSongIds, isOnline, onPlay]
+  );
 
   if (isLoading) return <Loading />;
 
@@ -206,19 +229,7 @@ function TrendBoard() {
           data={trends}
           horizontal
           keyExtractor={keyExtractor}
-          renderItem={({ item, index }) => {
-            // ダウンロード済みかチェック
-            const isDownloaded = downloadedSongs.some((d) => d.id === item.id);
-            const isDisabled = !isOnline && !isDownloaded;
-            return (
-              <TrendItem
-                song={item}
-                index={index}
-                onPlay={onPlay}
-                isDisabled={isDisabled}
-              />
-            );
-          }}
+          renderItem={renderItem}
           showsHorizontalScrollIndicator={false}
           snapToInterval={ITEM_WIDTH + 16}
           decelerationRate="fast"

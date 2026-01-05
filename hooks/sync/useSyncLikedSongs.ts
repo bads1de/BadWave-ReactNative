@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { eq, and, notInArray } from "drizzle-orm";
+import { eq, and, notInArray, sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { likedSongs } from "@/lib/db/schema";
@@ -46,19 +46,21 @@ export function useSyncLikedSongs(userId?: string) {
 
       // トランザクション内で安全に同期
       await db.transaction(async (tx) => {
-        // 1. リモートデータをUpsert（挿入または更新）
-        for (const like of remoteLikes) {
+        // 1. リモートデータをUpsert (Batch)
+        const valuesToInsert = remoteLikes.map((like) => ({
+          userId,
+          songId: like.song_id,
+          likedAt: like.created_at ?? new Date().toISOString(),
+        }));
+
+        if (valuesToInsert.length > 0) {
           await tx
             .insert(likedSongs)
-            .values({
-              userId,
-              songId: like.song_id,
-              likedAt: like.created_at ?? new Date().toISOString(),
-            })
+            .values(valuesToInsert)
             .onConflictDoUpdate({
               target: [likedSongs.userId, likedSongs.songId],
               set: {
-                likedAt: like.created_at ?? new Date().toISOString(),
+                likedAt: sql`excluded.liked_at`,
               },
             });
         }

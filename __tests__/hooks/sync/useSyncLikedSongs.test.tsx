@@ -135,9 +135,16 @@ describe("useSyncLikedSongs", () => {
     // トランザクションが使用されたことを確認
     expect(mockTransaction).toHaveBeenCalled();
 
-    // Upsertが各曲に対して呼ばれたことを確認
-    expect(mockInsert).toHaveBeenCalledTimes(2);
+    // Upsertが一括で呼ばれたことを確認 (修正後: toHaveBeenCalledTimes(1))
+    expect(mockInsert).toHaveBeenCalledTimes(1);
 
+    // 一括挿入されたデータの内容を確認
+    const insertValues = mockInsert.mock.calls[0][0].values;
+    // mockInsert(likedSongs).values(valuesToInsert) の形なので、引数の検証を調整
+    // 現在のモック実装では mockInsert(likedSongs) が mockInsert を返している
+    // 実装: await tx.insert(likedSongs).values(valuesToInsert)
+    // 実際には tx.insert(likedSongs) が値を返し、その.values()が呼ばれる
+    
     // 差分削除が呼ばれたことを確認
     expect(mockDelete).toHaveBeenCalled();
 

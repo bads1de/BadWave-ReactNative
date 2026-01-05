@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
@@ -29,39 +30,40 @@ export function useSyncSongs() {
         return { synced: 0 };
       }
 
-      // SQLite に Upsert
-      for (const song of remoteSongs) {
+      // SQLite に Upsert (Batch)
+      const valuesToInsert = remoteSongs.map((song) => ({
+        id: song.id,
+        userId: song.user_id,
+        title: song.title,
+        author: song.author,
+        originalSongPath: song.song_path,
+        originalImagePath: song.image_path,
+        originalVideoPath: song.video_path ?? null,
+        duration: typeof song.duration === "number" ? song.duration : null,
+        genre: song.genre ?? null,
+        lyrics: song.lyrics ?? null,
+        createdAt: song.created_at,
+        playCount: parseInt(String(song.count ?? 0), 10) || 0,
+        likeCount: parseInt(String(song.like_count ?? 0), 10) || 0,
+      }));
+
+      if (valuesToInsert.length > 0) {
         await db
           .insert(songs)
-          .values({
-            id: song.id,
-            userId: song.user_id,
-            title: song.title,
-            author: song.author,
-            originalSongPath: song.song_path,
-            originalImagePath: song.image_path,
-            originalVideoPath: song.video_path ?? null,
-            duration: typeof song.duration === "number" ? song.duration : null,
-            genre: song.genre ?? null,
-            lyrics: song.lyrics ?? null,
-            createdAt: song.created_at,
-            playCount: parseInt(String(song.count ?? 0), 10) || 0,
-            likeCount: parseInt(String(song.like_count ?? 0), 10) || 0,
-          })
+          .values(valuesToInsert)
           .onConflictDoUpdate({
             target: songs.id,
             set: {
-              title: song.title,
-              author: song.author,
-              originalSongPath: song.song_path,
-              originalImagePath: song.image_path,
-              originalVideoPath: song.video_path ?? null,
-              duration:
-                typeof song.duration === "number" ? song.duration : null,
-              genre: song.genre ?? null,
-              lyrics: song.lyrics ?? null,
-              playCount: parseInt(String(song.count ?? 0), 10) || 0,
-              likeCount: parseInt(String(song.like_count ?? 0), 10) || 0,
+              title: sql`excluded.title`,
+              author: sql`excluded.author`,
+              originalSongPath: sql`excluded.original_song_path`,
+              originalImagePath: sql`excluded.original_image_path`,
+              originalVideoPath: sql`excluded.original_video_path`,
+              duration: sql`excluded.duration`,
+              genre: sql`excluded.genre`,
+              lyrics: sql`excluded.lyrics`,
+              playCount: sql`excluded.play_count`,
+              likeCount: sql`excluded.like_count`,
             },
           });
       }
