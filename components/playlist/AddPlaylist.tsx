@@ -19,6 +19,7 @@ import Animated, {
   Extrapolation,
 } from "react-native-reanimated";
 import { useAuth } from "@/providers/AuthProvider";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -38,12 +39,20 @@ interface AddPlaylistProps {
 
 const DEFAULT_PLAYLISTS: Playlist[] = [];
 
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 function AddPlaylist({
   songId,
   children,
   currentPlaylistId,
 }: AddPlaylistProps) {
   const queryClient = useQueryClient();
+  const { colors } = useThemeStore();
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
   const [modalOpen, setModalOpen] = useState(false);
@@ -243,7 +252,9 @@ function AddPlaylist({
         {children || (
           <LinearGradient
             colors={
-              isDisabled ? ["#3d3d3d", "#2d2d2d"] : ["#8b5cf6", "#4c1d95"]
+              isDisabled
+                ? ["#3d3d3d", "#2d2d2d"]
+                : [colors.primary, colors.primaryDark]
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -309,8 +320,11 @@ function AddPlaylist({
                         key={playlist.id}
                         style={[
                           styles.playlistItem,
-                          displayStatus[playlist.id] &&
-                            styles.addedPlaylistItem,
+                          displayStatus[playlist.id] && {
+                            backgroundColor: hexToRgba(colors.primary, 0.1),
+                            borderWidth: 1,
+                            borderColor: hexToRgba(colors.primary, 0.2),
+                          },
                           index === playlists.length - 1 &&
                             styles.lastPlaylistItem,
                         ]}
@@ -322,7 +336,7 @@ function AddPlaylist({
                         <View style={styles.checkboxContainer}>
                           {displayStatus[playlist.id] ? (
                             <LinearGradient
-                              colors={["#8b5cf6", "#4c1d95"]}
+                              colors={[colors.primary, colors.primaryDark]}
                               style={styles.checkboxGradient}
                             >
                               <Ionicons
@@ -340,14 +354,23 @@ function AddPlaylist({
                         <Text
                           style={[
                             styles.playlistName,
-                            displayStatus[playlist.id] &&
-                              styles.addedPlaylistName,
+                            displayStatus[playlist.id] && {
+                              color: colors.primary,
+                              fontWeight: "600",
+                            },
                           ]}
                         >
                           {playlist.title}
                         </Text>
                         {displayStatus[playlist.id] && (
-                          <Text style={styles.addedText}>追加済み</Text>
+                          <Text
+                            style={[
+                              styles.addedText,
+                              { color: hexToRgba(colors.primary, 0.8) },
+                            ]}
+                          >
+                            追加済み
+                          </Text>
                         )}
                       </TouchableOpacity>
                     ))}
