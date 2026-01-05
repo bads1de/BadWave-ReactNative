@@ -70,7 +70,7 @@ export function useAudioPlayer(
 
   // 複合アクションを取得
   const { updateCurrentSongAndState } = useAudioActions();
-  const { position, duration } = useProgress();
+  const { position, duration } = useProgress(200);
 
   const isMounted = useRef(true);
   const activeTrack = useActiveTrack();

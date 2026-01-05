@@ -59,7 +59,7 @@ function SearchScreen() {
   const audioPlayer = useAudioPlayer(searchSongs, "search");
 
   // 曲の再生/一時停止を切り替えるハンドラをメモ化
-  const togglePlayPause = useCallback(
+  const handleSongPress = useCallback(
     async (song: Song) => {
       await audioPlayer.togglePlayPause(song);
     },
@@ -81,9 +81,9 @@ function SearchScreen() {
   // FlatListのrenderItem関数をメモ化
   const renderSongItem = useCallback(
     ({ item }: { item: Song }) => (
-      <ListItem song={item} onPress={togglePlayPause} />
+      <ListItem song={item} onPress={handleSongPress} />
     ),
-    [togglePlayPause]
+    [handleSongPress]
   );
 
   // プレイリストのrenderItem関数をメモ化

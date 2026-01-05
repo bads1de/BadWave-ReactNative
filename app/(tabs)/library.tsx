@@ -64,6 +64,17 @@ export default function LibraryScreen() {
     type === "liked" ? "liked" : "playlist"
   );
 
+  // 曲をクリックしたときのハンドラをメモ化
+  const handleSongPress = useCallback(
+    async (songId: string) => {
+      const song = likedSongs.find((s) => s.id === songId);
+      if (song) {
+        await togglePlayPause(song);
+      }
+    },
+    [likedSongs, togglePlayPause]
+  );
+
   // プレイリストをクリックしたときのハンドラをメモ化
   const handlePlaylistPress = useCallback(
     (playlist: Playlist) => {
@@ -84,12 +95,12 @@ export default function LibraryScreen() {
         <SongItem
           key={item.id}
           song={item}
-          onClick={async () => await togglePlayPause(item)}
+          onClick={handleSongPress}
           dynamicSize={true}
         />
       );
     },
-    [togglePlayPause]
+    [handleSongPress]
   );
 
   // プレイリストのrenderItem関数をメモ化

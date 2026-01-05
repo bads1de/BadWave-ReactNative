@@ -70,15 +70,15 @@ export default function ReelsList({
       keyExtractor={(item) => item.id}
       pagingEnabled
       showsVerticalScrollIndicator={false}
-      snapToInterval={height} // 画面全体の高さでスナップ
+      snapToInterval={height}
       snapToAlignment="start"
       decelerationRate="fast"
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       getItemLayout={getItemLayout}
-      windowSize={3} // Optimize memory
+      windowSize={3}
       removeClippedSubviews={true}
-      initialNumToRender={10}
+      initialNumToRender={5}
       maxToRenderPerBatch={2}
     />
   );

@@ -64,10 +64,10 @@ export default function PlaylistDetailScreen() {
 
   // 曲削除ハンドラ（オフラインガード付き）
   const handleDeleteSong = useCallback(
-    (songId: string) => {
+    (song: Song) => {
       const action = async () => {
         try {
-          await removeSong.mutateAsync({ songId, playlistId });
+          await removeSong.mutateAsync({ songId: song.id, playlistId });
           Toast.show({
             type: "success",
             text1: "曲を削除しました",
@@ -94,23 +94,31 @@ export default function PlaylistDetailScreen() {
     playlistId
   );
 
+  // 曲をクリックしたときのハンドラをメモ化
+  const handleSongPress = useCallback(
+    async (song: Song) => {
+      await togglePlayPause(song);
+    },
+    [togglePlayPause]
+  );
+
   const renderSongs = useCallback(
     ({ item }: { item: Song }) => (
       <ListItem
         song={item}
-        onPress={async () => await togglePlayPause(item)}
+        onPress={handleSongPress}
         imageSize="medium"
         showStats={true}
         onDelete={
           session?.user.id === playlist?.user_id
-            ? () => handleDeleteSong(item.id)
+            ? handleDeleteSong
             : undefined
         }
         currentPlaylistId={playlistId}
       />
     ),
     [
-      togglePlayPause,
+      handleSongPress,
       session?.user.id,
       playlist?.user_id,
       handleDeleteSong,

@@ -41,16 +41,27 @@ export default function HomeScreen() {
 
   const { togglePlayPause, currentSong } = useAudioPlayer(songs, "home");
 
+  // 曲をクリックしたときのハンドラをメモ化
+  const handleSongPress = useCallback(
+    async (songId: string) => {
+      const song = songs.find((s) => s.id === songId);
+      if (song) {
+        await togglePlayPause(song);
+      }
+    },
+    [songs, togglePlayPause]
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (
       <SongItem
         song={item}
         key={item.id}
-        onClick={async () => await togglePlayPause(item)}
+        onClick={handleSongPress}
         dynamicSize={false}
       />
     ),
-    [togglePlayPause]
+    [handleSongPress]
   );
 
   const renderSectionTitle = useCallback(

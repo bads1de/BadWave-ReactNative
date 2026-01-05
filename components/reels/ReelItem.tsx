@@ -1,14 +1,6 @@
 import React, { memo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { VideoView } from "expo-video";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { Spotlight } from "@/types";
 import { useReelsPlayer } from "@/hooks/useReelsPlayer";
 
@@ -32,24 +24,14 @@ function ReelItem({ item, isVisible, onFinish }: ReelItemProps) {
         nativeControls={false}
       />
 
-      <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.8)"]}
-        style={styles.overlay}
-      >
+      <View style={styles.overlay}>
         <View style={styles.contentContainer}>
           <View style={styles.infoContainer}>
             <Text style={styles.artist}>{item.author}</Text>
             <Text style={styles.title}>{item.title}</Text>
           </View>
-
-          <View style={styles.actionsContainer}>
-            <ActionButton icon="heart-outline" label="Like" />
-            <ActionButton icon="chatbubble-outline" label="Comment" />
-            <ActionButton icon="share-social-outline" label="Share" />
-            <ActionButton icon="ellipsis-horizontal" label="More" />
-          </View>
         </View>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -61,21 +43,6 @@ export default memo(ReelItem, (prevProps, nextProps) => {
     prevProps.isVisible === nextProps.isVisible
   );
 });
-
-const ActionButton = memo(
-  ({
-    icon,
-    label,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    label: string;
-  }) => (
-    <TouchableOpacity style={styles.actionButton} disabled={true}>
-      <Ionicons name={icon} size={30} color="#fff" style={{ opacity: 0.6 }} />
-      <Text style={styles.actionLabel}>{label}</Text>
-    </TouchableOpacity>
-  )
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -94,7 +61,8 @@ const styles = StyleSheet.create({
     right: 0,
     paddingBottom: 80, // Adjust for tab bar
     paddingHorizontal: 16,
-    paddingTop: 100,
+    paddingTop: 20,
+    backgroundColor: "rgba(0,0,0,0.3)", // 軽量化のために半透明背景に変更
   },
   contentContainer: {
     flexDirection: "row",
@@ -106,27 +74,22 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   artist: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "#e0e0e0",
+    fontSize: 20,
+    fontWeight: "600",
     marginBottom: 8,
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   title: {
     color: "#fff",
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  actionsContainer: {
-    alignItems: "center",
-  },
-  actionButton: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  actionLabel: {
-    color: "#fff",
-    fontSize: 12,
-    marginTop: 4,
-    opacity: 0.6,
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 24,
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+    letterSpacing: 0.5,
   },
 });

@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,7 +11,7 @@ interface ListItemProps {
   onPress: (song: Song) => void;
   showStats?: boolean;
   imageSize?: "small" | "medium" | "large";
-  onDelete?: () => void;
+  onDelete?: (song: Song) => void;
   testID?: string;
   currentPlaylistId?: string;
 }
@@ -35,6 +35,12 @@ function ListItem({
         return 70;
     }
   };
+
+  const handleDelete = useCallback(() => {
+    if (onDelete) {
+      onDelete(song);
+    }
+  }, [onDelete, song]);
 
   return (
     <TouchableOpacity
@@ -92,7 +98,7 @@ function ListItem({
       </View>
       <ListItemOptionsMenu
         song={song}
-        onDelete={onDelete}
+        onDelete={handleDelete}
         currentPlaylistId={currentPlaylistId}
       />
     </TouchableOpacity>
