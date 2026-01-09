@@ -9,35 +9,31 @@ import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, LIKE_ERRORS } from "@/constants/errorMessages";
 
 /**
- * いいねカウント更新のヘルパー関数（Supabase用）
- * リトライ機能付きでSupabaseとローカルDBの両方を更新
+ * いいねカウント更新のヘルパー関数（RPC版）
+ * RPCでSupabaseを更新し、ローカルDBも同期
  */
 async function updateLikeCount(songId: string, increment: number) {
-  // Supabaseのlike_countを取得・更新（リトライ付き）
-  const result = await withSupabaseRetry(async () => {
-    return await supabase
-      .from("songs")
-      .select("like_count")
-      .eq("id", songId)
-      .single();
+  // SupabaseのRPCでアトミックに更新（リトライ付き）
+  const { error } = await withSupabaseRetry(async () => {
+    return await supabase.rpc("increment_like_count", {
+      song_id: songId,
+      increment_value: increment,
+    });
   });
 
-  if (result.error) {
-    throw result.error;
+  if (error) {
+    console.warn("[Like] like_count RPC update failed:", error);
   }
 
-  const currentCount = parseInt(String(result.data?.like_count ?? 0), 10) || 0;
-  const newLikeCount = Math.max(0, currentCount + increment);
-
-  // Supabaseを更新（リトライ付き）
-  await withSupabaseRetry(async () => {
-    return await supabase
-      .from("songs")
-      .update({ like_count: newLikeCount })
-      .eq("id", songId);
+  // ローカルDBも更新（現在のカウントを取得して増減）
+  const localSong = await db.query.songs.findFirst({
+    where: eq(songs.id, songId),
+    columns: { likeCount: true },
   });
 
-  // ローカルDBも更新
+  const currentCount = localSong?.likeCount ?? 0;
+  const newLikeCount = Math.max(0, currentCount + increment);
+
   await db
     .update(songs)
     .set({ likeCount: newLikeCount })
