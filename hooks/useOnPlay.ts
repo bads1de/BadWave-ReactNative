@@ -26,39 +26,18 @@ const useOnPlay = () => {
       }
 
       try {
-        // 1. 現在の曲データを取得
-        const { data: songData, error: fetchError } = await supabase
-          .from("songs")
-          .select("id, count")
-          .eq("id", id)
-          .single();
+        // 改善: 1回のRPC呼び出しでアトミックにカウントアップ
+        const { error: rpcError } = await supabase.rpc(
+          "increment_song_play_count",
+          { song_id: id }
+        );
 
-        if (fetchError) {
-          console.error("曲データ取得エラー:", fetchError.message);
+        if (rpcError) {
+          console.error("RPC Error:", rpcError);
           return false;
         }
 
-        if (!songData) {
-          console.error("曲データが見つかりません:", id);
-          return false;
-        }
-
-        // 2. 再生回数をインクリメント
-        const newCount = Number(songData.count) + 1;
-
-        // 3. 更新を実行
-        const { error: updateError } = await supabase
-          .from("songs")
-          .update({ count: newCount })
-          .eq("id", id)
-          .select()
-          .single();
-
-        if (updateError) {
-          return false;
-        }
-
-        // 4. 再生履歴に追加
+        // 再生履歴に追加
         await playHistory.recordPlay(id);
 
         return true;
