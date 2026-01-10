@@ -1,18 +1,13 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-  memo,
-} from "react";
+import React, { useState, useCallback, memo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  Pressable,
+  FlatList,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -20,15 +15,16 @@ import { useRouter } from "expo-router";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
   withSpring,
-  runOnJS,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { genreCards } from "@/constants";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.28;
+const CARD_WIDTH = SCREEN_WIDTH - 32;
+const CARD_MARGIN = 8;
+const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN * 2;
 
 const backgroundImages = {
   "Retro Wave": require("@/assets/images/RetroWave.jpg"),
@@ -89,82 +85,23 @@ const getGenreIcon = (genre: string): string => {
   }
 };
 
-function HeroBoard() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(1);
-  const router = useRouter();
+// 個別のジャンルカードコンポーネント（メモ化）
+interface GenreCardProps {
+  genre: string;
+  onNavigate: (genre: string) => void;
+}
 
-  // useRefでタイマーを管理し、クリーンアップを確実に実行
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isMounted = useSharedValue(1); // マウント状態の追跡
-
-  const opacity = useSharedValue(1);
+const GenreCard = memo(function GenreCard({
+  genre,
+  onNavigate,
+}: GenreCardProps) {
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
 
-  // currentGenreの計算を最適化（メモ化）
-  const currentGenre = useMemo(
-    () => genreCards[currentIndex].name,
-    [currentIndex]
-  );
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
+  }));
 
-  // アニメーションスタイル
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-      transform: [{ scale: scale.value }, { translateY: translateY.value }],
-    };
-  });
-
-  // ジャンルを更新する関数（メモ化）
-  const updateGenre = useCallback(() => {
-    if (!isMounted.value) return;
-
-    setCurrentIndex(nextIndex);
-    setNextIndex((nextIndex + 1) % genreCards.length);
-
-    // フェードイン
-    opacity.value = withTiming(1, { duration: 500 });
-  }, [nextIndex, opacity, isMounted]);
-
-  // 次のジャンルに切り替える関数（メモ化）
-  const changeGenre = useCallback(() => {
-    if (!isMounted.value) return;
-
-    // フェードアウト
-    opacity.value = withTiming(0, { duration: 500 }, (finished) => {
-      if (finished && isMounted.value) {
-        runOnJS(updateGenre)();
-      }
-    });
-  }, [opacity, updateGenre, isMounted]);
-
-  // タイマーを設定
-  useEffect(() => {
-    isMounted.value = 1;
-
-    timerRef.current = setInterval(() => {
-      changeGenre();
-    }, 5000); // 5秒ごとに切り替え
-
-    return () => {
-      isMounted.value = 0;
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [changeGenre, isMounted]);
-
-  // ジャンルページに移動
-  const navigateToGenre = () => {
-    router.push({
-      pathname: "/genre/[genre]",
-      params: { genre: encodeURIComponent(currentGenre) },
-    });
-  };
-
-  // プレスアニメーション
   const handlePressIn = () => {
     scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
     translateY.value = withSpring(5, { damping: 15, stiffness: 150 });
@@ -175,22 +112,26 @@ function HeroBoard() {
     translateY.value = withSpring(0, { damping: 15, stiffness: 150 });
   };
 
+  const handlePress = () => {
+    onNavigate(genre);
+  };
+
   return (
-    <Pressable
-      onPress={navigateToGenre}
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      style={styles.cardWrapper}
     >
-      <Animated.View style={[styles.container, animatedStyle]}>
+      <Animated.View style={[styles.card, animatedStyle]}>
         <ImageBackground
-          source={
-            backgroundImages[currentGenre as keyof typeof backgroundImages]
-          }
+          source={backgroundImages[genre as keyof typeof backgroundImages]}
           style={styles.backgroundImage}
           contentFit="cover"
         >
           <LinearGradient
-            colors={getGradientColors(currentGenre)}
+            colors={getGradientColors(genre)}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.gradient}
@@ -199,52 +140,117 @@ function HeroBoard() {
           <View style={styles.contentContainer}>
             <View style={styles.topSection}>
               <View style={styles.iconContainer}>
-                <Text style={styles.icon}>{getGenreIcon(currentGenre)}</Text>
+                <Text style={styles.icon}>{getGenreIcon(genre)}</Text>
               </View>
             </View>
 
             <View style={styles.bottomSection}>
               <View style={styles.textContainer}>
-                <Text style={styles.genreTitle}>{currentGenre}</Text>
+                <Text style={styles.genreTitle}>{genre}</Text>
                 <Text style={styles.genreSubtitle}>
                   Explore the best tracks
                 </Text>
               </View>
 
-              <TouchableOpacity
-                style={styles.exploreButton}
-                onPress={navigateToGenre}
-              >
+              <View style={styles.exploreButton}>
                 <Text style={styles.exploreText}>Explore</Text>
                 <Ionicons name="arrow-forward" size={16} color="#fff" />
-              </TouchableOpacity>
+              </View>
             </View>
-          </View>
-
-          <View style={styles.indicatorContainer}>
-            {genreCards.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.indicator,
-                  index === currentIndex && styles.activeIndicator,
-                ]}
-              />
-            ))}
           </View>
         </ImageBackground>
       </Animated.View>
-    </Pressable>
+    </TouchableOpacity>
+  );
+});
+
+function HeroBoard() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const router = useRouter();
+
+  // ジャンルページに移動
+  const navigateToGenre = useCallback(
+    (genre: string) => {
+      router.push({
+        pathname: "/genre/[genre]",
+        params: { genre: encodeURIComponent(genre) },
+      });
+    },
+    [router]
+  );
+
+  // スクロール位置からインデックスを計算
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / SNAP_INTERVAL);
+      if (index !== currentIndex && index >= 0 && index < genreCards.length) {
+        setCurrentIndex(index);
+      }
+    },
+    [currentIndex]
+  );
+
+  // FlatListのrenderItem
+  const renderItem = useCallback(
+    ({ item }: { item: { name: string } }) => (
+      <GenreCard genre={item.name} onNavigate={navigateToGenre} />
+    ),
+    [navigateToGenre]
+  );
+
+  // keyExtractor
+  const keyExtractor = useCallback(
+    (item: { name: string }, index: number) => `${item.name}-${index}`,
+    []
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={genreCards}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={SNAP_INTERVAL}
+        decelerationRate="fast"
+        contentContainerStyle={styles.listContainer}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      />
+
+      {/* インジケーター */}
+      <View style={styles.indicatorContainer}>
+        {genreCards.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.indicator,
+              index === currentIndex && styles.activeIndicator,
+            ]}
+          />
+        ))}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: SCREEN_WIDTH - 32,
+    marginBottom: 24,
+  },
+  listContainer: {
+    paddingHorizontal: 16 - CARD_MARGIN,
+  },
+  cardWrapper: {
+    marginHorizontal: CARD_MARGIN,
+  },
+  card: {
+    width: CARD_WIDTH,
     height: HERO_HEIGHT,
     borderRadius: 20,
     overflow: "hidden",
-    marginBottom: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
@@ -329,10 +335,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    bottom: 12,
-    left: 0,
-    right: 0,
+    marginTop: 12,
   },
   indicator: {
     width: 6,

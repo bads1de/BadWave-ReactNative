@@ -95,7 +95,7 @@ const Lyric: React.FC<LyricProps> = ({
               ))}
               {!isExpanded && lyricsLines.length > initialVisibleLines && (
                 <LinearGradient
-                  colors={["transparent", "rgba(30,30,36,0.8)"]}
+                  colors={["transparent", "rgba(0,0,0,0.8)"]}
                   style={styles.fadeOverlay}
                 />
               )}

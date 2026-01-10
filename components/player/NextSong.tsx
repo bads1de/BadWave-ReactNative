@@ -159,12 +159,6 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
                   {nextSong?.artist}
                 </Text>
               </View>
-              <MaterialCommunityIcons
-                name="play-circle-outline"
-                size={28}
-                color="#a78bfa"
-                style={styles.playIcon}
-              />
             </View>
           )}
         </LinearGradient>
@@ -220,9 +214,7 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
     fontWeight: "500",
   },
-  playIcon: {
-    opacity: 0.8,
-  },
+
   shuffleContent: {
     flexDirection: "row",
     alignItems: "center",
