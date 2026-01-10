@@ -1,20 +1,24 @@
-import React, { useState, useCallback, memo } from "react";
+import React, { useCallback, memo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
 import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { BlurView } from "expo-blur";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
+  interpolate,
+  Extrapolate,
   withSpring,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,9 +26,8 @@ import { genreCards } from "@/constants";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.28;
-const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CARD_MARGIN = 8;
-const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN * 2;
+const CARD_WIDTH = SCREEN_WIDTH * 0.88;
+const SNAP_INTERVAL = SCREEN_WIDTH;
 
 const backgroundImages = {
   "Retro Wave": require("@/assets/images/RetroWave.jpg"),
@@ -85,31 +88,66 @@ const getGenreIcon = (genre: string): string => {
   }
 };
 
-// 個別のジャンルカードコンポーネント（メモ化）
 interface GenreCardProps {
   genre: string;
+  index: number;
+  scrollX: Animated.SharedValue<number>;
   onNavigate: (genre: string) => void;
 }
 
 const GenreCard = memo(function GenreCard({
   genre,
+  index,
+  scrollX,
   onNavigate,
 }: GenreCardProps) {
   const scale = useSharedValue(1);
-  const translateY = useSharedValue(0);
+  const pressTranslateY = useSharedValue(0);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateY: translateY.value }],
-  }));
+  const parallaxStyle = useAnimatedStyle(() => {
+    const translateX = interpolate(
+      scrollX.value,
+      [
+        (index - 1) * SNAP_INTERVAL,
+        index * SNAP_INTERVAL,
+        (index + 1) * SNAP_INTERVAL,
+      ],
+      [-CARD_WIDTH * 0.15, 0, CARD_WIDTH * 0.15],
+      Extrapolate.CLAMP
+    );
+    return {
+      transform: [{ translateX }, { scale: 1.15 }],
+    };
+  });
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const cardScale = interpolate(
+      scrollX.value,
+      [
+        (index - 1) * SNAP_INTERVAL,
+        index * SNAP_INTERVAL,
+        (index + 1) * SNAP_INTERVAL,
+      ],
+      [0.95, 1, 0.95],
+      Extrapolate.CLAMP
+    );
+
+    return {
+      transform: [
+        { scale: cardScale * scale.value },
+        { translateY: pressTranslateY.value },
+      ],
+    };
+  });
 
   const handlePressIn = () => {
     scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
-    translateY.value = withSpring(5, { damping: 15, stiffness: 150 });
+    pressTranslateY.value = withSpring(4, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
-    translateY.value = withSpring(0, { damping: 15, stiffness: 150 });
+    pressTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
   };
 
   const handlePress = () => {
@@ -125,23 +163,36 @@ const GenreCard = memo(function GenreCard({
       style={styles.cardWrapper}
     >
       <Animated.View style={[styles.card, animatedStyle]}>
-        <ImageBackground
-          source={backgroundImages[genre as keyof typeof backgroundImages]}
-          style={styles.backgroundImage}
-          contentFit="cover"
-        >
+        <View style={styles.imageContainer}>
+          <Animated.View style={[StyleSheet.absoluteFill, parallaxStyle]}>
+            <ImageBackground
+              source={backgroundImages[genre as keyof typeof backgroundImages]}
+              style={styles.backgroundImage}
+              contentFit="cover"
+            />
+          </Animated.View>
+
           <LinearGradient
             colors={getGradientColors(genre)}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradient}
+            end={{ x: 0.8, y: 0.8 }}
+            style={[styles.gradient, { opacity: 0.5 }]}
+          />
+
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.8)"]}
+            style={styles.bottomOverlay}
           />
 
           <View style={styles.contentContainer}>
             <View style={styles.topSection}>
-              <View style={styles.iconContainer}>
+              <BlurView
+                intensity={30}
+                tint="light"
+                style={styles.iconContainer}
+              >
                 <Text style={styles.icon}>{getGenreIcon(genre)}</Text>
-              </View>
+              </BlurView>
             </View>
 
             <View style={styles.bottomSection}>
@@ -152,25 +203,78 @@ const GenreCard = memo(function GenreCard({
                 </Text>
               </View>
 
-              <View style={styles.exploreButton}>
+              <BlurView
+                intensity={25}
+                tint="light"
+                style={styles.exploreButton}
+              >
                 <Text style={styles.exploreText}>Explore</Text>
                 <Ionicons name="arrow-forward" size={16} color="#fff" />
-              </View>
+              </BlurView>
             </View>
           </View>
-        </ImageBackground>
+        </View>
       </Animated.View>
     </TouchableOpacity>
   );
 });
 
-function HeroBoard() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const router = useRouter();
+interface AnimatedDotProps {
+  index: number;
+  scrollX: Animated.SharedValue<number>;
+}
 
-  // ジャンルページに移動
+const AnimatedDot = memo(function AnimatedDot({
+  index,
+  scrollX,
+}: AnimatedDotProps) {
+  const dotStyle = useAnimatedStyle(() => {
+    const distance = Math.abs(scrollX.value - index * SNAP_INTERVAL);
+    const opacity = interpolate(
+      distance,
+      [0, SNAP_INTERVAL],
+      [1, 0.4],
+      Extrapolate.CLAMP
+    );
+    const width = interpolate(
+      distance,
+      [0, SNAP_INTERVAL],
+      [20, 8],
+      Extrapolate.CLAMP
+    );
+
+    return { opacity, width };
+  });
+
+  return <Animated.View style={[styles.indicator, dotStyle]} />;
+});
+
+interface PaginationIndicatorProps {
+  scrollX: Animated.SharedValue<number>;
+  count: number;
+}
+
+const PaginationIndicator = ({ scrollX, count }: PaginationIndicatorProps) => (
+  <View style={styles.indicatorContainer}>
+    {Array.from({ length: count }).map((_, index) => (
+      <AnimatedDot key={index} index={index} scrollX={scrollX} />
+    ))}
+  </View>
+);
+
+function HeroBoard() {
+  const router = useRouter();
+  const scrollX = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
   const navigateToGenre = useCallback(
     (genre: string) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       router.push({
         pathname: "/genre/[genre]",
         params: { genre: encodeURIComponent(genre) },
@@ -179,59 +283,40 @@ function HeroBoard() {
     [router]
   );
 
-  // スクロール位置からインデックスを計算
-  const handleScroll = useCallback(
+  const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / SNAP_INTERVAL);
-      if (index !== currentIndex && index >= 0 && index < genreCards.length) {
-        setCurrentIndex(index);
+      if (index >= 0 && index < genreCards.length) {
+        Haptics.selectionAsync();
       }
     },
-    [currentIndex]
-  );
-
-  // FlatListのrenderItem
-  const renderItem = useCallback(
-    ({ item }: { item: { name: string } }) => (
-      <GenreCard genre={item.name} onNavigate={navigateToGenre} />
-    ),
-    [navigateToGenre]
-  );
-
-  // keyExtractor
-  const keyExtractor = useCallback(
-    (item: { name: string }, index: number) => `${item.name}-${index}`,
     []
   );
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <Animated.FlatList
         data={genreCards}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
+        renderItem={({ item, index }) => (
+          <GenreCard
+            genre={item.name}
+            index={index}
+            scrollX={scrollX}
+            onNavigate={navigateToGenre}
+          />
+        )}
+        keyExtractor={(item) => item.id.toString()}
         horizontal
+        pagingEnabled
         showsHorizontalScrollIndicator={false}
-        snapToInterval={SNAP_INTERVAL}
         decelerationRate="fast"
-        contentContainerStyle={styles.listContainer}
-        onScroll={handleScroll}
+        onScroll={scrollHandler}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEventThrottle={16}
       />
 
-      {/* インジケーター */}
-      <View style={styles.indicatorContainer}>
-        {genreCards.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.indicator,
-              index === currentIndex && styles.activeIndicator,
-            ]}
-          />
-        ))}
-      </View>
+      <PaginationIndicator scrollX={scrollX} count={genreCards.length} />
     </View>
   );
 }
@@ -239,23 +324,28 @@ function HeroBoard() {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 24,
-  },
-  listContainer: {
-    paddingHorizontal: 16 - CARD_MARGIN,
+    marginHorizontal: -16,
   },
   cardWrapper: {
-    marginHorizontal: CARD_MARGIN,
+    width: SCREEN_WIDTH,
+    alignItems: "center",
+    paddingVertical: 10,
   },
   card: {
     width: CARD_WIDTH,
     height: HERO_HEIGHT,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: "hidden",
+    backgroundColor: "#1f2937",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  imageContainer: {
+    flex: 1,
+    overflow: "hidden",
   },
   backgroundImage: {
     width: "100%",
@@ -263,92 +353,86 @@ const styles = StyleSheet.create({
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.7,
+  },
+  bottomOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "100%",
   },
   contentContainer: {
     flex: 1,
-    padding: 20,
+    padding: 24,
     justifyContent: "space-between",
   },
   topSection: {
     alignItems: "flex-start",
-    paddingTop: 10,
-  },
-  bottomSection: {
-    marginBottom: 10,
   },
   iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.15)",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   icon: {
-    fontSize: 28,
-    textShadowColor: "rgba(0,0,0,0.75)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    fontSize: 24,
+  },
+  bottomSection: {
+    gap: 16,
   },
   textContainer: {
-    marginBottom: 12,
+    gap: 4,
   },
   genreTitle: {
     color: "#fff",
-    fontSize: 28,
-    fontWeight: "bold",
-    textShadowColor: "rgba(0,0,0,0.75)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-    letterSpacing: 0.5,
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    textShadowColor: "rgba(0,0,0,0.5)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   genreSubtitle: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 14,
-    marginTop: 4,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0.5, height: 0.5 },
-    textShadowRadius: 2,
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 15,
+    fontWeight: "500",
   },
   exploreButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.2)",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 25,
     alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    overflow: "hidden",
   },
   exploreText: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-    marginRight: 6,
+    fontSize: 15,
+    fontWeight: "700",
+    marginRight: 8,
   },
   indicatorContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 12,
+    marginTop: 8,
+    height: 10,
   },
   indicator: {
-    width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.4)",
-    margin: 3,
-  },
-  activeIndicator: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
     backgroundColor: "#fff",
+    marginHorizontal: 3,
   },
 });
 
