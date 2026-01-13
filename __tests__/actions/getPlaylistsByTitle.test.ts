@@ -37,3 +37,4 @@ describe("getPlaylistsByTitle", () => {
     await expect(getPlaylistsByTitle("test")).rejects.toThrow("error");
   });
 });
+

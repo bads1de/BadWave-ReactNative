@@ -25,7 +25,7 @@ jest.mock("@/lib/db/schema", () => ({
   },
 }));
 
-jest.mock("@/hooks/useNetworkStatus", () => ({
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
 
@@ -34,7 +34,7 @@ jest.mock("@/lib/utils/retry", () => ({
 }));
 
 const { db } = require("@/lib/db/client");
-const { useNetworkStatus } = require("@/hooks/useNetworkStatus");
+const { useNetworkStatus } = require("@/hooks/common/useNetworkStatus");
 const { withSupabaseRetry } = require("@/lib/utils/retry");
 
 describe("useMutatePlaylistSong - Optimistic Update", () => {
@@ -218,3 +218,4 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
     });
   });
 });
+

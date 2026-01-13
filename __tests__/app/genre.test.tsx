@@ -6,7 +6,7 @@ import GenreSongsScreen from "@/app/(tabs)/genre/[genre]";
 jest.mock("@/components/item/ListItem", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/Loading", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/Error", () => ({ __esModule: true, default: () => null }));
-jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
 jest.mock("@/hooks/stores/useHeaderStore", () => ({ useHeaderStore: jest.fn() }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-router", () => ({
@@ -19,7 +19,7 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 jest.mock("@/actions/getSongsByGenre", () => ({ __esModule: true, default: jest.fn() }));
 
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");
 const { useRouter, useLocalSearchParams } = require("expo-router");
 
@@ -50,4 +50,5 @@ describe("GenreSongsScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+
 

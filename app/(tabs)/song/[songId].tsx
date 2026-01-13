@@ -11,7 +11,7 @@ import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useGetLocalSongById } from "@/hooks/data/useGetLocalSongById";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -228,4 +228,3 @@ const styles = StyleSheet.create({
     textShadowRadius: 10,
   },
 });
-

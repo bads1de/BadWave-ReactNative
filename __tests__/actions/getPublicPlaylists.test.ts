@@ -39,3 +39,4 @@ describe("getPublicPlaylists", () => {
     expect(getPublicPlaylists).toHaveBeenCalledWith(5);
   });
 });
+

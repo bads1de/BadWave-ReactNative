@@ -15,7 +15,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import CustomButton from "@/components/common/CustomButton";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import SongItem from "@/components/item/SongItem";
 import Song from "@/types";
 import PlaylistItem from "@/components/item/PlaylistItem";
@@ -348,3 +348,4 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
+

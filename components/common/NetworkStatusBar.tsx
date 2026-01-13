@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSync } from "@/providers/SyncProvider";
 import { useEffect, useRef } from "react";
 
@@ -73,3 +73,4 @@ const styles = StyleSheet.create({
 });
 
 export default NetworkStatusBar;
+

@@ -29,3 +29,4 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set) => ({
   isMiniPlayerVisible: true,
   setIsMiniPlayerVisible: (value) => set({ isMiniPlayerVisible: value }),
 }));
+

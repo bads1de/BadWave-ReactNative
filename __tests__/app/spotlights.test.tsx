@@ -26,7 +26,7 @@ jest.mock("@/hooks/stores/useHeaderStore", () => ({
 jest.mock("@/hooks/stores/usePlayerStore", () => ({
   usePlayerStore: jest.fn(() => jest.fn()),
 }));
-jest.mock("@/hooks/useNetworkStatus", () => ({
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(() => ({ isOnline: true })),
 }));
 jest.mock("@react-navigation/native", () => ({
@@ -35,7 +35,7 @@ jest.mock("@react-navigation/native", () => ({
 }));
 
 import { useGetLocalSpotlights } from "@/hooks/data/useGetLocalSpotlights";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,3 +114,4 @@ describe("SpotlightsScreen", () => {
     });
   });
 });
+

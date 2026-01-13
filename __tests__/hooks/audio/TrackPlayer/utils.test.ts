@@ -1,5 +1,5 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
-import * as utils from "@/hooks/TrackPlayer/utils";
+import * as utils from "@/hooks/audio/TrackPlayer/utils";
 
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
@@ -357,3 +357,4 @@ describe("TrackPlayer utils", () => {
     });
   });
 });
+

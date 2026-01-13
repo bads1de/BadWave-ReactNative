@@ -9,3 +9,4 @@ export const useAuthStore = create<AuthState>((set) => ({
   showAuthModal: false,
   setShowAuthModal: (show: boolean) => set({ showAuthModal: show }),
 }));
+

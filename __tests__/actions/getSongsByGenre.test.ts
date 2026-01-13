@@ -35,3 +35,4 @@ describe("getSongsByGenre", () => {
     await expect(getSongsByGenre("Pop")).rejects.toThrow("error");
   });
 });
+

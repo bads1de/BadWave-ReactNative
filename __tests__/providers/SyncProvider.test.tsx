@@ -3,7 +3,7 @@ import { renderHook, act } from "@testing-library/react-native";
 import { SyncProvider, useSync } from "@/providers/SyncProvider";
 import { storage } from "@/lib/storage/mmkv-storage";
 import { useAuth } from "@/providers/AuthProvider";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSyncSongs } from "@/hooks/sync/useSyncSongs";
 import { useSyncLikedSongs } from "@/hooks/sync/useSyncLikedSongs";
 import { useSyncPlaylists } from "@/hooks/sync/useSyncPlaylists";
@@ -14,7 +14,7 @@ import { SYNC_STORAGE_KEY } from "@/constants";
 
 // Mocks
 jest.mock("@/providers/AuthProvider");
-jest.mock("@/hooks/useNetworkStatus");
+jest.mock("@/hooks/common/useNetworkStatus");
 jest.mock("@/hooks/sync/useSyncSongs");
 jest.mock("@/hooks/sync/useSyncLikedSongs");
 jest.mock("@/hooks/sync/useSyncPlaylists");
@@ -119,3 +119,4 @@ describe("SyncProvider", () => {
     expect(mockTriggerSync).not.toHaveBeenCalled();
   });
 });
+

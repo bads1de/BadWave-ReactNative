@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import SongItem from "@/components/item/SongItem";
 import { useGetLocalRecommendations } from "@/hooks/data/useGetLocalRecommendations";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { useAuth } from "@/providers/AuthProvider";
 import Error from "@/components/common/Error";
 import Loading from "@/components/common/Loading";
@@ -105,3 +105,4 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
+

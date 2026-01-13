@@ -1,18 +1,21 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { renderHook, act } from "@testing-library/react";
-import { usePlayerState, useQueueOperations } from "@/hooks/TrackPlayer/hooks";
-import { useQueueStore } from "@/hooks/TrackPlayer/useQueueStore";
-import TrackPlayer, { Track } from "react-native-track-player";
+import TrackPlayer from "react-native-track-player";
+import {
+  usePlayerState,
+  useQueueOperations,
+} from "@/hooks/audio/TrackPlayer/hooks";
+import { useQueueStore } from "@/hooks/audio/TrackPlayer/useQueueStore";
 import Song from "@/types";
-import { PlayContext } from "@/hooks/TrackPlayer/types";
-import * as utils from "@/hooks/TrackPlayer/utils";
+import { PlayContext } from "@/hooks/audio/TrackPlayer/types";
+import * as utils from "@/hooks/audio/TrackPlayer/utils";
 
 // TrackPlayerのモック
 jest.mock("react-native-track-player");
 
 // utilsのモック
-jest.mock("@/hooks/TrackPlayer/utils", () => {
-  const actual = jest.requireActual("@/hooks/TrackPlayer/utils") as any;
+jest.mock("@/hooks/audio/TrackPlayer/utils", () => {
+  const actual = jest.requireActual("@/hooks/audio/TrackPlayer/utils") as any;
   return {
     ...actual,
     convertToTracks: jest.fn(),

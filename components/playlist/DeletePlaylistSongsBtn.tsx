@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deletePlaylistSong from "@/actions/deletePlaylistSong";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 interface DeletePlaylistSongsBtnProps {
   songId: string;
@@ -94,3 +94,4 @@ const styles = StyleSheet.create({
 });
 
 export default DeletePlaylistSongsBtn;
+

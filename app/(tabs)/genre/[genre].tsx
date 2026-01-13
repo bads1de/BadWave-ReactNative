@@ -9,12 +9,12 @@ import getSongsByGenre from "@/actions/getSongsByGenre";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { useLocalSearchParams } from "expo-router";
 import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import Song from "@/types";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
@@ -150,4 +150,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
-

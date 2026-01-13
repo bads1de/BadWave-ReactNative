@@ -61,7 +61,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // getOfflineStorageService関数をモック化
     jest
       .spyOn(
-        require("../../hooks/TrackPlayer/utils"),
+        require("../../hooks/audio/TrackPlayer/utils"),
         "getOfflineStorageService"
       )
       .mockReturnValue(mockOfflineStorageService);
@@ -242,4 +242,3 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     });
   });
 });
-

@@ -2,11 +2,11 @@ import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
-import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
+import { getOfflineStorageService } from "@/hooks/audio/TrackPlayer/utils";
 import Song from "@/types";
 
 // モック
-jest.mock("@/hooks/TrackPlayer/utils", () => ({
+jest.mock("@/hooks/audio/TrackPlayer/utils", () => ({
   getOfflineStorageService: jest.fn(),
 }));
 

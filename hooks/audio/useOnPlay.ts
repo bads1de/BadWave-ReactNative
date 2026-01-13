@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import usePlayHistory from "@/hooks/usePlayHistory";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import usePlayHistory from "@/hooks/audio/usePlayHistory";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 /**
  * 曲の再生回数を更新するカスタムフック
@@ -53,3 +53,4 @@ const useOnPlay = () => {
 };
 
 export default useOnPlay;
+

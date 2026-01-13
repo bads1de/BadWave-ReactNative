@@ -1,8 +1,8 @@
 // 実際のコードをモックする
 // モックを実装する
-import usePlayHistory from "@/hooks/usePlayHistory";
+import usePlayHistory from "@/hooks/audio/usePlayHistory";
 
-jest.mock("@/hooks/usePlayHistory", () => ({
+jest.mock("@/hooks/audio/usePlayHistory", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -51,3 +51,4 @@ describe("usePlayHistory", () => {
     spy.mockRestore();
   });
 });
+

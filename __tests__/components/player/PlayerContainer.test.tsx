@@ -44,7 +44,7 @@ jest.mock("@/components/onRepeat/player/OnRepeatPlayer", () => {
   };
 });
 
-jest.mock("@/hooks/useAudioPlayer", () => ({
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
 }));
 
@@ -60,7 +60,7 @@ jest.mock("@/hooks/stores/useOnRepeatStore", () => ({
   useOnRepeatStore: jest.fn(),
 }));
 
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useAudioStore } = require("@/hooks/stores/useAudioStore");
 const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
 const { useOnRepeatStore } = require("@/hooks/stores/useOnRepeatStore");
@@ -165,3 +165,4 @@ describe("PlayerContainer", () => {
     expect(queryByTestId("full-player")).toBeNull();
   });
 });
+

@@ -14,7 +14,7 @@ jest.mock("expo-video", () => ({
 }));
 
 // useOnRepeatPlayer をモック
-jest.mock("@/hooks/useOnRepeatPlayer", () => ({
+jest.mock("@/hooks/audio/useOnRepeatPlayer", () => ({
   useOnRepeatPlayer: jest.fn(() => ({
     player: { play: jest.fn(), pause: jest.fn() },
     hasVideo: true,
@@ -56,7 +56,7 @@ describe("OnRepeatPlayerItem", () => {
   describe("動画/画像の表示", () => {
     it("動画付きの曲の場合、VideoView を表示すること", () => {
       // useOnRepeatPlayer が hasVideo: true を返すようにモック
-      const { useOnRepeatPlayer } = require("@/hooks/useOnRepeatPlayer");
+      const { useOnRepeatPlayer } = require("@/hooks/audio/useOnRepeatPlayer");
       useOnRepeatPlayer.mockReturnValue({
         player: { play: jest.fn(), pause: jest.fn() },
         hasVideo: true,
@@ -80,3 +80,4 @@ describe("OnRepeatPlayerItem", () => {
     });
   });
 });
+

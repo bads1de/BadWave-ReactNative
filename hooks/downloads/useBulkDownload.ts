@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
+import { getOfflineStorageService } from "@/hooks/audio/TrackPlayer/utils";
 import { CACHED_QUERIES } from "@/constants";
 import Song from "@/types";
 
@@ -241,3 +241,4 @@ export function useBulkDownload(songs: Song[]): UseBulkDownloadResult {
     refresh,
   };
 }
+

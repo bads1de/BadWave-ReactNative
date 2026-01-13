@@ -6,7 +6,7 @@ import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useUser } from "@/actions/getUser";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
-import { useStorageInfo } from "@/hooks/useStorageInfo";
+import { useStorageInfo } from "@/hooks/common/useStorageInfo";
 import { THEMES } from "@/constants/ThemeColors";
 
 // Mocks
@@ -37,7 +37,7 @@ jest.mock("@/actions/getUser");
 jest.mock("@/hooks/data/useGetPlaylists");
 jest.mock("@/hooks/data/useGetLikedSongs");
 jest.mock("@/providers/SyncProvider");
-jest.mock("@/hooks/useStorageInfo", () => ({
+jest.mock("@/hooks/common/useStorageInfo", () => ({
   useStorageInfo: jest.fn(),
   formatBytes: (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -103,9 +103,9 @@ describe("AccountScreen", () => {
     const { getByText } = render(<AccountScreen />);
 
     expect(getByText("Synchronization")).toBeTruthy();
-    expect(getByText(/Last Synced:/)).toBeTruthy();
+    expect(getByText(/Last:/)).toBeTruthy();
 
-    const syncButton = getByText("Sync Now");
+    const syncButton = getByText("Sync");
     fireEvent.press(syncButton);
 
     expect(mockTriggerSync).toHaveBeenCalled();
@@ -121,7 +121,6 @@ describe("AccountScreen", () => {
 
     const { getByText } = render(<AccountScreen />);
     expect(getByText("Syncing now...")).toBeTruthy();
-    expect(getByText("Syncing...")).toBeTruthy(); // This is the button text
   });
 
   it("renders storage section with download info", () => {

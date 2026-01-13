@@ -104,3 +104,4 @@ describe("CustomButton", () => {
     expect(getByText("変更されたラベル")).toBeTruthy();
   });
 });
+

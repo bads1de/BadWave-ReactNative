@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
 
@@ -209,3 +209,4 @@ export function useMutatePlaylistSong(userId?: string) {
 }
 
 export default useMutatePlaylistSong;
+

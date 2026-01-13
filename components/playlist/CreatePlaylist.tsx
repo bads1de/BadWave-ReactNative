@@ -11,7 +11,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import createPlaylist from "@/actions/createPlaylist";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import Toast from "react-native-toast-message";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -254,3 +254,4 @@ const styles = StyleSheet.create({
 
 // メモ化してエクスポート
 export default memo(CreatePlaylist);
+

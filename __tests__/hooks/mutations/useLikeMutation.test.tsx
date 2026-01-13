@@ -29,7 +29,7 @@ jest.mock("@/lib/db/schema", () => ({
   },
 }));
 
-jest.mock("@/hooks/useNetworkStatus", () => ({
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
 
@@ -39,7 +39,7 @@ jest.mock("@/lib/utils/retry", () => ({
 
 const _supabase = require("@/lib/supabase").supabase;
 const { db } = require("@/lib/db/client");
-const { useNetworkStatus } = require("@/hooks/useNetworkStatus");
+const { useNetworkStatus } = require("@/hooks/common/useNetworkStatus");
 const { withSupabaseRetry } = require("@/lib/utils/retry");
 
 describe("useLikeMutation - Optimistic Update", () => {
@@ -205,3 +205,4 @@ describe("useLikeMutation - Optimistic Update", () => {
     });
   });
 });
+

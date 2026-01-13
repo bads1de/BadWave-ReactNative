@@ -27,7 +27,7 @@ jest.mock("@/components/playlist/CreatePlaylist", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
 jest.mock("@/hooks/stores/useAuthStore", () => ({ useAuthStore: jest.fn() }));
 jest.mock("@/providers/AuthProvider", () => ({ useAuth: jest.fn() }));
 jest.mock("expo-router", () => ({ useRouter: jest.fn() }));
@@ -56,7 +56,7 @@ jest.mock("@/components/BulkDownloadButton", () => ({
   BulkDownloadButton: () => null,
 }));
 
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useAuth } = require("@/providers/AuthProvider");
 const { useAuthStore } = require("@/hooks/stores/useAuthStore");
 const { useRouter } = require("expo-router");
@@ -86,3 +86,4 @@ describe("LibraryScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

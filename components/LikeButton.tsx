@@ -3,7 +3,7 @@ import { TouchableOpacity, Alert } from "react-native";
 import { useAuth } from "@/providers/AuthProvider";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useLikeStatus } from "@/hooks/data/useLikeStatus";
 import { useLikeMutation } from "@/hooks/mutations/useLikeMutation";
 
@@ -96,3 +96,4 @@ export default memo(LikeButton, (prevProps, nextProps) => {
     prevProps.testID === nextProps.testID
   );
 });
+

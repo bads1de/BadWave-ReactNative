@@ -68,3 +68,4 @@ describe("updatePlaylistImage", () => {
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 });
+

@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react-native";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce } from "@/hooks/common/useDebounce";
 
 describe("useDebounce", () => {
   beforeEach(() => {
@@ -109,3 +109,4 @@ describe("useDebounce", () => {
     cancelAnimationFrameSpy.mockRestore();
   });
 });
+

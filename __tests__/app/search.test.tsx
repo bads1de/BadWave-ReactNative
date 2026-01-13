@@ -8,14 +8,14 @@ jest.mock("@/components/item/PlaylistItem", () => ({ __esModule: true, default: 
 jest.mock("@/components/common/Loading", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/Error", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/CustomButton", () => ({ __esModule: true, default: () => null }));
-jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
-jest.mock("@/hooks/useDebounce", () => ({ useDebounce: jest.fn((value) => value) }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/common/useDebounce", () => ({ useDebounce: jest.fn((value) => value) }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-router", () => ({ useRouter: jest.fn() }));
 jest.mock("@/actions/getSongsByTitle", () => ({ __esModule: true, default: jest.fn() }));
 jest.mock("@/actions/getPlaylistsByTitle", () => ({ __esModule: true, default: jest.fn() }));
 
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useRouter } = require("expo-router");
 
 describe("SearchScreen", () => {
@@ -36,3 +36,4 @@ describe("SearchScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

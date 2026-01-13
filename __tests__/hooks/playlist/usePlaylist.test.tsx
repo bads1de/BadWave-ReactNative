@@ -8,7 +8,7 @@ import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { useCreatePlaylist } from "@/hooks/mutations/useCreatePlaylist";
 import { db } from "@/lib/db/client";
 import { supabase } from "@/lib/supabase";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 // モックの定義
 jest.mock("@/lib/supabase", () => {
@@ -58,7 +58,7 @@ jest.mock("drizzle-orm", () => ({
   desc: jest.fn(),
 }));
 
-jest.mock("@/hooks/useNetworkStatus", () => ({
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
 
@@ -182,3 +182,4 @@ describe("Playlist Hooks", () => {
     });
   });
 });
+

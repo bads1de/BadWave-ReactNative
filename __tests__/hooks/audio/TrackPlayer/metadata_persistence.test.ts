@@ -3,11 +3,11 @@ import Song from "@/types";
 import {
   convertSongToTrack,
   getOfflineStorageService,
-} from "@/hooks/TrackPlayer/utils";
+} from "@/hooks/audio/TrackPlayer/utils";
 
 // 既存のモック設定
-jest.mock("@/hooks/TrackPlayer/utils", () => {
-  const originalModule = jest.requireActual("@/hooks/TrackPlayer/utils");
+jest.mock("@/hooks/audio/TrackPlayer/utils", () => {
+  const originalModule = jest.requireActual("@/hooks/audio/TrackPlayer/utils");
   return {
     ...originalModule,
     getOfflineStorageService: jest.fn(),
@@ -40,3 +40,4 @@ describe("Metadata Persistence", () => {
     expect((track as any).originalSong).toEqual(mockSong);
   });
 });
+

@@ -55,3 +55,4 @@ export default memo(MarqueeText, (prevProps, nextProps) => {
     prevProps.fontSize === nextProps.fontSize
   );
 });
+

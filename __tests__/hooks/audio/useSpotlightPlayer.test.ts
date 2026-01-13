@@ -1,5 +1,5 @@
 import { renderHook } from "@testing-library/react";
-import { useSpotlightPlayer } from "@/hooks/useSpotlightPlayer";
+import { useSpotlightPlayer } from "@/hooks/audio/useSpotlightPlayer";
 import { useVideoPlayer } from "expo-video";
 
 // Mock expo-video
@@ -43,3 +43,4 @@ describe("useSpotlightPlayer", () => {
     expect(mockPlayer.pause).toHaveBeenCalled();
   });
 });
+

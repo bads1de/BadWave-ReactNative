@@ -258,3 +258,4 @@ export default memo(NextSong, (prevProps, nextProps) => {
     prevProps.shuffle === nextProps.shuffle
   );
 });
+

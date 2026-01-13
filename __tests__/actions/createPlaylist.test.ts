@@ -65,3 +65,4 @@ describe("createPlaylist", () => {
     await expect(createPlaylist(playlistName)).rejects.toThrow("DB error");
   });
 });
+

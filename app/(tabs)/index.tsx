@@ -4,7 +4,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useGetLocalSongs } from "@/hooks/data/useGetLocalSongs";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import SongItem from "@/components/item/SongItem";
 import TrendBoard from "@/components/board/TrendBoard";
@@ -325,3 +325,4 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 });
+

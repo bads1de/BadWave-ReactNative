@@ -5,23 +5,41 @@ import HeroBoard from "@/components/board/HeroBoard";
 jest.mock("expo-image", () => ({ ImageBackground: "ImageBackground" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("expo-router", () => ({ useRouter: jest.fn() }));
+jest.mock("expo-haptics", () => ({
+  selectionAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  impactAsync: jest.fn(),
+  NotificationFeedbackType: {
+    Success: "success",
+    Warning: "warning",
+    Error: "error",
+  },
+  ImpactFeedbackStyle: {
+    Light: "light",
+    Medium: "medium",
+    Heavy: "heavy",
+  },
+}));
 
 // Mock for react-native-reanimated with callback support
 jest.mock("react-native-reanimated", () => {
   const React = require("react");
   const { View, Text, ScrollView } = require("react-native");
-  
+
   return {
     __esModule: true,
     default: {
       View: View,
       Text: Text,
       ScrollView: ScrollView,
+      createAnimatedComponent: jest.fn((component) => component),
     },
+    createAnimatedComponent: jest.fn((component) => component),
     useSharedValue: jest.fn((initialValue) => {
       const ref = { value: initialValue };
       return ref;
     }),
+    useAnimatedScrollHandler: jest.fn(() => ({})),
     useAnimatedStyle: jest.fn((callback) => {
       // Execute the callback to get styles
       try {
@@ -83,39 +101,41 @@ describe("HeroBoard", () => {
   describe("Timer cleanup", () => {
     it("should cleanup timer on unmount", () => {
       const clearIntervalSpy = jest.spyOn(global, "clearInterval");
-      
+
       const { unmount } = render(<HeroBoard />);
-      
+
       unmount();
-      
+
       expect(clearIntervalSpy).toHaveBeenCalled();
       clearIntervalSpy.mockRestore();
     });
 
     it("should not update state after unmount", async () => {
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-      
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
       const { unmount } = render(<HeroBoard />);
-      
+
       // Unmount component
       unmount();
-      
+
       // Fast forward timer to trigger state update attempt
       await act(async () => {
         jest.advanceTimersByTime(5000);
         // Run all pending timers including setTimeout callbacks
         jest.runAllTimers();
       });
-      
+
       // No error should be logged about state updates after unmount
-      const stateUpdateErrors = consoleErrorSpy.mock.calls.filter(call =>
-        call.some(arg =>
-          typeof arg === "string" &&
-          arg.includes("unmounted component")
+      const stateUpdateErrors = consoleErrorSpy.mock.calls.filter((call) =>
+        call.some(
+          (arg) =>
+            typeof arg === "string" && arg.includes("unmounted component")
         )
       );
       expect(stateUpdateErrors.length).toBe(0);
-      
+
       consoleErrorSpy.mockRestore();
     });
   });
@@ -123,33 +143,33 @@ describe("HeroBoard", () => {
   describe("Memoization", () => {
     it("should memoize changeGenre function", () => {
       const { rerender } = render(<HeroBoard />);
-      
+
       // Get initial reference
       const initialCallCount = withTiming.mock.calls.length;
-      
+
       // Rerender without prop changes
       rerender(<HeroBoard />);
-      
+
       // Function should be memoized (no additional calls without timer)
       expect(withTiming.mock.calls.length).toBe(initialCallCount);
     });
 
     it("should memoize updateGenre function", () => {
       const { rerender } = render(<HeroBoard />);
-      
+
       // Rerender component
       rerender(<HeroBoard />);
-      
+
       // Component should not recreate functions unnecessarily
       expect(true).toBe(true); // Basic check that rerender doesn't crash
     });
 
     it("should memoize currentGenre calculation", () => {
       const { rerender } = render(<HeroBoard />);
-      
+
       // Rerender without state changes
       rerender(<HeroBoard />);
-      
+
       // currentGenre should be memoized
       expect(true).toBe(true); // Basic check that memoization doesn't break rendering
     });
@@ -158,50 +178,54 @@ describe("HeroBoard", () => {
   describe("Animation behavior", () => {
     it("should trigger genre change after 5 seconds", async () => {
       // Suppress act warnings for this test as they are expected with animation timers
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation((message) => {
-        if (typeof message === "string" && message.includes("act(...)")) {
-          return;
-        }
-        console.error(message);
-      });
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation((message) => {
+          if (typeof message === "string" && message.includes("act(...)")) {
+            return;
+          }
+          console.error(message);
+        });
 
       render(<HeroBoard />);
-      
+
       // Fast forward 5 seconds
       await act(async () => {
         jest.advanceTimersByTime(5000);
         jest.runOnlyPendingTimers();
       });
-      
+
       // Animation should be triggered
       expect(withTiming).toHaveBeenCalled();
-      
+
       consoleErrorSpy.mockRestore();
     });
 
     it("should cycle through genres correctly", async () => {
       // Suppress act warnings for this test as they are expected with animation timers
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation((message) => {
-        if (typeof message === "string" && message.includes("act(...)")) {
-          return;
-        }
-        console.error(message);
-      });
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation((message) => {
+          if (typeof message === "string" && message.includes("act(...)")) {
+            return;
+          }
+          console.error(message);
+        });
 
       render(<HeroBoard />);
-      
+
       const initialCallCount = withTiming.mock.calls.length;
-      
+
       // Fast forward 5 seconds to trigger genre change
       await act(async () => {
         jest.advanceTimersByTime(5000);
         // Run only pending timers to avoid infinite loop
         jest.runOnlyPendingTimers();
       });
-      
+
       // withTiming should be called more times after the genre change
       expect(withTiming.mock.calls.length).toBeGreaterThan(initialCallCount);
-      
+
       consoleErrorSpy.mockRestore();
     });
   });
@@ -210,10 +234,10 @@ describe("HeroBoard", () => {
     it("should be wrapped with React.memo", () => {
       // Check if component is memoized by verifying it doesn't rerender unnecessarily
       const { rerender } = render(<HeroBoard />);
-      
+
       // Rerender with same props
       rerender(<HeroBoard />);
-      
+
       // Should not cause issues
       expect(true).toBe(true);
     });

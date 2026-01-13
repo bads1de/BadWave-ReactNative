@@ -21,7 +21,7 @@ jest.mock("@/services/OfflineStorageService", () => {
 });
 
 // getOfflineStorageServiceのモック
-jest.mock("@/hooks/TrackPlayer/utils", () => ({
+jest.mock("@/hooks/audio/TrackPlayer/utils", () => ({
   getOfflineStorageService: jest.fn(),
 }));
 
@@ -56,7 +56,9 @@ describe("useDownloadStatus", () => {
     mockOfflineStorageService =
       new OfflineStorageService() as jest.Mocked<OfflineStorageService>;
 
-    const { getOfflineStorageService } = require("@/hooks/TrackPlayer/utils");
+    const {
+      getOfflineStorageService,
+    } = require("@/hooks/audio/TrackPlayer/utils");
     (getOfflineStorageService as jest.Mock).mockReturnValue(
       mockOfflineStorageService
     );
@@ -167,3 +169,4 @@ describe("useDownloadStatus", () => {
     });
   });
 });
+

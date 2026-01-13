@@ -67,3 +67,4 @@ describe("CustomAlertDialog", () => {
     expect(defaultProps.onCancel).toHaveBeenCalledTimes(1);
   });
 });
+

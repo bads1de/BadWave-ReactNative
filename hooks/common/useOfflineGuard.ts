@@ -1,4 +1,4 @@
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { Alert } from "react-native";
 import { useCallback } from "react";
 
@@ -60,3 +60,4 @@ export function useOfflineGuard() {
 }
 
 export default useOfflineGuard;
+

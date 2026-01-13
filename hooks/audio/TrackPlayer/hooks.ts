@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import TrackPlayer from "react-native-track-player";
-import Song from "../../types";
+import Song from "../../../types";
 import { PlayContext, QueueState } from "./types";
 import { convertToTracks, safeAsyncOperation, shuffleArray } from "./utils";
 import { useQueueStore } from "./useQueueStore";
@@ -298,3 +298,4 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
 
   return returnValues;
 }
+

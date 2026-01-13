@@ -1,13 +1,13 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { renderHook, act } from "@testing-library/react";
-import { useQueueOperations } from "@/hooks/TrackPlayer/hooks";
+import { useQueueOperations } from "@/hooks/audio/TrackPlayer/hooks";
 import Song from "@/types";
 
 // TrackPlayerのモック
 jest.mock("react-native-track-player");
 
 // utilsのモック
-jest.mock("@/hooks/TrackPlayer/utils", () => ({
+jest.mock("@/hooks/audio/TrackPlayer/utils", () => ({
   convertToTracks: jest.fn(),
   safeAsyncOperation: jest.fn(),
   logError: jest.fn(),

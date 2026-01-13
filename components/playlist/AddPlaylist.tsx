@@ -28,7 +28,7 @@ import { PlaylistSong, Playlist } from "@/types";
 import getPlaylists from "@/actions/getPlaylists";
 import addPlaylistSong from "@/actions/addPlaylistSong";
 import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { LinearGradient } from "expo-linear-gradient";
 
 interface AddPlaylistProps {
@@ -514,3 +514,4 @@ export default memo(AddPlaylist, (prevProps, nextProps) => {
     prevProps.currentPlaylistId === nextProps.currentPlaylistId
   );
 });
+

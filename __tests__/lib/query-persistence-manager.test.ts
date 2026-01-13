@@ -95,3 +95,4 @@ describe("QueryPersistenceManager", () => {
     expect(storage.delete).not.toHaveBeenCalledWith("OTHER:key3");
   });
 });
+

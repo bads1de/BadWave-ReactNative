@@ -4,8 +4,8 @@ import { ImageBackground } from "expo-image";
 import { VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
 import Song from "@/types";
-import { useOnRepeatPlayer } from "@/hooks/useOnRepeatPlayer";
 import OnRepeatPlayerControls from "./OnRepeatPlayerControls";
+import { useOnRepeatPlayer } from "@/hooks/audio/useOnRepeatPlayer";
 
 const { width, height } = Dimensions.get("screen");
 

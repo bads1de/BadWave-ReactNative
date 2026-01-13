@@ -10,7 +10,7 @@ jest.mock("expo-video", () => ({
 }));
 
 // Mock useSpotlightPlayer
-jest.mock("@/hooks/useSpotlightPlayer", () => ({
+jest.mock("@/hooks/audio/useSpotlightPlayer", () => ({
   useSpotlightPlayer: jest.fn(),
 }));
 
@@ -32,3 +32,4 @@ describe("SpotlightItem", () => {
     expect(getByText("Test Song")).toBeTruthy();
   });
 });
+

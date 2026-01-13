@@ -17,7 +17,7 @@ import Toast from "react-native-toast-message";
 
 import Song from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
@@ -26,7 +26,7 @@ import PlaylistOptionsMenu from "@/components/playlist/PlaylistOptionsMenu";
 import { useGetPlaylistSongs } from "@/hooks/data/useGetPlaylistSongs";
 import { useGetLocalPlaylist } from "@/hooks/data/useGetLocalPlaylist";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
-import { useOfflineGuard } from "@/hooks/useOfflineGuard";
+import { useOfflineGuard } from "@/hooks/common/useOfflineGuard";
 
 const { width } = Dimensions.get("window");
 
@@ -110,9 +110,7 @@ export default function PlaylistDetailScreen() {
         imageSize="medium"
         showStats={true}
         onDelete={
-          session?.user.id === playlist?.user_id
-            ? handleDeleteSong
-            : undefined
+          session?.user.id === playlist?.user_id ? handleDeleteSong : undefined
         }
         currentPlaylistId={playlistId}
       />
@@ -462,4 +460,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
-

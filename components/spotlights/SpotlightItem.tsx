@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { VideoView } from "expo-video";
 import { Spotlight } from "@/types";
-import { useSpotlightPlayer } from "@/hooks/useSpotlightPlayer";
+import { useSpotlightPlayer } from "@/hooks/audio/useSpotlightPlayer";
 
 const { width, height } = Dimensions.get("window");
 
@@ -92,3 +92,4 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 });
+

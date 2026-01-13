@@ -1,6 +1,6 @@
 import React, { useEffect, createContext, useContext, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSyncSongs } from "@/hooks/sync/useSyncSongs";
 import { useSyncLikedSongs } from "@/hooks/sync/useSyncLikedSongs";
 import { useSyncPlaylists } from "@/hooks/sync/useSyncPlaylists";
@@ -166,3 +166,4 @@ export function useSync() {
 }
 
 export default SyncProvider;
+

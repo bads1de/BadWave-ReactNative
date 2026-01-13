@@ -35,3 +35,4 @@ describe("getTrendSongs", () => {
     await expect(getTrendSongs()).rejects.toThrow("error");
   });
 });
+

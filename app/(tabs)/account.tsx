@@ -19,7 +19,7 @@ import { THEMES, ThemeType } from "@/constants/ThemeColors";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useSync } from "@/providers/SyncProvider";
-import { useStorageInfo, formatBytes } from "@/hooks/useStorageInfo";
+import { useStorageInfo, formatBytes } from "@/hooks/common/useStorageInfo";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { SettingSection } from "@/components/common/SettingSection";
 import { SettingItem } from "@/components/common/SettingItem";
@@ -405,3 +405,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+

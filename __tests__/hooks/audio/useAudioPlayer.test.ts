@@ -1,43 +1,49 @@
 import { renderHook } from "@testing-library/react";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 
 jest.mock("react-native-track-player", () => ({
   State: {
     Playing: "playing",
-    Paused: "paused"
+    Paused: "paused",
   },
   usePlaybackState: jest.fn(),
   RepeatMode: {
     Off: 0,
     Track: 1,
-    Queue: 2
+    Queue: 2,
   },
   useActiveTrack: jest.fn(),
   useProgress: jest.fn(),
   play: jest.fn(),
-  pause: jest.fn()
+  pause: jest.fn(),
 }));
 
-jest.mock("@/hooks/useOnPlay", () => ({
+jest.mock("@/hooks/audio/useOnPlay", () => ({
   __esModule: true,
-  default: jest.fn()
+  default: jest.fn(),
 }));
 
 jest.mock("@/hooks/stores/useAudioStore", () => ({
   useAudioStore: jest.fn(),
-  useAudioActions: jest.fn()
+  useAudioActions: jest.fn(),
 }));
 
-jest.mock("@/hooks/TrackPlayer", () => ({
+jest.mock("@/hooks/audio/TrackPlayer", () => ({
   usePlayerState: jest.fn(),
   useQueueOperations: jest.fn(),
   logError: jest.fn(),
-  safeAsyncOperation: jest.fn()
+  safeAsyncOperation: jest.fn(),
 }));
 
 const TrackPlayer = require("react-native-track-player");
-const { useAudioStore, useAudioActions } = require("@/hooks/stores/useAudioStore");
-const { usePlayerState, useQueueOperations } = require("@/hooks/TrackPlayer");
+const {
+  useAudioStore,
+  useAudioActions,
+} = require("@/hooks/stores/useAudioStore");
+const {
+  usePlayerState,
+  useQueueOperations,
+} = require("@/hooks/audio/TrackPlayer");
 
 describe("useAudioPlayer", () => {
   beforeEach(() => {
@@ -51,13 +57,13 @@ describe("useAudioPlayer", () => {
       shuffle: false,
       setCurrentSong: jest.fn(),
       setRepeatMode: jest.fn(),
-      setShuffle: jest.fn()
+      setShuffle: jest.fn(),
     });
     useAudioActions.mockReturnValue({
-      updateCurrentSongAndState: jest.fn()
+      updateCurrentSongAndState: jest.fn(),
     });
     usePlayerState.mockReturnValue({
-      songMap: {}
+      songMap: {},
     });
     useQueueOperations.mockReturnValue({});
   });

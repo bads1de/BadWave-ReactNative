@@ -68,3 +68,4 @@ describe("Loading", () => {
     expect(getByTestId("loading-indicator").props.color).toBe("#ff0000");
   });
 });
+

@@ -5,7 +5,7 @@ import TrendBoard from "@/components/board/TrendBoard";
 
 jest.mock("expo-image", () => ({ ImageBackground: "ImageBackground" }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
-jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("expo-blur", () => ({ BlurView: "BlurView" }));
 jest.mock("@/components/common/CustomButton", () => ({
@@ -28,7 +28,7 @@ jest.mock("@/hooks/data/useGetLocalTrendSongs", () => ({
   })),
 }));
 
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 
 describe("TrendBoard", () => {
   let queryClient: QueryClient;
@@ -49,3 +49,4 @@ describe("TrendBoard", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

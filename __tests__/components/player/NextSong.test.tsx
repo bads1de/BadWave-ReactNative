@@ -26,7 +26,7 @@ jest.mock("@/hooks/stores/usePlayerStore", () => ({
   usePlayerStore: jest.fn(),
 }));
 
-jest.mock("@/hooks/useAudioPlayer", () => ({
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
 }));
 
@@ -36,7 +36,7 @@ jest.mock("@/components/item/SongItem", () => ({
 }));
 
 const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useActiveTrack, useTrackPlayerEvents } = require("react-native-track-player");
 
 describe("NextSong", () => {
@@ -72,4 +72,5 @@ describe("NextSong", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+
 

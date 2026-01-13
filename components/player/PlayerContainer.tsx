@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
 import OnRepeatPlayer from "@/components/onRepeat/player/OnRepeatPlayer";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
@@ -138,3 +138,4 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
 });
+

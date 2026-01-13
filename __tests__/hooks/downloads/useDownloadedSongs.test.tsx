@@ -1,10 +1,11 @@
 import { renderHook } from "@testing-library/react-native";
+import { getOfflineStorageService } from "@/hooks/audio/TrackPlayer/utils";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
 // モックの設定
-jest.mock("@/hooks/TrackPlayer/utils", () => ({
+jest.mock("@/hooks/audio/TrackPlayer/utils", () => ({
   getOfflineStorageService: jest.fn().mockReturnValue({
     getDownloadedSongs: jest.fn().mockResolvedValue([
       {

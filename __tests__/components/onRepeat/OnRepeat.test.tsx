@@ -3,14 +3,14 @@ import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import OnRepeat from "@/components/onRepeat/OnRepeat";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/actions/getUser";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import TrackPlayer from "react-native-track-player";
 
 // モックの設定
 jest.mock("@tanstack/react-query");
 jest.mock("@/actions/getUser");
-jest.mock("@/hooks/useAudioPlayer");
+jest.mock("@/hooks/audio/useAudioPlayer");
 jest.mock("@/hooks/stores/useOnRepeatStore");
 jest.mock("react-native-track-player");
 jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
@@ -274,3 +274,4 @@ describe("OnRepeat", () => {
     });
   });
 });
+

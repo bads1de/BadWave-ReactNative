@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { useOnRepeatPlayer } from "@/hooks/useOnRepeatPlayer";
+import { useOnRepeatPlayer } from "@/hooks/audio/useOnRepeatPlayer";
 import Song from "@/types";
 
 // expo-video をモック

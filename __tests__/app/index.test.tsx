@@ -31,7 +31,7 @@ jest.mock("@/components/board/HeroBoard", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
 jest.mock("@/hooks/stores/usePlayerStore", () => ({ usePlayerStore: jest.fn() }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
@@ -43,7 +43,7 @@ jest.mock("@/hooks/data/useGetLocalSongs", () => ({
   })),
 }));
 
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
 const { useGetLocalSongs } = require("@/hooks/data/useGetLocalSongs");
 
@@ -70,4 +70,5 @@ describe("HomeScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+
 

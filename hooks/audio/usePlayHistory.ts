@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/actions/getUser";
 import { useCallback } from "react";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 /**
  * 再生履歴を管理するカスタムフック
@@ -36,3 +36,4 @@ const usePlayHistory = () => {
 };
 
 export default usePlayHistory;
+

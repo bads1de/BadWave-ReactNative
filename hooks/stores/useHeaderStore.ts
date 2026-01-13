@@ -9,3 +9,4 @@ export const useHeaderStore = create<HeaderState>((set) => ({
   showHeader: true,
   setShowHeader: (show: boolean) => set({ showHeader: show }),
 }));
+

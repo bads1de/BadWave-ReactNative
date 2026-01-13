@@ -44,3 +44,4 @@ describe("getSpotlights", () => {
     await expect(getSpotlights()).rejects.toThrow("error");
   });
 });
+

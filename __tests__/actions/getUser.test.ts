@@ -88,3 +88,4 @@ describe("getUser", () => {
     await expect(getUser()).rejects.toThrow("DB error");
   });
 });
+

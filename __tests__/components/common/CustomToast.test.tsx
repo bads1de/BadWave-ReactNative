@@ -48,3 +48,4 @@ describe("CustomToast", () => {
     expect(firstRender).toBe(secondRender);
   });
 });
+

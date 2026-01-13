@@ -11,14 +11,14 @@ import { useQuery } from "@tanstack/react-query";
 import getTopPlayedSongs from "@/actions/getTopPlayedSongs";
 import { CACHED_QUERIES } from "@/constants";
 import { useUser } from "@/actions/getUser";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 
 const { width } = Dimensions.get("window");
@@ -254,3 +254,4 @@ const styles = StyleSheet.create({
 });
 
 export default memo(OnRepeat);
+

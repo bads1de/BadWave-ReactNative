@@ -1,11 +1,11 @@
 import React from "react";
 import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useStorageInfo } from "@/hooks/useStorageInfo";
-import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
+import { useStorageInfo } from "@/hooks/common/useStorageInfo";
+import { getOfflineStorageService } from "@/hooks/audio/TrackPlayer/utils";
 
 // モックの設定
-jest.mock("@/hooks/TrackPlayer/utils", () => ({
+jest.mock("@/hooks/audio/TrackPlayer/utils", () => ({
   getOfflineStorageService: jest.fn(),
 }));
 
@@ -130,3 +130,4 @@ describe("useStorageInfo", () => {
     expect(result.current.error).toBeTruthy();
   });
 });
+

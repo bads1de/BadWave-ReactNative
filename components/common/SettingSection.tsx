@@ -56,3 +56,4 @@ const styles = StyleSheet.create({
     // Content sits on top of blur
   },
 });
+

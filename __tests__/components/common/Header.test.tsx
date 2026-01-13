@@ -105,3 +105,4 @@ describe("Header", () => {
     expect(setShowAuthModal).toHaveBeenCalledWith(true);
   });
 });
+

@@ -7,7 +7,7 @@ import { useLikeMutation } from "@/hooks/mutations/useLikeMutation";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { db } from "@/lib/db/client";
 import { supabase } from "@/lib/supabase";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 // モックの定義
 jest.mock("@/lib/supabase", () => {
@@ -26,6 +26,7 @@ jest.mock("@/lib/supabase", () => {
   return {
     supabase: {
       from: jest.fn(() => chain),
+      rpc: jest.fn(() => Promise.resolve({ data: null, error: null })),
     },
   };
 });
@@ -43,6 +44,14 @@ jest.mock("@/lib/db/client", () => {
     orderBy: jest.fn().mockReturnThis(),
     set: jest.fn().mockReturnThis(),
     values: jest.fn().mockReturnThis(),
+    query: {
+      songs: {
+        findFirst: jest.fn().mockResolvedValue({ likeCount: 0 }),
+      },
+      likedSongs: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
+    },
   };
   return {
     db: chain,
@@ -60,7 +69,7 @@ jest.mock("drizzle-orm", () => ({
   desc: jest.fn(),
 }));
 
-jest.mock("@/hooks/useNetworkStatus", () => ({
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
 

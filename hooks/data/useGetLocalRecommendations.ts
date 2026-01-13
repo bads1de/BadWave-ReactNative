@@ -70,3 +70,4 @@ export function useGetLocalRecommendations(userId?: string) {
 }
 
 export default useGetLocalRecommendations;
+

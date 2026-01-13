@@ -83,3 +83,4 @@ const styles = StyleSheet.create({
 
 // メモ化してエクスポート
 export default memo(Header);
+

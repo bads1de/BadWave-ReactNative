@@ -16,7 +16,7 @@ jest.mock("@/hooks/downloads/useDownloadStatus", () => ({
   useDeleteDownloadedSong: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
-jest.mock("@/hooks/useNetworkStatus", () => ({
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: () => ({ isOnline: true }),
 }));
 
@@ -143,4 +143,5 @@ describe("ListItemOptionsMenu", () => {
     expect(getByTestId("add-to-playlist-option")).toBeTruthy();
   });
 });
+
 

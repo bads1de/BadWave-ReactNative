@@ -79,3 +79,4 @@ describe("addPlaylistSong", () => {
     expect(updatePlaylistImage).not.toHaveBeenCalled();
   });
 });
+

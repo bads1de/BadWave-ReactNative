@@ -9,6 +9,15 @@ jest.mock("react-native-track-player", () => ({
     Track: 1,
     Queue: 2,
   },
+  useProgress: jest.fn(() => ({ position: 0, duration: 0 })),
+  usePlaybackState: jest.fn(() => ({ state: "paused" })),
+  useActiveTrack: jest.fn(() => null),
+  play: jest.fn(),
+  pause: jest.fn(),
+  skipToNext: jest.fn(),
+  skipToPrevious: jest.fn(),
+  seekTo: jest.fn(),
+  setRepeatMode: jest.fn(),
 }));
 
 // RepeatModeをインポート

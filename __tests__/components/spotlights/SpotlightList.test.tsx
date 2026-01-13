@@ -3,6 +3,14 @@ import { render } from "@testing-library/react-native";
 import SpotlightList from "@/components/spotlights/SpotlightList";
 import { Spotlight } from "@/types";
 
+// Mock FlashList to use FlatList for tests
+jest.mock("@shopify/flash-list", () => {
+  const { FlatList } = require("react-native");
+  return {
+    FlashList: FlatList,
+  };
+});
+
 // Mock SpotlightItem to check props
 jest.mock("@/components/spotlights/SpotlightItem", () => {
   const { View, Text } = require("react-native");

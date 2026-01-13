@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
+import { getOfflineStorageService } from "@/hooks/audio/TrackPlayer/utils";
 import { CACHED_QUERIES } from "@/constants";
 
 /**
@@ -131,3 +131,4 @@ export function useStorageInfo(): StorageInfo & StorageActions {
     refreshStorageInfo,
   };
 }
+

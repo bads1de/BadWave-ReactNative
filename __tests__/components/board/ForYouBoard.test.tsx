@@ -15,7 +15,7 @@ jest.mock("@/components/common/Error", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/hooks/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
 jest.mock("@/hooks/data/useGetLocalRecommendations", () => ({
   useGetLocalRecommendations: jest.fn(() => ({
     data: [],
@@ -30,7 +30,7 @@ jest.mock("@/providers/AuthProvider", () => ({
   })),
 }));
 
-const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
+const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 
 describe("ForYouBoard", () => {
   let queryClient: QueryClient;
@@ -51,3 +51,4 @@ describe("ForYouBoard", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
+

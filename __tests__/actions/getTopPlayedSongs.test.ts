@@ -38,3 +38,4 @@ describe("getTopPlayedSongs", () => {
     await expect(getTopPlayedSongs("user123")).rejects.toThrow("error");
   });
 });
+

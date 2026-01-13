@@ -1,15 +1,15 @@
 // 実際のコードをモックする
 // モックを実装する
-import useOnPlay from "@/hooks/useOnPlay";
+import useOnPlay from "@/hooks/audio/useOnPlay";
 
-jest.mock("@/hooks/useOnPlay", () => ({
+jest.mock("@/hooks/audio/useOnPlay", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
 // usePlayHistoryのモック
 const mockRecordPlay = jest.fn().mockResolvedValue(undefined);
-jest.mock("@/hooks/usePlayHistory", () => ({
+jest.mock("@/hooks/audio/usePlayHistory", () => ({
   __esModule: true,
   default: () => ({
     recordPlay: mockRecordPlay,
@@ -72,3 +72,4 @@ describe("useOnPlay", () => {
     expect(mockOnPlay).toHaveBeenCalledWith("song1");
   });
 });
+

@@ -36,3 +36,4 @@ describe("mmkv-storage", () => {
     expect(storage.delete).toHaveBeenCalledWith("testKey");
   });
 });
+

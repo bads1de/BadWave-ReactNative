@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 
 import Library from "@/app/(tabs)/library";
 
@@ -10,7 +10,9 @@ jest.mock("@/app/(tabs)/library", () => {
   const React = require("react");
   const { View, Text, TouchableOpacity } = require("react-native");
   const FlashList = require("@shopify/flash-list").FlashList;
-  const { useDownloadedSongs } = require("@/hooks/downloads/useDownloadedSongs");
+  const {
+    useDownloadedSongs,
+  } = require("@/hooks/downloads/useDownloadedSongs");
   const SongItem = require("@/components/item/SongItem").default;
   const Error = require("@/components/common/Error").default;
   const Loading = require("@/components/common/Loading").default;
@@ -144,7 +146,7 @@ jest.mock("../../hooks/downloads/useDownloadedSongs", () => ({
   }),
 }));
 
-jest.mock("../../hooks/useAudioPlayer", () => ({
+jest.mock("../../hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn().mockReturnValue({
     currentTrack: null,
     isPlaying: false,
@@ -489,6 +491,3 @@ describe("Library Screen - Downloads Tab", () => {
     expect(queryByTestId("loading")).toBeTruthy();
   });
 });
-
-
-

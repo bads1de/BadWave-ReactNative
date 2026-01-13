@@ -142,3 +142,4 @@ const styles = StyleSheet.create({
     marginLeft: 68, // Align with text start (16 padding + 36 icon + 16 margin)
   },
 });
+

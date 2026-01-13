@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOfflineStorageService } from "@/hooks/TrackPlayer/utils";
+import { getOfflineStorageService } from "@/hooks/audio/TrackPlayer/utils";
 import { CACHED_QUERIES } from "@/constants";
 import Song from "@/types";
 
@@ -85,3 +85,4 @@ export function useDeleteDownloadedSong() {
     },
   });
 }
+

@@ -63,3 +63,4 @@ describe("AuthProvider", () => {
     }).toThrow("useAuth must be used within a AuthProvider");
   });
 });
+

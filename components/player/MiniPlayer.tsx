@@ -152,3 +152,4 @@ export default memo(ModernMiniPlayer, (prevProps, nextProps) => {
     prevProps.isPlaying === nextProps.isPlaying
   );
 });
+

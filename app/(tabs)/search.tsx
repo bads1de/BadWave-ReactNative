@@ -9,12 +9,12 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce } from "@/hooks/common/useDebounce";
 import getSongsByTitle from "@/actions/getSongsByTitle";
 import getPlaylistsByTitle from "@/actions/getPlaylistsByTitle";
 import ListItem from "@/components/item/ListItem";
 import PlaylistItem from "@/components/item/PlaylistItem";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { CACHED_QUERIES } from "@/constants";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
@@ -22,7 +22,7 @@ import { useRouter } from "expo-router";
 import { Playlist } from "@/types";
 import Song from "@/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 type SearchType = "songs" | "playlists";
@@ -427,3 +427,4 @@ const styles = StyleSheet.create({
 
 // コンポーネント全体をメモ化してエクスポート
 export default memo(SearchScreen);
+

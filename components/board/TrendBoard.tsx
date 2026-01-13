@@ -10,7 +10,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import Song from "@/types";
@@ -18,7 +18,7 @@ import { useGetLocalTrendSongs } from "@/hooks/data/useGetLocalTrendSongs";
 import CustomButton from "@/components/common/CustomButton";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -368,3 +368,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+

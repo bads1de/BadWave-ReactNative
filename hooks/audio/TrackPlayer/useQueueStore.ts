@@ -47,3 +47,4 @@ export const useQueueStore = create<QueueStore>((set) => ({
    */
   resetQueueState: () => set(initialQueueState),
 }));
+

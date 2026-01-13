@@ -10,7 +10,7 @@ jest.mock("react-native-toast-message", () => ({
   default: { show: jest.fn() },
 }));
 jest.mock("@/providers/AuthProvider", () => ({ useAuth: jest.fn() }));
-jest.mock("@/hooks/useNetworkStatus", () => ({
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
 
@@ -25,7 +25,7 @@ jest.mock("@/hooks/mutations/useLikeMutation", () => ({
 }));
 
 const { useAuth } = require("@/providers/AuthProvider");
-const { useNetworkStatus } = require("@/hooks/useNetworkStatus");
+const { useNetworkStatus } = require("@/hooks/common/useNetworkStatus");
 const { useLikeStatus } = require("@/hooks/data/useLikeStatus");
 const { useLikeMutation } = require("@/hooks/mutations/useLikeMutation");
 
@@ -192,3 +192,4 @@ describe("LikeButton", () => {
     expect(mockMutate).not.toHaveBeenCalled();
   });
 });
+

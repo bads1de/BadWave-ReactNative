@@ -21,7 +21,7 @@ import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useRouter } from "expo-router";
 import MarqueeText from "../common/MarqueeText";
 import { DownloadButton } from "../DownloadButton";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import ListItemOptionsMenu from "./ListItemOptionsMenu";
 
 interface SongItemProps {
@@ -311,3 +311,4 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
   },
 });
+

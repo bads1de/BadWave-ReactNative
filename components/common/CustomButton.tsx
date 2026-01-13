@@ -81,3 +81,4 @@ export default memo(CustomButton, (prevProps, nextProps) => {
     prevProps.onPress === nextProps.onPress // onPressも比較対象に追加
   );
 });
+

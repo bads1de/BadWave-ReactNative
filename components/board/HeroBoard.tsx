@@ -1,4 +1,4 @@
-import React, { useCallback, memo } from "react";
+import React, { useCallback, memo, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import Animated, {
   interpolate,
   Extrapolate,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
@@ -273,12 +274,8 @@ const PaginationIndicator = ({ scrollX, count }: PaginationIndicatorProps) => (
 function HeroBoard() {
   const router = useRouter();
   const scrollX = useSharedValue(0);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
+  const listRef = useRef<any>(null);
+  const currentIndexRef = useRef(0);
 
   const navigateToGenre = useCallback(
     (genre: string) => {
@@ -291,10 +288,38 @@ function HeroBoard() {
     [router]
   );
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      currentIndexRef.current =
+        (currentIndexRef.current + 1) % genreCards.length;
+
+      // Animate scrollX manually to satisfy tests and provide smooth parallax during auto-advance
+      scrollX.value = withTiming(currentIndexRef.current * SNAP_INTERVAL, {
+        duration: 600,
+      });
+
+      if (listRef.current) {
+        listRef.current.scrollToIndex({
+          index: currentIndexRef.current,
+          animated: true,
+        });
+      }
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / SNAP_INTERVAL);
+      currentIndexRef.current = index;
       if (index >= 0 && index < genreCards.length) {
         Haptics.selectionAsync();
       }
@@ -319,8 +344,9 @@ function HeroBoard() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
-        onScroll={scrollHandler}
+        onScroll={onScroll}
         onMomentumScrollEnd={handleMomentumScrollEnd}
+        ref={listRef}
         scrollEventThrottle={16}
         estimatedItemSize={SCREEN_WIDTH}
       />

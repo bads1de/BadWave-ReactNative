@@ -34,3 +34,4 @@ export const useSpotlightPlayer = (source: VideoSource, isVisible: boolean) => {
 
   return player;
 };
+

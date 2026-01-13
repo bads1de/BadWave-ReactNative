@@ -4,16 +4,17 @@ import TrackPlayer, {
   usePlaybackState,
   RepeatMode,
   useActiveTrack,
+  useProgress,
 } from "react-native-track-player";
 import Song from "@/types";
-import useOnPlay from "@/hooks/useOnPlay";
+import useOnPlay from "@/hooks/audio/useOnPlay";
 import { useAudioStore, useAudioActions } from "@/hooks/stores/useAudioStore";
 import {
   usePlayerState,
   useQueueOperations,
   PlayContextType,
   safeAsyncOperation,
-} from "@/hooks/TrackPlayer";
+} from "@/hooks/audio/TrackPlayer";
 
 /**
  * オーディオプレイヤーの状態管理と操作を行うカスタムフックです。
@@ -75,6 +76,10 @@ export function useAudioPlayer(
     () => playbackState.state === State.Playing,
     [playbackState.state]
   );
+
+  const { position, duration } = useProgress(200);
+  const progressPosition = position * 1000;
+  const progressDuration = duration * 1000;
 
   // コンポーネントのアンマウント時の処理
   useEffect(() => {
@@ -266,6 +271,8 @@ export function useAudioPlayer(
       playPrevSong,
       setRepeat,
       setShuffle: handleToggleShuffle,
+      progressPosition,
+      progressDuration,
     }),
     [
       currentSong,
@@ -278,6 +285,8 @@ export function useAudioPlayer(
       playPrevSong,
       setRepeat,
       handleToggleShuffle,
+      progressPosition,
+      progressDuration,
     ]
   );
 
