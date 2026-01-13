@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
-import { FlatList, ViewToken, Dimensions } from "react-native";
+import { ViewToken, Dimensions } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Spotlight } from "@/types";
 import ReelItem from "./ReelItem";
 
@@ -20,6 +21,7 @@ export default function ReelsList({
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems.length > 0) {
         const visibleItem = viewableItems[0];
+
         if (visibleItem.index !== null) {
           setCurrentVisibleIndex(visibleItem.index);
         }
@@ -31,55 +33,36 @@ export default function ReelsList({
     itemVisiblePercentThreshold: 50,
   }).current;
 
-  const flatListRef = useRef<FlatList<Spotlight>>(null);
-
-  const scrollToNext = useCallback(() => {
-    if (currentVisibleIndex < data.length - 1) {
-      flatListRef.current?.scrollToIndex({
-        index: currentVisibleIndex + 1,
-        animated: true,
-      });
-    }
-  }, [currentVisibleIndex, data.length]);
-
   const renderItem = useCallback(
     ({ item, index }: { item: Spotlight; index: number }) => (
       <ReelItem
         item={item}
         isVisible={index === currentVisibleIndex && isParentFocused}
-        onFinish={scrollToNext}
       />
     ),
-    [currentVisibleIndex, isParentFocused, scrollToNext]
+    [currentVisibleIndex, isParentFocused]
   );
 
-  const getItemLayout = useCallback(
-    (_data: ArrayLike<Spotlight> | null | undefined, index: number) => ({
-      length: height,
-      offset: height * index,
-      index,
-    }),
-    []
-  );
+  // タブがフォーカスを失った場合はリストをアンマウントしてリソースを解放
+  if (!isParentFocused) {
+    return null;
+  }
 
   return (
-    <FlatList
-      ref={flatListRef}
+    <FlashList
       data={data}
+      extraData={currentVisibleIndex}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       pagingEnabled
       showsVerticalScrollIndicator={false}
       snapToInterval={height}
-      snapToAlignment="start"
       decelerationRate="fast"
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
-      getItemLayout={getItemLayout}
-      windowSize={3}
-      removeClippedSubviews={true}
-      initialNumToRender={5}
-      maxToRenderPerBatch={2}
+      estimatedItemSize={height}
+      // パフォーマンス最適化：画面外のアイテムの事前描画を最小限に
+      drawDistance={height}
     />
   );
 }

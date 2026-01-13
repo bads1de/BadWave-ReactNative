@@ -1,21 +1,27 @@
 import { useVideoPlayer, VideoSource } from "expo-video";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * リール専用のビデオプレイヤーを管理するためのカスタムフック。
- * リールの表示状態に基づいてビデオの再生を制御し、ビデオが終了したときのコールバックを提供します。
+ * リールの表示状態に基づいてビデオの再生を制御し、ループ再生を有効にします。
  *
  * @param source 再生するビデオソース。
  * @param isVisible リールが現在表示されているかどうかを示すブーリアン値。
- * @param onFinish ビデオの再生が終了したときに実行されるオプションのコールバック関数。
  * @returns useVideoPlayer からのビデオプレイヤーインスタンス。
  */
-export const useReelsPlayer = (
-  source: VideoSource,
-  isVisible: boolean,
-  onFinish?: () => void
-) => {
-  const player = useVideoPlayer(source);
+export const useReelsPlayer = (source: VideoSource, isVisible: boolean) => {
+  // isVisibleの現在値をrefで保持（setup関数内からアクセスするため）
+  const isVisibleRef = useRef(isVisible);
+  isVisibleRef.current = isVisible;
+
+  // setup関数でプレイヤーの初期設定を行う
+  const player = useVideoPlayer(source, (p) => {
+    p.loop = true;
+    // 初期状態では再生しない（isVisibleがtrueの場合のみ再生）
+    if (!isVisibleRef.current) {
+      p.pause();
+    }
+  });
 
   useEffect(() => {
     // リールの表示状態に基づいてビデオを再生または一時停止します。
@@ -25,20 +31,6 @@ export const useReelsPlayer = (
       player.pause();
     }
   }, [isVisible, player]);
-
-  useEffect(() => {
-    // ビデオが終了したときにonFinishコールバックをトリガーするために、「playToEnd」イベントを購読します。
-    const subscription = player.addListener("playToEnd", () => {
-      if (onFinish) {
-        onFinish();
-      }
-    });
-
-    // コンポーネントがアンマウントされるか、依存関係が変更されたときにイベントリスナーをクリーンアップします。
-    return () => {
-      subscription.remove();
-    };
-  }, [player, onFinish]);
 
   return player;
 };

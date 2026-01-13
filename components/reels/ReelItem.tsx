@@ -9,11 +9,10 @@ const { width, height } = Dimensions.get("window");
 interface ReelItemProps {
   item: Spotlight;
   isVisible: boolean;
-  onFinish?: () => void;
 }
 
-function ReelItem({ item, isVisible, onFinish }: ReelItemProps) {
-  const player = useReelsPlayer(item.video_path, isVisible, onFinish);
+function ReelItem({ item, isVisible }: ReelItemProps) {
+  const player = useReelsPlayer(item.video_path, isVisible);
 
   return (
     <View style={styles.container}>

@@ -41,11 +41,6 @@ export default function ReelsScreen() {
       setShowHeader(true);
       setIsMiniPlayerVisible(true);
     }
-    // クリーンアップ関数：画面から離れる際にUIを元の状態に戻します。
-    return () => {
-      setShowHeader(true);
-      setIsMiniPlayerVisible(true);
-    };
   }, [isFocused, setShowHeader, setIsMiniPlayerVisible]);
 
   // スポットライトのデータをローカルから取得
@@ -93,4 +88,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
-
