@@ -21,9 +21,6 @@ describe("SpotlightItem", () => {
     author: "Test Artist",
     title: "Test Song",
     description: "Test Description",
-    public: true,
-    created_at: "2023-01-01",
-    user_id: "user1",
   };
 
   it("renders correctly", () => {

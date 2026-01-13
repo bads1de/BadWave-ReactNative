@@ -30,9 +30,6 @@ describe("SpotlightList", () => {
       author: "Artist 1",
       title: "Song 1",
       description: "Desc 1",
-      public: true,
-      created_at: "2023-01-01",
-      user_id: "user1",
     },
     {
       id: "2",
@@ -40,9 +37,6 @@ describe("SpotlightList", () => {
       author: "Artist 2",
       title: "Song 2",
       description: "Desc 2",
-      public: true,
-      created_at: "2023-01-02",
-      user_id: "user2",
     },
   ];
 
