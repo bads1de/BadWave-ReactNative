@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect, useMemo } from "react";
 import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import Song from "@/types";
@@ -28,6 +28,7 @@ export default function QuickListenList({
   isParentFocused = true,
 }: QuickListenListProps) {
   const listRef = useRef<FlashList<Song>>(null);
+  const hasScrolledRef = useRef(false);
   // 現在のインデックスをrefで保持（onViewableItemsChanged内からアクセスするため）
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
@@ -60,19 +61,41 @@ export default function QuickListenList({
     [currentIndex, isParentFocused]
   );
 
-  // 初回マウント時に指定されたインデックスにスクロール
+  const extraData = useMemo(
+    () => ({ currentIndex, isParentFocused }),
+    [currentIndex, isParentFocused]
+  );
+
+  // リストが非表示になったらスクロール済みフラグをリセット
   useEffect(() => {
-    if (listRef.current && songs.length > 0 && currentIndex > 0) {
-      // 少し遅延させてFlashListのレイアウトが完了してからスクロール
-      const timer = setTimeout(() => {
-        listRef.current?.scrollToIndex({
-          index: currentIndex,
-          animated: false,
-        });
-      }, 100);
-      return () => clearTimeout(timer);
+    if (!isParentFocused) {
+      hasScrolledRef.current = false;
     }
-  }, []); // 初回のみ実行
+  }, [isParentFocused]);
+
+  // 初回マウント時または再表示時に指定インデックスへスクロール
+  useEffect(() => {
+    if (
+      isParentFocused &&
+      !hasScrolledRef.current &&
+      listRef.current &&
+      songs.length > 0
+    ) {
+      if (currentIndex > 0) {
+        // 少し遅延させてFlashListのレイアウトが完了してからスクロール
+        const timer = setTimeout(() => {
+          listRef.current?.scrollToIndex({
+            index: currentIndex,
+            animated: false,
+          });
+        }, 100);
+        hasScrolledRef.current = true;
+        return () => clearTimeout(timer);
+      } else {
+        hasScrolledRef.current = true;
+      }
+    }
+  }, [currentIndex, songs.length, isParentFocused]);
 
   // 親がフォーカスを失った場合はリストをアンマウントしてリソースを解放
   if (!isParentFocused) {
@@ -83,7 +106,7 @@ export default function QuickListenList({
     <FlashList
       ref={listRef}
       data={songs}
-      extraData={currentIndex}
+      extraData={extraData}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       pagingEnabled

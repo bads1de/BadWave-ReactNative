@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useVideoPlayer, VideoSource } from "expo-video";
 import Song from "@/types";
 
@@ -36,7 +36,7 @@ export const useQuickListenPlayer = (song: Song, isVisible: boolean) => {
   useEffect(() => {
     if (isVisible && player && !hasSeenkedRef.current) {
       // プレイヤーの準備ができたらランダム位置にシーク
-      const seekToRandomPosition = () => {
+      const trySeek = () => {
         const duration = player.duration;
         if (duration && duration > 0) {
           // 曲の20%〜80%の間でランダムな位置を選択
@@ -52,15 +52,30 @@ export const useQuickListenPlayer = (song: Song, isVisible: boolean) => {
           player.currentTime = randomStartRef.current;
           hasSeenkedRef.current = true;
           player.play();
+          return true;
         }
+        return false;
       };
 
-      // プレイヤーがロードされるまで少し待つ
-      const timer = setTimeout(() => {
-        seekToRandomPosition();
+      // 即時実行を試みる
+      if (trySeek()) return;
+
+      // ロード待ちポーリング (200ms間隔)
+      const interval = setInterval(() => {
+        if (trySeek()) {
+          clearInterval(interval);
+        }
       }, 200);
 
-      return () => clearTimeout(timer);
+      // 10秒でタイムアウト
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+      }, 10000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
     }
   }, [isVisible, player]);
 
