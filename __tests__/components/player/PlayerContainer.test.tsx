@@ -7,7 +7,12 @@ jest.mock("@/components/player/MiniPlayer", () => {
   const { View, Text } = require("react-native");
   return {
     __esModule: true,
-    default: () => React.createElement(View, { testID: "mini-player" }, React.createElement(Text, null, "MiniPlayer")),
+    default: () =>
+      React.createElement(
+        View,
+        { testID: "mini-player" },
+        React.createElement(Text, null, "MiniPlayer")
+      ),
   };
 });
 
@@ -16,16 +21,26 @@ jest.mock("@/components/player/Player", () => {
   const { View, Text } = require("react-native");
   return {
     __esModule: true,
-    default: () => React.createElement(View, { testID: "full-player" }, React.createElement(Text, null, "Player")),
+    default: () =>
+      React.createElement(
+        View,
+        { testID: "full-player" },
+        React.createElement(Text, null, "Player")
+      ),
   };
 });
 
-jest.mock("@/components/player/SubPlayer", () => {
+jest.mock("@/components/quickListen/QuickListenScreen", () => {
   const React = require("react");
   const { View, Text } = require("react-native");
   return {
     __esModule: true,
-    default: () => React.createElement(View, { testID: "sub-player" }, React.createElement(Text, null, "SubPlayer")),
+    default: () =>
+      React.createElement(
+        View,
+        { testID: "quick-listen-screen" },
+        React.createElement(Text, null, "QuickListenScreen")
+      ),
   };
 });
 
@@ -41,14 +56,14 @@ jest.mock("@/hooks/stores/usePlayerStore", () => ({
   usePlayerStore: jest.fn(),
 }));
 
-jest.mock("@/hooks/stores/useSubPlayerStore", () => ({
-  useSubPlayerStore: jest.fn(),
+jest.mock("@/hooks/stores/useQuickListenStore", () => ({
+  useQuickListenStore: jest.fn(),
 }));
 
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
 const { useAudioStore } = require("@/hooks/stores/useAudioStore");
 const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
-const { useSubPlayerStore } = require("@/hooks/stores/useSubPlayerStore");
+const { useQuickListenStore } = require("@/hooks/stores/useQuickListenStore");
 
 describe("PlayerContainer", () => {
   const mockSong = {
@@ -79,22 +94,27 @@ describe("PlayerContainer", () => {
       progressDuration: 180000,
     });
 
-    useAudioStore.mockImplementation((selector) => selector({
-      currentSong: mockSong,
-      repeatMode: 0,
-      shuffle: false,
-    }));
+    useAudioStore.mockImplementation((selector) =>
+      selector({
+        currentSong: mockSong,
+        repeatMode: 0,
+        shuffle: false,
+      })
+    );
 
-    usePlayerStore.mockImplementation((selector) => selector({
-      showPlayer: false,
-      setShowPlayer: jest.fn(),
-      isMiniPlayerVisible: true, // 追加
-    }));
+    usePlayerStore.mockImplementation((selector) =>
+      selector({
+        showPlayer: false,
+        setShowPlayer: jest.fn(),
+        isMiniPlayerVisible: true,
+      })
+    );
 
-    useSubPlayerStore.mockImplementation((selector) => selector({
-      showSubPlayer: false,
-      setShowSubPlayer: jest.fn(),
-    }));
+    useQuickListenStore.mockImplementation((selector) =>
+      selector({
+        isVisible: false,
+      })
+    );
   });
 
   it("renders MiniPlayer when showPlayer is false", () => {
@@ -105,10 +125,12 @@ describe("PlayerContainer", () => {
   });
 
   it("renders full Player when showPlayer is true", () => {
-        usePlayerStore.mockImplementation((selector) => selector({
-      showPlayer: true,
-      setShowPlayer: jest.fn(),
-    }));
+    usePlayerStore.mockImplementation((selector) =>
+      selector({
+        showPlayer: true,
+        setShowPlayer: jest.fn(),
+      })
+    );
 
     const { getByTestId, queryByTestId } = render(<PlayerContainer />);
 
@@ -116,23 +138,26 @@ describe("PlayerContainer", () => {
     expect(queryByTestId("mini-player")).toBeNull();
   });
 
-  it("renders SubPlayer when showSubPlayer is true", () => {
-        useSubPlayerStore.mockImplementation((selector) => selector({
-      showSubPlayer: true,
-      setShowSubPlayer: jest.fn(),
-    }));
+  it("renders QuickListenScreen when isVisible is true", () => {
+    useQuickListenStore.mockImplementation((selector) =>
+      selector({
+        isVisible: true,
+      })
+    );
 
     const { getByTestId } = render(<PlayerContainer />);
 
-    expect(getByTestId("sub-player")).toBeTruthy();
+    expect(getByTestId("quick-listen-screen")).toBeTruthy();
   });
 
   it("does not render any player when currentSong is null", () => {
-        useAudioStore.mockImplementation((selector) => selector({
-      currentSong: null,
-      repeatMode: 0,
-      shuffle: false,
-    }));
+    useAudioStore.mockImplementation((selector) =>
+      selector({
+        currentSong: null,
+        repeatMode: 0,
+        shuffle: false,
+      })
+    );
 
     const { queryByTestId } = render(<PlayerContainer />);
 
@@ -140,4 +165,3 @@ describe("PlayerContainer", () => {
     expect(queryByTestId("full-player")).toBeNull();
   });
 });
-

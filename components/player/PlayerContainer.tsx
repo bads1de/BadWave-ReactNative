@@ -2,20 +2,20 @@ import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
-import SubPlayer from "@/components/player/SubPlayer";
+import QuickListenScreen from "@/components/quickListen/QuickListenScreen";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
-import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
+import { useQuickListenStore } from "@/hooks/stores/useQuickListenStore";
 
 /**
  * プレーヤーコンテナコンポーネント
  *
- * このコンポーネントは、MiniPlayer、Player、SubPlayerコンポーネントを管理し、
+ * このコンポーネントは、MiniPlayer、Player、QuickListenScreenコンポーネントを管理し、
  * 再生状態の更新による不要な再レンダリングを防ぎます。
  *
  * 改善点:
- * - SubPlayerContainerを統合し、コンポーネント階層を簡素化
+ * - QuickListenScreenを統合し、コンポーネント階層を簡素化
  * - 適切なzIndex管理による表示順序の制御
  */
 function PlayerContainer() {
@@ -29,9 +29,8 @@ function PlayerContainer() {
   const repeatMode = useAudioStore((state) => state.repeatMode);
   const shuffle = useAudioStore((state) => state.shuffle);
 
-  // サブプレイヤーの状態
-  const showSubPlayer = useSubPlayerStore((state) => state.showSubPlayer);
-  const setShowSubPlayer = useSubPlayerStore((state) => state.setShowSubPlayer);
+  // Quick Listenの状態
+  const showQuickListen = useQuickListenStore((state) => state.isVisible);
 
   // 再生コントロール関数と進捗情報を取得
   const {
@@ -49,10 +48,10 @@ function PlayerContainer() {
 
   return (
     <>
-      {/* サブプレイヤー（最も前面に表示） */}
-      {showSubPlayer && (
-        <View style={styles.subPlayerContainer}>
-          <SubPlayer onClose={() => setShowSubPlayer(false)} />
+      {/* Quick Listen（最も前面に表示） */}
+      {showQuickListen && (
+        <View style={styles.quickListenContainer}>
+          <QuickListenScreen />
         </View>
       )}
 
@@ -105,7 +104,7 @@ const MemoizedPlayerContainer = memo(
 export default MemoizedPlayerContainer;
 
 const styles = StyleSheet.create({
-  subPlayerContainer: {
+  quickListenContainer: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -139,4 +138,3 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
 });
-

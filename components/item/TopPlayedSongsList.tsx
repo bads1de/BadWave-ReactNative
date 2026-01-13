@@ -13,7 +13,7 @@ import { CACHED_QUERIES } from "@/constants";
 import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
-import { useSubPlayerStore } from "@/hooks/stores/useSubPlayerStore";
+import { useQuickListenStore } from "@/hooks/stores/useQuickListenStore";
 import Song from "@/types";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -95,11 +95,7 @@ function TopPlayedSongsList() {
   const { data: user } = useUser();
   const userId = user?.id;
   const { isPlaying } = useAudioPlayer();
-  const setShowSubPlayer = useSubPlayerStore((state) => state.setShowSubPlayer);
-  const setSongs = useSubPlayerStore((state) => state.setSongs);
-  const setCurrentSongIndex = useSubPlayerStore(
-    (state) => state.setCurrentSongIndex
-  );
+  const openQuickListen = useQuickListenStore((state) => state.open);
 
   const { isOnline } = useNetworkStatus();
   const { songs: downloadedSongs } = useDownloadedSongs();
@@ -122,16 +118,13 @@ function TopPlayedSongsList() {
         if (isPlaying) {
           await TrackPlayer.pause();
         }
-        setCurrentSongIndex(-1);
-        setSongs([]);
-        setSongs(topSongs);
-        setCurrentSongIndex(songIndex);
-        setShowSubPlayer(true);
+        // アトミックな更新でQuick Listenを開く
+        openQuickListen(topSongs, songIndex);
       } catch (error) {
         console.error("Error handling song press:", error);
       }
     },
-    [isPlaying, topSongs, setCurrentSongIndex, setSongs, setShowSubPlayer]
+    [isPlaying, topSongs, openQuickListen]
   );
 
   if (!isOnline) return null; // オフライン時は非表示
@@ -265,5 +258,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(TopPlayedSongsList);
-
-
