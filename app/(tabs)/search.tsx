@@ -78,7 +78,7 @@ function SearchScreen() {
     [router]
   );
 
-  // FlatListのrenderItem関数をメモ化
+  // FlashListのrenderItem関数をメモ化
   const renderSongItem = useCallback(
     ({ item }: { item: Song }) => (
       <ListItem song={item} onPress={handleSongPress} />

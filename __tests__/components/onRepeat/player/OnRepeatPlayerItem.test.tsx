@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import QuickListenItem from "@/components/quickListen/QuickListenItem";
+import OnRepeatPlayerItem from "@/components/onRepeat/player/OnRepeatPlayerItem";
 import Song from "@/types";
 
 // expo-video をモック
@@ -13,21 +13,21 @@ jest.mock("expo-video", () => ({
   })),
 }));
 
-// useQuickListenPlayer をモック
-jest.mock("@/hooks/useQuickListenPlayer", () => ({
-  useQuickListenPlayer: jest.fn(() => ({
+// useOnRepeatPlayer をモック
+jest.mock("@/hooks/useOnRepeatPlayer", () => ({
+  useOnRepeatPlayer: jest.fn(() => ({
     player: { play: jest.fn(), pause: jest.fn() },
     hasVideo: true,
   })),
 }));
 
-// QuickListenControls をモック
-jest.mock("@/components/quickListen/QuickListenControls", () => {
+// OnRepeatPlayerControls をモック
+jest.mock("@/components/onRepeat/player/OnRepeatPlayerControls", () => {
   const { View } = require("react-native");
-  return () => <View testID="quick-listen-controls" />;
+  return () => <View testID="on-repeat-player-controls" />;
 });
 
-describe("QuickListenItem", () => {
+describe("OnRepeatPlayerItem", () => {
   const mockSongWithVideo: Song = {
     id: "1",
     title: "Test Song",
@@ -37,25 +37,17 @@ describe("QuickListenItem", () => {
     video_path: "https://example.com/video.mp4",
   };
 
-  const mockSongWithoutVideo: Song = {
-    id: "2",
-    title: "Audio Only Song",
-    author: "Audio Artist",
-    image_path: "https://example.com/image2.jpg",
-    song_path: "https://example.com/song2.mp3",
-  };
-
   describe("基本的なレンダリング", () => {
     it("曲のタイトルを表示すること", () => {
       const { getByText } = render(
-        <QuickListenItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
       );
       expect(getByText("Test Song")).toBeTruthy();
     });
 
     it("アーティスト名を表示すること", () => {
       const { getByText } = render(
-        <QuickListenItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
       );
       expect(getByText("Test Artist")).toBeTruthy();
     });
@@ -63,15 +55,15 @@ describe("QuickListenItem", () => {
 
   describe("動画/画像の表示", () => {
     it("動画付きの曲の場合、VideoView を表示すること", () => {
-      // useQuickListenPlayer が hasVideo: true を返すようにモック
-      const { useQuickListenPlayer } = require("@/hooks/useQuickListenPlayer");
-      useQuickListenPlayer.mockReturnValue({
+      // useOnRepeatPlayer が hasVideo: true を返すようにモック
+      const { useOnRepeatPlayer } = require("@/hooks/useOnRepeatPlayer");
+      useOnRepeatPlayer.mockReturnValue({
         player: { play: jest.fn(), pause: jest.fn() },
         hasVideo: true,
       });
 
       const { UNSAFE_getByType } = render(
-        <QuickListenItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
       );
 
       // VideoViewがレンダリングされることを確認
@@ -80,11 +72,11 @@ describe("QuickListenItem", () => {
   });
 
   describe("コントロールボタン", () => {
-    it("QuickListenControls を表示すること", () => {
+    it("OnRepeatPlayerControls を表示すること", () => {
       const { getByTestId } = render(
-        <QuickListenItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
       );
-      expect(getByTestId("quick-listen-controls")).toBeTruthy();
+      expect(getByTestId("on-repeat-player-controls")).toBeTruthy();
     });
   });
 });

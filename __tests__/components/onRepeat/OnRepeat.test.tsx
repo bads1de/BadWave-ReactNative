@@ -1,17 +1,17 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import TopPlayedSongsList from "@/components/item/TopPlayedSongsList";
+import OnRepeat from "@/components/onRepeat/OnRepeat";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useQuickListenStore } from "@/hooks/stores/useQuickListenStore";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import TrackPlayer from "react-native-track-player";
 
 // モックの設定
 jest.mock("@tanstack/react-query");
 jest.mock("@/actions/getUser");
 jest.mock("@/hooks/useAudioPlayer");
-jest.mock("@/hooks/stores/useQuickListenStore");
+jest.mock("@/hooks/stores/useOnRepeatStore");
 jest.mock("react-native-track-player");
 jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
   useDownloadedSongs: jest.fn(() => ({
@@ -36,11 +36,11 @@ const mockUseUser = useUser as jest.MockedFunction<typeof useUser>;
 const mockUseAudioPlayer = useAudioPlayer as jest.MockedFunction<
   typeof useAudioPlayer
 >;
-const mockUseQuickListenStore = useQuickListenStore as jest.MockedFunction<
-  typeof useQuickListenStore
+const mockUseOnRepeatStore = useOnRepeatStore as jest.MockedFunction<
+  typeof useOnRepeatStore
 >;
 
-describe("TopPlayedSongsList", () => {
+describe("OnRepeat", () => {
   // テスト用のモックデータ
   const mockSongs = [
     {
@@ -86,7 +86,7 @@ describe("TopPlayedSongsList", () => {
     email: "test@example.com",
   };
 
-  const mockOpenQuickListen = jest.fn();
+  const mockOpenOnRepeatPlayer = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -111,13 +111,13 @@ describe("TopPlayedSongsList", () => {
       currentSong: null,
     } as any);
 
-    mockUseQuickListenStore.mockImplementation((selector) => {
+    mockUseOnRepeatStore.mockImplementation((selector) => {
       const state = {
         isVisible: false,
         songs: [],
         currentIndex: 0,
         previewDuration: 15,
-        open: mockOpenQuickListen,
+        open: mockOpenOnRepeatPlayer,
         close: jest.fn(),
         setCurrentIndex: jest.fn(),
         setPreviewDuration: jest.fn(),
@@ -130,13 +130,13 @@ describe("TopPlayedSongsList", () => {
 
   describe("レンダリングテスト", () => {
     it("コンポーネントが正しくレンダリングされる", () => {
-      const { getByText } = render(<TopPlayedSongsList />);
+      const { getByText } = render(<OnRepeat />);
 
       expect(getByText("ON REPEAT")).toBeTruthy();
     });
 
     it("曲リストが正しく表示される", () => {
-      const { getByText } = render(<TopPlayedSongsList />);
+      const { getByText } = render(<OnRepeat />);
 
       expect(getByText("トップソング1")).toBeTruthy();
       expect(getByText("トップソング2")).toBeTruthy();
@@ -144,7 +144,7 @@ describe("TopPlayedSongsList", () => {
     });
 
     it("曲のアーティスト名が表示される", () => {
-      const { getByText } = render(<TopPlayedSongsList />);
+      const { getByText } = render(<OnRepeat />);
 
       expect(getByText("アーティスト1")).toBeTruthy();
       expect(getByText("アーティスト2")).toBeTruthy();
@@ -153,36 +153,36 @@ describe("TopPlayedSongsList", () => {
   });
 
   describe("ユーザーインタラクション", () => {
-    it("曲をタップするとQuickListenが開かれる", async () => {
-      const { getByText } = render(<TopPlayedSongsList />);
+    it("曲をタップすると OnRepeat Player が開かれる", async () => {
+      const { getByText } = render(<OnRepeat />);
 
       const song = getByText("トップソング1");
       fireEvent.press(song);
 
       await waitFor(() => {
-        expect(mockOpenQuickListen).toHaveBeenCalledWith(mockSongs, 0);
+        expect(mockOpenOnRepeatPlayer).toHaveBeenCalledWith(mockSongs, 0);
       });
     });
 
-    it("2番目の曲をタップすると正しいインデックスでQuickListenが開かれる", async () => {
-      const { getByText } = render(<TopPlayedSongsList />);
+    it("2番目の曲をタップすると正しいインデックスで OnRepeat Player が開かれる", async () => {
+      const { getByText } = render(<OnRepeat />);
 
       const song = getByText("トップソング2");
       fireEvent.press(song);
 
       await waitFor(() => {
-        expect(mockOpenQuickListen).toHaveBeenCalledWith(mockSongs, 1);
+        expect(mockOpenOnRepeatPlayer).toHaveBeenCalledWith(mockSongs, 1);
       });
     });
 
-    it("3番目の曲をタップすると正しいインデックスでQuickListenが開かれる", async () => {
-      const { getByText } = render(<TopPlayedSongsList />);
+    it("3番目の曲をタップすると正しいインデックスで OnRepeat Player が開かれる", async () => {
+      const { getByText } = render(<OnRepeat />);
 
       const song = getByText("トップソング3");
       fireEvent.press(song);
 
       await waitFor(() => {
-        expect(mockOpenQuickListen).toHaveBeenCalledWith(mockSongs, 2);
+        expect(mockOpenOnRepeatPlayer).toHaveBeenCalledWith(mockSongs, 2);
       });
     });
 
@@ -193,7 +193,7 @@ describe("TopPlayedSongsList", () => {
         currentSong: mockSongs[0],
       } as any);
 
-      const { getByText } = render(<TopPlayedSongsList />);
+      const { getByText } = render(<OnRepeat />);
 
       const song = getByText("トップソング2");
       fireEvent.press(song);
@@ -213,7 +213,7 @@ describe("TopPlayedSongsList", () => {
         refetch: jest.fn(),
       } as any);
 
-      const { queryByText } = render(<TopPlayedSongsList />);
+      const { queryByText } = render(<OnRepeat />);
 
       expect(queryByText("ON REPEAT")).toBeNull();
     });
@@ -226,7 +226,7 @@ describe("TopPlayedSongsList", () => {
         refetch: jest.fn(),
       } as any);
 
-      const { queryByText } = render(<TopPlayedSongsList />);
+      const { queryByText } = render(<OnRepeat />);
 
       expect(queryByText("ON REPEAT")).toBeNull();
     });
@@ -238,7 +238,7 @@ describe("TopPlayedSongsList", () => {
         error: null,
       } as any);
 
-      render(<TopPlayedSongsList />);
+      render(<OnRepeat />);
 
       // useQueryが有効化されていないことを確認
       const queryCall = mockUseQuery.mock.calls[0][0] as any;
@@ -261,7 +261,7 @@ describe("TopPlayedSongsList", () => {
         currentSong: mockSongs[0],
       } as any);
 
-      const { getByText } = render(<TopPlayedSongsList />);
+      const { getByText } = render(<OnRepeat />);
 
       const song = getByText("トップソング1");
       fireEvent.press(song);

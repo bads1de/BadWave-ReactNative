@@ -1,5 +1,5 @@
-import { mmkvPersister } from "@/lib/mmkv-persister";
-import { storage } from "@/lib/mmkv-storage";
+import { mmkvPersister } from "@/lib/storage/mmkv-persister";
+import { storage } from "@/lib/storage/mmkv-storage";
 import { PersistedClient } from "@tanstack/react-query-persist-client";
 
 // react-native-mmkvのモック
@@ -223,7 +223,7 @@ describe("mmkv-persister", () => {
         errorOccurred = true;
         expect(error).toBeInstanceOf(SyntaxError);
       }
-      
+
       // エラーが発生したことを確認
       expect(errorOccurred).toBe(true);
     });

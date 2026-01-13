@@ -1,7 +1,7 @@
 import React from "react";
 import { renderHook, act } from "@testing-library/react-native";
 import { SyncProvider, useSync } from "@/providers/SyncProvider";
-import { storage } from "@/lib/mmkv-storage";
+import { storage } from "@/lib/storage/mmkv-storage";
 import { useAuth } from "@/providers/AuthProvider";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useSyncSongs } from "@/hooks/sync/useSyncSongs";
@@ -21,7 +21,7 @@ jest.mock("@/hooks/sync/useSyncPlaylists");
 jest.mock("@/hooks/sync/useSyncTrendSongs");
 jest.mock("@/hooks/sync/useSyncRecommendations");
 jest.mock("@/hooks/sync/useSyncSpotlights");
-jest.mock("@/lib/mmkv-storage", () => ({
+jest.mock("@/lib/storage/mmkv-storage", () => ({
   storage: {
     getString: jest.fn(),
     set: jest.fn(),

@@ -2,11 +2,11 @@ import React, { useRef, useCallback, useEffect, useMemo } from "react";
 import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import Song from "@/types";
-import QuickListenItem from "./QuickListenItem";
+import OnRepeatPlayerItem from "./OnRepeatPlayerItem";
 
 const { height } = Dimensions.get("screen");
 
-interface QuickListenListProps {
+interface OnRepeatPlayerListProps {
   /** 表示する曲のリスト */
   songs: Song[];
   /** 現在表示中の曲のインデックス */
@@ -18,15 +18,15 @@ interface QuickListenListProps {
 }
 
 /**
- * Quick Listen のメインリストコンポーネント
+ * OnRepeat Player のメインリストコンポーネント
  * FlashListを使用した縦スワイプ型のプレビューリスト
  */
-export default function QuickListenList({
+export default function OnRepeatPlayerList({
   songs,
   currentIndex,
   onIndexChange,
   isParentFocused = true,
-}: QuickListenListProps) {
+}: OnRepeatPlayerListProps) {
   const listRef = useRef<FlashList<Song>>(null);
   const hasScrolledRef = useRef(false);
   // 現在のインデックスをrefで保持（onViewableItemsChanged内からアクセスするため）
@@ -53,7 +53,7 @@ export default function QuickListenList({
 
   const renderItem = useCallback(
     ({ item, index }: { item: Song; index: number }) => (
-      <QuickListenItem
+      <OnRepeatPlayerItem
         song={item}
         isVisible={index === currentIndex && isParentFocused}
       />

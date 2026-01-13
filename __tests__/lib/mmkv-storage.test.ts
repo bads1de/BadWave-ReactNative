@@ -1,4 +1,4 @@
-import { storage } from "@/lib/mmkv-storage";
+import { storage } from "@/lib/storage/mmkv-storage";
 
 jest.mock("react-native-mmkv", () => ({
   MMKV: jest.fn().mockImplementation(() => ({

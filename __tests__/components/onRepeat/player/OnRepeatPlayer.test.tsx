@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import QuickListenScreen from "@/components/quickListen/QuickListenScreen";
-import { useQuickListenStore } from "@/hooks/stores/useQuickListenStore";
+import OnRepeatPlayer from "@/components/onRepeat/player/OnRepeatPlayer";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
 
 // FlashList をモック
@@ -16,11 +16,11 @@ jest.mock("@shopify/flash-list", () => {
   };
 });
 
-// QuickListenItem をモック
-jest.mock("@/components/quickListen/QuickListenItem", () => {
+// OnRepeatPlayerItem をモック
+jest.mock("@/components/onRepeat/player/OnRepeatPlayerItem", () => {
   const { View, Text } = require("react-native");
   return ({ song, isVisible }: { song: Song; isVisible: boolean }) => (
-    <View testID={`quick-listen-item-${song.id}`}>
+    <View testID={`on-repeat-player-item-${song.id}`}>
       <Text>{song.title}</Text>
     </View>
   );
@@ -36,7 +36,7 @@ jest.mock("expo-blur", () => {
   };
 });
 
-describe("QuickListenScreen", () => {
+describe("OnRepeatPlayer", () => {
   const mockSongs: Song[] = [
     {
       id: "1",
@@ -56,49 +56,49 @@ describe("QuickListenScreen", () => {
 
   beforeEach(() => {
     // ストアを初期化
-    useQuickListenStore.getState().close();
+    useOnRepeatStore.getState().close();
   });
 
   describe("表示/非表示", () => {
     it("isVisible が false の場合、何も表示しないこと", () => {
-      const { queryByTestId } = render(<QuickListenScreen />);
-      expect(queryByTestId("quick-listen-screen")).toBeNull();
+      const { queryByTestId } = render(<OnRepeatPlayer />);
+      expect(queryByTestId("on-repeat-player")).toBeNull();
     });
 
     it("isVisible が true の場合、画面を表示すること", () => {
       // ストアを開いた状態にする
-      useQuickListenStore.getState().open(mockSongs, 0);
+      useOnRepeatStore.getState().open(mockSongs, 0);
 
-      const { getByTestId } = render(<QuickListenScreen />);
-      expect(getByTestId("quick-listen-screen")).toBeTruthy();
+      const { getByTestId } = render(<OnRepeatPlayer />);
+      expect(getByTestId("on-repeat-player")).toBeTruthy();
     });
   });
 
   describe("閉じるボタン", () => {
     it("閉じるボタンを表示すること", () => {
-      useQuickListenStore.getState().open(mockSongs, 0);
+      useOnRepeatStore.getState().open(mockSongs, 0);
 
-      const { getByTestId } = render(<QuickListenScreen />);
+      const { getByTestId } = render(<OnRepeatPlayer />);
       expect(getByTestId("close-button")).toBeTruthy();
     });
 
     it("閉じるボタン押下時に画面が閉じること", () => {
-      useQuickListenStore.getState().open(mockSongs, 0);
+      useOnRepeatStore.getState().open(mockSongs, 0);
 
-      const { getByTestId, queryByTestId } = render(<QuickListenScreen />);
+      const { getByTestId, queryByTestId } = render(<OnRepeatPlayer />);
 
       fireEvent.press(getByTestId("close-button"));
 
       // ストアの状態を確認
-      expect(useQuickListenStore.getState().isVisible).toBe(false);
+      expect(useOnRepeatStore.getState().isVisible).toBe(false);
     });
   });
 
   describe("曲リストの表示", () => {
     it("曲リストを表示すること", () => {
-      useQuickListenStore.getState().open(mockSongs, 0);
+      useOnRepeatStore.getState().open(mockSongs, 0);
 
-      const { getByText } = render(<QuickListenScreen />);
+      const { getByText } = render(<OnRepeatPlayer />);
 
       expect(getByText("Song 1")).toBeTruthy();
       expect(getByText("Song 2")).toBeTruthy();

@@ -3,7 +3,7 @@ import { useVideoPlayer, VideoSource } from "expo-video";
 import Song from "@/types";
 
 /**
- * Quick Listen 用の再生制御フック
+ * OnRepeat Player 用の再生制御フック
  *
  * 曲に動画がある場合は動画を再生します。
  * プレビュー機能として、曲のランダムな位置から再生を開始します。
@@ -12,7 +12,7 @@ import Song from "@/types";
  * @param isVisible この曲が現在表示されているかどうか
  * @returns player インスタンスと hasVideo フラグ
  */
-export const useQuickListenPlayer = (song: Song, isVisible: boolean) => {
+export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
   const hasVideo = !!song.video_path;
   const isVisibleRef = useRef(isVisible);
   isVisibleRef.current = isVisible;

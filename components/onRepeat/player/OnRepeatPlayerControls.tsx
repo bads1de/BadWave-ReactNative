@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import Song from "@/types";
 
-interface QuickListenControlsProps {
+interface OnRepeatPlayerControlsProps {
   /** 現在の曲 */
   song: Song;
   /** いいねボタン押下時 */
@@ -16,17 +16,17 @@ interface QuickListenControlsProps {
 }
 
 /**
- * Quick Listen のアクションボタン群
+ * OnRepeat Player のアクションボタン群
  * - いいね（ハート）
  * - プレイリストに追加
  * - フルで聴く
  */
-function QuickListenControls({
+function OnRepeatPlayerControls({
   song,
   onLike,
   onAddToPlaylist,
   onPlayFull,
-}: QuickListenControlsProps) {
+}: OnRepeatPlayerControlsProps) {
   return (
     <View style={styles.container}>
       {/* いいねボタン */}
@@ -108,4 +108,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(QuickListenControls);
+export default memo(OnRepeatPlayerControls);

@@ -1,5 +1,5 @@
-import { QueryPersistenceManager } from "@/lib/query-persistence-manager";
-import { storage } from "@/lib/mmkv-storage";
+import { QueryPersistenceManager } from "@/lib/storage/query-persistence-manager";
+import { storage } from "@/lib/storage/mmkv-storage";
 
 // 定数をモック
 jest.mock("@/constants", () => ({
@@ -7,7 +7,7 @@ jest.mock("@/constants", () => ({
   CACHE_CONFIG: { gcTime: 1000 * 60 * 60 }, // 1時間
 }));
 
-jest.mock("@/lib/mmkv-storage", () => ({
+jest.mock("@/lib/storage/mmkv-storage", () => ({
   storage: {
     getString: jest.fn(),
     set: jest.fn(),

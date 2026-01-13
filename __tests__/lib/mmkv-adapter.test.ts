@@ -5,11 +5,11 @@
  * アダプターの動作を検証します。
  */
 
-import { mmkvAdapter } from "@/lib/mmkv-adapter";
-import { storage } from "@/lib/mmkv-storage";
+import { mmkvAdapter } from "@/lib/storage/mmkv-adapter";
+import { storage } from "@/lib/storage/mmkv-storage";
 
 // MMKVストレージのモック化
-jest.mock("@/lib/mmkv-storage", () => ({
+jest.mock("@/lib/storage/mmkv-storage", () => ({
   storage: {
     getString: jest.fn(),
     set: jest.fn(),

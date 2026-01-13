@@ -7,7 +7,7 @@ import { useSyncPlaylists } from "@/hooks/sync/useSyncPlaylists";
 import { useSyncTrendSongs } from "@/hooks/sync/useSyncTrendSongs";
 import { useSyncRecommendations } from "@/hooks/sync/useSyncRecommendations";
 import { useSyncSpotlights } from "@/hooks/sync/useSyncSpotlights";
-import { storage } from "@/lib/mmkv-storage";
+import { storage } from "@/lib/storage/mmkv-storage";
 import { SYNC_STORAGE_KEY } from "@/constants";
 
 interface SyncContextValue {

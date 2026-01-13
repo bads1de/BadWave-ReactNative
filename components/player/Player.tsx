@@ -19,7 +19,7 @@ import AddPlaylist from "../playlist/AddPlaylist";
 import LikeButton from "../LikeButton";
 import Lyric from "./lyric";
 import NextSong from "./NextSong";
-import TopPlayedSongsList from "../item/TopPlayedSongsList";
+import OnRepeat from "../onRepeat/OnRepeat";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { ThemeDefinition } from "@/constants/ThemeColors";
 import PlayerProgress from "./PlayerProgress";
@@ -356,7 +356,7 @@ function Player(props: PlayerProps) {
           <Lyric lyrics={currentSong.lyrics} testID="lyrics-component" />
         )}
         <NextSong repeatMode={repeatMode} shuffle={shuffle} />
-        <TopPlayedSongsList />
+        <OnRepeat />
       </View>
     </ScrollView>
   );

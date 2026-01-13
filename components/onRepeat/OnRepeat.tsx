@@ -13,7 +13,7 @@ import { CACHED_QUERIES } from "@/constants";
 import { useUser } from "@/actions/getUser";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
-import { useQuickListenStore } from "@/hooks/stores/useQuickListenStore";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,14 +22,10 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 
 const { width } = Dimensions.get("window");
-// Container padding: 16, Margin: 20, Gap: 12
-// Width available = width - 40 (margin) - 32 (padding)
-// Items = 3, Gaps = 2 * 12 = 24
-// Item width = (width - 40 - 32 - 24) / 3 = (width - 96) / 3
 const ITEM_WIDTH = (width - 96) / 3;
 const ITEM_HEIGHT = ITEM_WIDTH * 1.4;
 
-interface TopPlayedSongItemProps {
+interface OnRepeatItemProps {
   song: Song;
   index: number;
   onPress: (index: number) => void;
@@ -37,8 +33,8 @@ interface TopPlayedSongItemProps {
 }
 
 // メモ化された曲アイテムコンポーネント
-const TopPlayedSongItem = memo(
-  ({ song, index, onPress, isDisabled }: TopPlayedSongItemProps) => {
+const OnRepeatItem = memo(
+  ({ song, index, onPress, isDisabled }: OnRepeatItemProps) => {
     return (
       <TouchableOpacity
         key={song.id}
@@ -89,13 +85,13 @@ const TopPlayedSongItem = memo(
   }
 );
 
-TopPlayedSongItem.displayName = "TopPlayedSongItem";
+OnRepeatItem.displayName = "OnRepeatItem";
 
-function TopPlayedSongsList() {
+function OnRepeat() {
   const { data: user } = useUser();
   const userId = user?.id;
   const { isPlaying } = useAudioPlayer();
-  const openQuickListen = useQuickListenStore((state) => state.open);
+  const openOnRepeatPlayer = useOnRepeatStore((state) => state.open);
 
   const { isOnline } = useNetworkStatus();
   const { songs: downloadedSongs } = useDownloadedSongs();
@@ -118,13 +114,13 @@ function TopPlayedSongsList() {
         if (isPlaying) {
           await TrackPlayer.pause();
         }
-        // アトミックな更新でQuick Listenを開く
-        openQuickListen(topSongs, songIndex);
+        // アトミックな更新で OnRepeat Player を開く
+        openOnRepeatPlayer(topSongs, songIndex);
       } catch (error) {
         console.error("Error handling song press:", error);
       }
     },
-    [isPlaying, topSongs, openQuickListen]
+    [isPlaying, topSongs, openOnRepeatPlayer]
   );
 
   if (!isOnline) return null; // オフライン時は非表示
@@ -155,7 +151,7 @@ function TopPlayedSongsList() {
               const isDisabled = !isOnline && !isDownloaded;
 
               return (
-                <TopPlayedSongItem
+                <OnRepeatItem
                   key={song.id}
                   song={song}
                   index={index}
@@ -257,4 +253,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(TopPlayedSongsList);
+export default memo(OnRepeat);

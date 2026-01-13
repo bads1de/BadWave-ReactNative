@@ -1,22 +1,15 @@
 import React, { memo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { ImageBackground } from "expo-image";
 import { VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import Song from "@/types";
-import { useQuickListenPlayer } from "@/hooks/useQuickListenPlayer";
-import QuickListenControls from "./QuickListenControls";
+import { useOnRepeatPlayer } from "@/hooks/useOnRepeatPlayer";
+import OnRepeatPlayerControls from "./OnRepeatPlayerControls";
 
 const { width, height } = Dimensions.get("screen");
 
-interface QuickListenItemProps {
+interface OnRepeatPlayerItemProps {
   /** 表示する曲 */
   song: Song;
   /** この曲が現在表示されているか */
@@ -30,17 +23,17 @@ interface QuickListenItemProps {
 }
 
 /**
- * Quick Listen の個別アイテムコンポーネント
+ * OnRepeat Player の個別アイテムコンポーネント
  * Spotify風のリッチなプレビュー画面
  */
-function QuickListenItem({
+function OnRepeatPlayerItem({
   song,
   isVisible,
   onLike,
   onAddToPlaylist,
   onPlayFull,
-}: QuickListenItemProps) {
-  const { player, hasVideo } = useQuickListenPlayer(song, isVisible);
+}: OnRepeatPlayerItemProps) {
+  const { player, hasVideo } = useOnRepeatPlayer(song, isVisible);
 
   return (
     <View style={styles.container}>
@@ -97,7 +90,7 @@ function QuickListenItem({
         </View>
 
         {/* アクションボタン */}
-        <QuickListenControls
+        <OnRepeatPlayerControls
           song={song}
           onLike={onLike}
           onAddToPlaylist={onAddToPlaylist}
@@ -107,13 +100,6 @@ function QuickListenItem({
     </View>
   );
 }
-
-export default memo(QuickListenItem, (prevProps, nextProps) => {
-  return (
-    prevProps.song.id === nextProps.song.id &&
-    prevProps.isVisible === nextProps.isVisible
-  );
-});
 
 const styles = StyleSheet.create({
   container: {
@@ -200,4 +186,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#a78bfa",
     borderRadius: 2,
   },
+});
+
+export default memo(OnRepeatPlayerItem, (prevProps, nextProps) => {
+  return (
+    prevProps.song.id === nextProps.song.id &&
+    prevProps.isVisible === nextProps.isVisible
+  );
 });

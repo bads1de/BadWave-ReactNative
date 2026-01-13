@@ -9,10 +9,13 @@ import {
   NativeScrollEvent,
 } from "react-native";
 import { ImageBackground } from "expo-image";
+import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
+import { Ionicons } from "@expo/vector-icons";
+import { genreCards } from "@/constants";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,8 +24,13 @@ import Animated, {
   Extrapolate,
   withSpring,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { genreCards } from "@/constants";
+
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
+
+interface GenreItem {
+  id: number;
+  name: string;
+}
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.28;
@@ -296,17 +304,17 @@ function HeroBoard() {
 
   return (
     <View style={styles.container}>
-      <Animated.FlatList
+      <AnimatedFlashList
         data={genreCards}
         renderItem={({ item, index }) => (
           <GenreCard
-            genre={item.name}
+            genre={(item as GenreItem).name}
             index={index}
             scrollX={scrollX}
             onNavigate={navigateToGenre}
           />
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => (item as GenreItem).id.toString()}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -314,6 +322,7 @@ function HeroBoard() {
         onScroll={scrollHandler}
         onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEventThrottle={16}
+        estimatedItemSize={SCREEN_WIDTH}
       />
 
       <PaginationIndicator scrollX={scrollX} count={genreCards.length} />

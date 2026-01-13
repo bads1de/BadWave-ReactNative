@@ -2,14 +2,14 @@ import { create } from "zustand";
 import Song from "@/types";
 
 /**
- * Quick Listen 機能の状態管理ストア
+ * OnRepeat Player 機能の状態管理ストア
  *
  * 重要: open アクションは songs, currentIndex, isVisible を
  * 一度にアトミックに更新することで、レースコンディションを防止します。
  */
 
-type QuickListenState = {
-  /** Quick Listen 画面が表示されているかどうか */
+type OnRepeatState = {
+  /** OnRepeat Player 画面が表示されているかどうか */
   isVisible: boolean;
   /** プレビュー対象の曲リスト */
   songs: Song[];
@@ -19,14 +19,14 @@ type QuickListenState = {
   previewDuration: number;
 };
 
-type QuickListenActions = {
+type OnRepeatActions = {
   /**
-   * Quick Listen を開く（アトミック更新）
+   * OnRepeat Player を開く（アトミック更新）
    * @param songs プレビュー対象の曲リスト
    * @param startIndex 開始時の曲インデックス
    */
   open: (songs: Song[], startIndex: number) => void;
-  /** Quick Listen を閉じてリセット */
+  /** OnRepeat Player を閉じてリセット */
   close: () => void;
   /** 現在のインデックスを更新（スワイプ時） */
   setCurrentIndex: (index: number) => void;
@@ -34,33 +34,33 @@ type QuickListenActions = {
   setPreviewDuration: (duration: number) => void;
 };
 
-const initialState: QuickListenState = {
+const initialState: OnRepeatState = {
   isVisible: false,
   songs: [],
   currentIndex: 0,
   previewDuration: 15,
 };
 
-export const useQuickListenStore = create<
-  QuickListenState & QuickListenActions
->((set) => ({
-  ...initialState,
+export const useOnRepeatStore = create<OnRepeatState & OnRepeatActions>(
+  (set) => ({
+    ...initialState,
 
-  open: (songs, startIndex) =>
-    set({
-      songs,
-      currentIndex: startIndex,
-      isVisible: true,
-    }),
+    open: (songs, startIndex) =>
+      set({
+        songs,
+        currentIndex: startIndex,
+        isVisible: true,
+      }),
 
-  close: () =>
-    set({
-      isVisible: false,
-      songs: [],
-      currentIndex: 0,
-    }),
+    close: () =>
+      set({
+        isVisible: false,
+        songs: [],
+        currentIndex: 0,
+      }),
 
-  setCurrentIndex: (index) => set({ currentIndex: index }),
+    setCurrentIndex: (index) => set({ currentIndex: index }),
 
-  setPreviewDuration: (duration) => set({ previewDuration: duration }),
-}));
+    setPreviewDuration: (duration) => set({ previewDuration: duration }),
+  })
+);

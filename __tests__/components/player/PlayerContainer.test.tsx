@@ -30,7 +30,7 @@ jest.mock("@/components/player/Player", () => {
   };
 });
 
-jest.mock("@/components/quickListen/QuickListenScreen", () => {
+jest.mock("@/components/onRepeat/player/OnRepeatPlayer", () => {
   const React = require("react");
   const { View, Text } = require("react-native");
   return {
@@ -38,8 +38,8 @@ jest.mock("@/components/quickListen/QuickListenScreen", () => {
     default: () =>
       React.createElement(
         View,
-        { testID: "quick-listen-screen" },
-        React.createElement(Text, null, "QuickListenScreen")
+        { testID: "on-repeat-player" },
+        React.createElement(Text, null, "OnRepeatPlayer")
       ),
   };
 });
@@ -56,14 +56,14 @@ jest.mock("@/hooks/stores/usePlayerStore", () => ({
   usePlayerStore: jest.fn(),
 }));
 
-jest.mock("@/hooks/stores/useQuickListenStore", () => ({
-  useQuickListenStore: jest.fn(),
+jest.mock("@/hooks/stores/useOnRepeatStore", () => ({
+  useOnRepeatStore: jest.fn(),
 }));
 
 const { useAudioPlayer } = require("@/hooks/useAudioPlayer");
 const { useAudioStore } = require("@/hooks/stores/useAudioStore");
 const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
-const { useQuickListenStore } = require("@/hooks/stores/useQuickListenStore");
+const { useOnRepeatStore } = require("@/hooks/stores/useOnRepeatStore");
 
 describe("PlayerContainer", () => {
   const mockSong = {
@@ -110,7 +110,7 @@ describe("PlayerContainer", () => {
       })
     );
 
-    useQuickListenStore.mockImplementation((selector) =>
+    useOnRepeatStore.mockImplementation((selector) =>
       selector({
         isVisible: false,
       })
@@ -138,8 +138,8 @@ describe("PlayerContainer", () => {
     expect(queryByTestId("mini-player")).toBeNull();
   });
 
-  it("renders QuickListenScreen when isVisible is true", () => {
-    useQuickListenStore.mockImplementation((selector) =>
+  it("renders OnRepeatPlayer when isVisible is true", () => {
+    useOnRepeatStore.mockImplementation((selector) =>
       selector({
         isVisible: true,
       })
@@ -147,7 +147,7 @@ describe("PlayerContainer", () => {
 
     const { getByTestId } = render(<PlayerContainer />);
 
-    expect(getByTestId("quick-listen-screen")).toBeTruthy();
+    expect(getByTestId("on-repeat-player")).toBeTruthy();
   });
 
   it("does not render any player when currentSong is null", () => {

@@ -82,7 +82,7 @@ Windows 版（Desktop）の設計思想を継承し、SQLite + Drizzle ORM を�
   - `search.tsx`: オフライン時は利用不可画面を表示（Spotify 同様の仕様）
   - **楽曲リスト表示**:
     - オフライン時、未ダウンロードの楽曲は自動的に**グレーアウト（半透明化）**され、クリック不可に。
-    - `SongItem`, `TopPlayedSongsList` 等で適用済み。
+    - `SongItem`, `components/onRepeat/OnRepeat.tsx` 等で適用済み。
   - `useOfflineGuard`: オフライン時の操作制御用ユーティリティフック
   - **各画面のオフライン対応**:
     - `spotlights.tsx`: `useGetLocalSpotlights` に切り替え、オフライン時は「You are offline」を表示。

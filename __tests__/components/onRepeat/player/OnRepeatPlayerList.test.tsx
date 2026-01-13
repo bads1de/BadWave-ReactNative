@@ -1,13 +1,13 @@
 import React from "react";
-import { render, waitFor } from "@testing-library/react-native";
-import QuickListenList from "@/components/quickListen/QuickListenList";
+import { render } from "@testing-library/react-native";
+import OnRepeatPlayerList from "@/components/onRepeat/player/OnRepeatPlayerList";
 import Song from "@/types";
 
 // FlashList をモック（テスト環境では正しくレンダリングされないため）
 jest.mock("@shopify/flash-list", () => {
   const { View } = require("react-native");
   return {
-    FlashList: ({ data, renderItem, keyExtractor }: any) => (
+    FlashList: ({ data, renderItem }: any) => (
       <View testID="flash-list">
         {data.map((item: any, index: number) => renderItem({ item, index }))}
       </View>
@@ -15,10 +15,10 @@ jest.mock("@shopify/flash-list", () => {
   };
 });
 
-// QuickListenItem をモック
-jest.mock("@/components/quickListen/QuickListenItem", () => {
+// OnRepeatPlayerItem をモック
+jest.mock("@/components/onRepeat/player/OnRepeatPlayerItem", () => {
   const { View, Text } = require("react-native");
-  return function MockQuickListenItem({
+  return function MockOnRepeatPlayerItem({
     song,
     isVisible,
   }: {
@@ -26,7 +26,7 @@ jest.mock("@/components/quickListen/QuickListenItem", () => {
     isVisible: boolean;
   }) {
     return (
-      <View testID={`quick-listen-item-${song.id}`}>
+      <View testID={`on-repeat-player-item-${song.id}`}>
         <Text>{song.title}</Text>
         <Text testID={`is-visible-${song.id}`}>{isVisible.toString()}</Text>
       </View>
@@ -34,7 +34,7 @@ jest.mock("@/components/quickListen/QuickListenItem", () => {
   };
 });
 
-describe("QuickListenList", () => {
+describe("OnRepeatPlayerList", () => {
   const mockSongs: Song[] = [
     {
       id: "1",
@@ -61,7 +61,7 @@ describe("QuickListenList", () => {
 
   it("曲のリストをレンダリングすること", () => {
     const { getByText } = render(
-      <QuickListenList
+      <OnRepeatPlayerList
         songs={mockSongs}
         currentIndex={0}
         onIndexChange={jest.fn()}
@@ -75,7 +75,7 @@ describe("QuickListenList", () => {
 
   it("currentIndex の曲のみ isVisible が true であること", () => {
     const { getByTestId } = render(
-      <QuickListenList
+      <OnRepeatPlayerList
         songs={mockSongs}
         currentIndex={0}
         onIndexChange={jest.fn()}
@@ -89,7 +89,7 @@ describe("QuickListenList", () => {
 
   it("currentIndex が 1 の場合、2曲目のみ isVisible が true であること", () => {
     const { getByTestId } = render(
-      <QuickListenList
+      <OnRepeatPlayerList
         songs={mockSongs}
         currentIndex={1}
         onIndexChange={jest.fn()}
@@ -103,7 +103,7 @@ describe("QuickListenList", () => {
 
   it("isParentFocused が false の場合、null を返すこと", () => {
     const { queryByTestId } = render(
-      <QuickListenList
+      <OnRepeatPlayerList
         songs={mockSongs}
         currentIndex={0}
         onIndexChange={jest.fn()}
@@ -111,6 +111,6 @@ describe("QuickListenList", () => {
       />
     );
 
-    expect(queryByTestId("quick-listen-item-1")).toBeNull();
+    expect(queryByTestId("on-repeat-player-item-1")).toBeNull();
   });
 });

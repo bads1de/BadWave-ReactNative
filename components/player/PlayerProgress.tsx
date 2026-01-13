@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
-import { formatTime } from "@/lib/utils";
+import { formatTime } from "@/lib/utils/formatTime";
 import { useProgress } from "react-native-track-player";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 

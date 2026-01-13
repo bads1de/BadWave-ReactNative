@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { useQuickListenPlayer } from "@/hooks/useQuickListenPlayer";
+import { useOnRepeatPlayer } from "@/hooks/useOnRepeatPlayer";
 import Song from "@/types";
 
 // expo-video をモック
@@ -9,7 +9,7 @@ jest.mock("expo-video", () => ({
 
 import { useVideoPlayer } from "expo-video";
 
-describe("useQuickListenPlayer", () => {
+describe("useOnRepeatPlayer", () => {
   const mockVideoPlayer = {
     play: jest.fn(),
     pause: jest.fn(),
@@ -39,7 +39,7 @@ describe("useQuickListenPlayer", () => {
     };
 
     it("expo-video を使用すること", () => {
-      renderHook(() => useQuickListenPlayer(songWithVideo, true));
+      renderHook(() => useOnRepeatPlayer(songWithVideo, true));
       expect(useVideoPlayer).toHaveBeenCalledWith(
         songWithVideo.video_path,
         expect.any(Function)
@@ -47,7 +47,7 @@ describe("useQuickListenPlayer", () => {
     });
 
     it("isVisible が true の場合、ランダム位置にシークして再生すること", () => {
-      renderHook(() => useQuickListenPlayer(songWithVideo, true));
+      renderHook(() => useOnRepeatPlayer(songWithVideo, true));
 
       // タイマーを進めてシークを実行
       act(() => {
@@ -62,7 +62,7 @@ describe("useQuickListenPlayer", () => {
     });
 
     it("isVisible が false の場合、一時停止すること", () => {
-      renderHook(() => useQuickListenPlayer(songWithVideo, false));
+      renderHook(() => useOnRepeatPlayer(songWithVideo, false));
       expect(mockVideoPlayer.pause).toHaveBeenCalled();
     });
   });
@@ -78,12 +78,12 @@ describe("useQuickListenPlayer", () => {
     };
 
     it("player オブジェクトを返すこと", () => {
-      const { result } = renderHook(() => useQuickListenPlayer(song, true));
+      const { result } = renderHook(() => useOnRepeatPlayer(song, true));
       expect(result.current.player).toBeDefined();
     });
 
     it("hasVideo フラグを返すこと", () => {
-      const { result } = renderHook(() => useQuickListenPlayer(song, true));
+      const { result } = renderHook(() => useOnRepeatPlayer(song, true));
       expect(result.current.hasVideo).toBe(true);
     });
   });

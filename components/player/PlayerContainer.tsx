@@ -2,20 +2,20 @@ import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
-import QuickListenScreen from "@/components/quickListen/QuickListenScreen";
+import OnRepeatPlayer from "@/components/onRepeat/player/OnRepeatPlayer";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
-import { useQuickListenStore } from "@/hooks/stores/useQuickListenStore";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 
 /**
  * プレーヤーコンテナコンポーネント
  *
- * このコンポーネントは、MiniPlayer、Player、QuickListenScreenコンポーネントを管理し、
+ * このコンポーネントは、MiniPlayer、Player、OnRepeatPlayerコンポーネントを管理し、
  * 再生状態の更新による不要な再レンダリングを防ぎます。
  *
  * 改善点:
- * - QuickListenScreenを統合し、コンポーネント階層を簡素化
+ * - OnRepeatPlayerを統合し、コンポーネント階層を簡素化
  * - 適切なzIndex管理による表示順序の制御
  */
 function PlayerContainer() {
@@ -29,8 +29,8 @@ function PlayerContainer() {
   const repeatMode = useAudioStore((state) => state.repeatMode);
   const shuffle = useAudioStore((state) => state.shuffle);
 
-  // Quick Listenの状態
-  const showQuickListen = useQuickListenStore((state) => state.isVisible);
+  // OnRepeat Playerの状態
+  const showOnRepeatPlayer = useOnRepeatStore((state) => state.isVisible);
 
   // 再生コントロール関数と進捗情報を取得
   const {
@@ -48,10 +48,10 @@ function PlayerContainer() {
 
   return (
     <>
-      {/* Quick Listen（最も前面に表示） */}
-      {showQuickListen && (
-        <View style={styles.quickListenContainer}>
-          <QuickListenScreen />
+      {/* OnRepeat Player（最も前面に表示） */}
+      {showOnRepeatPlayer && (
+        <View style={styles.onRepeatPlayerContainer}>
+          <OnRepeatPlayer />
         </View>
       )}
 
@@ -104,7 +104,7 @@ const MemoizedPlayerContainer = memo(
 export default MemoizedPlayerContainer;
 
 const styles = StyleSheet.create({
-  quickListenContainer: {
+  onRepeatPlayerContainer: {
     position: "absolute",
     top: 0,
     left: 0,

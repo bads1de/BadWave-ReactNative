@@ -47,9 +47,18 @@ jest.mock("@react-native-community/slider", () => "Slider");
 
 jest.mock("@/components/player/NextSong", () => "NextSong");
 jest.mock("@/components/player/lyric", () => "Lyric");
-jest.mock("@/components/LikeButton", () => ({ __esModule: true, default: "LikeButton" }));
-jest.mock("@/components/playlist/AddPlaylist", () => ({ __esModule: true, default: "AddPlaylist" }));
-jest.mock("@/components/item/TopPlayedSongsList", () => ({ __esModule: true, default: "TopPlayedSongsList" }));
+jest.mock("@/components/LikeButton", () => ({
+  __esModule: true,
+  default: "LikeButton",
+}));
+jest.mock("@/components/playlist/AddPlaylist", () => ({
+  __esModule: true,
+  default: "AddPlaylist",
+}));
+jest.mock("@/components/onRepeat/OnRepeat", () => ({
+  __esModule: true,
+  default: "OnRepeat",
+}));
 jest.mock("@/components/common/MarqueeText", () => {
   const React = require("react");
   const { Text } = require("react-native");

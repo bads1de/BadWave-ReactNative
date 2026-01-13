@@ -1,4 +1,4 @@
-import { formatTime } from "@/lib/utils";
+import { formatTime } from "@/lib/utils/formatTime";
 
 describe("utils", () => {
   describe("formatTime", () => {

@@ -2,24 +2,19 @@ import React, { useCallback } from "react";
 import { View, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { useQuickListenStore } from "@/hooks/stores/useQuickListenStore";
-import QuickListenList from "./QuickListenList";
-import TrackPlayer from "react-native-track-player";
-import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
+import OnRepeatPlayerList from "./OnRepeatPlayerList";
 
 /**
- * Quick Listen のメイン画面
+ * OnRepeat Player のメイン画面
  * 全画面モーダルとして表示され、曲のプレビューを提供
  */
-export default function QuickListenScreen() {
-  const isVisible = useQuickListenStore((state) => state.isVisible);
-  const songs = useQuickListenStore((state) => state.songs);
-  const currentIndex = useQuickListenStore((state) => state.currentIndex);
-  const setCurrentIndex = useQuickListenStore((state) => state.setCurrentIndex);
-  const close = useQuickListenStore((state) => state.close);
-
-  const setShowPlayer = usePlayerStore((state) => state.setShowPlayer);
-  const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
+export default function OnRepeatPlayer() {
+  const isVisible = useOnRepeatStore((state) => state.isVisible);
+  const songs = useOnRepeatStore((state) => state.songs);
+  const currentIndex = useOnRepeatStore((state) => state.currentIndex);
+  const setCurrentIndex = useOnRepeatStore((state) => state.setCurrentIndex);
+  const close = useOnRepeatStore((state) => state.close);
 
   // 画面を閉じる
   const handleClose = useCallback(() => {
@@ -34,40 +29,13 @@ export default function QuickListenScreen() {
     [setCurrentIndex]
   );
 
-  // フルで聴く
-  const handlePlayFull = useCallback(async () => {
-    const currentSong = songs[currentIndex];
-    if (!currentSong) return;
-
-    try {
-      // Quick Listen を閉じる
-      close();
-
-      // メインプレイヤーで再生
-      await TrackPlayer.reset();
-      await TrackPlayer.add({
-        id: currentSong.id,
-        url: currentSong.song_path,
-        title: currentSong.title,
-        artist: currentSong.author,
-        artwork: currentSong.image_path,
-      });
-      await TrackPlayer.play();
-
-      setCurrentSong(currentSong);
-      setShowPlayer(true);
-    } catch (error) {
-      console.error("Error playing full song:", error);
-    }
-  }, [songs, currentIndex, close, setCurrentSong, setShowPlayer]);
-
   // 非表示の場合は何も表示しない
   if (!isVisible) {
     return null;
   }
 
   return (
-    <View style={styles.container} testID="quick-listen-screen">
+    <View style={styles.container} testID="on-repeat-player">
       <StatusBar
         barStyle="light-content"
         translucent
@@ -86,7 +54,7 @@ export default function QuickListenScreen() {
       </BlurView>
 
       {/* 曲リスト */}
-      <QuickListenList
+      <OnRepeatPlayerList
         songs={songs}
         currentIndex={currentIndex}
         onIndexChange={handleIndexChange}
