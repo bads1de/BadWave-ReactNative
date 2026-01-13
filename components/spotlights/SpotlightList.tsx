@@ -2,19 +2,19 @@ import React, { useState, useRef, useCallback } from "react";
 import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Spotlight } from "@/types";
-import ReelItem from "./ReelItem";
+import SpotlightItem from "./SpotlightItem";
 
-interface ReelsListProps {
+interface SpotlightListProps {
   data: Spotlight[];
   isParentFocused?: boolean;
 }
 
 const { height } = Dimensions.get("window");
 
-export default function ReelsList({
+export default function SpotlightList({
   data,
   isParentFocused = true,
-}: ReelsListProps) {
+}: SpotlightListProps) {
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
 
   const onViewableItemsChanged = useRef(
@@ -35,7 +35,7 @@ export default function ReelsList({
 
   const renderItem = useCallback(
     ({ item, index }: { item: Spotlight; index: number }) => (
-      <ReelItem
+      <SpotlightItem
         item={item}
         isVisible={index === currentVisibleIndex && isParentFocused}
       />
@@ -61,7 +61,6 @@ export default function ReelsList({
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       estimatedItemSize={height}
-      // パフォーマンス最適化：画面外のアイテムの事前描画を最小限に
       drawDistance={height}
     />
   );

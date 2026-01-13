@@ -2,17 +2,17 @@ import React, { memo } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { VideoView } from "expo-video";
 import { Spotlight } from "@/types";
-import { useReelsPlayer } from "@/hooks/useReelsPlayer";
+import { useSpotlightPlayer } from "@/hooks/useSpotlightPlayer";
 
 const { width, height } = Dimensions.get("window");
 
-interface ReelItemProps {
+interface SpotlightItemProps {
   item: Spotlight;
   isVisible: boolean;
 }
 
-function ReelItem({ item, isVisible }: ReelItemProps) {
-  const player = useReelsPlayer(item.video_path, isVisible);
+function SpotlightItem({ item, isVisible }: SpotlightItemProps) {
+  const player = useSpotlightPlayer(item.video_path, isVisible);
 
   return (
     <View style={styles.container}>
@@ -36,7 +36,7 @@ function ReelItem({ item, isVisible }: ReelItemProps) {
 }
 
 // メモ化してエクスポート
-export default memo(ReelItem, (prevProps, nextProps) => {
+export default memo(SpotlightItem, (prevProps, nextProps) => {
   return (
     prevProps.item.id === nextProps.item.id &&
     prevProps.isVisible === nextProps.isVisible
@@ -46,7 +46,7 @@ export default memo(ReelItem, (prevProps, nextProps) => {
 const styles = StyleSheet.create({
   container: {
     width,
-    height, // 画面全体の高さを使用
+    height,
     backgroundColor: "#000",
   },
   video: {
@@ -58,10 +58,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 80, // Adjust for tab bar
+    paddingBottom: 80,
     paddingHorizontal: 16,
     paddingTop: 20,
-    backgroundColor: "rgba(0,0,0,0.3)", // 軽量化のために半透明背景に変更
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
   contentContainer: {
     flexDirection: "row",

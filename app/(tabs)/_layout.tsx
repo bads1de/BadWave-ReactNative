@@ -81,7 +81,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="reels"
+          name="spotlights"
           options={{
             headerShown: false,
             tabBarIcon: ({ focused }) => (

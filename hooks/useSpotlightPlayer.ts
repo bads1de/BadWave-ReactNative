@@ -2,14 +2,14 @@ import { useVideoPlayer, VideoSource } from "expo-video";
 import { useEffect, useRef } from "react";
 
 /**
- * リール専用のビデオプレイヤーを管理するためのカスタムフック。
- * リールの表示状態に基づいてビデオの再生を制御し、ループ再生を有効にします。
+ * スポットライト専用のビデオプレイヤーを管理するためのカスタムフック。
+ * スポットライトの表示状態に基づいてビデオの再生を制御し、ループ再生を有効にします。
  *
  * @param source 再生するビデオソース。
- * @param isVisible リールが現在表示されているかどうかを示すブーリアン値。
+ * @param isVisible スポットライトが現在表示されているかどうかを示すブーリアン値。
  * @returns useVideoPlayer からのビデオプレイヤーインスタンス。
  */
-export const useReelsPlayer = (source: VideoSource, isVisible: boolean) => {
+export const useSpotlightPlayer = (source: VideoSource, isVisible: boolean) => {
   // isVisibleの現在値をrefで保持（setup関数内からアクセスするため）
   const isVisibleRef = useRef(isVisible);
   isVisibleRef.current = isVisible;
@@ -24,7 +24,7 @@ export const useReelsPlayer = (source: VideoSource, isVisible: boolean) => {
   });
 
   useEffect(() => {
-    // リールの表示状態に基づいてビデオを再生または一時停止します。
+    // スポットライトの表示状態に基づいてビデオを再生または一時停止します。
     if (isVisible) {
       player.play();
     } else {

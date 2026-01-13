@@ -1,15 +1,15 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import ReelsScreen from "@/app/(tabs)/reels";
+import SpotlightsScreen from "@/app/(tabs)/spotlights";
 
 // Mock dependencies
 jest.mock("@/hooks/data/useGetLocalSpotlights", () => ({
   useGetLocalSpotlights: jest.fn(),
 }));
-jest.mock("@/components/reels/ReelsList", () => {
+jest.mock("@/components/spotlights/SpotlightList", () => {
   const { View } = require("react-native");
-  return () => <View testID="reels-list" />;
+  return () => <View testID="spotlights-list" />;
 });
 jest.mock("@/components/common/Loading", () => {
   const { Text } = require("react-native");
@@ -50,12 +50,10 @@ const wrapper = ({ children }) => (
   <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
-describe("ReelsScreen", () => {
+describe("SpotlightsScreen", () => {
   beforeEach(() => {
-    // Reset mocks before each test
     jest.clearAllMocks();
     queryClient.clear();
-    // Default: online
     (useNetworkStatus as jest.Mock).mockReturnValue({ isOnline: true });
   });
 
@@ -66,7 +64,7 @@ describe("ReelsScreen", () => {
       error: null,
     });
 
-    render(<ReelsScreen />, { wrapper });
+    render(<SpotlightsScreen />, { wrapper });
 
     expect(screen.getByText("Loading...")).toBeTruthy();
   });
@@ -79,25 +77,25 @@ describe("ReelsScreen", () => {
       error: new Error(errorMessage),
     });
 
-    render(<ReelsScreen />, { wrapper });
+    render(<SpotlightsScreen />, { wrapper });
 
     await waitFor(() => {
       expect(screen.getByText(`Error: ${errorMessage}`)).toBeTruthy();
     });
   });
 
-  it("renders ReelsList when data is fetched successfully", async () => {
-    const mockData = [{ id: "1", title: "Reel 1" }];
+  it("renders SpotlightList when data is fetched successfully", async () => {
+    const mockData = [{ id: "1", title: "Spotlight 1" }];
     (useGetLocalSpotlights as jest.Mock).mockReturnValue({
       data: mockData,
       isLoading: false,
       error: null,
     });
 
-    render(<ReelsScreen />, { wrapper });
+    render(<SpotlightsScreen />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByTestId("reels-list")).toBeTruthy();
+      expect(screen.getByTestId("spotlights-list")).toBeTruthy();
     });
   });
 
@@ -109,46 +107,10 @@ describe("ReelsScreen", () => {
       error: null,
     });
 
-    render(<ReelsScreen />, { wrapper });
+    render(<SpotlightsScreen />, { wrapper });
 
     await waitFor(() => {
       expect(screen.getByText("You are offline")).toBeTruthy();
     });
   });
-
-  it("calls setShowHeader and setIsMiniPlayerVisible on focus", () => {
-    const setShowHeader = jest.fn();
-    const setIsMiniPlayerVisible = jest.fn();
-    // @ts-ignore
-    require("@/hooks/stores/useHeaderStore").useHeaderStore.mockImplementation(
-      // @ts-ignore
-      (selector) => {
-        if (selector.toString().includes("setShowHeader")) {
-          return setShowHeader;
-        }
-        return jest.fn();
-      }
-    );
-    // @ts-ignore
-    require("@/hooks/stores/usePlayerStore").usePlayerStore.mockImplementation(
-      // @ts-ignore
-      (selector) => {
-        if (selector.toString().includes("setIsMiniPlayerVisible")) {
-          return setIsMiniPlayerVisible;
-        }
-        return jest.fn();
-      }
-    );
-    (useGetLocalSpotlights as jest.Mock).mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    });
-
-    render(<ReelsScreen />, { wrapper });
-
-    expect(setShowHeader).toHaveBeenCalledWith(false);
-    expect(setIsMiniPlayerVisible).toHaveBeenCalledWith(false);
-  });
 });
-

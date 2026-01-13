@@ -1,21 +1,11 @@
 /**
- * @file reels.tsx
- * @description Reels（ショート動画）機能のメイン画面コンポーネントです。
- *
- * この画面では、スポットライトとして選ばれた楽曲のショート動画を全画面で表示し、
- * ユーザーがスワイプで動画を切り替えられるようにします。
- *
- * 主な機能：
- * - `useGetLocalSpotlights` を使用してスポットライトデータを取得します（Local-First）。
- * - 画面がフォーカスされた際に、ヘッダーとミニプレイヤーを非表示にし、全画面での視聴体験を提供します。
- * - データ取得中のローディング状態やエラー状態を適切にハンドリングします。
- * - `ReelsList` コンポーネントに取得したデータを渡し、動画のリストを表示します。
- * - オフライン時は利用不可画面を表示します。
+ * @file spotlights.tsx
+ * @description Spotlights（注目の楽曲動画）機能のメイン画面コンポーネントです。
  */
 import React, { useEffect } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
-import ReelsList from "@/components/reels/ReelsList";
+import SpotlightList from "@/components/spotlights/SpotlightList";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
@@ -24,7 +14,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useGetLocalSpotlights } from "@/hooks/data/useGetLocalSpotlights";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function ReelsScreen() {
+export default function SpotlightsScreen() {
   const isFocused = useIsFocused();
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
   const setIsMiniPlayerVisible = usePlayerStore(
@@ -52,7 +42,7 @@ export default function ReelsScreen() {
         <Ionicons name="cloud-offline" size={64} color="#666" />
         <Text style={styles.emptyText}>You are offline</Text>
         <Text style={styles.emptySubText}>
-          Reels are only available when online
+          Spotlights are only available when online
         </Text>
       </View>
     );
@@ -63,7 +53,7 @@ export default function ReelsScreen() {
 
   return (
     <View style={styles.container}>
-      <ReelsList data={spotlights} isParentFocused={isFocused} />
+      <SpotlightList data={spotlights} isParentFocused={isFocused} />
     </View>
   );
 }

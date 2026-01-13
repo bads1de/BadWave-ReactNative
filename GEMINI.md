@@ -33,7 +33,7 @@ badwave-mobile/
 │   │   ├── index.tsx   # ホーム画面
 │   │   ├── library.tsx
 │   │   ├── search.tsx
-│   │   └── reels.tsx     # Reelsタブのメイン画面
+│   │   └── spotlights.tsx     # Spotlightsタブのメイン画面
 │   ├── playlist/     # プレイリスト詳細画面など
 │   └── _layout.tsx     # ルートレイアウト
 ├── actions/          # Supabaseとのデータ通信処理
@@ -44,7 +44,7 @@ badwave-mobile/
 │   ├── common/
 │   ├── player/
 │   ├── item/         # SongItem, ListItem, PlaylistItem など
-│   └── reels/        # Reels関連コンポーネント
+│   └── spotlights/        # Spotlights関連コンポーネント
 ├── constants/        # 定数
 │   ├── index.ts      # キャッシュキー、設定など
 │   └── errorMessages.ts  # エラーメッセージ定数
