@@ -4,6 +4,7 @@ import OnRepeatPlayerItem from "@/components/onRepeat/player/OnRepeatPlayerItem"
 import Song from "@/types";
 
 // expo-video をモック
+// expo-video をモック
 jest.mock("expo-video", () => ({
   VideoView: "VideoView",
   useVideoPlayer: jest.fn(() => ({
@@ -19,6 +20,42 @@ jest.mock("@/hooks/audio/useOnRepeatPlayer", () => ({
     player: { play: jest.fn(), pause: jest.fn() },
     hasVideo: true,
   })),
+}));
+
+// フックのモック
+jest.mock("@/hooks/data/useLikeStatus", () => ({
+  useLikeStatus: jest.fn(() => ({ isLiked: false, isLoading: false })),
+}));
+
+jest.mock("@/hooks/mutations/useLikeMutation", () => ({
+  useLikeMutation: jest.fn(() => ({ mutate: jest.fn(), isPending: false })),
+}));
+
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
+  useAudioPlayer: jest.fn(() => ({ togglePlayPause: jest.fn() })),
+}));
+
+const mockClose = jest.fn();
+const mockState = {
+  songs: [],
+  close: mockClose,
+};
+jest.mock("@/hooks/stores/useOnRepeatStore", () => ({
+  useOnRepeatStore: jest.fn((selector) =>
+    selector ? selector(mockState) : mockState
+  ),
+}));
+
+jest.mock("@/providers/AuthProvider", () => ({
+  useAuth: jest.fn(() => ({ session: { user: { id: "user1" } } })),
+}));
+
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
+  useNetworkStatus: jest.fn(() => ({ isOnline: true })),
+}));
+
+jest.mock("react-native-toast-message", () => ({
+  show: jest.fn(),
 }));
 
 // OnRepeatPlayerControls をモック
@@ -80,4 +117,3 @@ describe("OnRepeatPlayerItem", () => {
     });
   });
 });
-

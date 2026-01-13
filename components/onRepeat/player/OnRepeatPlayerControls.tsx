@@ -3,14 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import Song from "@/types";
+import AddPlaylist from "@/components/playlist/AddPlaylist";
+import LikeButton from "@/components/LikeButton";
 
 interface OnRepeatPlayerControlsProps {
   /** 現在の曲 */
   song: Song;
-  /** いいねボタン押下時 */
-  onLike?: () => void;
-  /** プレイリストに追加ボタン押下時 */
-  onAddToPlaylist?: () => void;
   /** フルで聴くボタン押下時 */
   onPlayFull?: () => void;
 }
@@ -23,33 +21,29 @@ interface OnRepeatPlayerControlsProps {
  */
 function OnRepeatPlayerControls({
   song,
-  onLike,
-  onAddToPlaylist,
   onPlayFull,
 }: OnRepeatPlayerControlsProps) {
   return (
     <View style={styles.container}>
       {/* いいねボタン */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={onLike}
-        testID="like-button"
-      >
+      <View style={styles.button}>
         <BlurView intensity={30} tint="dark" style={styles.blurButton}>
-          <MaterialCommunityIcons name="heart-outline" size={24} color="#fff" />
+          <LikeButton songId={song.id} size={24} />
         </BlurView>
-      </TouchableOpacity>
+      </View>
 
       {/* プレイリストに追加ボタン */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={onAddToPlaylist}
-        testID="add-to-playlist-button"
-      >
-        <BlurView intensity={30} tint="dark" style={styles.blurButton}>
-          <MaterialCommunityIcons name="playlist-plus" size={24} color="#fff" />
-        </BlurView>
-      </TouchableOpacity>
+      <AddPlaylist songId={song.id}>
+        <View style={styles.button}>
+          <BlurView intensity={30} tint="dark" style={styles.blurButton}>
+            <MaterialCommunityIcons
+              name="playlist-plus"
+              size={24}
+              color="#fff"
+            />
+          </BlurView>
+        </View>
+      </AddPlaylist>
 
       {/* フルで聴くボタン */}
       <TouchableOpacity
@@ -109,4 +103,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(OnRepeatPlayerControls);
-

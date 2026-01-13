@@ -1,11 +1,14 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { ImageBackground } from "expo-image";
 import { VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
+import Toast from "react-native-toast-message";
 import Song from "@/types";
 import OnRepeatPlayerControls from "./OnRepeatPlayerControls";
 import { useOnRepeatPlayer } from "@/hooks/audio/useOnRepeatPlayer";
+import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 
 const { width, height } = Dimensions.get("screen");
 
@@ -14,26 +17,38 @@ interface OnRepeatPlayerItemProps {
   song: Song;
   /** この曲が現在表示されているか */
   isVisible: boolean;
-  /** いいねボタン押下時 */
-  onLike?: () => void;
-  /** プレイリストに追加ボタン押下時 */
-  onAddToPlaylist?: () => void;
-  /** フルで聴くボタン押下時 */
-  onPlayFull?: () => void;
 }
 
 /**
  * OnRepeat Player の個別アイテムコンポーネント
  * Spotify風のリッチなプレビュー画面
  */
-function OnRepeatPlayerItem({
-  song,
-  isVisible,
-  onLike,
-  onAddToPlaylist,
-  onPlayFull,
-}: OnRepeatPlayerItemProps) {
+function OnRepeatPlayerItem({ song, isVisible }: OnRepeatPlayerItemProps) {
   const { player, hasVideo } = useOnRepeatPlayer(song, isVisible);
+
+  // ストアから全曲リストを取得（フル再生時のキュー用）
+  const songs = useOnRepeatStore((state) => state.songs);
+  const close = useOnRepeatStore((state) => state.close);
+
+  // オーディオプレイヤー（フル再生用）
+  // OnRepeatコンテキストとして初期化
+  const { togglePlayPause } = useAudioPlayer(songs, "home"); // TODO: 適切なContextTypeを検討
+
+  // フル再生ハンドラ
+  const handlePlayFull = useCallback(async () => {
+    try {
+      // 1. 再生を開始（キューも更新される）
+      await togglePlayPause(song, undefined, "home");
+      // 2. プレイヤー画面を閉じる
+      close();
+    } catch (error) {
+      console.error("Failed to play full song:", error);
+      Toast.show({
+        type: "error",
+        text1: "再生できませんでした",
+      });
+    }
+  }, [togglePlayPause, song, close]);
 
   return (
     <View style={styles.container}>
@@ -90,12 +105,7 @@ function OnRepeatPlayerItem({
         </View>
 
         {/* アクションボタン */}
-        <OnRepeatPlayerControls
-          song={song}
-          onLike={onLike}
-          onAddToPlaylist={onAddToPlaylist}
-          onPlayFull={onPlayFull}
-        />
+        <OnRepeatPlayerControls song={song} onPlayFull={handlePlayFull} />
       </View>
     </View>
   );
