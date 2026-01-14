@@ -12,7 +12,7 @@ import { ImageBackground } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
+
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { genreCards } from "@/constants";
@@ -279,7 +279,6 @@ function HeroBoard() {
 
   const navigateToGenre = useCallback(
     (genre: string) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       router.push({
         pathname: "/genre/[genre]",
         params: { genre: encodeURIComponent(genre) },
@@ -320,9 +319,6 @@ function HeroBoard() {
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / SNAP_INTERVAL);
       currentIndexRef.current = index;
-      if (index >= 0 && index < genreCards.length) {
-        Haptics.selectionAsync();
-      }
     },
     []
   );
