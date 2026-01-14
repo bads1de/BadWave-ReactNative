@@ -13,11 +13,12 @@ import { Stack } from "expo-router";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
+// TrackPlayerのサービス登録用グローバル変数
 declare global {
-  // eslint-disable-next-line no-var
   var __TRACK_PLAYER_SERVICE_REGISTERED__: boolean | undefined;
 }
 
+// TrackPlayerのサービス登録
 if (!global.__TRACK_PLAYER_SERVICE_REGISTERED__) {
   TrackPlayer.registerPlaybackService(playbackService);
   global.__TRACK_PLAYER_SERVICE_REGISTERED__ = true;
@@ -58,4 +59,3 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
-
