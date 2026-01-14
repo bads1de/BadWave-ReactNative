@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { CACHE_CONFIG, CACHE_PREFIX } from "@/constants";
-import { storage } from "./mmkv-storage";
+import { storage } from "@/lib/storage/mmkv-storage";
 
 /**
  * クエリキャッシュの永続化を管理するクラス

@@ -14,15 +14,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import { VideoView, useVideoPlayer } from "expo-video";
 import Song from "@/types";
 import { RepeatMode } from "react-native-track-player";
-import MarqueeText from "../common/MarqueeText";
-import AddPlaylist from "../playlist/AddPlaylist";
-import LikeButton from "../LikeButton";
-import Lyric from "./lyric";
-import NextSong from "./NextSong";
-import OnRepeat from "../onRepeat/OnRepeat";
+import MarqueeText from "@/components/common/MarqueeText";
+import AddPlaylist from "@/components/playlist/AddPlaylist";
+import LikeButton from "@/components/LikeButton";
+import Lyric from "@/components/player/lyric";
+import NextSong from "@/components/player/NextSong";
+import OnRepeat from "@/components/onRepeat/OnRepeat";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { ThemeDefinition } from "@/constants/ThemeColors";
-import PlayerProgress from "./PlayerProgress";
+import PlayerProgress from "@/components/player/PlayerProgress";
 
 /**
  * @fileoverview 音楽プレーヤーのUIコンポーネント

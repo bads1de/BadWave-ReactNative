@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
-import getSongById from "./getSongById";
-import updatePlaylistImage from "./updatePlaylistImage";
+import getSongById from "@/actions/song/getSongById";
+import updatePlaylistImage from "@/actions/playlist/updatePlaylistImage";
 
 /**
  * プレイリストに曲を追加する関数

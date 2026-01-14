@@ -1,7 +1,7 @@
 // hooks/TrackPlayer/utils.ts
 import { Track } from "react-native-track-player";
-import Song from "../../../types";
-import { OfflineStorageService } from "../../../services/OfflineStorageService";
+import Song from "@/types";
+import { OfflineStorageService } from "@/services/OfflineStorageService";
 
 // グローバルインスタンス
 let offlineStorageService: OfflineStorageService;

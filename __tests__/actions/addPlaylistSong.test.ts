@@ -1,15 +1,15 @@
 // 実際のコードをモックする
-import addPlaylistSong from "../../actions/addPlaylistSong";
-import getSongById from "../../actions/getSongById";
-import updatePlaylistImage from "../../actions/updatePlaylistImage";
-import { mockFunctions } from "../../__mocks__/supabase";
+import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
+import getSongById from "@/actions/song/getSongById";
+import updatePlaylistImage from "@/actions/playlist/updatePlaylistImage";
+import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 // モックの設定
-jest.mock("../../actions/getSongById");
-jest.mock("../../actions/updatePlaylistImage");
+jest.mock("@/actions/song/getSongById");
+jest.mock("@/actions/playlist/updatePlaylistImage");
 
 // モックのエイリアス
 const { mockFrom, mockInsert } = mockFunctions;

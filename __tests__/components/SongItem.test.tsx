@@ -24,7 +24,7 @@ jest.mock("expo-linear-gradient", () => ({
   LinearGradient: "LinearGradient",
 }));
 
-jest.mock("@/components/DownloadButton", () => ({
+jest.mock("@/components/download/DownloadButton", () => ({
   DownloadButton: "DownloadButton",
 }));
 

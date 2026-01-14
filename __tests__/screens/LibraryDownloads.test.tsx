@@ -137,7 +137,7 @@ jest.mock("react-native-track-player", () => ({
 }));
 
 // モック
-jest.mock("../../hooks/downloads/useDownloadedSongs", () => ({
+jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
   useDownloadedSongs: jest.fn().mockReturnValue({
     songs: [],
     isLoading: false,
@@ -146,7 +146,7 @@ jest.mock("../../hooks/downloads/useDownloadedSongs", () => ({
   }),
 }));
 
-jest.mock("../../hooks/audio/useAudioPlayer", () => ({
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn().mockReturnValue({
     currentTrack: null,
     isPlaying: false,
@@ -170,7 +170,7 @@ jest.mock("expo-router", () => ({
     push: jest.fn(),
   }),
 }));
-jest.mock("../../providers/AuthProvider", () => ({
+jest.mock("@/providers/AuthProvider", () => ({
   useAuth: jest.fn().mockReturnValue({
     session: { user: { id: "test-user" } },
   }),

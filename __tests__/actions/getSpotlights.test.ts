@@ -1,8 +1,8 @@
-import getSpotlights from "../../actions/getSpotlights";
-import { mockFunctions } from "../../__mocks__/supabase";
+import getSpotlights from "@/actions/spotlight/getSpotlights";
+import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 // モックのエイリアス
 const { mockFrom, mockSelect, mockOrder } = mockFunctions;

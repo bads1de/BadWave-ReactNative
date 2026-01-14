@@ -13,15 +13,15 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import deletePlaylist from "@/actions/deletePlaylist";
-import renamePlaylist from "@/actions/renamePlaylist";
-import togglePublicPlaylist from "@/actions/togglePublicPlaylist";
+import deletePlaylist from "@/actions/playlist/deletePlaylist";
+import renamePlaylist from "@/actions/playlist/renamePlaylist";
+import togglePublicPlaylist from "@/actions/playlist/togglePublicPlaylist";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
-import CustomAlertDialog from "../common/CustomAlertDialog";
+import CustomAlertDialog from "@/components/common/CustomAlertDialog";
 import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
-import { BulkDownloadModal } from "@/components/BulkDownloadModal";
+import { BulkDownloadModal } from "@/components/download/BulkDownloadModal";
 import Song from "@/types";
 
 interface PlaylistOptionsMenuProps {

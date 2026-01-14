@@ -2,7 +2,7 @@ import React, { useRef, useCallback, useEffect, useMemo } from "react";
 import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import Song from "@/types";
-import OnRepeatPlayerItem from "./OnRepeatPlayerItem";
+import OnRepeatPlayerItem from "@/components/onRepeat/player/OnRepeatPlayerItem";
 
 const { height } = Dimensions.get("screen");
 

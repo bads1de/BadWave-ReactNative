@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
-import { BulkDownloadModal } from "./BulkDownloadModal";
+import { BulkDownloadModal } from "@/components/download/BulkDownloadModal";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";

@@ -30,17 +30,15 @@ jest.mock("@/providers/AuthProvider", () => ({
 }));
 
 // action関数のモック
-jest.mock("@/actions/deletePlaylist", () => ({
+jest.mock("@/actions/playlist/deletePlaylist", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-jest.mock("@/actions/renamePlaylist", () => ({
+jest.mock("@/actions/playlist/renamePlaylist", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-jest.mock("@/actions/togglePublicPlaylist", () => ({
+jest.mock("@/actions/playlist/togglePublicPlaylist", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -81,10 +79,10 @@ jest.mock("@/components/common/CustomAlertDialog", () => {
 });
 
 const Toast = require("react-native-toast-message").default;
-const deletePlaylist = require("@/actions/deletePlaylist").default;
-const renamePlaylist = require("@/actions/renamePlaylist").default;
+const deletePlaylist = require("@/actions/playlist/deletePlaylist").default;
+const renamePlaylist = require("@/actions/playlist/renamePlaylist").default;
 const togglePublicPlaylist =
-  require("@/actions/togglePublicPlaylist").default;
+  require("@/actions/playlist/togglePublicPlaylist").default;
 const { useAuth } = require("@/providers/AuthProvider");
 
 describe("PlaylistOptionsMenu", () => {

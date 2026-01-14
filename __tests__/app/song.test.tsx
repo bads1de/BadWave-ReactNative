@@ -17,7 +17,7 @@ jest.mock("expo-router", () => ({
   useFocusEffect: jest.fn((fn) => fn()),
   useLocalSearchParams: jest.fn(),
 }));
-jest.mock("@/actions/getSongById", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/song/getSongById", () => ({ __esModule: true, default: jest.fn() }));
 
 const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");

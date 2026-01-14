@@ -1,8 +1,8 @@
-import deletePlaylist from "../../actions/deletePlaylist";
-import { mockFunctions } from "../../__mocks__/supabase";
+import deletePlaylist from "@/actions/playlist/deletePlaylist";
+import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 // モックのエイリアス
 const { mockFrom, mockDelete, mockEq } = mockFunctions;

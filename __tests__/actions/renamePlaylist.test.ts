@@ -1,8 +1,8 @@
-import renamePlaylist from "../../actions/renamePlaylist";
-import { mockFunctions } from "../../__mocks__/supabase";
+import renamePlaylist from "@/actions/playlist/renamePlaylist";
+import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 // モックのエイリアス
 const { mockFrom, mockUpdate, mockMatch } = mockFunctions;

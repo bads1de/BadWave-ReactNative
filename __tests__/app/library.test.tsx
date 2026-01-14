@@ -52,7 +52,7 @@ jest.mock("@/hooks/stores/useThemeStore", () => ({
   })),
 }));
 
-jest.mock("@/components/BulkDownloadButton", () => ({
+jest.mock("@/components/download/BulkDownloadButton", () => ({
   BulkDownloadButton: () => null,
 }));
 

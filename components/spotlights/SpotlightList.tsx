@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Spotlight } from "@/types";
-import SpotlightItem from "./SpotlightItem";
+import SpotlightItem from "@/components/spotlights/SpotlightItem";
 
 interface SpotlightListProps {
   data: Spotlight[];

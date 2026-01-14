@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
-import createPlaylist from "@/actions/createPlaylist";
+import createPlaylist from "@/actions/playlist/createPlaylist";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import Toast from "react-native-toast-message";
 

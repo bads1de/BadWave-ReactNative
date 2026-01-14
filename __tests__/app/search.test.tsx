@@ -12,8 +12,8 @@ jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }))
 jest.mock("@/hooks/common/useDebounce", () => ({ useDebounce: jest.fn((value) => value) }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-router", () => ({ useRouter: jest.fn() }));
-jest.mock("@/actions/getSongsByTitle", () => ({ __esModule: true, default: jest.fn() }));
-jest.mock("@/actions/getPlaylistsByTitle", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/song/getSongsByTitle", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/playlist/getPlaylistsByTitle", () => ({ __esModule: true, default: jest.fn() }));
 
 const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useRouter } = require("expo-router");

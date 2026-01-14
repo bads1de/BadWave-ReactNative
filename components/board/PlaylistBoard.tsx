@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Playlist } from "@/types";
 import { CACHED_QUERIES } from "@/constants";
-import getPublicPlaylists from "@/actions/getPublicPlaylists";
+import getPublicPlaylists from "@/actions/playlist/getPublicPlaylists";
 import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback } from "react";
 

@@ -21,9 +21,9 @@ jest.mock("expo-router", () => ({
   useFocusEffect: jest.fn((fn) => fn()),
   useLocalSearchParams: jest.fn(),
 }));
-jest.mock("@/actions/getPlaylistSongs", () => ({ __esModule: true, default: jest.fn() }));
-jest.mock("@/actions/getPlaylistById", () => ({ __esModule: true, default: jest.fn() }));
-jest.mock("@/actions/deletePlaylistSong", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/playlist/getPlaylistSongs", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/playlist/getPlaylistById", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/playlist/deletePlaylistSong", () => ({ __esModule: true, default: jest.fn() }));
 
 const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");

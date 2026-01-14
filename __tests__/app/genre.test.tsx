@@ -17,7 +17,7 @@ jest.mock("expo-router", () => ({
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaView: "SafeAreaView",
 }));
-jest.mock("@/actions/getSongsByGenre", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/song/getSongsByGenre", () => ({ __esModule: true, default: jest.fn() }));
 
 const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");

@@ -14,15 +14,16 @@ jest.mock("react-native-toast-message", () => ({
   },
 }));
 
-jest.mock("@/actions/deletePlaylistSong", () => ({
+jest.mock("@/actions/playlist/deletePlaylistSong", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
 const Toast = require("react-native-toast-message").default;
-const deletePlaylistSong = require("@/actions/deletePlaylistSong").default;
 
 describe("DeletePlaylistSongsBtn", () => {
+  const deletePlaylistSong = require("@/actions/playlist/deletePlaylistSong").default;
+
   let queryClient: QueryClient;
 
   beforeEach(() => {

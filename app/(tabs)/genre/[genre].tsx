@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import getSongsByGenre from "@/actions/getSongsByGenre";
+import getSongsByGenre from "@/actions/song/getSongsByGenre";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";

@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
-import OnRepeatPlayerList from "./OnRepeatPlayerList";
+import OnRepeatPlayerList from "@/components/onRepeat/player/OnRepeatPlayerList";
 
 /**
  * OnRepeat Player のメイン画面

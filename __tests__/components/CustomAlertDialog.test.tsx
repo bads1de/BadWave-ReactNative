@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import CustomAlertDialog from "../../components/common/CustomAlertDialog";
+import CustomAlertDialog from "@/components/common/CustomAlertDialog";
 
 describe("CustomAlertDialog", () => {
   // テスト用のプロップス

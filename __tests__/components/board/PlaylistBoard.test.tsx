@@ -9,7 +9,7 @@ jest.mock("expo-router", () => ({
 jest.mock("@/components/item/PlaylistItem", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/Loading", () => ({ __esModule: true, default: () => null }));
 jest.mock("@/components/common/Error", () => ({ __esModule: true, default: () => null }));
-jest.mock("@/actions/getPublicPlaylists", () => ({ __esModule: true, default: jest.fn() }));
+jest.mock("@/actions/playlist/getPublicPlaylists", () => ({ __esModule: true, default: jest.fn() }));
 
 describe("PlaylistBoard", () => {
   let queryClient: QueryClient;

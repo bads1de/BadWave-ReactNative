@@ -15,7 +15,7 @@ jest.mock("@/providers/AuthProvider", () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock("@/actions/getUser", () => ({
+jest.mock("@/actions/user/getUser", () => ({
   useUser: jest.fn(),
 }));
 
@@ -39,7 +39,7 @@ jest.mock("expo-router", () => ({
 const { useHeaderStore } = require("@/hooks/stores/useHeaderStore");
 const { useAuthStore } = require("@/hooks/stores/useAuthStore");
 const { useAuth } = require("@/providers/AuthProvider");
-const { useUser } = require("@/actions/getUser");
+const { useUser } = require("@/actions/user/getUser");
 
 describe("Header", () => {
   let setShowAuthModal: jest.Mock;

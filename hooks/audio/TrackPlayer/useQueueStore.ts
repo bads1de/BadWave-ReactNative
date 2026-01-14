@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { QueueState } from "./types";
+import { QueueState } from "@/hooks/audio/TrackPlayer/types";
 
 /**
  * キューの状態を管理するZustandストア

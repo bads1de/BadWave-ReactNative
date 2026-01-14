@@ -1,8 +1,8 @@
-import { getUser } from "../../actions/getUser";
-import { mockFunctions } from "../../__mocks__/supabase";
+import { getUser } from "@/actions/user/getUser";
+import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 // モックのエイリアス
 const { mockFrom, mockSelect, mockEq, mockSingle, mockGetSession } =

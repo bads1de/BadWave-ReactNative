@@ -3,7 +3,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { Playlist } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
-import getSongPlaylistStatus from "@/actions/getSongPlaylistStatus";
+import getSongPlaylistStatus from "@/actions/playlist/getSongPlaylistStatus";
 
 interface UsePlaylistStatusProps {
   songId: string;

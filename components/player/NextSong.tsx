@@ -11,7 +11,7 @@ import TrackPlayer, {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import MarqueeText from "../common/MarqueeText";
+import MarqueeText from "@/components/common/MarqueeText";
 
 interface NextSongProps {
   repeatMode: RepeatMode;

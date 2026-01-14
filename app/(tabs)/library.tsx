@@ -26,7 +26,7 @@ import CreatePlaylist from "@/components/playlist/CreatePlaylist";
 import { Playlist } from "@/types";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
-import { BulkDownloadButton } from "@/components/BulkDownloadButton";
+import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 type LibraryType = "liked" | "playlists";

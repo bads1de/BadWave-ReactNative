@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/actions/getUser";
+import { useUser } from "@/actions/user/getUser";
 import { useCallback } from "react";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 

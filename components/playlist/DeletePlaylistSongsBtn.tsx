@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import deletePlaylistSong from "@/actions/deletePlaylistSong";
+import deletePlaylistSong from "@/actions/playlist/deletePlaylistSong";
 import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";

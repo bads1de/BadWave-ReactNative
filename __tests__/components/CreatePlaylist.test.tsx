@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import CreatePlaylist from "../../components/playlist/CreatePlaylist";
+import CreatePlaylist from "@/components/playlist/CreatePlaylist";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Toast from "react-native-toast-message";
 
@@ -24,7 +24,7 @@ jest.mock("react-native-toast-message", () => {
   };
 });
 
-jest.mock("../../actions/createPlaylist", () => jest.fn());
+jest.mock("@/actions/playlist/createPlaylist", () => jest.fn());
 
 describe("CreatePlaylist", () => {
   // モックの設定

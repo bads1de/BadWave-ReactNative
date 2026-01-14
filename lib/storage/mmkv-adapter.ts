@@ -1,4 +1,4 @@
-import { storage } from "./mmkv-storage";
+import { storage } from "@/lib/storage/mmkv-storage";
 
 /**
  * MMKV の同期 API を AsyncStorage のような非同期インターフェースに変換するアダプター。

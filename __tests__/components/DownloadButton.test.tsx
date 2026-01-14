@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { DownloadButton } from "../../components/DownloadButton";
-import { OfflineStorageService } from "../../services/OfflineStorageService";
+import { DownloadButton } from "@/components/download/DownloadButton";
+import { OfflineStorageService } from "@/services/OfflineStorageService";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 jest.mock("@expo/vector-icons", () => ({
@@ -9,7 +9,7 @@ jest.mock("@expo/vector-icons", () => ({
 }));
 
 // モックの設定
-jest.mock("../../services/OfflineStorageService", () => {
+jest.mock("@/services/OfflineStorageService", () => {
   return {
     OfflineStorageService: jest.fn().mockImplementation(() => ({
       downloadSong: jest.fn(),
@@ -20,7 +20,7 @@ jest.mock("../../services/OfflineStorageService", () => {
 });
 
 // useDownloadStatusフックをモック
-jest.mock("../../hooks/downloads/useDownloadStatus", () => ({
+jest.mock("@/hooks/downloads/useDownloadStatus", () => ({
   useDownloadStatus: jest.fn(),
   useDownloadSong: jest.fn(),
   useDeleteDownloadedSong: jest.fn(),
@@ -61,7 +61,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // getOfflineStorageService関数をモック化
     jest
       .spyOn(
-        require("../../hooks/audio/TrackPlayer/utils"),
+        require("@/hooks/audio/TrackPlayer/utils"),
         "getOfflineStorageService"
       )
       .mockReturnValue(mockOfflineStorageService);
@@ -70,14 +70,14 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
   it("ダウンロード済みの曲は削除ボタンを表示する", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadStatus;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadStatus;
     useDownloadStatusMock.mockReturnValue({
       data: true,
       isLoading: false,
     });
 
     const useDeleteDownloadedSongMock =
-      require("../../hooks/downloads/useDownloadStatus").useDeleteDownloadedSong;
+      require("@/hooks/downloads/useDownloadStatus").useDeleteDownloadedSong;
     useDeleteDownloadedSongMock.mockReturnValue({
       mutate: jest.fn(),
       isPending: false,
@@ -95,7 +95,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
   it("ダウンロードボタンを押すと曲をダウンロードする", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadStatus;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadStatus;
     useDownloadStatusMock.mockReturnValue({
       data: false,
       isLoading: false,
@@ -104,7 +104,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // useDownloadSongフックのモック設定
     const mutateMock = jest.fn();
     const useDownloadSongMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadSong;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadSong;
     useDownloadSongMock.mockReturnValue({
       mutate: mutateMock,
       isPending: false,
@@ -127,7 +127,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
   it("削除ボタンを押すと曲を削除する", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadStatus;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadStatus;
     useDownloadStatusMock.mockReturnValue({
       data: true,
       isLoading: false,
@@ -136,7 +136,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // useDeleteDownloadedSongフックのモック設定
     const mutateMock = jest.fn();
     const useDeleteDownloadedSongMock =
-      require("../../hooks/downloads/useDownloadStatus").useDeleteDownloadedSong;
+      require("@/hooks/downloads/useDownloadStatus").useDeleteDownloadedSong;
     useDeleteDownloadedSongMock.mockReturnValue({
       mutate: mutateMock,
       isPending: false,
@@ -159,7 +159,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
   it("ダウンロード中はローディング状態を表示する", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadStatus;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadStatus;
     useDownloadStatusMock.mockReturnValue({
       data: false,
       isLoading: false,
@@ -167,7 +167,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
 
     // useDownloadSongフックのモック設定
     const useDownloadSongMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadSong;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadSong;
     useDownloadSongMock.mockReturnValue({
       mutate: jest.fn(),
       isPending: true, // ローディング中
@@ -184,7 +184,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
   it("ダウンロード成功後にボタンの状態が更新される", async () => {
     // useDownloadStatusフックのモック設定
     const useDownloadStatusMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadStatus;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadStatus;
     // 初回はダウンロードされていない状態
     useDownloadStatusMock.mockReturnValueOnce({
       data: false,
@@ -199,7 +199,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
     // useDownloadSongフックのモック設定
     const mutateMock = jest.fn();
     const useDownloadSongMock =
-      require("../../hooks/downloads/useDownloadStatus").useDownloadSong;
+      require("@/hooks/downloads/useDownloadStatus").useDownloadSong;
     useDownloadSongMock.mockReturnValue({
       mutate: mutateMock,
       isPending: false,
@@ -207,7 +207,7 @@ describe("DownloadButton - 常に表示されるダウンロードボタンコ�
 
     // useDeleteDownloadedSongフックのモック設定
     const useDeleteDownloadedSongMock =
-      require("../../hooks/downloads/useDownloadStatus").useDeleteDownloadedSong;
+      require("@/hooks/downloads/useDownloadStatus").useDeleteDownloadedSong;
     useDeleteDownloadedSongMock.mockReturnValue({
       mutate: jest.fn(),
       isPending: false,

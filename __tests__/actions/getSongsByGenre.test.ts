@@ -1,8 +1,8 @@
 // 実際のコードをモックする
 // モックを実装する
-import getSongsByGenre from "@/actions/getSongsByGenre";
+import getSongsByGenre from "@/actions/song/getSongsByGenre";
 
-jest.mock("@/actions/getSongsByGenre", () => ({
+jest.mock("@/actions/song/getSongsByGenre", () => ({
   __esModule: true,
   default: jest.fn(),
 }));

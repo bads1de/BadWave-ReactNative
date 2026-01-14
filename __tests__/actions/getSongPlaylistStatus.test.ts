@@ -1,8 +1,8 @@
-import { mockFunctions } from "../../__mocks__/supabase";
-import getSongPlaylistStatus from "../../actions/getSongPlaylistStatus";
+import { mockFunctions } from "@/__mocks__/supabase";
+import getSongPlaylistStatus from "@/actions/playlist/getSongPlaylistStatus";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 const { mockFrom, mockSelect, mockEq, mockGetSession, mockThen } =
   mockFunctions;

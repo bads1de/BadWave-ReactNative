@@ -1,9 +1,8 @@
 import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { useAuth } from "../../providers/AuthProvider";
-import Toast from "react-native-toast-message";
-import usePlaylistStatus from "../../hooks/data/usePlaylistStatus";
+import { useAuth } from "@/providers/AuthProvider";
+import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
 
 // AsyncStorageのモック
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -21,7 +20,7 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
 }));
 
 // Supabaseのモック
-jest.mock("../../lib/supabase", () => {
+jest.mock("@/lib/supabase", () => {
   const mockFrom = jest.fn();
   const mockSelect = jest.fn();
   const mockEq = jest.fn();
@@ -97,7 +96,7 @@ jest.mock("@tanstack/react-query", () => ({
   useQuery: jest.fn(),
 }));
 
-jest.mock("../../providers/AuthProvider", () => ({
+jest.mock("@/providers/AuthProvider", () => ({
   useAuth: jest.fn(),
 }));
 
@@ -105,7 +104,7 @@ jest.mock("react-native-toast-message", () => ({
   show: jest.fn(),
 }));
 
-jest.mock("../../hooks/data/usePlaylistStatus", () => ({
+jest.mock("@/hooks/data/usePlaylistStatus", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -117,6 +116,8 @@ jest.mock("expo-linear-gradient", () => ({
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
+
+const Toast = require("react-native-toast-message");
 
 // AddPlaylist コンポーネントをインポート
 // 注意: モックの設定後にインポートする必要があります

@@ -1,4 +1,4 @@
-import getRecommendations from "@/actions/getRecommendations";
+import getRecommendations from "@/actions/song/getRecommendations";
 import { supabase } from "@/lib/supabase";
 
 // supabaseのモック関数を取得

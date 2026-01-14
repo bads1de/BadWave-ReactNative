@@ -1,8 +1,8 @@
-import getTopPlayedSongs from "../../actions/getTopPlayedSongs";
-import { mockFunctions } from "../../__mocks__/supabase";
+import getTopPlayedSongs from "@/actions/song/getTopPlayedSongs";
+import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 // モックのエイリアス
 const { mockRpc } = mockFunctions;

@@ -1,6 +1,6 @@
 import * as SQLite from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
-import * as schema from "./schema";
+import * as schema from "@/lib/db/schema";
 
 // DB名（アプリ固有）
 const DATABASE_NAME = "badwave.db";

@@ -5,7 +5,7 @@ import { VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
 import Toast from "react-native-toast-message";
 import Song from "@/types";
-import OnRepeatPlayerControls from "./OnRepeatPlayerControls";
+import OnRepeatPlayerControls from "@/components/onRepeat/player/OnRepeatPlayerControls";
 import { useOnRepeatPlayer } from "@/hooks/audio/useOnRepeatPlayer";
 import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";

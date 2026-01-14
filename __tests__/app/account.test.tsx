@@ -3,7 +3,7 @@ import { render, fireEvent } from "@testing-library/react-native";
 import AccountScreen from "@/app/(tabs)/account";
 import { useSync } from "@/providers/SyncProvider";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
-import { useUser } from "@/actions/getUser";
+import { useUser } from "@/actions/user/getUser";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useStorageInfo } from "@/hooks/common/useStorageInfo";
@@ -33,7 +33,7 @@ jest.mock("@/lib/supabase", () => ({
     },
   },
 }));
-jest.mock("@/actions/getUser");
+jest.mock("@/actions/user/getUser");
 jest.mock("@/hooks/data/useGetPlaylists");
 jest.mock("@/hooks/data/useGetLikedSongs");
 jest.mock("@/providers/SyncProvider");

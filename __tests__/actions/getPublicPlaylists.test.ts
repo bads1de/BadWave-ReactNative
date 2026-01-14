@@ -1,8 +1,8 @@
 // 実際のコードをモックする
 // モックを実装する
-import getPublicPlaylists from "@/actions/getPublicPlaylists";
+import getPublicPlaylists from "@/actions/playlist/getPublicPlaylists";
 
-jest.mock("@/actions/getPublicPlaylists", () => ({
+jest.mock("@/actions/playlist/getPublicPlaylists", () => ({
   __esModule: true,
   default: jest.fn(),
 }));

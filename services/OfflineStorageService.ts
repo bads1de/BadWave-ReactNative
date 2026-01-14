@@ -1,6 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import { eq, isNotNull } from "drizzle-orm";
-import Song from "../types";
+import Song from "@/types";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
 

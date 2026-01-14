@@ -1,5 +1,5 @@
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { storage } from "./mmkv-storage";
+import { storage } from "@/lib/storage/mmkv-storage";
 
 /**
  * MMKVをTanStack Queryの永続化に使用するためのアダプター

@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/actions/getUser";
+import { useUser } from "@/actions/user/getUser";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { THEMES, ThemeType } from "@/constants/ThemeColors";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";

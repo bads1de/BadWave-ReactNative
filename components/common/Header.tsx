@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { useAuth } from "@/providers/AuthProvider";
-import { useUser } from "@/actions/getUser";
+import { useUser } from "@/actions/user/getUser";
 import { memo } from "react";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";

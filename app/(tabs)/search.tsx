@@ -10,8 +10,8 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/common/useDebounce";
-import getSongsByTitle from "@/actions/getSongsByTitle";
-import getPlaylistsByTitle from "@/actions/getPlaylistsByTitle";
+import getSongsByTitle from "@/actions/song/getSongsByTitle";
+import getPlaylistsByTitle from "@/actions/playlist/getPlaylistsByTitle";
 import ListItem from "@/components/item/ListItem";
 import PlaylistItem from "@/components/item/PlaylistItem";
 import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";

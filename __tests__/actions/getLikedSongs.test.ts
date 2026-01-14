@@ -1,8 +1,8 @@
-import getLikedSongs from "../../actions/getLikedSongs";
-import { mockFunctions } from "../../__mocks__/supabase";
+import getLikedSongs from "@/actions/song/getLikedSongs";
+import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
-jest.mock("../../lib/supabase", () => require("../../__mocks__/supabase"));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
 // モックのエイリアス
 const { mockFrom, mockSelect, mockEq, mockOrder, mockGetSession } =

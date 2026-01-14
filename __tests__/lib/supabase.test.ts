@@ -16,48 +16,48 @@ describe('lib/supabase.ts', () => {
 
   describe('エクスポートされたSupabaseオブジェクト', () => {
     it('supabaseオブジェクトがエクスポートされていること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase).toBeDefined();
     });
 
     it('supabaseオブジェクトがfromメソッドを持つこと', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase.from).toBeDefined();
       expect(typeof supabase.from).toBe('function');
     });
 
     it('supabaseオブジェクトがauthプロパティを持つこと', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase.auth).toBeDefined();
       expect(typeof supabase.auth).toBe('object');
     });
 
     it('supabase.authがgetSessionメソッドを持つこと', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase.auth.getSession).toBeDefined();
       expect(typeof supabase.auth.getSession).toBe('function');
     });
 
     it('supabase.authがsignOutメソッドを持つこと', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase.auth.signOut).toBeDefined();
       expect(typeof supabase.auth.signOut).toBe('function');
     });
 
     it('supabaseオブジェクトがrpcメソッドを持つこと', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase.rpc).toBeDefined();
       expect(typeof supabase.rpc).toBe('function');
     });
 
     it('supabaseオブジェクトがstorageプロパティを持つこと', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase.storage).toBeDefined();
       expect(typeof supabase.storage).toBe('object');
@@ -66,7 +66,7 @@ describe('lib/supabase.ts', () => {
 
   describe('データベース操作', () => {
     it('fromメソッドでテーブルにアクセスできること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const table = supabase.from('test_table');
 
@@ -75,7 +75,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('selectクエリを構築できること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase.from('songs').select();
 
@@ -84,7 +84,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('insertクエリを構築できること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase.from('songs').insert({ title: 'Test Song' });
 
@@ -93,7 +93,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('updateクエリを構築できること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase.from('songs').update({ title: 'Updated Song' });
 
@@ -102,7 +102,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('deleteクエリを構築できること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase.from('songs').delete();
 
@@ -113,7 +113,7 @@ describe('lib/supabase.ts', () => {
 
   describe('認証機能', () => {
     it('getSessionメソッドが呼び出せること', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const result = await supabase.auth.getSession();
 
@@ -122,7 +122,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('getSessionが正しい形式のレスポンスを返すこと', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const result = await supabase.auth.getSession();
 
@@ -131,7 +131,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('signOutメソッドが呼び出せること', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const result = await supabase.auth.signOut();
 
@@ -139,7 +139,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('signOutが正しい形式のレスポンスを返すこと', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const result = await supabase.auth.signOut();
 
@@ -149,7 +149,7 @@ describe('lib/supabase.ts', () => {
 
   describe('RPC機能', () => {
     it('rpcメソッドが呼び出せること', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const result = await supabase.rpc('test_function');
 
@@ -158,7 +158,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('rpcが正しい形式のレスポンスを返すこと', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const result = await supabase.rpc('test_function');
 
@@ -169,7 +169,7 @@ describe('lib/supabase.ts', () => {
 
   describe('ストレージ機能', () => {
     it('storageオブジェクトからバケットにアクセスできること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const bucket = supabase.storage.from('test-bucket');
 
@@ -178,7 +178,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('uploadメソッドが呼び出せること', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const bucket = supabase.storage.from('test-bucket');
       const result = await bucket.upload('test.jpg', {});
@@ -189,7 +189,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('getPublicUrlメソッドが呼び出せること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const bucket = supabase.storage.from('test-bucket');
       const result = bucket.getPublicUrl('test.jpg');
@@ -201,7 +201,7 @@ describe('lib/supabase.ts', () => {
 
   describe('クエリビルダーのメソッドチェーン', () => {
     it('select().eq()のメソッドチェーンが動作すること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase.from('songs').select().eq('id', 1);
 
@@ -211,7 +211,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('select().order()のメソッドチェーンが動作すること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase.from('songs').select().order('created_at');
 
@@ -221,7 +221,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('select().limit()のメソッドチェーンが動作すること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase.from('songs').select().limit(10);
 
@@ -231,7 +231,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('複雑なクエリチェーンが動作すること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       const query = supabase
         .from('songs')
@@ -250,21 +250,21 @@ describe('lib/supabase.ts', () => {
 
   describe('エッジケース', () => {
     it('複数回インポートしても同じインスタンスを返すこと', () => {
-      const { supabase: supabase1 } = require('../../lib/supabase');
-      const { supabase: supabase2 } = require('../../lib/supabase');
+      const { supabase: supabase1 } = require('@/lib/supabase');
+      const { supabase: supabase2 } = require('@/lib/supabase');
 
       expect(supabase1).toBe(supabase2);
     });
 
     it('supabaseオブジェクトがnullでないこと', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase).not.toBeNull();
       expect(supabase).not.toBeUndefined();
     });
 
     it('必須のプロパティがすべて存在すること', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       expect(supabase.from).toBeDefined();
       expect(supabase.auth).toBeDefined();
@@ -275,7 +275,7 @@ describe('lib/supabase.ts', () => {
 
   describe('統合シナリオ', () => {
     it('認証とデータベース操作を組み合わせたシナリオ', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       // セッションを取得
       const session = await supabase.auth.getSession();
@@ -287,7 +287,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('データベース操作とストレージ操作を組み合わせたシナリオ', () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       // データベースクエリ
       const dbQuery = supabase.from('songs').select();
@@ -299,7 +299,7 @@ describe('lib/supabase.ts', () => {
     });
 
     it('RPC呼び出しと認証を組み合わせたシナリオ', async () => {
-      const { supabase } = require('../../lib/supabase');
+      const { supabase } = require('@/lib/supabase');
 
       // セッションを取得
       const session = await supabase.auth.getSession();

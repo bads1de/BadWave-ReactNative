@@ -19,10 +19,10 @@ import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useRouter } from "expo-router";
-import MarqueeText from "../common/MarqueeText";
-import { DownloadButton } from "../DownloadButton";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
-import ListItemOptionsMenu from "./ListItemOptionsMenu";
+import MarqueeText from "@/components/common/MarqueeText";
+import { DownloadButton } from "@/components/download/DownloadButton";
+import ListItemOptionsMenu from "@/components/item/ListItemOptionsMenu";
 
 interface SongItemProps {
   song: Song;
