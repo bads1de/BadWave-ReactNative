@@ -27,9 +27,10 @@ const { width, height } = Dimensions.get("window");
 interface SpotlightItemProps {
   item: Spotlight;
   isVisible: boolean;
+  bottomPadding?: number;
 }
 
-function SpotlightItem({ item, isVisible }: SpotlightItemProps) {
+function SpotlightItem({ item, isVisible, bottomPadding }: SpotlightItemProps) {
   const player = useSpotlightPlayer(item.video_path, isVisible);
   const rotation = useSharedValue(0);
   const [isMuted, setIsMuted] = useState(player.muted);
@@ -47,7 +48,7 @@ function SpotlightItem({ item, isVisible }: SpotlightItemProps) {
           easing: Easing.linear,
         }),
         -1,
-        false
+        false,
       );
     } else {
       rotation.value = 0;
@@ -91,7 +92,7 @@ function SpotlightItem({ item, isVisible }: SpotlightItemProps) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.bottomSection}>
+        <View style={[styles.bottomSection, { paddingBottom: bottomPadding }]}>
           <View style={styles.bottomRow}>
             {/* Left Side: Artist & Description */}
             <View style={styles.leftColumn}>

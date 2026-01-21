@@ -3,6 +3,7 @@ import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Spotlight } from "@/types";
 import SpotlightItem from "@/components/spotlights/SpotlightItem";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 interface SpotlightListProps {
   data: Spotlight[];
@@ -16,6 +17,7 @@ export default function SpotlightList({
   isParentFocused = true,
 }: SpotlightListProps) {
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -26,7 +28,7 @@ export default function SpotlightList({
           setCurrentVisibleIndex(visibleItem.index);
         }
       }
-    }
+    },
   ).current;
 
   const viewabilityConfig = useRef({
@@ -38,9 +40,10 @@ export default function SpotlightList({
       <SpotlightItem
         item={item}
         isVisible={index === currentVisibleIndex && isParentFocused}
+        bottomPadding={Math.max(0, tabBarHeight - 20)}
       />
     ),
-    [currentVisibleIndex, isParentFocused]
+    [currentVisibleIndex, isParentFocused, tabBarHeight],
   );
 
   // タブがフォーカスを失った場合はリストをアンマウントしてリソースを解放
@@ -65,4 +68,3 @@ export default function SpotlightList({
     />
   );
 }
-
