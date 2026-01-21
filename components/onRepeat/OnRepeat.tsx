@@ -16,6 +16,8 @@ import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 import { CACHED_QUERIES } from "@/constants";
@@ -88,6 +90,7 @@ function OnRepeat() {
   const userId = user?.id;
   const { isPlaying } = useAudioPlayer();
   const openOnRepeatPlayer = useOnRepeatStore((state) => state.open);
+  const colors = useThemeStore((state) => state.colors);
 
   const { isOnline } = useNetworkStatus();
   const { songs: downloadedSongs } = useDownloadedSongs();
@@ -124,33 +127,48 @@ function OnRepeat() {
   if (topSongs.length === 0) return null;
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.header}>
-        <Text style={styles.label}>ON REPEAT</Text>
-        <MaterialCommunityIcons
-          name="fire"
-          size={16}
-          color="#a78bfa"
-          style={{ opacity: 0.8 }}
-        />
-      </View>
-      <View style={styles.songsContainer}>
-        {topSongs.slice(0, 3).map((song, index) => {
-          // ダウンロード済みかチェック（Setを使用してO(1)で検索）
-          // topSongsにはlocal_song_pathがないので、downloadedSongIdsと照合
-          const isDownloaded = downloadedSongIds.has(song.id);
-          const isDisabled = !isOnline && !isDownloaded;
+    <View
+      style={[
+        styles.wrapper,
+        {
+          borderColor: colors.primary,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.9,
+          shadowRadius: 20,
+        },
+      ]}
+    >
+      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+      {/* Removed LinearGradient */}
+      <View style={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.label}>ON REPEAT</Text>
+          <MaterialCommunityIcons
+            name="fire"
+            size={16}
+            color="#a78bfa"
+            style={{ opacity: 0.8 }}
+          />
+        </View>
+        <View style={styles.songsContainer}>
+          {topSongs.slice(0, 3).map((song, index) => {
+            // ダウンロード済みかチェック（Setを使用してO(1)で検索）
+            // topSongsにはlocal_song_pathがないので、downloadedSongIdsと照合
+            const isDownloaded = downloadedSongIds.has(song.id);
+            const isDisabled = !isOnline && !isDownloaded;
 
-          return (
-            <OnRepeatItem
-              key={song.id}
-              song={song}
-              index={index}
-              onPress={handleSongPress}
-              isDisabled={isDisabled}
-            />
-          );
-        })}
+            return (
+              <OnRepeatItem
+                key={song.id}
+                song={song}
+                index={index}
+                onPress={handleSongPress}
+                isDisabled={isDisabled}
+              />
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -159,11 +177,15 @@ function OnRepeat() {
 const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 32,
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderWidth: 2,
+    overflow: "visible",
+    backgroundColor: "rgba(0,0,0,0.8)",
+    elevation: 20,
+  },
+  contentContainer: {
     padding: 16,
   },
   // Removed blurContainer, gradient

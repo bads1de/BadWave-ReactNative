@@ -17,10 +17,12 @@ import {
   UIManager,
   LayoutChangeEvent,
 } from "react-native";
+import { BlurView } from "expo-blur";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useProgress } from "react-native-track-player";
 import TrackPlayer from "react-native-track-player";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 if (
   Platform.OS === "android" &&
@@ -80,10 +82,18 @@ interface LyricLineItemProps {
   isActive: boolean;
   onSeek: (time: number) => void;
   onLayoutY: (index: number, y: number) => void;
+  activeColor: string;
 }
 
 const LyricLineItem = memo(
-  ({ line, index, isActive, onSeek, onLayoutY }: LyricLineItemProps) => {
+  ({
+    line,
+    index,
+    isActive,
+    onSeek,
+    onLayoutY,
+    activeColor,
+  }: LyricLineItemProps) => {
     const handlePress = useCallback(() => {
       onSeek(line.time);
     }, [onSeek, line.time]);
@@ -100,7 +110,19 @@ const LyricLineItem = memo(
         onPress={handlePress}
         activeOpacity={0.7}
         onLayout={handleLayout}
-        style={[styles.lineWrapper, isActive && styles.activeLineWrapper]}
+        style={[
+          styles.lineWrapper,
+          isActive && {
+            borderColor: activeColor,
+            borderWidth: 1,
+            shadowColor: activeColor,
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.8,
+            shadowRadius: 10,
+            elevation: 5,
+            backgroundColor: "#000000", // 黒固定
+          },
+        ]}
       >
         <Text style={[styles.lyricText, isActive && styles.activeLyricText]}>
           {line.text === "" ? "♫" : line.text}
@@ -113,6 +135,7 @@ const LyricLineItem = memo(
       prev.isActive === next.isActive &&
       prev.line.text === next.line.text &&
       prev.line.time === next.line.time &&
+      prev.activeColor === next.activeColor &&
       // onSeek and onLayoutY should be stable, so strictly comparing them is fine
       prev.onSeek === next.onSeek &&
       prev.onLayoutY === next.onLayoutY
@@ -130,6 +153,7 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
   const [containerHeight, setContainerHeight] = useState(0);
   const isUserScrolling = useRef(false);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+  const colors = useThemeStore((state) => state.colors);
 
   const parsedLyrics = useMemo(() => {
     if (!lyrics) return [];
@@ -218,65 +242,81 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
   if (!lyrics) return null;
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.header}>
-        <Text style={styles.label}>LYRICS</Text>
-        <TouchableOpacity onPress={toggleExpand} style={styles.expandBtn}>
-          <MaterialCommunityIcons
-            name={
-              isExpanded ? "arrow-collapse-vertical" : "arrow-expand-vertical"
-            }
-            size={18}
-            color="rgba(255,255,255,0.6)"
-          />
-        </TouchableOpacity>
-      </View>
+    <View
+      style={[
+        styles.wrapper,
+        {
+          borderColor: colors.primary,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.9, // More intense neon glow
+          shadowRadius: 20, // Wider spread
+        },
+      ]}
+    >
+      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+      {/* Removed LinearGradient to keep it dark */}
+      <View style={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.label}>LYRICS</Text>
+          <TouchableOpacity onPress={toggleExpand} style={styles.expandBtn}>
+            <MaterialCommunityIcons
+              name={
+                isExpanded ? "arrow-collapse-vertical" : "arrow-expand-vertical"
+              }
+              size={18}
+              color="rgba(255,255,255,0.6)"
+            />
+          </TouchableOpacity>
+        </View>
 
-      {!hasLrc ? (
-        // PLAIN TEXT VIEW (Legacy behavior)
-        <View style={styles.plainContainer}>
-          {plainLines.slice(0, isExpanded ? undefined : 6).map((line, i) => (
-            <Text key={i} style={styles.plainText}>
-              {line}
+        {!hasLrc ? (
+          // PLAIN TEXT VIEW (Legacy behavior)
+          <View style={styles.plainContainer}>
+            {plainLines.slice(0, isExpanded ? undefined : 6).map((line, i) => (
+              <Text key={i} style={styles.plainText}>
+                {line}
+              </Text>
+            ))}
+            {!isExpanded && plainLines.length > 6 && (
+              <Text style={styles.moreText}>...</Text>
+            )}
+          </View>
+        ) : (
+          // SYNCED LYRICS VIEW
+          <View style={{ height: isExpanded ? 400 : 250 }}>
+            <ScrollView
+              ref={scrollViewRef}
+              nestedScrollEnabled={true}
+              onScrollBeginDrag={handleScrollBegin}
+              onScrollEndDrag={handleScrollEnd}
+              onMomentumScrollEnd={handleScrollEnd}
+              showsVerticalScrollIndicator={false}
+              onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {parsedLyrics.map((line, index) => (
+                <LyricLineItem
+                  key={index}
+                  line={line}
+                  index={index}
+                  isActive={index === activeIndex}
+                  onSeek={handleSeek}
+                  onLayoutY={handleLineLayout}
+                  activeColor={colors.primary}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        <View style={styles.footer}>
+          {(songTitle || artistName) && (
+            <Text style={styles.songInfo}>
+              {songTitle} {artistName && `- ${artistName}`}
             </Text>
-          ))}
-          {!isExpanded && plainLines.length > 6 && (
-            <Text style={styles.moreText}>...</Text>
           )}
         </View>
-      ) : (
-        // SYNCED LYRICS VIEW
-        <View style={{ height: isExpanded ? 400 : 250 }}>
-          <ScrollView
-            ref={scrollViewRef}
-            nestedScrollEnabled={true}
-            onScrollBeginDrag={handleScrollBegin}
-            onScrollEndDrag={handleScrollEnd}
-            onMomentumScrollEnd={handleScrollEnd}
-            showsVerticalScrollIndicator={false}
-            onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {parsedLyrics.map((line, index) => (
-              <LyricLineItem
-                key={index}
-                line={line}
-                index={index}
-                isActive={index === activeIndex}
-                onSeek={handleSeek}
-                onLayoutY={handleLineLayout}
-              />
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      <View style={styles.footer}>
-        {(songTitle || artistName) && (
-          <Text style={styles.songInfo}>
-            {songTitle} {artistName && `- ${artistName}`}
-          </Text>
-        )}
       </View>
     </View>
   );
@@ -285,10 +325,14 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
 const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 20, // Increased margin to prevent glow clipping
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderWidth: 2, // Thicker border for neon tube look
+    overflow: "visible",
+    backgroundColor: "rgba(0,0,0,0.8)",
+    elevation: 20, // High elevation for Android
+  },
+  contentContainer: {
     padding: 16,
   },
   // Removed blurContainer, androidContainer, gradient
@@ -336,11 +380,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginVertical: 2,
     borderRadius: 12,
-  },
-  activeLineWrapper: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderColor: "rgba(255,255,255,0.3)",
-    borderWidth: 1,
   },
   lyricText: {
     fontSize: 16,

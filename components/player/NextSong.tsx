@@ -9,6 +9,8 @@ import TrackPlayer, {
   RepeatMode,
 } from "react-native-track-player";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 import MarqueeText from "@/components/common/MarqueeText";
 
@@ -26,6 +28,7 @@ interface NextSongProps {
 function NextSong({ repeatMode, shuffle }: NextSongProps) {
   const activeTrack = useActiveTrack();
   const [nextSong, setNextSong] = useState<Track | null>(null);
+  const colors = useThemeStore((state) => state.colors);
 
   useEffect(() => {
     const fetchNextTrack = async () => {
@@ -98,61 +101,78 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
   const isShuffleMode = shuffle && repeatMode !== RepeatMode.Track;
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.header}>
-        <Text style={styles.label}>
-          {repeatMode === RepeatMode.Track
-            ? "REPEATING"
-            : isShuffleMode
-              ? "SHUFFLE MODE"
-              : "UP NEXT"}
-        </Text>
-        {isShuffleMode && (
-          <MaterialCommunityIcons
-            name="shuffle-variant"
-            size={16}
-            color="#a78bfa"
-          />
-        )}
-      </View>
-
-      {isShuffleMode ? (
-        <View style={styles.shuffleContent}>
-          <View style={styles.shuffleIconContainer}>
+    <View
+      style={[
+        styles.wrapper,
+        {
+          borderColor: colors.primary,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.9,
+          shadowRadius: 20,
+        },
+      ]}
+    >
+      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+      {/* Removed LinearGradient */}
+      <View style={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.label}>
+            {repeatMode === RepeatMode.Track
+              ? "REPEATING"
+              : isShuffleMode
+                ? "SHUFFLE MODE"
+                : "UP NEXT"}
+          </Text>
+          {isShuffleMode && (
             <MaterialCommunityIcons
-              name="music-note-eighth"
-              size={32}
-              color="#fff"
-              style={{ opacity: 0.8 }}
+              name="shuffle-variant"
+              size={16}
+              color="#a78bfa"
             />
-            <View style={styles.questionMark}>
-              <MaterialCommunityIcons name="help" size={14} color="#000" />
-            </View>
-          </View>
-          <Text style={styles.shuffleText}>Music will be played randomly</Text>
+          )}
         </View>
-      ) : (
-        <View style={styles.songContent}>
-          <Image
-            source={{ uri: nextSong?.artwork }}
-            style={styles.artwork}
-            cachePolicy="memory-disk"
-            contentFit="cover"
-            transition={200}
-          />
-          <View style={styles.songInfo}>
-            <MarqueeText
-              text={nextSong?.title || ""}
-              speed={0.3}
-              fontSize={16}
-              style={{ marginBottom: 4 }}
-            />
-            <Text style={styles.artist} numberOfLines={1}>
-              {nextSong?.artist}
+
+        {isShuffleMode ? (
+          <View style={styles.shuffleContent}>
+            <View style={styles.shuffleIconContainer}>
+              <MaterialCommunityIcons
+                name="music-note-eighth"
+                size={32}
+                color="#fff"
+                style={{ opacity: 0.8 }}
+              />
+              <View style={styles.questionMark}>
+                <MaterialCommunityIcons name="help" size={14} color="#000" />
+              </View>
+            </View>
+            <Text style={styles.shuffleText}>
+              Music will be played randomly
             </Text>
           </View>
-        </View>
-      )}
+        ) : (
+          <View style={styles.songContent}>
+            <Image
+              source={{ uri: nextSong?.artwork }}
+              style={styles.artwork}
+              cachePolicy="memory-disk"
+              contentFit="cover"
+              transition={200}
+            />
+            <View style={styles.songInfo}>
+              <MarqueeText
+                text={nextSong?.title || ""}
+                speed={0.3}
+                fontSize={16}
+                style={{ marginBottom: 4 }}
+              />
+              <Text style={styles.artist} numberOfLines={1}>
+                {nextSong?.artist}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -160,12 +180,17 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
 const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 20,
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderWidth: 2,
+    overflow: "visible",
+    backgroundColor: "rgba(0,0,0,0.8)",
+    elevation: 20,
+  },
+  contentContainer: {
     padding: 16,
   },
+  // Removed blurContainer, gradient
   // Removed blurContainer, gradient
   header: {
     flexDirection: "row",
