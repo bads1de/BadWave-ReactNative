@@ -51,7 +51,7 @@ interface PlayerProps {
   repeatMode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
   /** リピートモードの変更ハンドラ */
   setRepeatMode: (
-    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue
+    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue,
   ) => void;
   /** シャッフル再生が有効かどうか */
   shuffle: boolean;
@@ -78,7 +78,7 @@ interface ControlsProps {
   setShuffle: (value: boolean) => void;
   repeatMode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
   setRepeatMode: (
-    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue
+    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue,
   ) => void;
   colors: ThemeDefinition["colors"];
 }
@@ -186,7 +186,7 @@ const Controls: FC<ControlsProps> = memo(
         activeColor={colors.primary}
       />
     </View>
-  )
+  ),
 );
 Controls.displayName = "Controls";
 
@@ -228,7 +228,7 @@ const ControlButton: FC<ControlButtonProps> = memo(
         />
       </TouchableOpacity>
     );
-  }
+  },
 );
 ControlButton.displayName = "ControlButton";
 
@@ -245,7 +245,7 @@ const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
         color="#fff"
       />
     </TouchableOpacity>
-  )
+  ),
 );
 PlayPauseButton.displayName = "PlayPauseButton";
 
@@ -281,7 +281,7 @@ const MediaBackground: FC<MediaBackgroundProps> = memo(
         cachePolicy="memory-disk"
       />
     );
-  }
+  },
 );
 MediaBackground.displayName = "MediaBackground";
 
@@ -315,7 +315,7 @@ const PlayerControls: FC<PlayerProps & { colors: ThemeDefinition["colors"] }> =
           colors={colors}
         />
       </>
-    )
+    ),
   );
 PlayerControls.displayName = "PlayerControls";
 
@@ -353,7 +353,12 @@ function Player(props: PlayerProps) {
 
       <View style={styles.bottomSectionsContainer}>
         {currentSong?.lyrics && (
-          <Lyric lyrics={currentSong.lyrics} testID="lyrics-component" />
+          <Lyric
+            lyrics={currentSong.lyrics}
+            songTitle={currentSong.title}
+            artistName={currentSong.author}
+            testID="lyrics-component"
+          />
         )}
         <NextSong repeatMode={repeatMode} shuffle={shuffle} />
         <OnRepeat />
@@ -467,4 +472,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-

@@ -14,8 +14,7 @@ import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
+
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
@@ -51,10 +50,7 @@ const OnRepeatItem = memo(
             cachePolicy="memory-disk"
             transition={200}
           />
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.6)"]}
-            style={styles.imageGradient}
-          />
+          <View style={styles.imageOverlay} />
           {!isDisabled && (
             <View style={styles.playOverlay}>
               <MaterialCommunityIcons name="play" size={20} color="#fff" />
@@ -82,7 +78,7 @@ const OnRepeatItem = memo(
       prevProps.onPress === nextProps.onPress &&
       prevProps.isDisabled === nextProps.isDisabled
     );
-  }
+  },
 );
 
 OnRepeatItem.displayName = "OnRepeatItem";
@@ -99,7 +95,7 @@ function OnRepeat() {
   // ダウンロード済み曲のIDセットを作成（O(1)検索用）
   const downloadedSongIds = useMemo(
     () => new Set(downloadedSongs.map((d) => d.id)),
-    [downloadedSongs]
+    [downloadedSongs],
   );
 
   const { data: topSongs = [] } = useQuery({
@@ -120,7 +116,7 @@ function OnRepeat() {
         console.error("Error handling song press:", error);
       }
     },
-    [isPlaying, topSongs, openOnRepeatPlayer]
+    [isPlaying, topSongs, openOnRepeatPlayer],
   );
 
   if (!isOnline) return null; // オフライン時は非表示
@@ -129,40 +125,33 @@ function OnRepeat() {
 
   return (
     <View style={styles.wrapper}>
-      <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
-        <LinearGradient
-          colors={["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]}
-          style={styles.gradient}
-        >
-          <View style={styles.header}>
-            <Text style={styles.label}>ON REPEAT</Text>
-            <MaterialCommunityIcons
-              name="fire"
-              size={16}
-              color="#a78bfa"
-              style={{ opacity: 0.8 }}
-            />
-          </View>
-          <View style={styles.songsContainer}>
-            {topSongs.slice(0, 3).map((song, index) => {
-              // ダウンロード済みかチェック（Setを使用してO(1)で検索）
-              // topSongsにはlocal_song_pathがないので、downloadedSongIdsと照合
-              const isDownloaded = downloadedSongIds.has(song.id);
-              const isDisabled = !isOnline && !isDownloaded;
+      <View style={styles.header}>
+        <Text style={styles.label}>ON REPEAT</Text>
+        <MaterialCommunityIcons
+          name="fire"
+          size={16}
+          color="#a78bfa"
+          style={{ opacity: 0.8 }}
+        />
+      </View>
+      <View style={styles.songsContainer}>
+        {topSongs.slice(0, 3).map((song, index) => {
+          // ダウンロード済みかチェック（Setを使用してO(1)で検索）
+          // topSongsにはlocal_song_pathがないので、downloadedSongIdsと照合
+          const isDownloaded = downloadedSongIds.has(song.id);
+          const isDisabled = !isOnline && !isDownloaded;
 
-              return (
-                <OnRepeatItem
-                  key={song.id}
-                  song={song}
-                  index={index}
-                  onPress={handleSongPress}
-                  isDisabled={isDisabled}
-                />
-              );
-            })}
-          </View>
-        </LinearGradient>
-      </BlurView>
+          return (
+            <OnRepeatItem
+              key={song.id}
+              song={song}
+              index={index}
+              onPress={handleSongPress}
+              isDisabled={isDisabled}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -170,18 +159,14 @@ function OnRepeat() {
 const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 32,
     borderRadius: 24,
-    overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
-    marginBottom: 32,
-  },
-  blurContainer: {
-    width: "100%",
-  },
-  gradient: {
     padding: 16,
   },
+  // Removed blurContainer, gradient
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -216,12 +201,13 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  imageGradient: {
+  imageOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     height: "40%",
+    backgroundColor: "rgba(0,0,0,0.5)", // Simple transparent overlay
   },
   playOverlay: {
     position: "absolute",
