@@ -10,7 +10,7 @@ import Song from "@/types";
  * sectionCache テーブルからIDリストを取得し、songs テーブルから実データを取得
  */
 export function useGetLocalTrendSongs(
-  period: "all" | "month" | "week" | "day" = "all"
+  period: "all" | "month" | "week" | "day" = "all",
 ) {
   const cacheKey = `trend_${period}`;
 
@@ -46,8 +46,8 @@ export function useGetLocalTrendSongs(
         user_id: row.userId,
         title: row.title,
         author: row.author,
-        song_path: row.originalSongPath ?? row.songPath ?? "",
-        image_path: row.originalImagePath ?? row.imagePath ?? "",
+        song_path: row.songPath ?? row.originalSongPath ?? "",
+        image_path: row.imagePath ?? row.originalImagePath ?? "",
         genre: row.genre ?? undefined,
         lyrics: row.lyrics ?? undefined,
         count: String(row.playCount ?? 0),
@@ -56,7 +56,7 @@ export function useGetLocalTrendSongs(
         local_song_path: row.songPath ?? undefined,
         local_image_path: row.imagePath ?? undefined,
         local_video_path: row.videoPath ?? undefined,
-        video_path: row.originalVideoPath ?? row.videoPath ?? undefined,
+        video_path: row.videoPath ?? row.originalVideoPath ?? undefined,
       }));
     },
     staleTime: CACHE_CONFIG.staleTime,
@@ -66,4 +66,3 @@ export function useGetLocalTrendSongs(
 }
 
 export default useGetLocalTrendSongs;
-

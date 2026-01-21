@@ -29,8 +29,8 @@ export function useGetLocalSongById(songId?: string) {
         user_id: row.userId,
         title: row.title,
         author: row.author,
-        song_path: row.originalSongPath ?? row.songPath ?? "",
-        image_path: row.originalImagePath ?? row.imagePath ?? "",
+        song_path: row.songPath ?? row.originalSongPath ?? "",
+        image_path: row.imagePath ?? row.originalImagePath ?? "",
         // duration: row.duration ?? undefined,
         genre: row.genre ?? undefined,
         lyrics: row.lyrics ?? undefined,
@@ -45,4 +45,3 @@ export function useGetLocalSongById(songId?: string) {
     staleTime: Infinity, // ローカルDBなので常に新鮮とみなす
   });
 }
-

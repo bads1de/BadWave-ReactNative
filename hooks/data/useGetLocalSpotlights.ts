@@ -21,7 +21,7 @@ export function useGetLocalSpotlights() {
         id: row.id,
         title: row.title,
         author: row.author,
-        video_path: row.originalVideoPath ?? row.videoPath ?? "",
+        video_path: row.videoPath ?? row.originalVideoPath ?? "",
         genre: row.genre ?? undefined,
         description: row.description ?? undefined,
       }));
@@ -33,4 +33,3 @@ export function useGetLocalSpotlights() {
 }
 
 export default useGetLocalSpotlights;
-

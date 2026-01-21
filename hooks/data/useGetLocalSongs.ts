@@ -23,8 +23,8 @@ export function useGetLocalSongs() {
         user_id: row.userId,
         title: row.title,
         author: row.author,
-        song_path: row.originalSongPath ?? row.songPath ?? "",
-        image_path: row.originalImagePath ?? row.imagePath ?? "",
+        song_path: row.songPath ?? row.originalSongPath ?? "",
+        image_path: row.imagePath ?? row.originalImagePath ?? "",
         duration: row.duration ?? undefined,
         genre: row.genre ?? undefined,
         lyrics: row.lyrics ?? undefined,
@@ -35,10 +35,9 @@ export function useGetLocalSongs() {
         local_song_path: row.songPath ?? undefined,
         local_image_path: row.imagePath ?? undefined,
         local_video_path: row.videoPath ?? undefined,
-        video_path: row.originalVideoPath ?? row.videoPath ?? undefined,
+        video_path: row.videoPath ?? row.originalVideoPath ?? undefined,
       }));
     },
     staleTime: Infinity, // ローカルDBなので常に新鮮とみなす
   });
 }
-
