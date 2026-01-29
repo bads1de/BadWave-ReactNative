@@ -1,9 +1,34 @@
+<div align="center">
+
 # BadWave Mobile
 
-**BadWave Mobile** は、**React Native (Expo)** で構築された、**「Local-First (ローカルファースト)」** アーキテクチャを採用した音楽ストリーミングアプリです。
-地下鉄や機内モードなどのオフライン環境下でも、ネットワーク遅延を感じさせない「ゼロレイテンシ」な操作感を実現しています。
+**React Native (Expo) で構築された、Local-First アーキテクチャ採用の音楽ストリーミングアプリ**
 
-## 📱 プロジェクトのハイライト
+<p align="center">
+  <a href="https://reactnative.dev/">
+    <img src="https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React Native">
+  </a>
+  <a href="https://expo.dev/">
+    <img src="https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo">
+  </a>
+  <a href="https://www.typescriptlang.org/">
+    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  </a>
+  <a href="https://supabase.com/">
+    <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
+  </a>
+  <a href="https://orm.drizzle.team/">
+    <img src="https://img.shields.io/badge/Drizzle_ORM-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black" alt="Drizzle ORM">
+  </a>
+</p>
+
+<br>
+
+地下鉄や機内モードなどのオフライン環境下でも、<br>ネットワーク遅延を感じさせない**「ゼロレイテンシ」**な操作感を実現しています。
+
+</div>
+
+---
 
 ### 1. Local-First Architecture & Sync Engine
 
