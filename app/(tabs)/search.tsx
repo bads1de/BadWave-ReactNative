@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, memo } from "react";
+import React, { useState, useCallback, useMemo, useEffect, memo } from "react";
 import {
   View,
   TextInput,
@@ -24,6 +24,8 @@ import Song from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { useSearchHistoryStore } from "@/hooks/stores/useSearchHistoryStore";
+import { SearchHistory } from "@/components/search/SearchHistory";
 
 type SearchType = "songs" | "playlists";
 
@@ -36,10 +38,20 @@ function SearchScreen() {
   const { colors } = useThemeStore();
   const [isFocused, setIsFocused] = useState(false);
 
+  // 検索履歴
+  const { history, addQuery, removeQuery, clearHistory, loadHistory } =
+    useSearchHistoryStore();
+
+  // マウント時にMMKVから履歴を復元
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
   const {
     data: searchSongs = [],
     isLoading: isSongsLoading,
     error: songsError,
+    isSuccess: isSongsSuccess,
   } = useQuery({
     queryKey: [CACHED_QUERIES.songs, CACHED_QUERIES.search, debouncedQuery],
     queryFn: () => getSongsByTitle(debouncedQuery),
@@ -50,11 +62,19 @@ function SearchScreen() {
     data: searchPlaylists = [],
     isLoading: isPlaylistsLoading,
     error: playlistsError,
+    isSuccess: isPlaylistsSuccess,
   } = useQuery({
     queryKey: [CACHED_QUERIES.playlists, CACHED_QUERIES.search, debouncedQuery],
     queryFn: () => getPlaylistsByTitle(debouncedQuery),
     enabled: debouncedQuery.length > 0 && searchType === "playlists",
   });
+
+  // 検索結果が返ってきた時に履歴に保存
+  useEffect(() => {
+    if (debouncedQuery.length > 0 && (isSongsSuccess || isPlaylistsSuccess)) {
+      addQuery(debouncedQuery);
+    }
+  }, [debouncedQuery, isSongsSuccess, isPlaylistsSuccess, addQuery]);
 
   const audioPlayer = useAudioPlayer(searchSongs, "search");
 
@@ -63,8 +83,13 @@ function SearchScreen() {
     async (song: Song) => {
       await audioPlayer.togglePlayPause(song);
     },
-    [audioPlayer]
+    [audioPlayer],
   );
+
+  // 検索履歴からキーワードを選択した時のハンドラ
+  const handleHistorySelect = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
   const isLoading =
     searchType === "songs" ? isSongsLoading : isPlaylistsLoading;
@@ -75,7 +100,7 @@ function SearchScreen() {
     (playlist: Playlist) => {
       router.push(`/playlist/${playlist.id}`);
     },
-    [router]
+    [router],
   );
 
   // FlashListのrenderItem関数をメモ化
@@ -83,7 +108,7 @@ function SearchScreen() {
     ({ item }: { item: Song }) => (
       <ListItem song={item} onPress={handleSongPress} />
     ),
-    [handleSongPress]
+    [handleSongPress],
   );
 
   // プレイリストのrenderItem関数をメモ化
@@ -91,7 +116,7 @@ function SearchScreen() {
     ({ item }: { item: Playlist }) => (
       <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
     ),
-    [handlePlaylistPress]
+    [handlePlaylistPress],
   );
 
   // keyExtractor関数をメモ化
@@ -292,6 +317,18 @@ function SearchScreen() {
         </View>
       </View>
 
+      {/* 検索バーが空の時に検索履歴を表示 */}
+      {debouncedQuery.length === 0 && history.length > 0 && (
+        <View style={styles.historySection}>
+          <SearchHistory
+            history={history}
+            onSelect={handleHistorySelect}
+            onRemove={removeQuery}
+            onClearAll={clearHistory}
+          />
+        </View>
+      )}
+
       {showEmptyState ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="search-outline" size={64} color={colors.subText} />
@@ -348,6 +385,10 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "800",
     letterSpacing: 0.5,
+  },
+  historySection: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   searchSection: {
     paddingHorizontal: 16,
@@ -427,4 +468,3 @@ const styles = StyleSheet.create({
 
 // コンポーネント全体をメモ化してエクスポート
 export default memo(SearchScreen);
-

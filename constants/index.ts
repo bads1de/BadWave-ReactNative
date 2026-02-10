@@ -32,6 +32,7 @@ export const CACHED_QUERIES = {
 } as const;
 
 export const SYNC_STORAGE_KEY = "@last_sync_time";
+export const SEARCH_HISTORY_STORAGE_KEY = "@search_history";
 
 export const CACHE_CONFIG = {
   staleTime: 1000 * 60 * 10, // 10分間
