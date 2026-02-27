@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Tabs } from "expo-router";
-import { Home, Search, Sparkles, Library } from "lucide-react-native";
+import { Home, Search, Clapperboard, Library } from "lucide-react-native";
 import Header from "@/components/common/Header";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
@@ -48,7 +48,14 @@ export default function TabLayout() {
                   color={focused ? colors.primary : colors.subText}
                   strokeWidth={focused ? 1.5 : 1}
                 />
-                {focused && <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />}
+                {focused && (
+                  <View
+                    style={[
+                      styles.activeDot,
+                      { backgroundColor: colors.primary },
+                    ]}
+                  />
+                )}
               </View>
             ),
           }}
@@ -64,7 +71,14 @@ export default function TabLayout() {
                   color={focused ? colors.primary : colors.subText}
                   strokeWidth={focused ? 1.5 : 1}
                 />
-                {focused && <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />}
+                {focused && (
+                  <View
+                    style={[
+                      styles.activeDot,
+                      { backgroundColor: colors.primary },
+                    ]}
+                  />
+                )}
               </View>
             ),
           }}
@@ -75,12 +89,19 @@ export default function TabLayout() {
             headerShown: false,
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconContainer}>
-                <Sparkles
+                <Clapperboard
                   size={22}
                   color={focused ? colors.primary : colors.subText}
                   strokeWidth={focused ? 1.5 : 1}
                 />
-                {focused && <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />}
+                {focused && (
+                  <View
+                    style={[
+                      styles.activeDot,
+                      { backgroundColor: colors.primary },
+                    ]}
+                  />
+                )}
               </View>
             ),
           }}
@@ -96,15 +117,34 @@ export default function TabLayout() {
                   color={focused ? colors.primary : colors.subText}
                   strokeWidth={focused ? 1.5 : 1}
                 />
-                {focused && <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />}
+                {focused && (
+                  <View
+                    style={[
+                      styles.activeDot,
+                      { backgroundColor: colors.primary },
+                    ]}
+                  />
+                )}
               </View>
             ),
           }}
         />
-        <Tabs.Screen name="genre/[genre]" options={{ headerShown: false, href: null }} />
-        <Tabs.Screen name="playlist/[playlistId]" options={{ headerShown: false, href: null }} />
-        <Tabs.Screen name="song/[songId]" options={{ headerShown: false, href: null }} />
-        <Tabs.Screen name="account" options={{ headerShown: false, href: null }} />
+        <Tabs.Screen
+          name="genre/[genre]"
+          options={{ headerShown: false, href: null }}
+        />
+        <Tabs.Screen
+          name="playlist/[playlistId]"
+          options={{ headerShown: false, href: null }}
+        />
+        <Tabs.Screen
+          name="song/[songId]"
+          options={{ headerShown: false, href: null }}
+        />
+        <Tabs.Screen
+          name="account"
+          options={{ headerShown: false, href: null }}
+        />
       </Tabs>
       <PlayerContainer />
     </>
@@ -127,4 +167,3 @@ const styles = StyleSheet.create({
     bottom: -4,
   },
 });
-

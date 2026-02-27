@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Palette, RefreshCw, HardDrive, LogOut } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
+import { BlurView } from "expo-blur";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/actions/user/getUser";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -23,6 +25,7 @@ import { useStorageInfo, formatBytes } from "@/hooks/common/useStorageInfo";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { SettingSection } from "@/components/common/SettingSection";
 import { SettingItem } from "@/components/common/SettingItem";
+import { FONTS } from "@/constants/theme";
 
 /**
  * @file (tabs)/account.tsx
@@ -125,7 +128,7 @@ export default function AccountScreen() {
         </View>
 
         {/* テーマ切り替えセクション */}
-        <SettingSection title="Appearance">
+        <SettingSection title="Appearance" icon={Palette}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -166,7 +169,7 @@ export default function AccountScreen() {
         </SettingSection>
 
         {/* 同期セクション */}
-        <SettingSection title="Synchronization">
+        <SettingSection title="Synchronization" icon={RefreshCw}>
           <SettingItem
             icon="sync-outline"
             title="Sync Database"
@@ -174,8 +177,8 @@ export default function AccountScreen() {
               isSyncing
                 ? "Syncing now..."
                 : lastSyncTime
-                ? `Last: ${lastSyncTime.toLocaleString()}`
-                : "Never synced"
+                  ? `Last: ${lastSyncTime.toLocaleString()}`
+                  : "Never synced"
             }
             isLast
             rightElement={
@@ -200,7 +203,7 @@ export default function AccountScreen() {
         </SettingSection>
 
         {/* ストレージセクション */}
-        <SettingSection title="Storage">
+        <SettingSection title="Storage" icon={HardDrive}>
           <SettingItem
             icon="download-outline"
             title="Downloads"
@@ -256,7 +259,7 @@ export default function AccountScreen() {
         </SettingSection>
 
         {/* ログアウト */}
-        <SettingSection>
+        <SettingSection title="System" icon={LogOut}>
           <SettingItem
             icon="log-out-outline"
             title="Log Out"
@@ -308,9 +311,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)",
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.5,
+    fontSize: 18,
+    fontFamily: FONTS.title,
+    letterSpacing: 1,
   },
   placeholder: {
     width: 40,
@@ -338,9 +341,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 28,
+    fontFamily: FONTS.title,
     marginBottom: 8,
+    letterSpacing: 0.5,
   },
 
   statsContainer: {
@@ -355,12 +359,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 2,
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 13,
+    fontFamily: FONTS.body,
   },
   statDivider: {
     width: 1,
@@ -384,12 +389,13 @@ const styles = StyleSheet.create({
   },
   themeLabel: {
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: FONTS.semibold,
   },
   versionText: {
     textAlign: "center",
     fontSize: 12,
     marginTop: 20,
+    fontFamily: FONTS.body,
   },
   smallButton: {
     paddingHorizontal: 12,
@@ -402,7 +408,6 @@ const styles = StyleSheet.create({
   smallButtonText: {
     color: "#FFF",
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: FONTS.semibold,
   },
 });
-

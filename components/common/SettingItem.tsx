@@ -43,24 +43,21 @@ export const SettingItem = ({
             styles.iconContainer,
             {
               backgroundColor: destructive
-                ? "rgba(239, 68, 68, 0.1)"
-                : colors.background,
+                ? "rgba(239, 68, 68, 0.15)"
+                : "rgba(255, 255, 255, 0.08)", // Slight white background for icon
             },
           ]}
         >
           <Ionicons
             name={icon}
             size={20}
-            color={destructive ? "#EF4444" : colors.text}
+            color={destructive ? "#EF4444" : "#FFFFFF"}
           />
         </View>
       )}
       <View style={styles.textContainer}>
         <Text
-          style={[
-            styles.title,
-            { color: destructive ? "#EF4444" : colors.text },
-          ]}
+          style={[styles.title, { color: destructive ? "#EF4444" : "#FFFFFF" }]}
         >
           {title}
         </Text>
@@ -84,7 +81,12 @@ export const SettingItem = ({
   );
 
   const Separator = !isLast && (
-    <View style={[styles.separator, { backgroundColor: colors.border }]} />
+    <View
+      style={[
+        styles.separator,
+        { backgroundColor: "rgba(255, 255, 255, 0.08)" },
+      ]}
+    />
   );
 
   if (onPress && !disabled) {
@@ -142,4 +144,3 @@ const styles = StyleSheet.create({
     marginLeft: 68, // Align with text start (16 padding + 36 icon + 16 margin)
   },
 });
-
