@@ -21,7 +21,13 @@ import Error from "@/components/common/Error";
 import { useRouter } from "expo-router";
 import { Playlist } from "@/types";
 import Song from "@/types";
-import { Search, CircleX, CloudOff, Library as LibraryIcon, Music } from "lucide-react-native";
+import {
+  Search,
+  CircleX,
+  CloudOff,
+  Library as LibraryIcon,
+  Music,
+} from "lucide-react-native";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useSearchHistoryStore } from "@/hooks/stores/useSearchHistoryStore";
@@ -221,11 +227,13 @@ function SearchScreen() {
           style={[
             styles.searchInputContainer,
             {
-              backgroundColor: colors.card,
-              borderColor: isFocused ? colors.primary : colors.border,
-              borderWidth: 1.5,
+              backgroundColor: isFocused
+                ? "rgba(255,255,255,0.08)"
+                : "rgba(255,255,255,0.04)",
+              borderColor: isFocused ? colors.primary : "transparent",
+              borderWidth: 1,
               shadowColor: isFocused ? colors.primary : "transparent",
-              shadowOpacity: isFocused ? 0.3 : 0,
+              shadowOpacity: isFocused ? 0.2 : 0,
               shadowRadius: 10,
             },
           ]}
@@ -260,11 +268,12 @@ function SearchScreen() {
             onPress={() => setSearchType("songs")}
             style={[
               styles.tabItem,
+              searchType === "songs" && styles.tabItemActive,
               {
                 backgroundColor:
-                  searchType === "songs" ? colors.primary + "1A" : colors.card,
-                borderColor:
-                  searchType === "songs" ? colors.primary : colors.border,
+                  searchType === "songs"
+                    ? "rgba(255,255,255,0.1)"
+                    : "transparent",
               },
             ]}
             activeOpacity={0.7}
@@ -273,8 +282,9 @@ function SearchScreen() {
               style={[
                 styles.tabText,
                 {
-                  color:
-                    searchType === "songs" ? colors.primary : colors.subText,
+                  color: searchType === "songs" ? colors.text : colors.subText,
+                  fontFamily:
+                    searchType === "songs" ? FONTS.bold : FONTS.semibold,
                 },
               ]}
             >
@@ -286,13 +296,12 @@ function SearchScreen() {
             onPress={() => setSearchType("playlists")}
             style={[
               styles.tabItem,
+              searchType === "playlists" && styles.tabItemActive,
               {
                 backgroundColor:
                   searchType === "playlists"
-                    ? colors.primary + "1A"
-                    : colors.card,
-                borderColor:
-                  searchType === "playlists" ? colors.primary : colors.border,
+                    ? "rgba(255,255,255,0.1)"
+                    : "transparent",
               },
             ]}
             activeOpacity={0.7}
@@ -302,9 +311,9 @@ function SearchScreen() {
                 styles.tabText,
                 {
                   color:
-                    searchType === "playlists"
-                      ? colors.primary
-                      : colors.subText,
+                    searchType === "playlists" ? colors.text : colors.subText,
+                  fontFamily:
+                    searchType === "playlists" ? FONTS.bold : FONTS.semibold,
                 },
               ]}
             >
@@ -394,10 +403,10 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 20, // 角丸を強調
-    paddingHorizontal: 16,
-    height: 56, // 少し高く
-    marginBottom: 20,
+    borderRadius: 28, // More pill-like
+    paddingHorizontal: 20,
+    height: 56, // Slightly taller for emphasis
+    marginBottom: 24,
   },
   searchIcon: {
     marginRight: 12,
@@ -413,20 +422,27 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: "row",
-    gap: 16,
-    marginBottom: 12,
+    backgroundColor: "rgba(255,255,255,0.03)",
+    padding: 6,
+    borderRadius: 24,
+    marginBottom: 16,
   },
   tabItem: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
+  },
+  tabItemActive: {
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
   },
   tabText: {
-    fontSize: 15,
-    fontFamily: FONTS.semibold,
+    fontSize: 14,
   },
   listContainer: {
     paddingHorizontal: 20,

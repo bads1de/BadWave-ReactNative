@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import Song from "@/types";
 import ListItemOptionsMenu from "@/components/item/ListItemOptionsMenu";
 
@@ -36,11 +37,17 @@ function ListItem({
     }
   };
 
+  const router = useRouter();
+
   const handleDelete = useCallback(() => {
     if (onDelete) {
       onDelete(song);
     }
   }, [onDelete, song]);
+
+  const handleTitlePress = useCallback(() => {
+    router.push(`/song/${song.id}`);
+  }, [router, song.id]);
 
   return (
     <TouchableOpacity
@@ -68,14 +75,18 @@ function ListItem({
       </View>
 
       <View style={styles.contentContainer}>
-        <View style={styles.textContainer}>
+        <TouchableOpacity
+          style={styles.textContainer}
+          onPress={handleTitlePress}
+          activeOpacity={0.7}
+        >
           <Text style={styles.title} numberOfLines={1}>
             {song.title}
           </Text>
           <Text style={styles.author} numberOfLines={1}>
             {song.author}
           </Text>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.rightContainer}>
           {showStats && (
@@ -183,4 +194,3 @@ export default memo(ListItem, (prevProps, nextProps) => {
     prevProps.currentPlaylistId === nextProps.currentPlaylistId
   );
 });
-
