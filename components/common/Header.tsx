@@ -7,6 +7,7 @@ import { useUser } from "@/actions/user/getUser";
 import { memo } from "react";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 function Header() {
   const router = useRouter();
@@ -16,17 +17,19 @@ function Header() {
   const { colors } = useThemeStore();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Image
-        source={require("@/assets/images/logo.png")}
-        style={styles.logo}
-        contentFit="contain"
-      />
-      <Text style={[styles.title, { color: colors.text }]}>BadWave</Text>
+    <View style={[styles.container, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <View style={styles.leftContainer}>
+        <Image
+          source={require("@/assets/images/logo.png")}
+          style={styles.logo}
+          contentFit="contain"
+        />
+        <Text style={[styles.title, { color: colors.text }]}>BadWave</Text>
+      </View>
       {session ? (
         <TouchableOpacity
           onPress={() => router.push("/account" as any)}
-          style={styles.userIcon}
+          style={[styles.userIconContainer, { borderColor: colors.primary }]}
           testID="user-icon-button"
         >
           <Image
@@ -38,9 +41,9 @@ function Header() {
       ) : (
         <TouchableOpacity
           onPress={() => setShowAuthModal(true)}
-          style={[styles.loginButton, { backgroundColor: colors.primary }]}
+          style={[styles.loginButton, { borderColor: colors.primary }]}
         >
-          <Text style={styles.loginText}>Login</Text>
+          <Text style={[styles.loginText, { color: colors.primary }]}>LOG_IN</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -52,34 +55,56 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 30,
-    paddingHorizontal: 15,
+    paddingTop: 54, // Deeper padding for luxury feel
+    paddingBottom: 16,
+    paddingHorizontal: 24,
+    borderBottomWidth: 0.5,
+  },
+  leftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   logo: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
+    marginRight: 12,
+    opacity: 0.9,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 22,
+    fontFamily: FONTS.title, // Bodoni Moda
+    letterSpacing: 1,
+  },
+  userIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: "hidden",
+    padding: 2,
   },
   userIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: "hidden",
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
   },
   loginButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 2, // Minimalist square-ish
+    borderWidth: 1,
   },
   loginText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 11,
+    fontFamily: FONTS.body,
+    letterSpacing: 2,
   },
 });
+
+export default memo(Header);
+
+// メモ化してエクスポート
+export default memo(Header);
 
 // メモ化してエクスポート
 export default memo(Header);

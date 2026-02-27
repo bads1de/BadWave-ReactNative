@@ -21,11 +21,12 @@ import Error from "@/components/common/Error";
 import { useRouter } from "expo-router";
 import { Playlist } from "@/types";
 import Song from "@/types";
-import { Ionicons } from "@expo/vector-icons";
+import { Search, CircleX, CloudOff, Library as LibraryIcon, Music } from "lucide-react-native";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useSearchHistoryStore } from "@/hooks/stores/useSearchHistoryStore";
 import { SearchHistory } from "@/components/search/SearchHistory";
+import { FONTS } from "@/constants/theme";
 
 type SearchType = "songs" | "playlists";
 
@@ -125,14 +126,14 @@ function SearchScreen() {
   // ListEmptyComponentをメモ化
   const songsEmptyComponent = useMemo(() => {
     return debouncedQuery.length === 0 ? (
-      <View style={[styles.emptyContainer, { opacity: 0.5 }]}>
+      <View style={[styles.emptyContainer, { opacity: 0.8 }]}>
         <View
           style={[
             styles.iconCircle,
-            { backgroundColor: colors.card, shadowColor: colors.glow },
+            { backgroundColor: colors.card, shadowColor: colors.primary },
           ]}
         >
-          <Ionicons name="search" size={32} color={colors.primary} />
+          <Music size={32} color={colors.primary} />
         </View>
         <Text style={[styles.emptyText, { color: colors.text }]}>
           Search for songs
@@ -146,14 +147,14 @@ function SearchScreen() {
 
   const playlistsEmptyComponent = useMemo(() => {
     return debouncedQuery.length === 0 ? (
-      <View style={[styles.emptyContainer, { opacity: 0.5 }]}>
+      <View style={[styles.emptyContainer, { opacity: 0.8 }]}>
         <View
           style={[
             styles.iconCircle,
-            { backgroundColor: colors.card, shadowColor: colors.glow },
+            { backgroundColor: colors.card, shadowColor: colors.primary },
           ]}
         >
-          <Ionicons name="albums-outline" size={32} color={colors.primary} />
+          <LibraryIcon size={32} color={colors.primary} />
         </View>
         <Text style={[styles.emptyText, { color: colors.text }]}>
           Search for playlists
@@ -186,7 +187,7 @@ function SearchScreen() {
           </Text>
         </View>
         <View style={styles.emptyContainer}>
-          <Ionicons name="cloud-offline" size={64} color={colors.subText} />
+          <CloudOff size={64} color={colors.subText} />
           <Text style={[styles.emptyText, { color: colors.text }]}>
             You are offline
           </Text>
@@ -208,8 +209,6 @@ function SearchScreen() {
             styles.headerTitle,
             {
               color: colors.text,
-              textShadowColor: colors.glow,
-              textShadowRadius: 10,
             },
           ]}
         >
@@ -223,16 +222,15 @@ function SearchScreen() {
             styles.searchInputContainer,
             {
               backgroundColor: colors.card,
-              borderColor: isFocused ? colors.primary : "transparent",
-              borderWidth: 1,
+              borderColor: isFocused ? colors.primary : colors.border,
+              borderWidth: 1.5,
               shadowColor: isFocused ? colors.primary : "transparent",
               shadowOpacity: isFocused ? 0.3 : 0,
-              shadowRadius: 8,
+              shadowRadius: 10,
             },
           ]}
         >
-          <Ionicons
-            name="search"
+          <Search
             size={20}
             color={isFocused ? colors.primary : colors.subText}
             style={styles.searchIcon}
@@ -248,8 +246,7 @@ function SearchScreen() {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons
-                name="close-circle"
+              <CircleX
                 size={20}
                 color={colors.subText}
                 style={styles.clearIcon}
@@ -265,9 +262,9 @@ function SearchScreen() {
               styles.tabItem,
               {
                 backgroundColor:
-                  searchType === "songs" ? colors.primary + "20" : colors.card,
+                  searchType === "songs" ? colors.primary + "1A" : colors.card,
                 borderColor:
-                  searchType === "songs" ? colors.primary : "transparent",
+                  searchType === "songs" ? colors.primary : colors.border,
               },
             ]}
             activeOpacity={0.7}
@@ -292,10 +289,10 @@ function SearchScreen() {
               {
                 backgroundColor:
                   searchType === "playlists"
-                    ? colors.primary + "20"
+                    ? colors.primary + "1A"
                     : colors.card,
                 borderColor:
-                  searchType === "playlists" ? colors.primary : "transparent",
+                  searchType === "playlists" ? colors.primary : colors.border,
               },
             ]}
             activeOpacity={0.7}
@@ -331,7 +328,7 @@ function SearchScreen() {
 
       {showEmptyState ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="search-outline" size={64} color={colors.subText} />
+          <Search size={64} color={colors.subText} />
           <Text style={[styles.emptyText, { color: colors.text }]}>
             No results found
           </Text>
@@ -348,7 +345,7 @@ function SearchScreen() {
               keyExtractor={keyExtractor}
               renderItem={renderSongItem}
               contentContainerStyle={styles.listContainer}
-              estimatedItemSize={70}
+              estimatedItemSize={80}
               ListEmptyComponent={songsEmptyComponent}
             />
           ) : (
@@ -362,7 +359,7 @@ function SearchScreen() {
                 ...styles.playlistContainer,
               }}
               numColumns={2}
-              estimatedItemSize={210}
+              estimatedItemSize={220}
               ListEmptyComponent={playlistsEmptyComponent}
             />
           )}
@@ -377,30 +374,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: "800",
-    letterSpacing: 0.5,
+    fontSize: 34,
+    fontFamily: FONTS.title,
+    letterSpacing: 1,
   },
   historySection: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
   searchSection: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
   searchInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 16,
+    borderRadius: 20, // 角丸を強調
     paddingHorizontal: 16,
-    height: 50,
-    marginBottom: 16,
+    height: 56, // 少し高く
+    marginBottom: 20,
   },
   searchIcon: {
     marginRight: 12,
@@ -412,30 +409,31 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     height: "100%",
+    fontFamily: FONTS.body,
   },
   tabContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 8,
+    gap: 16,
+    marginBottom: 12,
   },
   tabItem: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 15,
+    fontFamily: FONTS.semibold,
   },
   listContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 96,
+    paddingHorizontal: 20,
+    paddingBottom: 120,
   },
   playlistContainer: {
-    paddingTop: 8,
+    paddingTop: 12,
   },
   emptyContainer: {
     flex: 1,
@@ -444,24 +442,27 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
-    shadowOffset: { width: 0, height: 4 },
+    marginBottom: 20,
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 20,
+    fontFamily: FONTS.semibold,
     marginBottom: 8,
   },
   emptySubText: {
-    fontSize: 14,
+    fontSize: 15,
+    fontFamily: FONTS.body,
     marginBottom: 8,
   },
 });

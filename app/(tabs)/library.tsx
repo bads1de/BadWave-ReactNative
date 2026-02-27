@@ -1,14 +1,3 @@
-/**
- * @file library.tsx
- * @description ユーザーのライブラリ画面コンポーネントです。
- *
- * この画面では、以下のコンテンツを切り替えて表示します。
- * - 「いいね」した曲のリスト
- * - 作成したプレイリストのリスト
- *
- * 認証状態に応じて、ログインを促すメッセージを表示したり、
- * プレイリストの作成機能を提供します。
- */
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import React, { useState, useCallback, useMemo } from "react";
@@ -28,6 +17,7 @@ import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 type LibraryType = "liked" | "playlists";
 
@@ -129,8 +119,6 @@ export default function LibraryScreen() {
             styles.title,
             {
               color: colors.text,
-              textShadowColor: colors.glow,
-              textShadowRadius: 10,
             },
           ]}
         >
@@ -169,9 +157,9 @@ export default function LibraryScreen() {
                 styles.tabItem,
                 {
                   backgroundColor:
-                    type === "liked" ? colors.primary + "20" : colors.card,
+                    type === "liked" ? colors.primary + "1A" : colors.card,
                   borderColor:
-                    type === "liked" ? colors.primary : "transparent",
+                    type === "liked" ? colors.primary : colors.border,
                 },
               ]}
               activeOpacity={0.7}
@@ -179,7 +167,9 @@ export default function LibraryScreen() {
               <Text
                 style={[
                   styles.tabText,
-                  { color: type === "liked" ? colors.primary : colors.subText },
+                  {
+                    color: type === "liked" ? colors.primary : colors.subText,
+                  },
                 ]}
               >
                 Liked Songs
@@ -192,9 +182,9 @@ export default function LibraryScreen() {
                 styles.tabItem,
                 {
                   backgroundColor:
-                    type === "playlists" ? colors.primary + "20" : colors.card,
+                    type === "playlists" ? colors.primary + "1A" : colors.card,
                   borderColor:
-                    type === "playlists" ? colors.primary : "transparent",
+                    type === "playlists" ? colors.primary : colors.border,
                 },
               ]}
               activeOpacity={0.7}
@@ -232,7 +222,7 @@ export default function LibraryScreen() {
                   keyExtractor={(item) => item.id}
                   numColumns={2}
                   contentContainerStyle={styles.listContainer}
-                  estimatedItemSize={236}
+                  estimatedItemSize={250}
                 />
               </>
             ) : (
@@ -250,7 +240,7 @@ export default function LibraryScreen() {
               numColumns={2}
               keyExtractor={keyExtractor}
               contentContainerStyle={styles.listContainer}
-              estimatedItemSize={210}
+              estimatedItemSize={220}
             />
           ) : (
             <View style={styles.emptyContainer}>
@@ -268,16 +258,16 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
+    paddingTop: 12,
   },
   header: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginBottom: 24,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "800",
-    letterSpacing: 0.5,
+    fontSize: 34,
+    fontFamily: FONTS.title,
+    letterSpacing: 1,
   },
   loginContainer: {
     flex: 1,
@@ -289,25 +279,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
     marginBottom: 24,
-    opacity: 0.8,
-    lineHeight: 26,
+    fontFamily: FONTS.body,
+    lineHeight: 28,
   },
   loginButton: {
     paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    shadowOffset: { width: 0, height: 4 },
+    paddingHorizontal: 44,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 12,
+    elevation: 8,
   },
   loginButtonText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: FONTS.semibold,
   },
   tabContainer: {
     flexDirection: "row",
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginBottom: 24,
     gap: 16,
   },
@@ -317,23 +307,22 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "transparent",
+    borderWidth: 1.5,
   },
   tabText: {
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: FONTS.semibold,
   },
   createPlaylistContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginBottom: 16,
   },
   listContainer: {
     paddingHorizontal: 8,
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   bulkDownloadContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginBottom: 16,
   },
   emptyContainer: {
@@ -341,11 +330,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingTop: 80,
-    opacity: 0.7,
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: "500",
+    fontFamily: FONTS.semibold,
   },
 });
 

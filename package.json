@@ -23,6 +23,10 @@
   },
   "dependencies": {
     "@animatereactnative/marquee": "^0.5.2",
+    "@expo-google-fonts/bodoni-moda": "^0.4.2",
+    "@expo-google-fonts/jost": "^0.4.2",
+    "@expo-google-fonts/space-mono": "^0.4.2",
+    "@expo-google-fonts/syncopate": "^0.4.1",
     "@expo/vector-icons": "^14.0.2",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/netinfo": "^11.3.1",
@@ -59,6 +63,7 @@
     "expo-system-ui": "~4.0.9",
     "expo-video": "~2.0.6",
     "expo-web-browser": "~14.0.2",
+    "lucide-react-native": "^0.469.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.9",

@@ -5,11 +5,14 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withSpring,
 } from "react-native-reanimated";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
+import { Play, Pause } from "lucide-react-native";
 import Song from "@/types";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 interface MiniPlayerProps {
   currentSong: Song;
@@ -24,29 +27,34 @@ function ModernMiniPlayer({
   onPlayPause,
   onPress,
 }: MiniPlayerProps) {
+  const { colors } = useThemeStore();
   const translateY = useSharedValue(100);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    translateY.value = withTiming(0, { duration: 400 });
-    opacity.value = withTiming(1, { duration: 400 });
-  }, [opacity, translateY]);
+    translateY.value = withSpring(0, { damping: 15, stiffness: 100 });
+    opacity.value = withTiming(1, { duration: 500 });
+  }, []);
 
   return (
     <Animated.View
       style={[
         styles.container,
+        {
+          backgroundColor: "rgba(20, 20, 20, 0.7)",
+          borderColor: colors.border,
+        },
         useAnimatedStyle(() => ({
           transform: [{ translateY: translateY.value }],
           opacity: opacity.value,
         })),
       ]}
     >
-      <BlurView intensity={80} tint="dark" style={styles.blurContainer}>
+      <BlurView intensity={40} tint="dark" style={styles.blurContainer}>
         <TouchableOpacity
           style={styles.contentContainer}
           onPress={onPress}
-          activeOpacity={0.7}
+          activeOpacity={0.9}
         >
           <Image
             source={{ uri: currentSong.image_path }}
@@ -60,22 +68,23 @@ function ModernMiniPlayer({
               style={styles.titleContainer}
               speed={0.5}
               withGesture={false}
-              fontSize={16}
+              fontSize={14}
+              fontFamily={FONTS.body}
             />
-            <Text style={styles.author} numberOfLines={1}>
+            <Text style={[styles.author, { color: colors.subText }]} numberOfLines={1}>
               {currentSong.author}
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.playButton}
+            style={[styles.playButton, { backgroundColor: colors.primary }]}
             onPress={onPlayPause}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.8}
           >
-            <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={24}
-              color="#fff"
-            />
+            {isPlaying ? (
+              <Pause size={20} color="#000" fill="#000" />
+            ) : (
+              <Play size={20} color="#000" fill="#000" />
+            )}
           </TouchableOpacity>
         </TouchableOpacity>
       </BlurView>
@@ -85,40 +94,32 @@ function ModernMiniPlayer({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 12,
-    marginBottom: 12, // Floating effect
+    marginHorizontal: 20,
+    marginBottom: 24,
     height: 64,
-    borderRadius: 16,
+    borderRadius: 32, // Pill shape
     overflow: "hidden",
-    backgroundColor: "rgba(20,20,20,0.3)", // Fallback
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 10,
   },
   blurContainer: {
     flex: 1,
-    width: "100%",
-    height: "100%",
   },
   contentContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
   },
   image: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 24,
     marginRight: 12,
-    backgroundColor: "#333",
   },
   songInfo: {
     flex: 1,
@@ -126,23 +127,30 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   titleContainer: {
-    height: 24,
+    height: 20,
   },
   author: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 13,
-    marginTop: -2,
+    fontSize: 11,
+    marginTop: 1,
+    fontFamily: FONTS.body,
+    opacity: 0.7,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
   },
+});
+
+export default memo(ModernMiniPlayer, (prevProps, nextProps) => {
+  return (
+    prevProps.currentSong.id === nextProps.currentSong.id &&
+    prevProps.isPlaying === nextProps.isPlaying
+  );
 });
 
 // カスタム比較関数を使用してメモ化

@@ -12,7 +12,9 @@ import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useGetLocalSpotlights } from "@/hooks/data/useGetLocalSpotlights";
-import { Ionicons } from "@expo/vector-icons";
+import { CloudOff } from "lucide-react-native";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 export default function SpotlightsScreen() {
   const isFocused = useIsFocused();
@@ -21,6 +23,7 @@ export default function SpotlightsScreen() {
     (state) => state.setIsMiniPlayerVisible
   );
   const { isOnline } = useNetworkStatus();
+  const { colors } = useThemeStore();
 
   // 画面のフォーカス状態に応じてUI（ヘッダー、ミニプレイヤー）の表示/非表示を切り替えます。
   useEffect(() => {
@@ -38,10 +41,10 @@ export default function SpotlightsScreen() {
 
   if (!isOnline) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <Ionicons name="cloud-offline" size={64} color="#666" />
-        <Text style={styles.emptyText}>You are offline</Text>
-        <Text style={styles.emptySubText}>
+      <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
+        <CloudOff size={64} color={colors.subText} />
+        <Text style={[styles.emptyText, { color: colors.text }]}>You are offline</Text>
+        <Text style={[styles.emptySubText, { color: colors.subText }]}>
           Spotlights are only available when online
         </Text>
       </View>
@@ -52,7 +55,7 @@ export default function SpotlightsScreen() {
   if (error) return <Error message={error.message} />;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SpotlightList data={spotlights} isParentFocused={isFocused} />
     </View>
   );
@@ -61,21 +64,21 @@ export default function SpotlightsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
   center: {
     justifyContent: "center",
     alignItems: "center",
   },
   emptyText: {
-    color: "#666",
-    fontSize: 16,
-    marginTop: 16,
+    fontSize: 18,
+    fontFamily: FONTS.semibold,
+    marginTop: 20,
   },
   emptySubText: {
-    color: "#444",
     fontSize: 14,
+    fontFamily: FONTS.body,
     marginTop: 8,
+    opacity: 0.8,
   },
 });
 

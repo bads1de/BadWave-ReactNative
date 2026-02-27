@@ -12,6 +12,14 @@ import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { Stack } from "expo-router";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import { useFonts, BodoniModa_400Regular, BodoniModa_700Bold } from "@expo-google-fonts/bodoni-moda";
+import { Jost_400Regular, Jost_600SemiBold, Jost_700Bold } from "@expo-google-fonts/jost";
+import { COLORS } from "@/constants/theme";
+
+// スプラッシュ画面を維持
+SplashScreen.preventAutoHideAsync();
 
 // TrackPlayerのサービス登録用グローバル変数
 declare global {
@@ -27,17 +35,27 @@ if (!global.__TRACK_PLAYER_SERVICE_REGISTERED__) {
 /**
  * @file _layout.tsx
  * @description アプリケーションのルートレイアウトコンポーネントです。
- *
- * このコンポーネントは、アプリケーション全体で利用される以下の機能を提供・設定します。
- * - React Query (TanStack Query) とキャッシュの永続化設定 (`PersistQueryClientProvider`)
- * - 認証状態のグローバル管理 (`AuthProvider`)
- * - ジェスチャーハンドリング (`GestureHandlerRootView`)
- * - グローバルな認証モーダルとトースト通知コンポーネントの配置
- * - `react-native-track-player` のサービス登録とプレイヤーの初期セットアップ
- * - ヘッダーを非表示にするための `Stack` のデフォルト設定
  */
 export default function RootLayout() {
   const showAuthModal = useAuthStore((state) => state.showAuthModal);
+
+  const [loaded, error] = useFonts({
+    BodoniModa_400Regular,
+    BodoniModa_700Bold,
+    Jost_400Regular,
+    Jost_600SemiBold,
+    Jost_700Bold,
+  });
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -45,7 +63,7 @@ export default function RootLayout() {
         <AuthProvider>
           <SyncProvider>
             <AppInitializerProvider>
-              <View style={{ flex: 1, backgroundColor: "#000" }}>
+              <View style={{ flex: 1, backgroundColor: COLORS.background }}>
                 <StatusBar style="light" />
                 <NetworkStatusBar />
                 {showAuthModal && <AuthModal />}

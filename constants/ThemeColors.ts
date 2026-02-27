@@ -12,157 +12,121 @@ export interface ThemeDefinition {
   name: ThemeType;
   label: string;
   colors: {
-    // Base Colors
     background: string;
     card: string;
     text: string;
     subText: string;
     border: string;
 
-    // Theme Specific Colors from globals.css
-    primary: string; // --theme-500: Main interactive color
-    primaryDark: string; // --theme-900 / --primary-color: Deep shading
-    primaryLight: string; // --theme-300: Lighter shade for highlights
+    primary: string;
+    primaryDark: string;
+    primaryLight: string;
 
-    // Gradient Components
-    accentFrom: string; // --accent-from
-    accentVia: string; // --accent-via
-    accentTo: string; // --accent-to
+    accentFrom: string;
+    accentVia: string;
+    accentTo: string;
 
-    // UI Specifics
-    activeTab: string; // --active-tab-color
-    glow: string; // --glow-color (HEX representation)
+    activeTab: string;
+    glow: string;
 
     // Helper Gradients
-    gradient: [string, string]; // Background gradient (primaryDark -> black)
-    accentGradient: [string, string, string]; // Full accent gradient
+    gradient: [string, string];
+    accentGradient: [string, string, string];
   };
 }
 
+const LUXURY_BASE_COLORS = {
+  background: "#0A0A0A",
+  card: "#171717",
+  text: "#F5F5F5",
+  subText: "#A8A29E",
+  border: "#262626",
+};
+
 export const THEMES: Record<ThemeType, ThemeDefinition> = {
-  violet: {
+  violet: { // Midnight Gold
     name: "violet",
-    label: "Violet",
+    label: "Midnight",
     colors: {
-      background: "#000000",
-      card: "#181818",
-      text: "#FFFFFF",
-      subText: "#A7A7A7",
-      border: "#333333",
-
-      primary: "#8b5cf6",
-      primaryDark: "#4c1d95",
-      primaryLight: "#c4b5fd",
-
-      accentFrom: "#7c3aed",
-      accentVia: "#3b82f6",
-      accentTo: "#ec4899",
-
-      activeTab: "#4c1d95",
-      glow: "#8b5cf6",
-
-      gradient: ["#4c1d95", "#000000"],
-      accentGradient: ["#7c3aed", "#3b82f6", "#ec4899"],
+      ...LUXURY_BASE_COLORS,
+      primary: "#D4AF37", // Gold
+      primaryDark: "#1C1917",
+      primaryLight: "#FDE68A",
+      accentFrom: "#D4AF37",
+      accentVia: "#A8A29E",
+      accentTo: "#F5F5F5",
+      activeTab: "#D4AF37",
+      glow: "rgba(212, 175, 55, 0.3)",
+      gradient: ["#1C1917", "#0A0A0A"],
+      accentGradient: ["#D4AF37", "#A8A29E", "#F5F5F5"],
     },
   },
-  emerald: {
+  emerald: { // Deep Forest
     name: "emerald",
-    label: "Emerald",
+    label: "Forest",
     colors: {
-      background: "#000000",
-      card: "#181818",
-      text: "#FFFFFF",
-      subText: "#A7A7A7",
-      border: "#333333",
-
-      primary: "#10b981",
-      primaryDark: "#064e3b",
-      primaryLight: "#6ee7b7",
-
-      accentFrom: "#10b981",
-      accentVia: "#06b6d4",
-      accentTo: "#3b82f6",
-
-      activeTab: "#064e3b",
-      glow: "#10b981",
-
-      gradient: ["#064e3b", "#000000"],
-      accentGradient: ["#10b981", "#06b6d4", "#3b82f6"],
+      ...LUXURY_BASE_COLORS,
+      primary: "#064E3B",
+      primaryDark: "#022C22",
+      primaryLight: "#10B981",
+      accentFrom: "#064E3B",
+      accentVia: "#065F46",
+      accentTo: "#059669",
+      activeTab: "#10B981",
+      glow: "rgba(16, 185, 129, 0.2)",
+      gradient: ["#022C22", "#0A0A0A"],
+      accentGradient: ["#064E3B", "#065F46", "#059669"],
     },
   },
-  rose: {
+  rose: { // Velvet Wine
     name: "rose",
-    label: "Rose",
+    label: "Velvet",
     colors: {
-      background: "#000000",
-      card: "#181818",
-      text: "#FFFFFF",
-      subText: "#A7A7A7",
-      border: "#333333",
-
-      primary: "#f43f5e",
-      primaryDark: "#881337",
-      primaryLight: "#fda4af",
-
-      accentFrom: "#f43f5e",
-      accentVia: "#ec4899",
-      accentTo: "#a855f7",
-
-      activeTab: "#881337",
-      glow: "#f43f5e",
-
-      gradient: ["#881337", "#000000"],
-      accentGradient: ["#f43f5e", "#ec4899", "#a855f7"],
+      ...LUXURY_BASE_COLORS,
+      primary: "#450A0A",
+      primaryDark: "#2D0606",
+      primaryLight: "#991B1B",
+      accentFrom: "#450A0A",
+      accentVia: "#7F1D1D",
+      accentTo: "#B91C1C",
+      activeTab: "#B91C1C",
+      glow: "rgba(185, 28, 28, 0.2)",
+      gradient: ["#2D0606", "#0A0A0A"],
+      accentGradient: ["#450A0A", "#7F1D1D", "#B91C1C"],
     },
   },
-  amber: {
+  amber: { // Royal Sand
     name: "amber",
-    label: "Amber",
+    label: "Sand",
     colors: {
-      background: "#000000",
-      card: "#181818",
-      text: "#FFFFFF",
-      subText: "#A7A7A7",
-      border: "#333333",
-
-      primary: "#f59e0b",
-      primaryDark: "#78350f",
-      primaryLight: "#fcd34d",
-
-      accentFrom: "#f59e0b",
-      accentVia: "#ef4444",
-      accentTo: "#ec4899",
-
-      activeTab: "#78350f",
-      glow: "#f59e0b",
-
-      gradient: ["#78350f", "#000000"],
-      accentGradient: ["#f59e0b", "#ef4444", "#ec4899"],
+      ...LUXURY_BASE_COLORS,
+      primary: "#78350F",
+      primaryDark: "#451A03",
+      primaryLight: "#D97706",
+      accentFrom: "#78350F",
+      accentVia: "#B45309",
+      accentTo: "#F59E0B",
+      activeTab: "#F59E0B",
+      glow: "rgba(245, 158, 11, 0.2)",
+      gradient: ["#451A03", "#0A0A0A"],
+      accentGradient: ["#78350F", "#B45309", "#F59E0B"],
     },
   },
-  sky: {
+  sky: { // Arctic Slate
     name: "sky",
-    label: "Sky",
+    label: "Slate",
     colors: {
-      background: "#000000",
-      card: "#181818",
-      text: "#FFFFFF",
-      subText: "#A7A7A7",
-      border: "#333333",
-
-      primary: "#0ea5e9",
-      primaryDark: "#0c4a6e",
-      primaryLight: "#7dd3fc",
-
-      accentFrom: "#0ea5e9",
-      accentVia: "#6366f1",
-      accentTo: "#8b5cf6",
-
-      activeTab: "#0c4a6e",
-      glow: "#0ea5e9",
-
-      gradient: ["#0c4a6e", "#000000"],
-      accentGradient: ["#0ea5e9", "#6366f1", "#8b5cf6"],
+      ...LUXURY_BASE_COLORS,
+      primary: "#0F172A",
+      primaryDark: "#020617",
+      primaryLight: "#334155",
+      accentFrom: "#0F172A",
+      accentVia: "#1E293B",
+      accentTo: "#475569",
+      activeTab: "#94A3B8",
+      glow: "rgba(148, 163, 184, 0.2)",
+      gradient: ["#020617", "#0A0A0A"],
+      accentGradient: ["#0F172A", "#1E293B", "#475569"],
     },
   },
 };
