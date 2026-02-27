@@ -23,7 +23,7 @@ function PlayerContainer() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const setShowPlayer = usePlayerStore((state) => state.setShowPlayer);
   const isMiniPlayerVisible = usePlayerStore(
-    (state) => state.isMiniPlayerVisible
+    (state) => state.isMiniPlayerVisible,
   );
   const currentSong = useAudioStore((state) => state.currentSong);
   const repeatMode = useAudioStore((state) => state.repeatMode);
@@ -98,7 +98,7 @@ const MemoizedPlayerContainer = memo(
   (_prevProps, _nextProps) => {
     // PlayerContainerはプロップを受け取らないため、常に同じとみなす
     return true;
-  }
+  },
 );
 
 export default MemoizedPlayerContainer;
@@ -132,10 +132,9 @@ const styles = StyleSheet.create({
   },
   miniPlayerContainer: {
     position: "absolute",
-    bottom: 60,
+    bottom: 80,
     left: 0,
     right: 0,
     zIndex: 5,
   },
 });
-
