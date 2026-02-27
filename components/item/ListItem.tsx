@@ -6,6 +6,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Song from "@/types";
 import ListItemOptionsMenu from "@/components/item/ListItemOptionsMenu";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 interface ListItemProps {
   song: Song;
@@ -38,6 +40,7 @@ function ListItem({
   };
 
   const router = useRouter();
+  const { colors } = useThemeStore();
 
   const handleDelete = useCallback(() => {
     if (onDelete) {
@@ -51,7 +54,13 @@ function ListItem({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          backgroundColor: "rgba(255, 255, 255, 0.02)",
+          borderColor: "rgba(255, 255, 255, 0.05)",
+        },
+      ]}
       onPress={() => onPress(song)}
       activeOpacity={0.7}
       testID={testID}
@@ -80,10 +89,16 @@ function ListItem({
           onPress={handleTitlePress}
           activeOpacity={0.7}
         >
-          <Text style={styles.title} numberOfLines={1}>
+          <Text
+            style={[styles.title, { color: colors.text }]}
+            numberOfLines={1}
+          >
             {song.title}
           </Text>
-          <Text style={styles.author} numberOfLines={1}>
+          <Text
+            style={[styles.author, { color: colors.subText }]}
+            numberOfLines={1}
+          >
             {song.author}
           </Text>
         </TouchableOpacity>
@@ -92,14 +107,14 @@ function ListItem({
           {showStats && (
             <View style={styles.statsContainer}>
               <View style={styles.statsItem}>
-                <Ionicons name="play" size={14} color="#fff" />
-                <Text style={styles.statsText}>
+                <Ionicons name="play" size={14} color={colors.primary} />
+                <Text style={[styles.statsText, { color: colors.text }]}>
                   {Number(song.count).toLocaleString()}
                 </Text>
               </View>
               <View style={styles.statsItem}>
-                <Ionicons name="heart" size={14} color="#fff" />
-                <Text style={styles.statsText}>
+                <Ionicons name="heart" size={14} color={colors.text} />
+                <Text style={[styles.statsText, { color: colors.text }]}>
                   {Number(song.like_count).toLocaleString()}
                 </Text>
               </View>
@@ -120,12 +135,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#111",
     marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
+    marginVertical: 6,
+    borderRadius: 16, // Softer curves
+    borderWidth: 1, // Subtle border
     overflow: "hidden",
-    padding: 8,
+    padding: 10,
   },
   imageContainer: {
     borderRadius: 8,
@@ -146,27 +161,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: FONTS.semibold, // Use FONTS instead of bold
+    letterSpacing: 0.3,
   },
   author: {
-    color: "#ccc",
-    fontSize: 14,
-    marginTop: 2,
+    fontSize: 13,
+    fontFamily: FONTS.body,
+    marginTop: 4,
+    opacity: 0.8,
   },
   statsContainer: {
     flexDirection: "row",
-    marginTop: 4,
+    marginTop: 6,
   },
   statsItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 10,
   },
   statsText: {
-    color: "#fff",
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: FONTS.body,
     marginLeft: 4,
   },
   rightContainer: {

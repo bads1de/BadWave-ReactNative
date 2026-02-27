@@ -18,6 +18,8 @@ import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
+import { BlurView } from "expo-blur";
+import { Heart, ListMusic } from "lucide-react-native";
 
 type LibraryType = "liked" | "playlists";
 
@@ -51,7 +53,7 @@ export default function LibraryScreen() {
 
   const { togglePlayPause } = useAudioPlayer(
     currentSongs,
-    type === "liked" ? "liked" : "playlist"
+    type === "liked" ? "liked" : "playlist",
   );
 
   // 曲をクリックしたときのハンドラをメモ化
@@ -62,7 +64,7 @@ export default function LibraryScreen() {
         await togglePlayPause(song);
       }
     },
-    [likedSongs, togglePlayPause]
+    [likedSongs, togglePlayPause],
   );
 
   // プレイリストをクリックしたときのハンドラをメモ化
@@ -73,7 +75,7 @@ export default function LibraryScreen() {
         params: { playlistId: playlist.id },
       });
     },
-    [router]
+    [router],
   );
 
   // keyExtractor関数をメモ化
@@ -90,7 +92,7 @@ export default function LibraryScreen() {
         />
       );
     },
-    [handleSongPress]
+    [handleSongPress],
   );
 
   // プレイリストのrenderItem関数をメモ化
@@ -98,7 +100,7 @@ export default function LibraryScreen() {
     ({ item }: { item: Playlist }) => (
       <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
     ),
-    [handlePlaylistPress]
+    [handlePlaylistPress],
   );
 
   if (isLikedLoading || isPlaylistsLoading) return <Loading />;
@@ -150,57 +152,67 @@ export default function LibraryScreen() {
         </View>
       ) : (
         <>
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              onPress={() => setType("liked")}
+          <View style={styles.tabContainerWrapper}>
+            <BlurView
+              intensity={20}
+              tint="dark"
               style={[
-                styles.tabItem,
-                {
-                  backgroundColor:
-                    type === "liked" ? colors.primary + "1A" : colors.card,
-                  borderColor:
-                    type === "liked" ? colors.primary : colors.border,
-                },
+                styles.tabContainer,
+                { borderColor: "rgba(255, 255, 255, 0.12)" },
               ]}
-              activeOpacity={0.7}
             >
-              <Text
+              <TouchableOpacity
+                onPress={() => setType("liked")}
                 style={[
-                  styles.tabText,
-                  {
-                    color: type === "liked" ? colors.primary : colors.subText,
+                  styles.tabItem,
+                  type === "liked" && {
+                    backgroundColor: colors.primary + "4D", // 30% opacity
                   },
                 ]}
+                activeOpacity={0.7}
               >
-                Liked Songs
-              </Text>
-            </TouchableOpacity>
+                <Heart
+                  size={18}
+                  color={type === "liked" ? "#FFFFFF" : colors.subText}
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    {
+                      color: type === "liked" ? "#FFFFFF" : colors.subText,
+                    },
+                  ]}
+                >
+                  Liked
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setType("playlists")}
-              style={[
-                styles.tabItem,
-                {
-                  backgroundColor:
-                    type === "playlists" ? colors.primary + "1A" : colors.card,
-                  borderColor:
-                    type === "playlists" ? colors.primary : colors.border,
-                },
-              ]}
-              activeOpacity={0.7}
-            >
-              <Text
+              <TouchableOpacity
+                onPress={() => setType("playlists")}
                 style={[
-                  styles.tabText,
-                  {
-                    color:
-                      type === "playlists" ? colors.primary : colors.subText,
+                  styles.tabItem,
+                  type === "playlists" && {
+                    backgroundColor: colors.primary + "4D", // 30% opacity
                   },
                 ]}
+                activeOpacity={0.7}
               >
-                Playlists
-              </Text>
-            </TouchableOpacity>
+                <ListMusic
+                  size={18}
+                  color={type === "playlists" ? "#FFFFFF" : colors.subText}
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    {
+                      color: type === "playlists" ? "#FFFFFF" : colors.subText,
+                    },
+                  ]}
+                >
+                  Playlists
+                </Text>
+              </TouchableOpacity>
+            </BlurView>
           </View>
 
           {type === "playlists" && (
@@ -227,9 +239,29 @@ export default function LibraryScreen() {
               </>
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={[styles.emptyText, { color: colors.subText }]}>
-                  You haven't liked any songs yet.
-                </Text>
+                <BlurView
+                  intensity={15}
+                  tint="dark"
+                  style={[
+                    styles.emptyGlass,
+                    { borderColor: "rgba(255, 255, 255, 0.12)" },
+                  ]}
+                >
+                  <Heart
+                    size={48}
+                    color={colors.subText}
+                    strokeWidth={1.5}
+                    opacity={0.6}
+                  />
+                  <Text style={[styles.emptyText, { color: colors.subText }]}>
+                    No liked songs
+                  </Text>
+                  <Text
+                    style={[styles.emptySubText, { color: colors.subText }]}
+                  >
+                    Start liking songs to see them here.
+                  </Text>
+                </BlurView>
               </View>
             )
           ) : playlists && playlists.length > 0 ? (
@@ -244,9 +276,27 @@ export default function LibraryScreen() {
             />
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: colors.subText }]}>
-                No playlists created yet.
-              </Text>
+              <BlurView
+                intensity={15}
+                tint="dark"
+                style={[
+                  styles.emptyGlass,
+                  { borderColor: "rgba(255, 255, 255, 0.12)" },
+                ]}
+              >
+                <ListMusic
+                  size={48}
+                  color={colors.subText}
+                  strokeWidth={1.5}
+                  opacity={0.6}
+                />
+                <Text style={[styles.emptyText, { color: colors.subText }]}>
+                  No playlists
+                </Text>
+                <Text style={[styles.emptySubText, { color: colors.subText }]}>
+                  Create a playlist to organize your music.
+                </Text>
+              </BlurView>
             </View>
           )}
         </>
@@ -295,19 +345,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.semibold,
   },
-  tabContainer: {
-    flexDirection: "row",
+  tabContainerWrapper: {
     paddingHorizontal: 20,
     marginBottom: 24,
-    gap: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: 1,
+    backgroundColor: "rgba(20, 20, 20, 0.4)",
   },
   tabItem: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 16,
+    paddingVertical: 14,
+    flexDirection: "row",
+    gap: 8,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
+    borderRadius: 20,
   },
   tabText: {
     fontSize: 15,
@@ -327,13 +388,27 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+  },
+  emptyGlass: {
+    padding: 32,
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 80,
+    borderRadius: 24,
+    borderWidth: 1,
+    backgroundColor: "rgba(20, 20, 20, 0.4)",
   },
   emptyText: {
-    fontSize: 16,
-    fontFamily: FONTS.semibold,
+    fontSize: 18,
+    fontFamily: FONTS.title,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubText: {
+    fontSize: 14,
+    fontFamily: FONTS.body,
+    textAlign: "center",
+    opacity: 0.6,
   },
 });
-
