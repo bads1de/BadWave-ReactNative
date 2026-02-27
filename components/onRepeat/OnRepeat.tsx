@@ -16,14 +16,17 @@ import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
+import { Repeat } from "lucide-react-native";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 import { CACHED_QUERIES } from "@/constants";
 
 const { width } = Dimensions.get("window");
-const ITEM_WIDTH = (width - 96) / 3;
+// sectionTitleのmargin/padding等を加味し、NextSong等と合うように調整
+// containerはpaddingを持たないので、画面幅 - (gap分の24 + 左右の余白分の約32)
+const ITEM_WIDTH = Math.floor((width - 56) / 3);
 const ITEM_HEIGHT = ITEM_WIDTH * 1.4;
 
 interface OnRepeatItemProps {
@@ -127,30 +130,23 @@ function OnRepeat() {
   if (topSongs.length === 0) return null;
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        {
-          borderColor: colors.primary,
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.9,
-          shadowRadius: 20,
-        },
-      ]}
-    >
-      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-      {/* Removed LinearGradient */}
-      <View style={styles.contentContainer}>
-        <View style={styles.header}>
-          <Text style={styles.label}>ON REPEAT</Text>
-          <MaterialCommunityIcons
-            name="fire"
-            size={16}
-            color="#a78bfa"
-            style={{ opacity: 0.8 }}
-          />
+    <View style={styles.container}>
+      <View style={styles.sectionTitleContainer}>
+        <View style={styles.titleRow}>
+          <Repeat size={20} color={colors.primary} strokeWidth={1.5} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            On Repeat
+          </Text>
         </View>
+        <View
+          style={[
+            styles.titleSeparator,
+            { backgroundColor: "rgba(255, 255, 255, 0.1)" },
+          ]}
+        />
+      </View>
+
+      <View style={styles.contentContainer}>
         <View style={styles.songsContainer}>
           {topSongs.slice(0, 3).map((song, index) => {
             // ダウンロード済みかチェック（Setを使用してO(1)で検索）
@@ -175,37 +171,34 @@ function OnRepeat() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 32,
-    borderRadius: 24,
-    borderWidth: 2,
-    overflow: "visible",
-    backgroundColor: "rgba(0,0,0,0.8)",
-    elevation: 20,
+  container: {
+    marginBottom: 8,
   },
-  contentContainer: {
-    padding: 16,
-  },
-  // Removed blurContainer, gradient
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  sectionTitleContainer: {
     marginBottom: 16,
   },
-  label: {
-    fontSize: 11,
-    color: "rgba(255,255,255,0.6)",
-    fontWeight: "700",
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontFamily: FONTS.title,
+    letterSpacing: 0.5,
+  },
+  titleSeparator: {
+    height: 1,
+    width: "100%",
+    opacity: 0.6,
+  },
+  contentContainer: {
+    paddingHorizontal: 4,
   },
   songsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
+    justifyContent: "space-between", // Fixed precise alignment
   },
   songItem: {
     width: ITEM_WIDTH,
@@ -213,11 +206,11 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: "100%",
     height: ITEM_HEIGHT,
-    borderRadius: 12,
+    borderRadius: 8, // Sleeker, smaller radius
     overflow: "hidden",
     marginBottom: 8,
     position: "relative",
-    backgroundColor: "#2a2a2a",
+    backgroundColor: "#161616",
   },
   songImage: {
     width: "100%",

@@ -9,8 +9,9 @@ import TrackPlayer, {
   RepeatMode,
 } from "react-native-track-player";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
+import { SkipForward, Shuffle } from "lucide-react-native";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 import MarqueeText from "@/components/common/MarqueeText";
 
@@ -101,38 +102,31 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
   const isShuffleMode = shuffle && repeatMode !== RepeatMode.Track;
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        {
-          borderColor: colors.primary,
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.9,
-          shadowRadius: 20,
-        },
-      ]}
-    >
-      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-      {/* Removed LinearGradient */}
-      <View style={styles.contentContainer}>
-        <View style={styles.header}>
-          <Text style={styles.label}>
-            {repeatMode === RepeatMode.Track
-              ? "REPEATING"
-              : isShuffleMode
-                ? "SHUFFLE MODE"
-                : "UP NEXT"}
-          </Text>
-          {isShuffleMode && (
-            <MaterialCommunityIcons
-              name="shuffle-variant"
-              size={16}
-              color="#a78bfa"
-            />
+    <View style={styles.container}>
+      <View style={styles.sectionTitleContainer}>
+        <View style={styles.titleRow}>
+          {isShuffleMode ? (
+            <Shuffle size={20} color={colors.primary} strokeWidth={1.5} />
+          ) : (
+            <SkipForward size={22} color={colors.primary} strokeWidth={1.5} />
           )}
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {repeatMode === RepeatMode.Track
+              ? "Repeating"
+              : isShuffleMode
+                ? "Shuffle Mode"
+                : "Up Next"}
+          </Text>
         </View>
+        <View
+          style={[
+            styles.titleSeparator,
+            { backgroundColor: "rgba(255, 255, 255, 0.1)" },
+          ]}
+        />
+      </View>
 
+      <View style={styles.contentContainer}>
         {isShuffleMode ? (
           <View style={styles.shuffleContent}>
             <View style={styles.shuffleIconContainer}>
@@ -143,7 +137,7 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
                 style={{ opacity: 0.8 }}
               />
               <View style={styles.questionMark}>
-                <MaterialCommunityIcons name="help" size={14} color="#000" />
+                <MaterialCommunityIcons name="help" size={12} color="#000" />
               </View>
             </View>
             <Text style={styles.shuffleText}>
@@ -178,42 +172,42 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: 24,
-    borderWidth: 2,
-    overflow: "visible",
-    backgroundColor: "rgba(0,0,0,0.8)",
-    elevation: 20,
+  container: {
+    marginBottom: 8,
   },
-  contentContainer: {
-    padding: 16,
+  sectionTitleContainer: {
+    marginBottom: 16,
   },
-  // Removed blurContainer, gradient
-  // Removed blurContainer, gradient
-  header: {
+  titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 10,
+    gap: 8,
   },
-  label: {
-    fontSize: 11,
-    color: "rgba(255,255,255,0.6)",
-    fontWeight: "700",
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
+  sectionTitle: {
+    fontSize: 22,
+    fontFamily: FONTS.title,
+    letterSpacing: 0.5,
+  },
+  titleSeparator: {
+    height: 1,
+    width: "100%",
+    opacity: 0.6,
+  },
+  contentContainer: {
+    paddingHorizontal: 4,
   },
   songContent: {
     flexDirection: "row",
     alignItems: "center",
   },
   artwork: {
-    width: 56,
-    height: 56,
-    borderRadius: 8, // Adjusted radius slightly
-    backgroundColor: "#2a2a2a",
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: "rgba(40, 40, 40, 0.5)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   songInfo: {
     marginLeft: 14,

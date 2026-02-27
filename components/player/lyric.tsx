@@ -20,9 +20,11 @@ import {
 import { BlurView } from "expo-blur";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Mic2 } from "lucide-react-native";
 import { useProgress } from "react-native-track-player";
 import TrackPlayer from "react-native-track-player";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 if (
   Platform.OS === "android" &&
@@ -242,34 +244,27 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
   if (!lyrics) return null;
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        {
-          borderColor: colors.primary,
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.9, // More intense neon glow
-          shadowRadius: 20, // Wider spread
-        },
-      ]}
-    >
-      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-      {/* Removed LinearGradient to keep it dark */}
-      <View style={styles.contentContainer}>
-        <View style={styles.header}>
-          <Text style={styles.label}>LYRICS</Text>
+    <View style={styles.container}>
+      <View style={styles.sectionTitleContainer}>
+        <View style={styles.titleRow}>
+          <Mic2 size={20} color={colors.primary} strokeWidth={1.5} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Lyrics
+          </Text>
+          <View style={{ flex: 1 }} />
           <TouchableOpacity onPress={toggleExpand} style={styles.expandBtn}>
             <MaterialCommunityIcons
               name={
                 isExpanded ? "arrow-collapse-vertical" : "arrow-expand-vertical"
               }
-              size={18}
-              color="rgba(255,255,255,0.6)"
+              size={20}
+              color={colors.text}
             />
           </TouchableOpacity>
         </View>
+      </View>
 
+      <View style={styles.contentContainer}>
         {!hasLrc ? (
           // PLAIN TEXT VIEW (Legacy behavior)
           <View style={styles.plainContainer}>
@@ -323,33 +318,30 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginHorizontal: 20,
-    marginTop: 20, // Increased margin to prevent glow clipping
-    borderRadius: 24,
-    borderWidth: 2, // Thicker border for neon tube look
-    overflow: "visible",
-    backgroundColor: "rgba(0,0,0,0.8)",
-    elevation: 20, // High elevation for Android
+  container: {
+    marginBottom: 8,
   },
-  contentContainer: {
-    padding: 16,
+  sectionTitleContainer: {
+    marginBottom: 16,
   },
-  // Removed blurContainer, androidContainer, gradient
-  header: {
+  titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     marginBottom: 10,
-    // Removed bottom border
-    paddingBottom: 10,
+    gap: 8,
   },
-  label: {
-    fontSize: 11,
-    color: "rgba(255,255,255,0.6)",
-    fontWeight: "700",
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
+  sectionTitle: {
+    fontSize: 22,
+    fontFamily: FONTS.title,
+    letterSpacing: 0.5,
+  },
+  titleSeparator: {
+    height: 1,
+    width: "100%",
+    opacity: 0.6,
+  },
+  contentContainer: {
+    paddingHorizontal: 4,
   },
   expandBtn: {
     padding: 4,

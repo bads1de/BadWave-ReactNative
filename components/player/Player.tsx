@@ -9,7 +9,15 @@ import {
   ScrollView,
 } from "react-native";
 import { ImageBackground } from "expo-image";
-import { Shuffle, SkipBack, SkipForward, Repeat, Play, Pause, ChevronDown } from "lucide-react-native";
+import {
+  Shuffle,
+  SkipBack,
+  SkipForward,
+  Repeat,
+  Play,
+  Pause,
+  ChevronDown,
+} from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { VideoView, useVideoPlayer } from "expo-video";
 import Song from "@/types";
@@ -95,10 +103,12 @@ const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => {
           style={styles.titleContainer}
           speed={0.5}
           withGesture={false}
-          fontSize={28}
-          fontFamily={FONTS.title}
+          fontSize={24}
         />
-        <Text style={[styles.author, { fontFamily: FONTS.body, color: colors.subText }]}>
+        <Text
+          style={[styles.author, { color: colors.subText }]}
+          numberOfLines={1}
+        >
           {currentSong.author}
         </Text>
       </View>
@@ -138,7 +148,11 @@ const Controls: FC<ControlsProps> = memo(
         testID="prev-button"
         activeColor={colors.primary}
       />
-      <PlayPauseButton isPlaying={isPlaying} onPress={onPlayPause} colors={colors} />
+      <PlayPauseButton
+        isPlaying={isPlaying}
+        onPress={onPlayPause}
+        colors={colors}
+      />
       <ControlButton
         icon={SkipForward}
         onPress={onNext}
@@ -173,16 +187,18 @@ Controls.displayName = "Controls";
 const ControlButton: FC<ControlButtonProps> = memo(
   ({ icon: Icon, isActive, onPress, repeatMode, testID, activeColor }) => {
     return (
-      <TouchableOpacity onPress={onPress} style={styles.controlButton} testID={testID}>
+      <TouchableOpacity
+        onPress={onPress}
+        style={styles.controlButton}
+        testID={testID}
+      >
         <Icon
           size={24}
           color={isActive ? activeColor : "#fff"}
           strokeWidth={1.2}
         />
         {Icon === Repeat && isActive && (
-          <Text
-            style={[styles.repeatModeIndicator, { color: activeColor }]}
-          >
+          <Text style={[styles.repeatModeIndicator, { color: activeColor }]}>
             {repeatMode === RepeatMode.Track ? "1" : ""}
           </Text>
         )}
@@ -199,17 +215,16 @@ const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
         styles.playButton,
         {
           backgroundColor: colors.primary,
-          shadowColor: colors.primary,
-        }
+        },
       ]}
       onPress={onPress}
       testID="play-pause-button"
       activeOpacity={0.8}
     >
       {isPlaying ? (
-        <Pause size={36} color="#000" fill="#000" />
+        <Pause size={32} color="#000" fill="#000" />
       ) : (
-        <Play size={36} color="#000" fill="#000" />
+        <Play size={32} color="#000" fill="#000" style={{ marginLeft: 4 }} />
       )}
     </TouchableOpacity>
   ),
@@ -268,11 +283,11 @@ const PlayerControls: FC<PlayerProps & { colors: ThemeDefinition["colors"] }> =
     }) => (
       <>
         <SongInfo currentSong={currentSong} />
-        
+
         <View style={styles.progressContainer}>
-           <PlayerProgress onSeek={onSeek} />
+          <PlayerProgress onSeek={onSeek} />
         </View>
-        
+
         <Controls
           isPlaying={isPlaying}
           onPlayPause={onPlayPause}
@@ -376,34 +391,39 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   infoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 24,
   },
   textContainer: {
-    alignItems: "center",
-    marginBottom: 24,
+    flex: 1,
+    paddingRight: 16,
+    justifyContent: "center",
   },
   titleContainer: {
-    height: 40,
+    height: 38,
     marginBottom: 4,
   },
   author: {
     fontSize: 16,
-    letterSpacing: 1,
-    textTransform: "uppercase",
+    fontFamily: FONTS.body,
+    opacity: 0.8,
   },
   actionButtons: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
   },
   progressContainer: {
-    marginVertical: 20,
+    marginVertical: 12, // Reduced to tighten layout
   },
   controls: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 8,
+    paddingHorizontal: 8,
   },
   controlButton: {
     width: 48,
@@ -412,27 +432,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   playButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     justifyContent: "center",
     alignItems: "center",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.4,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
   repeatModeIndicator: {
     position: "absolute",
-    bottom: 0,
+    bottom: 2,
     right: 4,
     fontSize: 10,
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.bold,
   },
   bottomSectionsContainer: {
-    paddingTop: 32,
+    paddingTop: 16,
     paddingBottom: 64,
-    paddingHorizontal: 24,
-    gap: 40,
+    paddingHorizontal: 16,
+    gap: 24, // Reduces the excessive space between sections
   },
 });
