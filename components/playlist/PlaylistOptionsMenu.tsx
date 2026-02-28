@@ -10,6 +10,7 @@ import {
   Pressable,
   Dimensions,
 } from "react-native";
+import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import Animated, {
@@ -328,15 +329,27 @@ export default function PlaylistOptionsMenu({
           >
             <View style={styles.sheetHeader}>
               <View style={styles.handle} />
-              <View style={styles.headerTitleRow}>
-                <Settings2 size={18} color={colors.primary} strokeWidth={1.5} />
-                <Text style={[styles.sheetTitle, { color: colors.text }]}>
-                  Manage Playlist
-                </Text>
+              <View style={styles.headerInfoRow}>
+                {songs.length > 0 && songs[0].image_path ? (
+                  <Image
+                    source={{ uri: songs[0].image_path }}
+                    style={styles.headerImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={[styles.headerImagePlaceholder, { backgroundColor: colors.card }]}>
+                    <Settings2 size={24} color={colors.subText} strokeWidth={1.5} />
+                  </View>
+                )}
+                <View style={styles.headerTextContainer}>
+                  <Text style={[styles.sheetTitle, { color: colors.text }]} numberOfLines={1}>
+                    {currentTitle}
+                  </Text>
+                  <Text style={styles.sheetSubTitle} numberOfLines={1}>
+                    Playlist • {songs.length} tracks
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.sheetSubTitle} numberOfLines={1}>
-                {currentTitle}
-              </Text>
               <View
                 style={[
                   styles.headerSeparator,
@@ -519,9 +532,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   sheetHeader: {
-    alignItems: "center",
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: 20,
   },
   handle: {
     width: 36,
@@ -529,12 +541,30 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 2,
     marginBottom: 24,
+    alignSelf: "center",
   },
-  headerTitleRow: {
+  headerInfoRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
+    gap: 16,
+  },
+  headerImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+  },
+  headerImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  headerTextContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   sheetTitle: {
     fontSize: 22,
@@ -546,6 +576,7 @@ const styles = StyleSheet.create({
     color: "#A8A29E",
     fontFamily: FONTS.body,
     opacity: 0.7,
+    marginTop: 2,
   },
   headerSeparator: {
     height: 1,

@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, useEffect, memo } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,26 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  Dimensions,
+  Pressable,
 } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import createPlaylist from "@/actions/playlist/createPlaylist";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import Toast from "react-native-toast-message";
-
+import { Plus, X, ListPlus } from "lucide-react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 function CreatePlaylist() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -22,6 +34,31 @@ function CreatePlaylist() {
   const queryClient = useQueryClient();
   const { isOnline } = useNetworkStatus();
   const { colors } = useThemeStore();
+
+  // Animation shared values
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (modalOpen) {
+      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, {
+        damping: 25,
+        stiffness: 80,
+      });
+    } else {
+      opacity.value = withTiming(0, { duration: 200 });
+      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
+    }
+  }, [modalOpen]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   const {
     mutate: create,
@@ -31,7 +68,7 @@ function CreatePlaylist() {
     mutationFn: createPlaylist,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
-      setModalOpen(false);
+      handleCloseModal();
       setPlaylistName("");
 
       Toast.show({
@@ -49,6 +86,7 @@ function CreatePlaylist() {
   });
 
   const handleCreatePlaylist = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!playlistName.trim()) {
       Toast.show({
         type: "error",
@@ -60,16 +98,21 @@ function CreatePlaylist() {
     create(playlistName);
   };
 
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
   // オフライン時はモーダルを開く前にアラートを表示
   const handleOpenModal = () => {
     if (!isOnline) {
       Alert.alert(
         "オフラインです",
         "プレイリストの作成にはインターネット接続が必要です",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
       return;
     }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setModalOpen(true);
   };
 
@@ -84,83 +127,103 @@ function CreatePlaylist() {
         onPress={handleOpenModal}
         testID="create-playlist-button"
       >
+        <Plus size={18} color="#fff" strokeWidth={2.5} />
         <Text
           style={[
             styles.createButtonText,
-            { color: "#fff" }, // Always white for contrast on primary
+            { color: "#fff" },
             !isOnline && styles.createButtonTextDisabled,
           ]}
         >
-          + New Playlist
+          New Playlist
         </Text>
       </TouchableOpacity>
 
       <Modal
-        animationType="slide"
+        animationType="none"
         transparent={true}
         visible={modalOpen}
-        onRequestClose={() => {
-          setModalOpen(false);
-        }}
+        onRequestClose={handleCloseModal}
       >
-        <View style={styles.centeredView}>
-          <View
+        <View style={styles.modalRoot}>
+          <Animated.View style={[styles.overlay, overlayStyle]}>
+            <Pressable style={styles.flex} onPress={handleCloseModal} />
+          </Animated.View>
+
+          <Animated.View
             style={[
-              styles.modalView,
-              { backgroundColor: colors.card, shadowColor: colors.glow },
+              styles.sheet,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+              animatedStyle,
             ]}
           >
-            <Text style={[styles.modalText, { color: colors.text }]}>
-              Enter playlist name:
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.background + "80", // Half transparent background
-                  color: colors.text,
-                },
-              ]}
-              onChangeText={setPlaylistName}
-              value={playlistName}
-              placeholder="My Playlist"
-              placeholderTextColor={colors.subText + "80"}
-              testID="playlist-name-input"
-            />
-            {error && <Text style={styles.errorText}>{error.message}</Text>}
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  styles.buttonCancel,
-                  { backgroundColor: colors.background + "40" },
-                ]}
-                onPress={() => {
-                  setModalOpen(false);
-                  setPlaylistName("");
-                }}
-                testID="cancel-button"
-              >
-                <Text style={[styles.textStyle, { color: colors.text }]}>
-                  Cancel
+            <View style={styles.handle} />
+
+            <View style={styles.header}>
+              <View style={styles.headerTitleRow}>
+                <ListPlus size={22} color={colors.primary} strokeWidth={2} />
+                <Text style={[styles.title, { color: colors.text }]}>
+                  Create Playlist
                 </Text>
-              </TouchableOpacity>
+              </View>
               <TouchableOpacity
+                onPress={handleCloseModal}
                 style={[
-                  styles.button,
-                  styles.buttonCreate,
-                  { backgroundColor: colors.primary },
+                  styles.closeIconButton,
+                  { backgroundColor: colors.card },
                 ]}
-                onPress={handleCreatePlaylist}
-                disabled={isPending}
-                testID="create-button"
               >
-                <Text style={styles.textStyle}>
-                  {isPending ? "Creating..." : "Create"}
-                </Text>
+                <X size={20} color={colors.text} strokeWidth={1.5} />
               </TouchableOpacity>
             </View>
-          </View>
+
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+
+            <View style={styles.content}>
+              <Text style={[styles.label, { color: colors.subText }]}>
+                Playlist Name
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
+                onChangeText={setPlaylistName}
+                value={playlistName}
+                placeholder="My Awesome Playlist"
+                placeholderTextColor={colors.subText + "80"}
+                autoFocus
+                testID="playlist-name-input"
+                selectionColor={colors.primary}
+              />
+              {error && <Text style={styles.errorText}>{error.message}</Text>}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                { backgroundColor: colors.primary },
+                (isPending || !playlistName.trim()) &&
+                  styles.submitButtonDisabled,
+              ]}
+              onPress={handleCreatePlaylist}
+              disabled={isPending || !playlistName.trim()}
+              testID="create-button"
+            >
+              <Text style={[styles.submitButtonText, { color: "#fff" }]}>
+                {isPending ? "Creating..." : "Create Playlist"}
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </Modal>
     </>
@@ -168,90 +231,126 @@ function CreatePlaylist() {
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  modalRoot: { flex: 1, justifyContent: "flex-end" },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
   createButton: {
-    backgroundColor: "#4c1d95",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 14,
     alignSelf: "flex-start",
     marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   createButtonDisabled: {
-    backgroundColor: "#3d3d3d",
     opacity: 0.6,
   },
   createButtonText: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: FONTS.bold,
   },
   createButtonTextDisabled: {
     color: "rgba(255,255,255,0.5)",
   },
-  centeredView: {
-    flex: 1,
+  sheet: {
+    width: "100%",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderTopWidth: 1,
+    paddingBottom: 48,
+    paddingHorizontal: 24,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  headerTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  title: {
+    fontSize: 22,
+    fontFamily: FONTS.title,
+    letterSpacing: 0.5,
+  },
+  closeIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
-  modalView: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: "80%",
+  divider: {
+    height: 1,
+    marginBottom: 24,
+    opacity: 0.3,
   },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
-    color: "#fff",
-    fontSize: 18,
+  content: {
+    marginBottom: 32,
+  },
+  label: {
+    fontSize: 14,
+    fontFamily: FONTS.semibold,
+    marginBottom: 8,
+    marginLeft: 4,
   },
   input: {
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    width: "100%",
-    color: "#fff",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  button: {
-    borderRadius: 8,
-    padding: 12,
-    elevation: 2,
-    width: "45%",
-  },
-  buttonCancel: {
-    backgroundColor: "rgba(255,255,255,0.1)",
-  },
-  buttonCreate: {
-    backgroundColor: "#4c1d95",
-  },
-  textStyle: {
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
+    height: 56,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    fontFamily: FONTS.body,
+    borderWidth: 1,
   },
   errorText: {
-    color: "red",
-    marginBottom: 15,
-    textAlign: "center",
+    color: "#ef4444",
+    marginTop: 8,
+    fontSize: 14,
+    fontFamily: FONTS.body,
+    marginLeft: 4,
+  },
+  submitButton: {
+    height: 56,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
   },
 });
 
-// メモ化してエクスポート
 export default memo(CreatePlaylist);
-

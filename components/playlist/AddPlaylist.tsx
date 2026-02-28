@@ -6,7 +6,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableWithoutFeedback,
+  Pressable,
   Dimensions,
   Alert,
 } from "react-native";
@@ -15,13 +15,11 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSpring,
-  interpolate,
-  Extrapolation,
 } from "react-native-reanimated";
 import { useAuth } from "@/providers/AuthProvider";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import Toast from "react-native-toast-message";
-import { Ionicons } from "@expo/vector-icons";
+import { Plus, Check, X, ListPlus } from "lucide-react-native";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import { PlaylistSong, Playlist } from "@/types";
@@ -30,6 +28,10 @@ import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
 import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { LinearGradient } from "expo-linear-gradient";
+import { FONTS } from "@/constants/theme";
+import * as Haptics from "expo-haptics";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface AddPlaylistProps {
   songId: string;
@@ -38,13 +40,6 @@ interface AddPlaylistProps {
 }
 
 const DEFAULT_PLAYLISTS: Playlist[] = [];
-
-const hexToRgba = (hex: string, alpha: number) => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
 
 function AddPlaylist({
   songId,
@@ -56,8 +51,10 @@ function AddPlaylist({
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
   const [modalOpen, setModalOpen] = useState(false);
-  const animation = useSharedValue(0);
-  const { width } = Dimensions.get("window");
+  
+  // Animation shared values
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const opacity = useSharedValue(0);
 
   const { data: playlists = DEFAULT_PLAYLISTS } = useQuery({
     queryKey: [CACHED_QUERIES.playlists],
@@ -72,14 +69,16 @@ function AddPlaylist({
 
   useEffect(() => {
     if (modalOpen) {
-      animation.value = withSpring(1, {
-        damping: 8,
-        stiffness: 50,
+      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, {
+        damping: 25,
+        stiffness: 80,
       });
     } else {
-      animation.value = withTiming(0, { duration: 200 });
+      opacity.value = withTiming(0, { duration: 200 });
+      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
     }
-  }, [modalOpen, animation]);
+  }, [modalOpen]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (playlistId: string) => {
@@ -88,6 +87,7 @@ function AddPlaylist({
       return addPlaylistSong({ playlistId, userId: session.user.id, songId });
     },
     onMutate: async (playlistId) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlistSongs],
@@ -180,6 +180,7 @@ function AddPlaylist({
 
       // Check if the song is already added to this playlist
       if (displayStatus[playlistId]) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         Toast.show({
           type: "info",
           text1: "追加済みです",
@@ -189,35 +190,45 @@ function AddPlaylist({
         return;
       }
 
-      // アニメーション効果付きで追加
-      // 注: このアニメーションは実際には効果がありません（新しいAnimated.Valueを作成しているため）
-      // 必要に応じて、別の方法でアニメーション効果を実装してください
-
       mutate(playlistId);
     },
     [session, mutate, displayStatus]
   );
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const modalScale = interpolate(
-      animation.value,
-      [0, 1],
-      [0.8, 1],
-      Extrapolation.CLAMP
-    );
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
-    const modalOpacity = interpolate(
-      animation.value,
-      [0, 1],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
-    return {
-      transform: [{ scale: modalScale }],
-      opacity: modalOpacity,
-    };
-  });
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleOpenModal = () => {
+    if (!isOnline) {
+      Alert.alert(
+        "オフラインです",
+        "プレイリストへの曲の追加にはインターネット接続が必要です",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    if (!session?.user.id) {
+      Toast.show({
+        type: "error",
+        text1: "ログインが必要です",
+        position: "bottom",
+      });
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    // Refresh playlist status when opening modal
+    fetchAddedStatus();
+    setModalOpen(true);
+  };
 
   // オフライン時またはミューテーション中は無効化
   const isDisabled = !isOnline;
@@ -225,27 +236,7 @@ function AddPlaylist({
   return (
     <>
       <TouchableOpacity
-        onPress={() => {
-          if (!isOnline) {
-            Alert.alert(
-              "オフラインです",
-              "プレイリストへの曲の追加にはインターネット接続が必要です",
-              [{ text: "OK" }]
-            );
-            return;
-          }
-          if (!session?.user.id) {
-            Toast.show({
-              type: "error",
-              text1: "ログインが必要です",
-              position: "bottom",
-            });
-            return;
-          }
-          // Refresh playlist status when opening modal
-          fetchAddedStatus();
-          setModalOpen(true);
-        }}
+        onPress={handleOpenModal}
         style={[styles.addButton, isDisabled && styles.addButtonDisabled]}
         testID="add-playlist-button"
       >
@@ -260,8 +251,7 @@ function AddPlaylist({
             end={{ x: 1, y: 1 }}
             style={styles.gradientButton}
           >
-            <Ionicons
-              name="add"
+            <Plus
               size={16}
               color={isDisabled ? "rgba(255,255,255,0.4)" : "white"}
             />
@@ -273,119 +263,117 @@ function AddPlaylist({
         visible={modalOpen}
         animationType="none"
         transparent
-        onRequestClose={() => setModalOpen(false)}
+        onRequestClose={handleCloseModal}
       >
-        <TouchableWithoutFeedback onPress={() => setModalOpen(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <Animated.View
-                style={[
-                  styles.modalContent,
-                  animatedStyle,
-                  {
-                    width: width * 0.85,
-                  },
-                ]}
+        <View style={styles.modalRoot}>
+          <Animated.View style={[styles.overlay, overlayStyle]}>
+            <Pressable style={styles.flex} onPress={handleCloseModal} />
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.sheet,
+              { backgroundColor: colors.background, borderColor: colors.border },
+              animatedStyle,
+            ]}
+          >
+            <View style={styles.handle} />
+            
+            <View style={styles.header}>
+              <View style={styles.headerTitleRow}>
+                <ListPlus size={22} color={colors.primary} strokeWidth={2} />
+                <Text style={[styles.title, { color: colors.text }]} testID="modal-title">
+                  プレイリストに追加
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleCloseModal}
+                style={[styles.closeIconButton, { backgroundColor: colors.card }]}
+                testID="close-button"
               >
-                <LinearGradient
-                  colors={["#1e1e28", "#15151b"]}
-                  style={styles.modalGradient}
-                >
-                  <View style={styles.header}>
-                    <Text style={styles.title} testID="modal-title">
-                      プレイリストに追加
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => setModalOpen(false)}
-                      style={styles.closeButton}
-                      testID="close-button"
-                    >
-                      <Ionicons
-                        name="close"
-                        size={22}
-                        color="rgba(255,255,255,0.8)"
-                      />
-                    </TouchableOpacity>
-                  </View>
+                <X size={20} color={colors.text} strokeWidth={1.5} />
+              </TouchableOpacity>
+            </View>
 
-                  <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-                  <ScrollView
-                    style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContent}
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {playlists.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={[styles.emptyText, { color: colors.subText }]}>
+                    プレイリストがありません
+                  </Text>
+                </View>
+              ) : (
+                playlists.map((playlist) => (
+                  <TouchableOpacity
+                    key={playlist.id}
+                    style={[
+                      styles.playlistItem,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                      displayStatus[playlist.id] && {
+                        borderColor: colors.primary,
+                        backgroundColor: colors.primary + "10",
+                      },
+                    ]}
+                    onPress={() => handleAddToPlaylist(playlist.id)}
+                    disabled={isPending || displayStatus[playlist.id]}
+                    activeOpacity={0.7}
+                    testID="playlist-item"
                   >
-                    {playlists.map((playlist, index) => (
-                      <TouchableOpacity
-                        key={playlist.id}
+                    <View style={styles.playlistInfo}>
+                      <Text
                         style={[
-                          styles.playlistItem,
+                          styles.playlistName,
+                          { color: colors.text },
                           displayStatus[playlist.id] && {
-                            backgroundColor: hexToRgba(colors.primary, 0.1),
-                            borderWidth: 1,
-                            borderColor: hexToRgba(colors.primary, 0.2),
+                            color: colors.primary,
                           },
-                          index === playlists.length - 1 &&
-                            styles.lastPlaylistItem,
                         ]}
-                        onPress={() => handleAddToPlaylist(playlist.id)}
-                        disabled={isPending || displayStatus[playlist.id]}
-                        activeOpacity={0.7}
-                        testID="playlist-item"
+                        numberOfLines={1}
                       >
-                        <View style={styles.checkboxContainer}>
-                          {displayStatus[playlist.id] ? (
-                            <LinearGradient
-                              colors={[colors.primary, colors.primaryDark]}
-                              style={styles.checkboxGradient}
-                            >
-                              <Ionicons
-                                name="checkmark"
-                                size={16}
-                                color="white"
-                              />
-                            </LinearGradient>
-                          ) : (
-                            <View style={styles.checkbox}>
-                              <View style={styles.innerCheckbox} />
-                            </View>
-                          )}
+                        {playlist.title}
+                      </Text>
+                    </View>
+                    
+                    <View style={styles.statusIcon}>
+                      {displayStatus[playlist.id] ? (
+                        <View style={[styles.checkWrapper, { backgroundColor: colors.primary }]}>
+                          <Check size={14} color="white" strokeWidth={3} />
                         </View>
-                        <Text
-                          style={[
-                            styles.playlistName,
-                            displayStatus[playlist.id] && {
-                              color: colors.primary,
-                              fontWeight: "600",
-                            },
-                          ]}
-                        >
-                          {playlist.title}
-                        </Text>
-                        {displayStatus[playlist.id] && (
-                          <Text
-                            style={[
-                              styles.addedText,
-                              { color: hexToRgba(colors.primary, 0.8) },
-                            ]}
-                          >
-                            追加済み
-                          </Text>
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </LinearGradient>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
+                      ) : (
+                        <View style={[styles.uncheckWrapper, { borderColor: colors.border }]} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={[styles.closeButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={handleCloseModal}
+            >
+              <Text style={[styles.closeButtonText, { color: colors.text }]}>閉じる</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
       </Modal>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  modalRoot: { flex: 1, justifyContent: "flex-end" },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
   addButton: {
     borderRadius: 50,
     overflow: "hidden",
@@ -396,114 +384,114 @@ const styles = StyleSheet.create({
   gradientButton: {
     width: 24,
     height: 24,
-    borderRadius: 21,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  sheet: {
+    width: "100%",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderTopWidth: 1,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    maxHeight: SCREEN_HEIGHT * 0.8,
   },
-  modalContent: {
-    borderRadius: 24,
-    overflow: "hidden",
-  },
-  modalGradient: {
-    padding: 0,
-    borderRadius: 24,
-    overflow: "hidden",
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginTop: 12,
+    marginBottom: 20,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    marginBottom: 20,
+  },
+  headerTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "white",
-    letterSpacing: 0.5,
+    fontSize: 20,
+    fontFamily: FONTS.bold,
   },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(255,255,255,0.1)",
+  closeIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    marginBottom: 8,
+    marginBottom: 16,
+    opacity: 0.5,
   },
   scrollView: {
-    maxHeight: 400,
+    maxHeight: 350,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 8,
   },
   playlistItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,
-    paddingHorizontal: 12,
-    marginVertical: 4,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.03)",
+    paddingHorizontal: 16,
+    marginVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
   },
-  lastPlaylistItem: {
-    marginBottom: 8,
-  },
-  checkboxContainer: {
-    marginRight: 14,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  innerCheckbox: {
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.05)",
-  },
-  checkboxGradient: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    justifyContent: "center",
-    alignItems: "center",
+  playlistInfo: {
+    flex: 1,
   },
   playlistName: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.9)",
-    flex: 1,
+    fontFamily: FONTS.semibold,
   },
-  addedPlaylistItem: {
-    backgroundColor: "rgba(139, 92, 246, 0.1)",
+  statusIcon: {
+    marginLeft: 12,
+  },
+  checkWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  uncheckWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    fontFamily: FONTS.body,
+  },
+  closeButton: {
+    marginTop: 20,
+    height: 56,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(139, 92, 246, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  addedPlaylistName: {
-    color: "#8b5cf6",
-    fontWeight: "600",
-  },
-  addedText: {
-    fontSize: 12,
-    color: "rgba(139, 92, 246, 0.8)",
-    fontWeight: "500",
-    marginLeft: 8,
+  closeButtonText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
   },
 });
 

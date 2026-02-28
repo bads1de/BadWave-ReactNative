@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useEffect, useCallback } from "react";
 import {
   Modal,
   View,
@@ -6,9 +6,27 @@ import {
   Text,
   StyleSheet,
   Alert,
+  Dimensions,
+  Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
+import * as Haptics from "expo-haptics";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import {
+  Heart,
+  PlusCircle,
+  Download,
+  Trash2,
+  CloudOff,
+  MoreVertical,
+  Music,
+} from "lucide-react-native";
 import Song from "@/types";
 import {
   useDownloadStatus,
@@ -19,8 +37,12 @@ import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useLikeStatus } from "@/hooks/data/useLikeStatus";
 import { useLikeMutation } from "@/hooks/mutations/useLikeMutation";
 import { useAuth } from "@/providers/AuthProvider";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 import Toast from "react-native-toast-message";
+import { FONTS } from "@/constants/theme";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface ListItemOptionsMenuProps {
   song: Song;
@@ -37,7 +59,33 @@ function ListItemOptionsMenu({
   const [modalVisible, setModalVisible] = useState(false);
   const { isOnline } = useNetworkStatus();
   const { session } = useAuth();
+  const { colors } = useThemeStore();
   const userId = session?.user?.id;
+
+  // Animation shared values
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (modalVisible) {
+      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, {
+        damping: 25,
+        stiffness: 80,
+      });
+    } else {
+      opacity.value = withTiming(0, { duration: 200 });
+      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
+    }
+  }, [modalVisible]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   // ダウンロード状態
   const { data: isDownloaded = false } = useDownloadStatus(song.id);
@@ -52,7 +100,17 @@ function ListItemOptionsMenu({
     userId
   );
 
+  const handleOpenModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
   const handleDownload = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isOnline) {
       Alert.alert(
         "オフラインです",
@@ -61,15 +119,17 @@ function ListItemOptionsMenu({
       return;
     }
     downloadSong(song);
-    setModalVisible(false);
+    handleCloseModal();
   };
 
   const handleDeleteDownload = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     deleteSong(song.id);
-    setModalVisible(false);
+    handleCloseModal();
   };
 
   const handleToggleLike = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isOnline) {
       Alert.alert(
         "オフラインです",
@@ -96,60 +156,95 @@ function ListItemOptionsMenu({
         });
       },
     });
-    setModalVisible(false);
+    handleCloseModal();
   };
+
+  const renderOption = (
+    label: string,
+    Icon: any,
+    onPress: () => void,
+    color: string = colors.text,
+    isDisabled: boolean = false,
+    testID?: string
+  ) => (
+    <TouchableOpacity
+      style={[styles.option, isDisabled && styles.optionDisabled]}
+      onPress={onPress}
+      disabled={isDisabled}
+      testID={testID}
+    >
+      <View
+        style={[
+          styles.iconWrapper,
+          { backgroundColor: color === colors.error ? colors.error + "20" : "rgba(255,255,255,0.05)" },
+        ]}
+      >
+        <Icon size={20} color={color} strokeWidth={1.5} />
+      </View>
+      <Text style={[styles.optionText, { color }]}>{label}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <>
       <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        style={styles.menuButton}
+        onPress={handleOpenModal}
+        style={[styles.menuButton, { borderColor: colors.border }]}
         testID="menu-button"
       >
-        <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
+        <MoreVertical size={20} color={colors.text} strokeWidth={1.5} />
       </TouchableOpacity>
 
       <Modal
         visible={modalVisible}
         transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
+        animationType="none"
+        onRequestClose={handleCloseModal}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <BlurView intensity={30} tint="dark" style={styles.modalContainer}>
-            <View style={styles.modalContent}>
+        <View style={styles.modalRoot}>
+          <Animated.View style={[styles.overlay, overlayStyle]}>
+            <Pressable style={styles.flex} onPress={handleCloseModal} />
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.sheet,
+              { backgroundColor: colors.background, borderColor: colors.border },
+              animatedStyle,
+            ]}
+          >
+            <View style={styles.handle} />
+
+            {/* Song Header */}
+            <View style={styles.header}>
+              <Image
+                source={{ uri: song.image_path }}
+                style={styles.headerImage}
+                contentFit="cover"
+              />
+              <View style={styles.headerInfo}>
+                <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
+                  {song.title}
+                </Text>
+                <Text style={[styles.songAuthor, { color: colors.subText }]} numberOfLines={1}>
+                  {song.author}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.optionsList}>
               {/* いいねオプション */}
-              {userId && (
-                <TouchableOpacity
-                  style={[styles.option, !isOnline && styles.optionDisabled]}
-                  onPress={handleToggleLike}
-                  disabled={isLiking}
-                  testID="like-option"
-                >
-                  <Ionicons
-                    name={isLiked ? "heart" : "heart-outline"}
-                    size={24}
-                    color={isLiked ? "#ff4444" : isOnline ? "#fff" : "#666"}
-                  />
-                  <Text
-                    style={[
-                      styles.optionText,
-                      isLiked && styles.likedText,
-                      !isOnline && styles.optionTextDisabled,
-                    ]}
-                  >
-                    {isLiking
-                      ? "処理中..."
-                      : isLiked
-                      ? "いいねを解除"
-                      : "いいね"}
-                  </Text>
-                </TouchableOpacity>
-              )}
+              {userId &&
+                renderOption(
+                  isLiking ? "処理中..." : isLiked ? "いいねを解除" : "いいね",
+                  Heart,
+                  handleToggleLike,
+                  isLiked ? "#ff4444" : colors.text,
+                  isLiking || !isOnline,
+                  "like-option"
+                )}
 
               {/* プレイリストに追加 */}
               {userId && (
@@ -161,18 +256,10 @@ function ListItemOptionsMenu({
                     style={[styles.option, !isOnline && styles.optionDisabled]}
                     testID="add-to-playlist-option"
                   >
-                    <Ionicons
-                      name="add-circle-outline"
-                      size={24}
-                      color={isOnline ? "#00dbde" : "#666"}
-                    />
-                    <Text
-                      style={[
-                        styles.optionText,
-                        styles.addPlaylistText,
-                        !isOnline && styles.optionTextDisabled,
-                      ]}
-                    >
+                    <View style={styles.iconWrapper}>
+                      <PlusCircle size={20} color={isOnline ? colors.primary : colors.subText} strokeWidth={1.5} />
+                    </View>
+                    <Text style={[styles.optionText, { color: isOnline ? colors.text : colors.subText }]}>
                       プレイリストに追加
                     </Text>
                   </View>
@@ -180,70 +267,155 @@ function ListItemOptionsMenu({
               )}
 
               {/* ダウンロード/削除オプション */}
-              {!isDownloaded ? (
-                <TouchableOpacity
-                  style={[styles.option, !isOnline && styles.optionDisabled]}
-                  onPress={handleDownload}
-                  disabled={isDownloading}
-                  testID="download-option"
-                >
-                  <Ionicons
-                    name="cloud-download-outline"
-                    size={24}
-                    color={isOnline ? "#fff" : "#666"}
-                  />
-                  <Text
-                    style={[
-                      styles.optionText,
-                      !isOnline && styles.optionTextDisabled,
-                    ]}
-                  >
-                    {isDownloading ? "ダウンロード中..." : "ダウンロード"}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={handleDeleteDownload}
-                  disabled={isDeleting}
-                  testID="delete-download-option"
-                >
-                  <Ionicons
-                    name="cloud-offline-outline"
-                    size={24}
-                    color="#FF6B6B"
-                  />
-                  <Text style={[styles.optionText, styles.deleteDownloadText]}>
-                    {isDeleting ? "削除中..." : "ダウンロード済みを削除"}
-                  </Text>
-                </TouchableOpacity>
-              )}
+              {!isDownloaded
+                ? renderOption(
+                    isDownloading ? "ダウンロード中..." : "ダウンロード",
+                    Download,
+                    handleDownload,
+                    isOnline ? colors.text : colors.subText,
+                    isDownloading || !isOnline,
+                    "download-option"
+                  )
+                : renderOption(
+                    isDeleting ? "削除中..." : "オフライン保存を削除",
+                    CloudOff,
+                    handleDeleteDownload,
+                    colors.error,
+                    isDeleting,
+                    "delete-download-option"
+                  )}
 
               {/* プレイリストから削除（オーナーのみ） */}
-              {onDelete && (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={() => {
+              {onDelete &&
+                renderOption(
+                  "プレイリストから削除",
+                  Trash2,
+                  () => {
                     onDelete();
-                    setModalVisible(false);
-                  }}
-                  testID="delete-option"
-                >
-                  <Ionicons name="trash-outline" size={24} color="#ff4444" />
-                  <Text style={[styles.optionText, styles.deleteText]}>
-                    プレイリストから削除
-                  </Text>
-                </TouchableOpacity>
-              )}
+                    handleCloseModal();
+                  },
+                  colors.error,
+                  false,
+                  "delete-option"
+                )}
             </View>
-          </BlurView>
-        </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.closeButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={handleCloseModal}
+            >
+              <Text style={[styles.closeButtonText, { color: colors.text }]}>閉じる</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
       </Modal>
     </>
   );
 }
 
-// メモ化してエクスポート
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  modalRoot: { flex: 1, justifyContent: "flex-end" },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
+  menuButton: {
+    padding: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+  },
+  sheet: {
+    width: "100%",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderTopWidth: 1,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  headerImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+  },
+  headerInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  songTitle: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+  },
+  songAuthor: {
+    fontSize: 14,
+    fontFamily: FONTS.body,
+    marginTop: 2,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    marginBottom: 10,
+  },
+  optionsList: {
+    gap: 4,
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+  },
+  optionDisabled: {
+    opacity: 0.5,
+  },
+  iconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  optionText: {
+    fontSize: 16,
+    fontFamily: FONTS.semibold,
+    marginLeft: 16,
+  },
+  closeButton: {
+    marginTop: 20,
+    height: 56,
+    borderRadius: 16,
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+  },
+});
+
 export default memo(ListItemOptionsMenu, (prevProps, nextProps) => {
   return (
     prevProps.song.id === nextProps.song.id &&
@@ -252,55 +424,3 @@ export default memo(ListItemOptionsMenu, (prevProps, nextProps) => {
   );
 });
 
-const styles = StyleSheet.create({
-  menuButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    width: "80%",
-    borderRadius: 16,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  modalContent: {
-    backgroundColor: "rgba(30, 30, 30, 0.8)",
-  },
-  option: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.1)",
-  },
-  optionDisabled: {
-    opacity: 0.5,
-  },
-  optionText: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 12,
-  },
-  optionTextDisabled: {
-    color: "#666",
-  },
-  likedText: {
-    color: "#ff4444",
-  },
-  addPlaylistText: {
-    color: "#00dbde",
-  },
-  deleteDownloadText: {
-    color: "#FF6B6B",
-  },
-  deleteText: {
-    color: "#ff4444",
-  },
-});
