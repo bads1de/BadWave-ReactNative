@@ -118,8 +118,18 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
           <View style={styles.menuContainer}>
             <ListItemOptionsMenu song={song} />
           </View>
-          
-          <View style={styles.textOverlay}>
+
+          <TouchableOpacity
+            style={styles.textOverlay}
+            onPress={() =>
+              router.push({
+                pathname: "/song/[songId]",
+                params: { songId: song.id },
+              })
+            }
+            activeOpacity={0.8}
+            testID="song-title-button"
+          >
             <MarqueeText
               text={song.title}
               style={styles.title}
@@ -128,23 +138,30 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
               fontFamily={FONTS.body}
               fontSize={15}
             />
-            <Text style={[styles.author, { color: colors.subText }]} numberOfLines={1}>
+            <Text
+              style={[styles.author, { color: colors.subText }]}
+              numberOfLines={1}
+            >
               {song.author}
             </Text>
+          </TouchableOpacity>
 
-            <View style={styles.footer}>
-              <View style={styles.statsRow}>
-                <View style={styles.stat}>
-                  <Play size={10} color={colors.primary} fill={colors.primary} />
-                  <Text style={[styles.statText, { color: colors.text }]}>{song.count}</Text>
-                </View>
-                <View style={styles.stat}>
-                  <Heart size={10} color={colors.text} />
-                  <Text style={[styles.statText, { color: colors.text }]}>{song.like_count}</Text>
-                </View>
+          <View style={styles.footer}>
+            <View style={styles.statsRow}>
+              <View style={styles.stat}>
+                <Play size={10} color={colors.primary} fill={colors.primary} />
+                <Text style={[styles.statText, { color: colors.text }]}>
+                  {song.count}
+                </Text>
               </View>
-              <DownloadButton song={song} size={14} readOnly={true} />
+              <View style={styles.stat}>
+                <Heart size={10} color={colors.text} />
+                <Text style={[styles.statText, { color: colors.text }]}>
+                  {song.like_count}
+                </Text>
+              </View>
             </View>
+            <DownloadButton song={song} size={14} readOnly={true} />
           </View>
         </View>
       </TouchableOpacity>
@@ -234,4 +251,3 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 });
-

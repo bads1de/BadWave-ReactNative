@@ -13,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Palette, RefreshCw, HardDrive, LogOut } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
-import { BlurView } from "expo-blur";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/actions/user/getUser";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";

@@ -135,7 +135,7 @@ function OnRepeat() {
         <View style={styles.titleRow}>
           <Repeat size={20} color={colors.primary} strokeWidth={1.5} />
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            On Repeat
+            ON REPEAT
           </Text>
         </View>
         <View

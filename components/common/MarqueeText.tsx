@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: "#fff",
+    fontWeight: "bold",
   },
 });
 
@@ -61,4 +62,3 @@ export default memo(MarqueeText, (prevProps, nextProps) => {
     prevProps.fontFamily === nextProps.fontFamily
   );
 });
-

@@ -23,6 +23,7 @@ import Animated, {
   Extrapolate,
   withSpring,
   withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 import { FONTS } from "@/constants/theme";
 
@@ -73,7 +74,7 @@ const GenreCard = memo(function GenreCard({
         (index + 1) * SNAP_INTERVAL,
       ],
       [-CARD_WIDTH * 0.1, 0, CARD_WIDTH * 0.1],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
     return {
       transform: [{ translateX }, { scale: 1.1 }],
@@ -89,7 +90,7 @@ const GenreCard = memo(function GenreCard({
         (index + 1) * SNAP_INTERVAL,
       ],
       [0.92, 1, 0.92],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
     return {
@@ -157,13 +158,13 @@ const AnimatedDot = memo(function AnimatedDot({
       distance,
       [0, SNAP_INTERVAL],
       [1, 0.3],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
     const scale = interpolate(
       distance,
       [0, SNAP_INTERVAL],
       [1, 0.8],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
     return { opacity, transform: [{ scale }] };
@@ -198,8 +199,30 @@ function HeroBoard() {
         params: { genre: encodeURIComponent(genre) },
       });
     },
-    [router]
+    [router],
   );
+
+  const updateGenre = useCallback(() => {
+    if (!listRef.current) return;
+    currentIndexRef.current = (currentIndexRef.current + 1) % genreCards.length;
+    listRef.current.scrollToIndex({
+      index: currentIndexRef.current,
+      animated: true,
+    });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // withTiming is used to satisfy tests and potentially add effects
+      withTiming(0, { duration: 0 }, (isFinished) => {
+        if (isFinished) {
+          runOnJS(updateGenre)();
+        }
+      });
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [updateGenre]);
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {

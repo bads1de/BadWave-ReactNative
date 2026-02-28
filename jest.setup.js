@@ -72,7 +72,7 @@ jest.mock("expo-image", () => {
       React.createElement(
         View,
         { testID: "image-background", ...props },
-        children
+        children,
       ),
   };
 });
@@ -86,7 +86,7 @@ jest.mock("expo-linear-gradient", () => {
       React.createElement(
         View,
         { testID: "linear-gradient", ...props },
-        children
+        children,
       ),
   };
 });
@@ -184,7 +184,22 @@ jest.mock("expo-video", () => {
 // 各テストファイルで個別にモックを定義するようにします
 // グローバルモックは使用しません
 
+// Reanimated mock
+jest.mock("react-native-reanimated", () => {
+  const Reanimated = require("react-native-reanimated/mock");
+
+  // withSpring と withTiming がプロキシ経由で正しく動作しない場合があるための補足
+  Reanimated.withSpring = jest.fn((value) => value);
+  Reanimated.withTiming = jest.fn((toValue) => toValue);
+
+  return Reanimated;
+});
+
 // React Navigation のモック
+jest.mock("@react-navigation/bottom-tabs", () => ({
+  useBottomTabBarHeight: () => 60, // Default mock height
+}));
+
 jest.mock("@react-navigation/native", () => {
   const actualNav = jest.requireActual("@react-navigation/native");
   return {
@@ -200,6 +215,28 @@ jest.mock("@react-navigation/native", () => {
     useIsFocused: () => true,
   };
 });
+
+// expo-router のモック
+jest.mock("expo-router", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    canGoBack: jest.fn(() => true),
+    setParams: jest.fn(),
+  }),
+  useLocalSearchParams: () => ({}),
+  useGlobalSearchParams: () => ({}),
+  Link: "Link",
+  Tabs: "Tabs",
+  Stack: "Stack",
+  Slot: "Slot",
+  useSegments: () => [],
+  useRootNavigationState: () => ({
+    key: "root",
+  }),
+  usePathname: () => "/",
+}));
 
 // React のモック
 global.React = require("react");

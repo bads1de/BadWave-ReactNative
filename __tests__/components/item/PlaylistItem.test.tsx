@@ -23,7 +23,7 @@ describe("PlaylistItem Component", () => {
     );
 
     expect(getByText("My Awesome Playlist")).toBeTruthy();
-    expect(getByText("Playlist")).toBeTruthy();
+    expect(getByText("COLLECTION")).toBeTruthy();
   });
 
   it("押下時に onPress が呼ばれる", () => {

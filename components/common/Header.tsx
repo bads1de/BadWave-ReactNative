@@ -17,7 +17,15 @@ function Header() {
   const { colors } = useThemeStore();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.background,
+          borderBottomColor: colors.border,
+        },
+      ]}
+    >
       <View style={styles.leftContainer}>
         <Image
           source={require("@/assets/images/logo.png")}
@@ -43,7 +51,9 @@ function Header() {
           onPress={() => setShowAuthModal(true)}
           style={[styles.loginButton, { borderColor: colors.primary }]}
         >
-          <Text style={[styles.loginText, { color: colors.primary }]}>LOG_IN</Text>
+          <Text style={[styles.loginText, { color: colors.primary }]}>
+            LOG_IN
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -102,10 +112,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(Header);
-
-// メモ化してエクスポート
-export default memo(Header);
-
-// メモ化してエクスポート
-export default memo(Header);
-

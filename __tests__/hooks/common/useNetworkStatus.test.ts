@@ -40,6 +40,9 @@ describe("useNetworkStatus", () => {
 
     const { result } = renderHook(() => useNetworkStatus());
 
+    // 初期化（fetch）の完了を待つ
+    await act(async () => {});
+
     // 変化をシミュレート
     await act(async () => {
       listener({ isConnected: false });

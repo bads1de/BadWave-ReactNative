@@ -47,11 +47,11 @@ describe("Header", () => {
   beforeEach(() => {
     setShowAuthModal = jest.fn();
     // Zustandのセレクタパターンに対応するためのモック実装
-    useHeaderStore.mockImplementation((selector) =>
-      selector({ showHeader: true })
+    useHeaderStore.mockImplementation((selector: any) =>
+      selector({ showHeader: true }),
     );
-    useAuthStore.mockImplementation((selector) =>
-      selector({ setShowAuthModal })
+    useAuthStore.mockImplementation((selector: any) =>
+      selector({ setShowAuthModal }),
     );
 
     useAuth.mockReturnValue({ session: null });
@@ -71,7 +71,7 @@ describe("Header", () => {
     return render(
       <QueryClientProvider client={queryClient}>
         <Header />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 
@@ -98,11 +98,10 @@ describe("Header", () => {
   it("opens auth modal when login button is pressed (logged out)", () => {
     // 未ログイン状態（デフォルト）
     const { getByText } = renderHeader();
-    const loginButton = getByText("Login");
+    const loginButton = getByText("LOG_IN");
 
     fireEvent.press(loginButton);
 
     expect(setShowAuthModal).toHaveBeenCalledWith(true);
   });
 });
-

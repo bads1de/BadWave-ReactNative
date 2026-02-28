@@ -2,6 +2,7 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import { Ionicons } from "@expo/vector-icons";
+import { Play, Pause } from "lucide-react-native";
 
 // @expo/vector-iconsのモック
 jest.mock("@expo/vector-icons", () => {
@@ -14,6 +15,17 @@ jest.mock("@expo/vector-icons", () => {
   };
 });
 
+// lucide-react-nativeのモック
+jest.mock("lucide-react-native", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const MockIcon = (props: any) => React.createElement(View, props);
+  return {
+    Play: MockIcon,
+    Pause: MockIcon,
+  };
+});
+
 // expo-blurのモック
 jest.mock("expo-blur", () => {
   const React = require("react");
@@ -23,7 +35,7 @@ jest.mock("expo-blur", () => {
       React.createElement(
         View,
         { testID: testID || "blur-view", ...props },
-        children
+        children,
       ),
   };
 });
@@ -50,7 +62,7 @@ jest.mock("expo-linear-gradient", () => ({
     return React.createElement(
       View,
       { testID: testID || "linear-gradient" },
-      children
+      children,
     );
   },
 }));
@@ -81,6 +93,7 @@ jest.mock("react-native-reanimated", () => {
     useSharedValue: (initialValue: any) => ({ value: initialValue }),
     useAnimatedStyle: (callback: any) => callback(),
     withTiming: (value: any) => value,
+    withSpring: (value: any) => value,
   };
 });
 
@@ -115,7 +128,7 @@ describe("MiniPlayer", () => {
         onPlayPause={mockOnPlayPause}
         onPress={mockOnPress}
         {...props}
-      />
+      />,
     );
   };
 
@@ -127,7 +140,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByTestId("blur-view")).toBeTruthy();
@@ -141,7 +154,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
@@ -154,7 +167,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Test Artist")).toBeTruthy();
@@ -167,7 +180,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       const image = getByTestId("expo-image");
@@ -181,7 +194,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByTestId("blur-view")).toBeTruthy();
@@ -196,11 +209,13 @@ describe("MiniPlayer", () => {
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       // すべてのaccessible要素をテストして、onPressでonPlayPauseを呼ぶものを探す
       const playButton = accessibleElements.find((el: any) => {
-        // 子要素にFeatherアイコンがあるものを探す
-        const hasFeatherIcon =
+        // 子要素にPlayまたはPauseアイコンがあるものを探す
+        const hasPlayPauseIcon =
           el.children &&
-          el.children.some((child: any) => child.type === Ionicons);
-        return hasFeatherIcon;
+          el.children.some(
+            (child: any) => child.type === Play || child.type === Pause,
+          );
+        return hasPlayPauseIcon;
       });
 
       if (playButton) {
@@ -217,12 +232,11 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      const ionicIcons = UNSAFE_getAllByType(Ionicons);
-      const playPauseIcon = ionicIcons[0];
-      expect(playPauseIcon.props.name).toBe("play");
+      const playIcon = UNSAFE_getAllByType(Play);
+      expect(playIcon.length).toBeGreaterThan(0);
     });
 
     it("isPlaying=trueのときpauseアイコンが表示される", () => {
@@ -232,12 +246,11 @@ describe("MiniPlayer", () => {
           isPlaying={true}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      const ionicIcons = UNSAFE_getAllByType(Ionicons);
-      const playPauseIcon = ionicIcons[0];
-      expect(playPauseIcon.props.name).toBe("pause");
+      const pauseIcon = UNSAFE_getAllByType(Pause);
+      expect(pauseIcon.length).toBeGreaterThan(0);
     });
 
     it("再生状態が変わるとアイコンが切り替わる", () => {
@@ -247,11 +260,10 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      let ionicIcons = UNSAFE_getAllByType(Ionicons);
-      expect(ionicIcons[0].props.name).toBe("play");
+      expect(UNSAFE_getAllByType(Play).length).toBeGreaterThan(0);
 
       rerender(
         <MiniPlayer
@@ -259,11 +271,10 @@ describe("MiniPlayer", () => {
           isPlaying={true}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      ionicIcons = UNSAFE_getAllByType(Ionicons);
-      expect(ionicIcons[0].props.name).toBe("pause");
+      expect(UNSAFE_getAllByType(Pause).length).toBeGreaterThan(0);
     });
 
     it("再生中でも再生/一時停止ボタンがタップ可能", () => {
@@ -271,10 +282,12 @@ describe("MiniPlayer", () => {
 
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       const playButton = accessibleElements.find((el: any) => {
-        const hasFeatherIcon =
+        const hasPlayPauseIcon =
           el.children &&
-          el.children.some((child: any) => child.type === Ionicons);
-        return hasFeatherIcon;
+          el.children.some(
+            (child: any) => child.type === Play || child.type === Pause,
+          );
+        return hasPlayPauseIcon;
       });
 
       if (playButton) {
@@ -315,10 +328,12 @@ describe("MiniPlayer", () => {
 
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       const playButton = accessibleElements.find((el: any) => {
-        const hasFeatherIcon =
+        const hasPlayPauseIcon =
           el.children &&
-          el.children.some((child: any) => child.type === Ionicons);
-        return hasFeatherIcon;
+          el.children.some(
+            (child: any) => child.type === Play || child.type === Pause,
+          );
+        return hasPlayPauseIcon;
       });
 
       if (playButton) {
@@ -335,10 +350,12 @@ describe("MiniPlayer", () => {
       const accessibleElements = UNSAFE_getAllByProps({ accessible: true });
       const containerButton = accessibleElements[0];
       const playButton = accessibleElements.find((el: any) => {
-        const hasFeatherIcon =
+        const hasPlayPauseIcon =
           el.children &&
-          el.children.some((child: any) => child.type === Ionicons);
-        return hasFeatherIcon;
+          el.children.some(
+            (child: any) => child.type === Play || child.type === Pause,
+          );
+        return hasPlayPauseIcon;
       });
 
       fireEvent.press(containerButton);
@@ -363,7 +380,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
@@ -381,7 +398,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("New Song")).toBeTruthy();
@@ -395,7 +412,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       let image = getByTestId("expo-image");
@@ -413,7 +430,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       image = getByTestId("expo-image");
@@ -427,7 +444,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       const marqueeText = getByTestId("marquee-text");
@@ -450,7 +467,7 @@ describe("MiniPlayer", () => {
             isPlaying={false}
             onPlayPause={mockOnPlayPause}
             onPress={mockOnPress}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -468,7 +485,7 @@ describe("MiniPlayer", () => {
             isPlaying={false}
             onPlayPause={mockOnPlayPause}
             onPress={mockOnPress}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -485,7 +502,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText(specialCharSong.title)).toBeTruthy();
@@ -505,7 +522,7 @@ describe("MiniPlayer", () => {
             isPlaying={false}
             onPlayPause={mockOnPlayPause}
             onPress={mockOnPress}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -523,7 +540,7 @@ describe("MiniPlayer", () => {
             isPlaying={false}
             onPlayPause={mockOnPlayPause}
             onPress={mockOnPress}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -541,7 +558,7 @@ describe("MiniPlayer", () => {
             isPlaying={false}
             onPlayPause={mockOnPlayPause}
             onPress={mockOnPress}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -559,7 +576,7 @@ describe("MiniPlayer", () => {
             isPlaying={false}
             onPlayPause={mockOnPlayPause}
             onPress={mockOnPress}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -573,7 +590,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       const callCountBefore = mockOnPlayPause.mock.calls.length;
@@ -585,7 +602,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       // 関数が勝手に呼ばれないことを確認
@@ -599,11 +616,10 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      let icons = UNSAFE_getAllByType(Ionicons);
-      expect(icons[0].props.name).toBe("play");
+      expect(UNSAFE_getAllByType(Play).length).toBeGreaterThan(0);
 
       rerender(
         <MiniPlayer
@@ -611,11 +627,10 @@ describe("MiniPlayer", () => {
           isPlaying={true}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      icons = UNSAFE_getAllByType(Ionicons);
-      expect(icons[0].props.name).toBe("pause");
+      expect(UNSAFE_getAllByType(Pause).length).toBeGreaterThan(0);
     });
 
     it("currentSong.idが異なる場合は再レンダリングされる", () => {
@@ -625,7 +640,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
@@ -642,7 +657,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Different Song")).toBeTruthy();
@@ -655,7 +670,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
@@ -669,7 +684,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={newOnPlayPause}
           onPress={newOnPress}
-        />
+        />,
       );
 
       // メモ化により関数が変わっても再レンダリングされない
@@ -686,7 +701,7 @@ describe("MiniPlayer", () => {
             isPlaying={false}
             onPlayPause={mockOnPlayPause}
             onPress={mockOnPress}
-          />
+          />,
         );
       }).not.toThrow();
     });
@@ -698,7 +713,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       // コンポーネントがマウントされることを確認
@@ -714,7 +729,7 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       const blurView = getByTestId("blur-view");
@@ -730,12 +745,11 @@ describe("MiniPlayer", () => {
           isPlaying={true}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
-      const icons = UNSAFE_getAllByType(Ionicons);
-      expect(icons[0].props.name).toBe("pause");
+      expect(UNSAFE_getAllByType(Pause).length).toBeGreaterThan(0);
     });
 
     it("停止中で異なる曲の場合、正しく表示される", () => {
@@ -745,12 +759,11 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
       expect(getByText("Test Song Title")).toBeTruthy();
-      const icons = UNSAFE_getAllByType(Ionicons);
-      expect(icons[0].props.name).toBe("play");
+      expect(UNSAFE_getAllByType(Play).length).toBeGreaterThan(0);
     });
 
     it("状態遷移が正しく動作する（停止→再生→停止）", () => {
@@ -760,11 +773,10 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      let icons = UNSAFE_getAllByType(Ionicons);
-      expect(icons[0].props.name).toBe("play");
+      expect(UNSAFE_getAllByType(Play).length).toBeGreaterThan(0);
 
       rerender(
         <MiniPlayer
@@ -772,11 +784,10 @@ describe("MiniPlayer", () => {
           isPlaying={true}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      icons = UNSAFE_getAllByType(Ionicons);
-      expect(icons[0].props.name).toBe("pause");
+      expect(UNSAFE_getAllByType(Pause).length).toBeGreaterThan(0);
 
       rerender(
         <MiniPlayer
@@ -784,12 +795,10 @@ describe("MiniPlayer", () => {
           isPlaying={false}
           onPlayPause={mockOnPlayPause}
           onPress={mockOnPress}
-        />
+        />,
       );
 
-      icons = UNSAFE_getAllByType(Ionicons);
-      expect(icons[0].props.name).toBe("play");
+      expect(UNSAFE_getAllByType(Play).length).toBeGreaterThan(0);
     });
   });
 });
-

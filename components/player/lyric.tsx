@@ -38,6 +38,7 @@ interface LyricProps {
   testID?: string;
   songTitle?: string;
   artistName?: string;
+  initialVisibleLines?: number;
 }
 
 interface ParsedLine {
@@ -147,7 +148,15 @@ const LyricLineItem = memo(
 
 LyricLineItem.displayName = "LyricLineItem";
 
-const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
+const Lyric: React.FC<LyricProps> = ({
+  lyrics,
+  songTitle,
+  artistName,
+  initialVisibleLines = 3,
+}) => {
+  if (lyrics === null || lyrics === undefined) {
+    throw new Error("Lyrics must be provided");
+  }
   const [isExpanded, setIsExpanded] = useState(false);
   const { position } = useProgress(100); // 100ms update for smoother sync
   const scrollViewRef = useRef<ScrollView>(null);
@@ -241,7 +250,7 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
     });
   }, []);
 
-  if (!lyrics) return null;
+  // if (!lyrics) return null; // Handled at top
 
   return (
     <View style={styles.container}>
@@ -267,16 +276,30 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
       <View style={styles.contentContainer}>
         {!hasLrc ? (
           // PLAIN TEXT VIEW (Legacy behavior)
-          <View style={styles.plainContainer}>
-            {plainLines.slice(0, isExpanded ? undefined : 6).map((line, i) => (
-              <Text key={i} style={styles.plainText}>
-                {line}
-              </Text>
-            ))}
-            {!isExpanded && plainLines.length > 6 && (
-              <Text style={styles.moreText}>...</Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={styles.plainScrollView}
+          >
+            <View style={styles.plainContainer}>
+              {plainLines
+                .slice(0, isExpanded ? undefined : initialVisibleLines)
+                .map((line, i) => (
+                  <Text key={i} style={styles.plainText}>
+                    {line}
+                  </Text>
+                ))}
+            </View>
+            {plainLines.length > initialVisibleLines && (
+              <TouchableOpacity
+                onPress={toggleExpand}
+                style={styles.showMoreBtn}
+              >
+                <Text style={[styles.showMoreText, { color: colors.primary }]}>
+                  {isExpanded ? "Show less" : "Show more"}
+                </Text>
+              </TouchableOpacity>
             )}
-          </View>
+          </ScrollView>
         ) : (
           // SYNCED LYRICS VIEW
           <View style={{ height: isExpanded ? 400 : 250 }}>
@@ -308,7 +331,9 @@ const Lyric: React.FC<LyricProps> = ({ lyrics, songTitle, artistName }) => {
         <View style={styles.footer}>
           {(songTitle || artistName) && (
             <Text style={styles.songInfo}>
-              {songTitle} {artistName && `- ${artistName}`}
+              {songTitle && <Text>{songTitle}</Text>}
+              {songTitle && artistName && <Text> - </Text>}
+              {artistName && <Text>{artistName}</Text>}
             </Text>
           )}
         </View>
@@ -361,6 +386,17 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.5)",
     fontSize: 14,
     marginTop: 4,
+  },
+  plainScrollView: {
+    maxHeight: 300,
+  },
+  showMoreBtn: {
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  showMoreText: {
+    fontSize: 14,
+    fontFamily: FONTS.semibold,
   },
 
   // Synced Styles

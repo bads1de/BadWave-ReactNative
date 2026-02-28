@@ -11,7 +11,11 @@ jest.mock("expo-video", () => ({
 
 // Mock useSpotlightPlayer
 jest.mock("@/hooks/audio/useSpotlightPlayer", () => ({
-  useSpotlightPlayer: jest.fn(),
+  useSpotlightPlayer: jest.fn(() => ({
+    muted: false,
+    play: jest.fn(),
+    pause: jest.fn(),
+  })),
 }));
 
 describe("SpotlightItem", () => {
@@ -24,12 +28,11 @@ describe("SpotlightItem", () => {
   };
 
   it("renders correctly", () => {
-    const { getByText } = render(
-      <SpotlightItem item={mockSpotlight} isVisible={true} />
+    const { getAllByText } = render(
+      <SpotlightItem item={mockSpotlight} isVisible={true} />,
     );
 
-    expect(getByText("Test Artist")).toBeTruthy();
-    expect(getByText("Test Song")).toBeTruthy();
+    expect(getAllByText("Test Artist").length).toBeGreaterThan(0);
+    expect(getAllByText("Test Song").length).toBeGreaterThan(0);
   });
 });
-
