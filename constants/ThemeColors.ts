@@ -29,6 +29,10 @@ export interface ThemeDefinition {
     activeTab: string;
     glow: string;
 
+    // Error and Success
+    error: string;
+    success: string;
+
     // Helper Gradients
     gradient: [string, string];
     accentGradient: [string, string, string];
@@ -41,10 +45,13 @@ const LUXURY_BASE_COLORS = {
   text: "#F5F5F5",
   subText: "#A8A29E",
   border: "#262626",
+  error: "#991B1B",
+  success: "#166534",
 };
 
 export const THEMES: Record<ThemeType, ThemeDefinition> = {
-  violet: { // Midnight Gold
+  violet: {
+    // Midnight Gold
     name: "violet",
     label: "Midnight",
     colors: {
@@ -61,7 +68,8 @@ export const THEMES: Record<ThemeType, ThemeDefinition> = {
       accentGradient: ["#D4AF37", "#A8A29E", "#F5F5F5"],
     },
   },
-  emerald: { // Deep Forest
+  emerald: {
+    // Deep Forest
     name: "emerald",
     label: "Forest",
     colors: {
@@ -78,7 +86,8 @@ export const THEMES: Record<ThemeType, ThemeDefinition> = {
       accentGradient: ["#064E3B", "#065F46", "#059669"],
     },
   },
-  rose: { // Velvet Wine
+  rose: {
+    // Velvet Wine
     name: "rose",
     label: "Velvet",
     colors: {
@@ -95,7 +104,8 @@ export const THEMES: Record<ThemeType, ThemeDefinition> = {
       accentGradient: ["#450A0A", "#7F1D1D", "#B91C1C"],
     },
   },
-  amber: { // Royal Sand
+  amber: {
+    // Royal Sand
     name: "amber",
     label: "Sand",
     colors: {
@@ -112,7 +122,8 @@ export const THEMES: Record<ThemeType, ThemeDefinition> = {
       accentGradient: ["#78350F", "#B45309", "#F59E0B"],
     },
   },
-  sky: { // Arctic Slate
+  sky: {
+    // Arctic Slate
     name: "sky",
     label: "Slate",
     colors: {
