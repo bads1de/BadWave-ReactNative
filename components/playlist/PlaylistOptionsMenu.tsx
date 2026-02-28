@@ -299,7 +299,7 @@ export default function PlaylistOptionsMenu({
         style={[styles.menuButton, { borderColor: colors.border }]}
         testID="menu-button"
       >
-        <Settings2 size={20} color={colors.primary} strokeWidth={1.5} />
+        <Settings2 size={20} color={colors.text} strokeWidth={1.5} />
       </TouchableOpacity>
 
       <Modal
@@ -503,8 +503,12 @@ const styles = StyleSheet.create({
   menuButton: {
     padding: 10,
     borderRadius: 14,
-    borderWidth: 1,
-    backgroundColor: "rgba(255,255,255,0.03)",
+    borderWidth: 1.5,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   sheet: {
     width: "100%",

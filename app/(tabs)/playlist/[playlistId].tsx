@@ -19,6 +19,7 @@ import Song from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
@@ -27,6 +28,7 @@ import { useGetPlaylistSongs } from "@/hooks/data/useGetPlaylistSongs";
 import { useGetLocalPlaylist } from "@/hooks/data/useGetLocalPlaylist";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { useOfflineGuard } from "@/hooks/common/useOfflineGuard";
+import { FONTS } from "@/constants/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -34,6 +36,7 @@ export default function PlaylistDetailScreen() {
   const router = useRouter();
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
   const { session } = useAuth();
+  const { colors } = useThemeStore();
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
 
   useFocusEffect(
@@ -42,7 +45,7 @@ export default function PlaylistDetailScreen() {
       return () => {
         setShowHeader(true);
       };
-    }, [setShowHeader])
+    }, [setShowHeader]),
   );
 
   // ローカルファースト同期データの取得
@@ -82,16 +85,16 @@ export default function PlaylistDetailScreen() {
       };
       guardAction(
         action,
-        "プレイリストの編集にはインターネット接続が必要です"
+        "プレイリストの編集にはインターネット接続が必要です",
       )();
     },
-    [removeSong, playlistId, guardAction]
+    [removeSong, playlistId, guardAction],
   );
 
   const { togglePlayPause } = useAudioPlayer(
     playlistSongs,
     "playlist",
-    playlistId
+    playlistId,
   );
 
   // 曲をクリックしたときのハンドラをメモ化
@@ -99,7 +102,7 @@ export default function PlaylistDetailScreen() {
     async (song: Song) => {
       await togglePlayPause(song);
     },
-    [togglePlayPause]
+    [togglePlayPause],
   );
 
   const renderSongs = useCallback(
@@ -121,7 +124,7 @@ export default function PlaylistDetailScreen() {
       playlist?.user_id,
       handleDeleteSong,
       playlistId,
-    ]
+    ],
   );
 
   // keyExtractor関数をメモ化
@@ -132,10 +135,6 @@ export default function PlaylistDetailScreen() {
     () => (
       <View style={styles.header}>
         <View style={styles.thumbnailContainer}>
-          <View style={styles.decorativeCard1} />
-          <View style={styles.decorativeCard2} />
-          <View style={styles.decorativeCard3} />
-
           <Image
             source={{ uri: playlist?.image_path }}
             style={styles.thumbnail}
@@ -143,82 +142,150 @@ export default function PlaylistDetailScreen() {
             cachePolicy="disk"
           />
           <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.8)"]}
+            colors={["transparent", "rgba(10,10,10,0.4)", colors.background]}
             style={styles.thumbnailGradient}
-          />
-          <LinearGradient
-            colors={["#fc00ff", "#00dbde"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.neonGradient}
           />
 
           {/* 戻るボタン */}
           <TouchableOpacity
-            style={styles.backButton}
+            style={[
+              styles.backButton,
+              {
+                borderColor: colors.glow,
+                backgroundColor: "rgba(10, 10, 10, 0.5)",
+              },
+            ]}
             onPress={() => router.push("/library")}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
-        <BlurView intensity={30} tint="dark" style={styles.infoContainer}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-              {playlist?.title}
-            </Text>
-            {playlist?.is_public && (
-              <View style={styles.privacyBadge}>
-                <Ionicons name="globe-outline" size={16} color="#fff" />
-                <Text style={styles.privacyText}>Public</Text>
-              </View>
-            )}
-            {!playlist?.is_public && (
-              <View style={[styles.privacyBadge, styles.privateBadge]}>
-                <Ionicons name="lock-closed" size={16} color="#fff" />
-                <Text style={styles.privacyText}>Private</Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.metaContainer}>
-            <View style={styles.metaItem}>
-              <Ionicons name="musical-notes" size={18} color="#fc00ff" />
-              <Text style={styles.metaText}>{playlistSongs.length} songs</Text>
-            </View>
-            <View style={styles.metaDot} />
-            <View style={styles.metaItem}>
-              <Ionicons name="person" size={18} color="#00dbde" />
-              <Text style={styles.metaText}>
-                {playlist?.user_id === session?.user.id
-                  ? "Created by you"
-                  : "Created by others"}
+        <View style={styles.infoWrapper}>
+          <BlurView
+            intensity={25}
+            tint="dark"
+            style={[styles.infoContainer, { borderColor: colors.border }]}
+          >
+            <View style={styles.titleRow}>
+              <Text
+                style={[styles.title, { color: colors.text }]}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {playlist?.title}
               </Text>
+              {playlist?.is_public ? (
+                <View
+                  style={[
+                    styles.privacyBadge,
+                    {
+                      borderColor: colors.glow,
+                      backgroundColor: colors.glow + "10",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="globe-outline"
+                    size={12}
+                    color={colors.text}
+                  />
+                  <Text style={[styles.privacyText, { color: colors.text }]}>
+                    Public
+                  </Text>
+                </View>
+              ) : (
+                <View
+                  style={[
+                    styles.privacyBadge,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: "rgba(255,255,255,0.03)",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={12}
+                    color={colors.subText}
+                  />
+                  <Text style={[styles.privacyText, { color: colors.subText }]}>
+                    Private
+                  </Text>
+                </View>
+              )}
             </View>
-            <View style={styles.metaDot} />
-            <View style={styles.metaItem}>
-              <Ionicons name="calendar" size={18} color="#fc00ff" />
-              <Text style={styles.metaText}>
-                {new Date(playlist?.created_at! || "").toLocaleDateString()}
-              </Text>
-            </View>
-          </View>
 
-          {/* オプションメニュー（誰でも使用可能） */}
-          <View style={styles.optionsContainer}>
-            <PlaylistOptionsMenu
-              playlistId={playlistId}
-              userId={playlist?.user_id}
-              currentTitle={playlist?.title}
-              isPublic={playlist?.is_public}
-              songs={playlistSongs}
-            />
-          </View>
-        </BlurView>
+            <View style={styles.metaContainer}>
+              <View style={styles.metaItem}>
+                <Ionicons
+                  name="musical-notes-outline"
+                  size={14}
+                  color={colors.primary}
+                />
+                <Text style={[styles.metaText, { color: colors.subText }]}>
+                  {playlistSongs.length} tracks
+                </Text>
+              </View>
+              <View
+                style={[styles.metaDot, { backgroundColor: colors.border }]}
+              />
+              <View style={styles.metaItem}>
+                <Ionicons
+                  name="person-outline"
+                  size={14}
+                  color={colors.primary}
+                />
+                <Text style={[styles.metaText, { color: colors.subText }]}>
+                  {playlist?.user_id === session?.user.id
+                    ? "Your collection"
+                    : "Curated Playlist"}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={[
+                  styles.playAllButton,
+                  {
+                    backgroundColor: colors.primary,
+                    shadowColor: colors.primary,
+                  },
+                ]}
+                onPress={() =>
+                  playlistSongs.length > 0 && handleSongPress(playlistSongs[0])
+                }
+                activeOpacity={0.8}
+              >
+                <Ionicons name="play" size={18} color={colors.text} />
+                <Text style={[styles.playAllText, { color: colors.text }]}>
+                  PLAY
+                </Text>
+              </TouchableOpacity>
+
+              <PlaylistOptionsMenu
+                playlistId={playlistId}
+                userId={playlist?.user_id}
+                currentTitle={playlist?.title}
+                isPublic={playlist?.is_public}
+                songs={playlistSongs}
+              />
+            </View>
+          </BlurView>
+        </View>
       </View>
     ),
-    [playlist, playlistSongs, session?.user.id, router, playlistId]
+    [
+      playlist,
+      playlistSongs,
+      session?.user.id,
+      router,
+      playlistId,
+      handleSongPress,
+      colors,
+    ],
   );
 
   if (isLoading || isLoadingPlaylist) return <Loading />;
@@ -226,29 +293,33 @@ export default function PlaylistDetailScreen() {
     return <Error message={error?.message || playlistError?.message} />;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {playlistSongs && playlistSongs.length > 0 ? (
-        <FlashList
-          data={playlistSongs}
-          keyExtractor={keyExtractor}
-          renderItem={renderSongs}
-          ListHeaderComponent={renderHeader}
-          contentContainerStyle={styles.listContent}
-          estimatedItemSize={120}
-          key={"playlist-songs-list"}
-        />
-      ) : (
-        <>
-          {renderHeader()}
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <FlashList
+        data={playlistSongs}
+        keyExtractor={keyExtractor}
+        renderItem={renderSongs}
+        ListHeaderComponent={renderHeader}
+        contentContainerStyle={styles.listContent}
+        estimatedItemSize={120}
+        key={"playlist-songs-list"}
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="musical-notes" size={48} color="#666" />
-            <Text style={styles.emptyText}>No songs in this playlist</Text>
-            <Text style={styles.emptySubText}>
-              Add some songs to get started
+            <Ionicons
+              name="musical-notes-outline"
+              size={64}
+              color={colors.border}
+            />
+            <Text style={[styles.emptyText, { color: colors.text }]}>
+              Empty Playlist
+            </Text>
+            <Text style={[styles.emptySubText, { color: colors.subText }]}>
+              Add tracks from your discovery
             </Text>
           </View>
-        </>
-      )}
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -256,117 +327,49 @@ export default function PlaylistDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
   header: {
     width: "100%",
-    paddingBottom: 20,
-  },
-  backButton: {
-    position: "absolute",
-    top: 16,
-    left: 16,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#fc00ff",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: "rgba(252, 0, 255, 0.3)",
   },
   thumbnailContainer: {
     width: width,
-    height: width * 0.9,
+    height: width * 1.05,
     position: "relative",
-    marginBottom: 20,
-  },
-  decorativeCard1: {
-    position: "absolute",
-    width: "96%",
-    height: "96%",
-    backgroundColor: "rgba(252, 0, 255, 0.15)",
-    borderRadius: 20,
-    transform: [
-      { rotate: "5deg" },
-      { scale: 0.98 },
-      { translateX: 8 },
-      { translateY: 2 },
-    ],
-    shadowColor: "#fc00ff",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-  },
-  decorativeCard2: {
-    position: "absolute",
-    width: "96%",
-    height: "96%",
-    backgroundColor: "rgba(0, 219, 222, 0.15)",
-    borderRadius: 20,
-    transform: [
-      { rotate: "-7deg" },
-      { scale: 0.96 },
-      { translateX: -4 },
-      { translateY: 4 },
-    ],
-    shadowColor: "#00dbde",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-  },
-  decorativeCard3: {
-    position: "absolute",
-    width: "96%",
-    height: "96%",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 20,
-    transform: [
-      { rotate: "2deg" },
-      { scale: 0.94 },
-      { translateX: 2 },
-      { translateY: -2 },
-    ],
   },
   thumbnail: {
     width: "100%",
     height: "100%",
-    borderRadius: 20,
-  },
-  neonGradient: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   thumbnailGradient: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: "80%",
-    borderRadius: 20,
+    height: "50%",
+  },
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  infoWrapper: {
+    marginTop: -width * 0.35,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
   },
   infoContainer: {
-    padding: 20,
-    marginTop: -60,
-    marginHorizontal: 16,
-    borderRadius: 20,
+    padding: 24,
+    borderRadius: 28,
     overflow: "hidden",
-    backgroundColor: "rgba(20, 20, 20, 0.7)",
+    backgroundColor: "rgba(20, 20, 20, 0.65)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
@@ -375,88 +378,96 @@ const styles = StyleSheet.create({
   },
   titleRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   title: {
-    color: "#fff",
     fontSize: 28,
-    fontWeight: "bold",
+    fontFamily: FONTS.title,
     flex: 1,
     marginRight: 12,
-    textShadowColor: "rgba(252, 0, 255, 0.5)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 10,
+    lineHeight: 34,
   },
   privacyBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 12,
-    backgroundColor: "rgba(0, 219, 222, 0.2)",
     borderWidth: 1,
-    borderColor: "rgba(0, 219, 222, 0.5)",
-  },
-  privateBadge: {
-    backgroundColor: "rgba(252, 0, 255, 0.2)",
-    borderColor: "rgba(252, 0, 255, 0.5)",
   },
   privacyText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 10,
+    fontFamily: FONTS.semibold,
     marginLeft: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   metaContainer: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-    marginBottom: 16,
+    marginBottom: 24,
   },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 4,
   },
   metaText: {
-    color: "#ccc",
-    fontSize: 14,
+    fontSize: 12,
+    fontFamily: FONTS.body,
     marginLeft: 6,
-    fontWeight: "500",
+    opacity: 0.8,
   },
   metaDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    marginHorizontal: 8,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    marginHorizontal: 10,
+    opacity: 0.4,
   },
-  optionsContainer: {
-    alignItems: "flex-end",
-    marginTop: 8,
+  actionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  downloadButtonContainer: {
-    marginTop: 16,
+  playAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  playAllText: {
+    fontSize: 14,
+    fontFamily: FONTS.bold,
+    marginLeft: 8,
+    letterSpacing: 1,
   },
   listContent: {
-    paddingBottom: 96,
+    paddingBottom: 100,
   },
   emptyContainer: {
-    flex: 1,
+    paddingTop: 60,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 40,
   },
   emptyText: {
-    color: "#fff",
-    fontSize: 18,
-    marginTop: 16,
+    fontSize: 20,
+    fontFamily: FONTS.title,
+    marginTop: 20,
   },
   emptySubText: {
-    color: "#666",
     fontSize: 14,
+    fontFamily: FONTS.body,
     marginTop: 8,
+    textAlign: "center",
+    opacity: 0.6,
   },
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PlaylistDetailScreen from "@/app/(tabs)/playlist/[playlistId]";
 
@@ -70,7 +70,12 @@ jest.mock("@shopify/flash-list", () => ({
         (typeof props.ListHeaderComponent === "function"
           ? props.ListHeaderComponent()
           : props.ListHeaderComponent),
-      props.data?.map((item: any) => props.renderItem({ item })),
+      props.data && props.data.length > 0
+        ? props.data.map((item: any) => props.renderItem({ item }))
+        : props.ListEmptyComponent &&
+          (typeof props.ListEmptyComponent === "function"
+            ? props.ListEmptyComponent()
+            : props.ListEmptyComponent),
     );
   },
 }));
@@ -116,7 +121,12 @@ describe("PlaylistDetailScreen", () => {
       error: null,
     });
     useGetLocalPlaylist.mockReturnValue({
-      playlist: { id: "p1", title: "Test Playlist", user_id: "test-user" },
+      playlist: { 
+        id: "p1", 
+        title: "Test Playlist", 
+        user_id: "test-user",
+        created_at: "2024-01-01T00:00:00Z"
+      },
       isLoading: false,
     });
     useMutatePlaylistSong.mockReturnValue({
@@ -142,23 +152,20 @@ describe("PlaylistDetailScreen", () => {
     useGetPlaylistSongs.mockReturnValue({ songs: mockSongs, isLoading: false });
 
     const { getByText } = render(<PlaylistDetailScreen />, { wrapper });
-    expect(getByText("2 songs")).toBeTruthy();
+    expect(getByText("2 tracks")).toBeTruthy();
   });
 
   it("プレイリストが空の場合、メッセージが表示される", () => {
     useGetPlaylistSongs.mockReturnValue({ songs: [], isLoading: false });
 
     const { getByText } = render(<PlaylistDetailScreen />, { wrapper });
-    expect(getByText("No songs in this playlist")).toBeTruthy();
+    expect(getByText("Empty Playlist")).toBeTruthy();
   });
 
   it("ローディング中、Loadingコンポーネントが表示される", () => {
     useGetPlaylistSongs.mockReturnValue({ songs: [], isLoading: true });
 
-    // Loadingはモックされているが、PlaylistDetailScreen.tsx の return <Loading /> を通るはず
     const { UNSAFE_root } = render(<PlaylistDetailScreen />, { wrapper });
-    // Loadingコンポーネントがレンダリングされていることを、何らかの形で確認
-    // ここではクラッシュしないことと、中身が想定通りであることを確認
     expect(UNSAFE_root).toBeTruthy();
   });
 
