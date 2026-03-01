@@ -38,8 +38,10 @@ function SpotlightItem({
   isParentFocused,
   bottomPadding,
 }: SpotlightItemProps) {
-  const visibleIndex = useSpotlightStore((state) => state.visibleIndex);
-  const isVisible = visibleIndex === index && isParentFocused;
+  const isVisibleStore = useSpotlightStore(
+    (state) => state.visibleIndex === index,
+  );
+  const isVisible = isVisibleStore && isParentFocused;
   const player = useSpotlightPlayer(item.video_path, isVisible);
   const rotation = useSharedValue(0);
   const [isMuted, setIsMuted] = useState(player.muted);
