@@ -9,12 +9,11 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/common/useDebounce";
 import getSongsByTitle from "@/actions/song/getSongsByTitle";
 import getPlaylistsByTitle from "@/actions/playlist/getPlaylistsByTitle";
 import ListItem from "@/components/item/ListItem";
 import PlaylistItem from "@/components/item/PlaylistItem";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { CACHED_QUERIES } from "@/constants";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
@@ -23,7 +22,6 @@ import { Playlist } from "@/types";
 import Song from "@/types";
 import {
   Search,
-  CircleX,
   CloudOff,
   Library as LibraryIcon,
   Music,
@@ -32,18 +30,18 @@ import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useSearchHistoryStore } from "@/hooks/stores/useSearchHistoryStore";
 import { SearchHistory } from "@/components/search/SearchHistory";
+import { SearchBar } from "@/components/search/SearchBar";
 import { FONTS } from "@/constants/theme";
 
 type SearchType = "songs" | "playlists";
 
 function SearchScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeQuery, setActiveQuery] = useState("");
+  const [externalQuery, setExternalQuery] = useState<string | undefined>();
   const [searchType, setSearchType] = useState<SearchType>("songs");
-  const debouncedQuery = useDebounce(searchQuery, 500);
   const router = useRouter();
   const { isOnline } = useNetworkStatus();
   const colors = useThemeStore((state) => state.colors);
-  const [isFocused, setIsFocused] = useState(false);
 
   // 検索履歴
   const { history, addQuery, removeQuery, clearHistory, loadHistory } =
@@ -60,9 +58,9 @@ function SearchScreen() {
     error: songsError,
     isSuccess: isSongsSuccess,
   } = useQuery({
-    queryKey: [CACHED_QUERIES.songs, CACHED_QUERIES.search, debouncedQuery],
-    queryFn: () => getSongsByTitle(debouncedQuery),
-    enabled: debouncedQuery.length > 0 && searchType === "songs",
+    queryKey: [CACHED_QUERIES.songs, CACHED_QUERIES.search, activeQuery],
+    queryFn: () => getSongsByTitle(activeQuery),
+    enabled: activeQuery.length > 0 && searchType === "songs",
   });
 
   const {
@@ -71,31 +69,32 @@ function SearchScreen() {
     error: playlistsError,
     isSuccess: isPlaylistsSuccess,
   } = useQuery({
-    queryKey: [CACHED_QUERIES.playlists, CACHED_QUERIES.search, debouncedQuery],
-    queryFn: () => getPlaylistsByTitle(debouncedQuery),
-    enabled: debouncedQuery.length > 0 && searchType === "playlists",
+    queryKey: [CACHED_QUERIES.playlists, CACHED_QUERIES.search, activeQuery],
+    queryFn: () => getPlaylistsByTitle(activeQuery),
+    enabled: activeQuery.length > 0 && searchType === "playlists",
   });
 
   // 検索結果が返ってきた時に履歴に保存
   useEffect(() => {
-    if (debouncedQuery.length > 0 && (isSongsSuccess || isPlaylistsSuccess)) {
-      addQuery(debouncedQuery);
+    if (activeQuery.length > 0 && (isSongsSuccess || isPlaylistsSuccess)) {
+      addQuery(activeQuery);
     }
-  }, [debouncedQuery, isSongsSuccess, isPlaylistsSuccess, addQuery]);
+  }, [activeQuery, isSongsSuccess, isPlaylistsSuccess, addQuery]);
 
-  const audioPlayer = useAudioPlayer(searchSongs, "search");
+  const { togglePlayPause } = usePlayControls(searchSongs, "search");
 
   // 曲の再生/一時停止を切り替えるハンドラをメモ化
   const handleSongPress = useCallback(
     async (song: Song) => {
-      await audioPlayer.togglePlayPause(song);
+      await togglePlayPause(song);
     },
-    [audioPlayer],
+    [togglePlayPause],
   );
 
   // 検索履歴からキーワードを選択した時のハンドラ
   const handleHistorySelect = useCallback((query: string) => {
-    setSearchQuery(query);
+    setActiveQuery(query);
+    setExternalQuery(query);
   }, []);
 
   const isLoading =
@@ -131,7 +130,7 @@ function SearchScreen() {
 
   // ListEmptyComponentをメモ化
   const songsEmptyComponent = useMemo(() => {
-    return debouncedQuery.length === 0 ? (
+    return activeQuery.length === 0 ? (
       <View style={[styles.emptyContainer, { opacity: 0.8 }]}>
         <View
           style={[
@@ -149,10 +148,10 @@ function SearchScreen() {
         </Text>
       </View>
     ) : null;
-  }, [debouncedQuery.length, colors]);
+  }, [activeQuery.length, colors]);
 
   const playlistsEmptyComponent = useMemo(() => {
-    return debouncedQuery.length === 0 ? (
+    return activeQuery.length === 0 ? (
       <View style={[styles.emptyContainer, { opacity: 0.8 }]}>
         <View
           style={[
@@ -170,7 +169,7 @@ function SearchScreen() {
         </Text>
       </View>
     ) : null;
-  }, [debouncedQuery.length, colors]);
+  }, [activeQuery.length, colors]);
 
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
@@ -180,7 +179,7 @@ function SearchScreen() {
       ? searchSongs.length > 0
       : searchPlaylists.length > 0;
 
-  const showEmptyState = debouncedQuery.length > 0 && !hasResults;
+  const showEmptyState = activeQuery.length > 0 && !hasResults;
 
   if (!isOnline) {
     return (
@@ -223,41 +222,10 @@ function SearchScreen() {
       </View>
 
       <View style={styles.searchSection}>
-        <View
-          style={[
-            styles.searchInputContainer,
-            isFocused
-              ? [
-                  styles.searchInputFocused,
-                  { borderColor: colors.primary, shadowColor: colors.primary },
-                ]
-              : styles.searchInputNormal,
-          ]}
-        >
-          <Search
-            size={20}
-            color={isFocused ? colors.primary : colors.subText}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search songs or playlists..."
-            placeholderTextColor={colors.subText}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <CircleX
-                size={20}
-                color={colors.subText}
-                style={styles.clearIcon}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
+        <SearchBar
+          onDebouncedChange={setActiveQuery}
+          externalQuery={externalQuery}
+        />
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -314,7 +282,7 @@ function SearchScreen() {
       </View>
 
       {/* 検索バーが空の時に検索履歴を表示 */}
-      {debouncedQuery.length === 0 && history.length > 0 && (
+      {activeQuery.length === 0 && history.length > 0 && (
         <View style={styles.historySection}>
           <SearchHistory
             history={history}
@@ -389,38 +357,6 @@ const styles = StyleSheet.create({
   searchSection: {
     paddingHorizontal: 20,
     marginBottom: 12,
-  },
-  searchInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 28, // More pill-like
-    paddingHorizontal: 20,
-    height: 56, // Slightly taller for emphasis
-    marginBottom: 24,
-    borderWidth: 1,
-  },
-  searchInputFocused: {
-    backgroundColor: "rgba(255,255,255,0.08)",
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-  },
-  searchInputNormal: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderColor: "transparent",
-    shadowColor: "transparent",
-    shadowOpacity: 0,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  clearIcon: {
-    marginLeft: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    height: "100%",
-    fontFamily: FONTS.body,
   },
   tabContainer: {
     flexDirection: "row",

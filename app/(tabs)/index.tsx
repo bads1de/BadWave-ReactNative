@@ -4,7 +4,8 @@ import { FlashList } from "@shopify/flash-list";
 import { TrendingUp, Heart, List, Disc } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useGetLocalSongs } from "@/hooks/data/useGetLocalSongs";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
+import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import SongItem from "@/components/item/SongItem";
 import TrendBoard from "@/components/board/TrendBoard";
@@ -29,7 +30,8 @@ export default function HomeScreen() {
   // SQLite から楽曲を取得（Local-First）
   const { data: songs = [], isLoading, error } = useGetLocalSongs();
 
-  const { togglePlayPause, currentSong } = useAudioPlayer(songs, "home");
+  const currentSong = useAudioStore((state) => state.currentSong);
+  const { togglePlayPause } = usePlayControls(songs, "home");
 
   const handleSongPress = useCallback(
     async (songId: string) => {

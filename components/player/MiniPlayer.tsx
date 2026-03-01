@@ -37,7 +37,6 @@ function ModernMiniPlayer({
   onPress,
 }: MiniPlayerProps) {
   const colors = useThemeStore((state) => state.colors);
-  const { position, duration } = useProgress(500);
 
   const translateY = useSharedValue(100);
   const opacity = useSharedValue(0);
@@ -46,9 +45,6 @@ function ModernMiniPlayer({
     translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
     opacity.value = withTiming(1, { duration: 400 });
   }, []);
-
-  // プログレスバーの幅を計算
-  const progressWidth = duration > 0 ? (position / duration) * (width - 16) : 0;
 
   return (
     <Animated.View
@@ -114,21 +110,30 @@ function ModernMiniPlayer({
 
         {/* Floating Glowing Progress Bar */}
         <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBar,
-              {
-                width: progressWidth,
-                backgroundColor: colors.primary,
-                shadowColor: colors.primary,
-              },
-            ]}
-          />
+          <MiniPlayerProgressBar colors={colors} />
         </View>
       </BlurView>
     </Animated.View>
   );
 }
+
+const MiniPlayerProgressBar = memo(({ colors }: { colors: any }) => {
+  const { position, duration } = useProgress(500);
+  const progressWidth = duration > 0 ? (position / duration) * (width - 16) : 0;
+
+  return (
+    <View
+      style={[
+        styles.progressBar,
+        {
+          width: progressWidth,
+          backgroundColor: colors.primary,
+          shadowColor: colors.primary,
+        },
+      ]}
+    />
+  );
+});
 
 const styles = StyleSheet.create({
   container: {

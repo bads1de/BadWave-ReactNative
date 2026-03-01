@@ -17,7 +17,7 @@ import Toast from "react-native-toast-message";
 
 import Song from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import ListItem from "@/components/item/ListItem";
@@ -91,7 +91,7 @@ export default function PlaylistDetailScreen() {
     [removeSong, playlistId, guardAction],
   );
 
-  const { togglePlayPause } = useAudioPlayer(
+  const { togglePlayPause } = usePlayControls(
     playlistSongs,
     "playlist",
     playlistId,

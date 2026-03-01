@@ -10,7 +10,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import Song from "@/types";
@@ -179,7 +179,7 @@ function TrendBoard() {
   // SQLite から取得（Local-First）
   const { data: trends = [], isLoading, error } = useGetLocalTrendSongs(period);
 
-  const { togglePlayPause } = useAudioPlayer(trends);
+  const { togglePlayPause } = usePlayControls(trends);
 
   // メモ化されたコールバック
   const onPlay = useCallback(
@@ -192,11 +192,23 @@ function TrendBoard() {
   // キー抽出関数をメモ化
   const keyExtractor = useCallback((item: Song) => item.id, []);
 
+  const extraData = useMemo(
+    () => ({ downloadedSongIds, isOnline }),
+    [downloadedSongIds, isOnline],
+  );
+
   const renderItem = useCallback(
-    ({ item, index }: { item: Song; index: number }) => {
-      // ダウンロード済みかチェック（Setを使用してO(1)で検索）
-      const isDownloaded = downloadedSongIds.has(item.id);
-      const isDisabled = !isOnline && !isDownloaded;
+    ({
+      item,
+      index,
+      extraData,
+    }: {
+      item: Song;
+      index: number;
+      extraData?: any;
+    }) => {
+      const isDownloaded = extraData.downloadedSongIds.has(item.id);
+      const isDisabled = !extraData.isOnline && !isDownloaded;
       return (
         <TrendItem
           song={item}
@@ -206,7 +218,7 @@ function TrendBoard() {
         />
       );
     },
-    [downloadedSongIds, isOnline, onPlay],
+    [onPlay],
   );
 
   if (isLoading) return <Loading />;
@@ -230,6 +242,7 @@ function TrendBoard() {
           horizontal
           keyExtractor={keyExtractor}
           renderItem={renderItem}
+          extraData={extraData}
           showsHorizontalScrollIndicator={false}
           snapToInterval={ITEM_WIDTH + 16}
           decelerationRate="fast"

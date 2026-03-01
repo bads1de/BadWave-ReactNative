@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import SongItem from "@/components/item/SongItem";
 import { useGetLocalRecommendations } from "@/hooks/data/useGetLocalRecommendations";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAuth } from "@/providers/AuthProvider";
 import Error from "@/components/common/Error";
 import Loading from "@/components/common/Loading";
@@ -20,7 +20,7 @@ function ForYouBoard() {
     error,
   } = useGetLocalRecommendations(userId);
 
-  const { togglePlayPause } = useAudioPlayer(recommendations, "forYou");
+  const { togglePlayPause } = usePlayControls(recommendations, "forYou");
 
   // 曲をクリックしたときのハンドラをメモ化
   const handleSongClick = useCallback(
@@ -30,7 +30,7 @@ function ForYouBoard() {
         await togglePlayPause(song);
       }
     },
-    [recommendations, togglePlayPause]
+    [recommendations, togglePlayPause],
   );
 
   // レンダリング関数をメモ化
@@ -43,7 +43,7 @@ function ForYouBoard() {
         dynamicSize={false}
       />
     ),
-    [handleSongClick]
+    [handleSongClick],
   );
 
   // keyExtractor関数をメモ化
@@ -105,4 +105,3 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
-

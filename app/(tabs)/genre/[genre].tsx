@@ -9,7 +9,7 @@ import getSongsByGenre from "@/actions/song/getSongsByGenre";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useLocalSearchParams } from "expo-router";
 import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
@@ -38,17 +38,17 @@ export default function GenreSongsScreen() {
       return () => {
         setShowHeader(true);
       };
-    }, [setShowHeader])
+    }, [setShowHeader]),
   );
 
-  const { togglePlayPause } = useAudioPlayer(genreSongs, "genre", genre);
+  const { togglePlayPause } = usePlayControls(genreSongs, "genre", genre);
 
   // renderItem関数をメモ化
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (
       <ListItem song={item} onPress={async () => await togglePlayPause(item)} />
     ),
-    [togglePlayPause]
+    [togglePlayPause],
   );
 
   // keyExtractor関数をメモ化

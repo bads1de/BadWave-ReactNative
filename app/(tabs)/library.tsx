@@ -4,7 +4,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import CustomButton from "@/components/common/CustomButton";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import SongItem from "@/components/item/SongItem";
 import Song from "@/types";
 import PlaylistItem from "@/components/item/PlaylistItem";
@@ -51,7 +51,7 @@ export default function LibraryScreen() {
     return [];
   }, [type, likedSongs]);
 
-  const { togglePlayPause } = useAudioPlayer(
+  const { togglePlayPause } = usePlayControls(
     currentSongs,
     type === "liked" ? "liked" : "playlist",
   );

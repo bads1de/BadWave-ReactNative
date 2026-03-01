@@ -21,16 +21,25 @@ import Animated, {
 
 import { Spotlight } from "@/types";
 import { useSpotlightPlayer } from "@/hooks/audio/useSpotlightPlayer";
+import { useSpotlightStore } from "@/hooks/stores/useSpotlightStore";
 
 const { width, height } = Dimensions.get("window");
 
 interface SpotlightItemProps {
   item: Spotlight;
-  isVisible: boolean;
+  index: number;
+  isParentFocused: boolean;
   bottomPadding?: number;
 }
 
-function SpotlightItem({ item, isVisible, bottomPadding }: SpotlightItemProps) {
+function SpotlightItem({
+  item,
+  index,
+  isParentFocused,
+  bottomPadding,
+}: SpotlightItemProps) {
+  const visibleIndex = useSpotlightStore((state) => state.visibleIndex);
+  const isVisible = visibleIndex === index && isParentFocused;
   const player = useSpotlightPlayer(item.video_path, isVisible);
   const rotation = useSharedValue(0);
   const [isMuted, setIsMuted] = useState(player.muted);
@@ -196,7 +205,8 @@ const ActionItem = ({
 export default memo(SpotlightItem, (prevProps, nextProps) => {
   return (
     prevProps.item.id === nextProps.item.id &&
-    prevProps.isVisible === nextProps.isVisible
+    prevProps.index === nextProps.index &&
+    prevProps.isParentFocused === nextProps.isParentFocused
   );
 });
 

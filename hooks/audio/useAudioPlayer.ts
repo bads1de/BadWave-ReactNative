@@ -4,7 +4,6 @@ import TrackPlayer, {
   usePlaybackState,
   RepeatMode,
   useActiveTrack,
-  useProgress,
 } from "react-native-track-player";
 import Song from "@/types";
 import useOnPlay from "@/hooks/audio/useOnPlay";
@@ -51,7 +50,7 @@ import {
 export function useAudioPlayer(
   songs: Song[] = [],
   contextType: PlayContextType = null,
-  contextId?: string
+  contextId?: string,
 ) {
   const { songMap } = usePlayerState({ songs });
   const onPlay = useOnPlay();
@@ -74,12 +73,8 @@ export function useAudioPlayer(
   // isPlayingの値をメモ化して不要な再計算を防止
   const isPlaying = useMemo(
     () => playbackState.state === State.Playing,
-    [playbackState.state]
+    [playbackState.state],
   );
-
-  const { position, duration } = useProgress(200);
-  const progressPosition = position * 1000;
-  const progressDuration = duration * 1000;
 
   // コンポーネントのアンマウント時の処理
   useEffect(() => {
@@ -99,7 +94,7 @@ export function useAudioPlayer(
         TrackPlayer.pause();
       }
     },
-    [playbackState.state]
+    [playbackState.state],
   );
 
   const { updateQueueWithContext, toggleShuffle, updateQueueState } =
@@ -163,7 +158,7 @@ export function useAudioPlayer(
     async (
       song?: Song,
       overrideContextId?: string,
-      overrideContextType?: PlayContextType
+      overrideContextType?: PlayContextType,
     ) => {
       // 再生可能な曲がない場合は何もしない
       if (!song && !currentSong) return;
@@ -207,7 +202,7 @@ export function useAudioPlayer(
       updateCurrentSongAndState,
       contextType,
       contextId,
-    ]
+    ],
   );
 
   /**
@@ -255,7 +250,7 @@ export function useAudioPlayer(
         return true;
       }, "リピートモードの設定中にエラーが発生しました");
     },
-    [setStoreRepeatMode]
+    [setStoreRepeatMode],
   );
 
   // 返却値をメモ化して不要な再計算を防止
@@ -271,8 +266,6 @@ export function useAudioPlayer(
       playPrevSong,
       setRepeat,
       setShuffle: handleToggleShuffle,
-      progressPosition,
-      progressDuration,
     }),
     [
       currentSong,
@@ -285,12 +278,78 @@ export function useAudioPlayer(
       playPrevSong,
       setRepeat,
       handleToggleShuffle,
-      progressPosition,
-      progressDuration,
-    ]
+    ],
   );
 
   return returnValues;
+}
+
+export function usePlayControls(
+  songs: Song[] = [],
+  contextType: PlayContextType = null,
+  contextId?: string,
+) {
+  const onPlay = useOnPlay();
+  const { updateCurrentSongAndState } = useAudioActions();
+
+  const setTrackPlayerIsPlaying = useCallback((playing: boolean) => {
+    TrackPlayer.getPlaybackState().then((state) => {
+      if (playing && state.state !== State.Playing) {
+        TrackPlayer.play();
+      } else if (!playing && state.state === State.Playing) {
+        TrackPlayer.pause();
+      }
+    });
+  }, []);
+
+  const { updateQueueWithContext } = useQueueOperations(
+    setTrackPlayerIsPlaying,
+  );
+
+  const togglePlayPause = useCallback(
+    async (
+      song?: Song,
+      overrideContextId?: string,
+      overrideContextType?: PlayContextType,
+    ) => {
+      const currentSong = useAudioStore.getState().currentSong;
+      const state = await TrackPlayer.getPlaybackState();
+      const isCurrentlyPlaying = state.state === State.Playing;
+
+      const activeContextType = overrideContextType ?? contextType ?? "home";
+      const activeContextId = overrideContextId ?? contextId;
+
+      return safeAsyncOperation(async () => {
+        if (song?.id === currentSong?.id || (!song && currentSong)) {
+          await (isCurrentlyPlaying ? TrackPlayer.pause() : TrackPlayer.play());
+          return true;
+        }
+
+        if (song) {
+          const songIndex = songs.findIndex((s) => s.id === song.id);
+          if (songIndex === -1) return false;
+
+          const context = { type: activeContextType, id: activeContextId };
+          await updateQueueWithContext(songs, context, songIndex);
+          updateCurrentSongAndState(song);
+          await onPlay(song.id);
+          return true;
+        }
+
+        return false;
+      }, "再生/一時停止の切り替え中にエラーが発生しました");
+    },
+    [
+      onPlay,
+      songs,
+      updateCurrentSongAndState,
+      contextType,
+      contextId,
+      updateQueueWithContext,
+    ],
+  );
+
+  return { togglePlayPause };
 }
 
 export { RepeatMode, State };

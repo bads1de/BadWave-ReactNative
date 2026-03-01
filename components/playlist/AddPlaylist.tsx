@@ -51,10 +51,109 @@ function AddPlaylist({
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
   const [modalOpen, setModalOpen] = useState(false);
-  
+  const [shouldRender, setShouldRender] = useState(false);
+
   // Animation shared values
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (modalOpen) {
+      setShouldRender(true);
+      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, {
+        damping: 25,
+        stiffness: 80,
+      });
+    } else {
+      opacity.value = withTiming(0, { duration: 200 });
+      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
+      const timeout = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [modalOpen, opacity, translateY]);
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleOpenModal = () => {
+    if (!isOnline) {
+      Alert.alert(
+        "オフラインです",
+        "プレイリストへの曲の追加にはインターネット接続が必要です",
+        [{ text: "OK" }],
+      );
+      return;
+    }
+    if (!session?.user.id) {
+      Toast.show({
+        type: "error",
+        text1: "ログインが必要です",
+        position: "bottom",
+      });
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setModalOpen(true);
+  };
+
+  // オフライン時またはミューテーション中は無効化
+  const isDisabled = !isOnline;
+
+  return (
+    <>
+      <TouchableOpacity
+        onPress={handleOpenModal}
+        style={[styles.addButton, isDisabled && styles.addButtonDisabled]}
+        testID="add-playlist-button"
+      >
+        {children || (
+          <LinearGradient
+            colors={
+              isDisabled
+                ? ["#3d3d3d", "#2d2d2d"]
+                : [colors.primary, colors.primaryDark]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientButton}
+          >
+            <Plus
+              size={16}
+              color={isDisabled ? "rgba(255,255,255,0.4)" : "white"}
+            />
+          </LinearGradient>
+        )}
+      </TouchableOpacity>
+
+      {shouldRender && (
+        <AddPlaylistModal
+          songId={songId}
+          currentPlaylistId={currentPlaylistId}
+          modalOpen={modalOpen}
+          handleCloseModal={handleCloseModal}
+          translateY={translateY}
+          opacity={opacity}
+        />
+      )}
+    </>
+  );
+}
+
+function AddPlaylistModal({
+  songId,
+  currentPlaylistId,
+  modalOpen,
+  handleCloseModal,
+  translateY,
+  opacity,
+}: any) {
+  const queryClient = useQueryClient();
+  const { colors } = useThemeStore();
+  const { session } = useAuth();
 
   const { data: playlists = DEFAULT_PLAYLISTS } = useQuery({
     queryKey: [CACHED_QUERIES.playlists],
@@ -67,18 +166,10 @@ function AddPlaylist({
       playlists,
     });
 
+  // modalOpen is true initially here since it's only rendered when opened
   useEffect(() => {
-    if (modalOpen) {
-      opacity.value = withTiming(1, { duration: 300 });
-      translateY.value = withSpring(0, {
-        damping: 25,
-        stiffness: 80,
-      });
-    } else {
-      opacity.value = withTiming(0, { duration: 200 });
-      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
-    }
-  }, [modalOpen]);
+    fetchAddedStatus();
+  }, [fetchAddedStatus]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (playlistId: string) => {
@@ -117,13 +208,13 @@ function AddPlaylist({
             created_at: new Date().toISOString(),
             song_type: "regular",
           },
-        ]
+        ],
       );
 
       // Optimistically update playlistStatus (Cache is string[])
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistStatus, songId],
-        (old: string[] = []) => [...old, playlistId]
+        (old: string[] = []) => [...old, playlistId],
       );
 
       return { previousPlaylistSongs, previousStatus };
@@ -132,11 +223,11 @@ function AddPlaylist({
       // Rollback
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs],
-        context?.previousPlaylistSongs
+        context?.previousPlaylistSongs,
       );
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistStatus, songId],
-        context?.previousStatus
+        context?.previousStatus,
       );
 
       Toast.show({
@@ -192,7 +283,7 @@ function AddPlaylist({
 
       mutate(playlistId);
     },
-    [session, mutate, displayStatus]
+    [session, mutate, displayStatus],
   );
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -203,167 +294,132 @@ function AddPlaylist({
     opacity: opacity.value,
   }));
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-  };
-
-  const handleOpenModal = () => {
-    if (!isOnline) {
-      Alert.alert(
-        "オフラインです",
-        "プレイリストへの曲の追加にはインターネット接続が必要です",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-    if (!session?.user.id) {
-      Toast.show({
-        type: "error",
-        text1: "ログインが必要です",
-        position: "bottom",
-      });
-      return;
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Refresh playlist status when opening modal
-    fetchAddedStatus();
-    setModalOpen(true);
-  };
-
-  // オフライン時またはミューテーション中は無効化
-  const isDisabled = !isOnline;
-
   return (
-    <>
-      <TouchableOpacity
-        onPress={handleOpenModal}
-        style={[styles.addButton, isDisabled && styles.addButtonDisabled]}
-        testID="add-playlist-button"
-      >
-        {children || (
-          <LinearGradient
-            colors={
-              isDisabled
-                ? ["#3d3d3d", "#2d2d2d"]
-                : [colors.primary, colors.primaryDark]
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradientButton}
-          >
-            <Plus
-              size={16}
-              color={isDisabled ? "rgba(255,255,255,0.4)" : "white"}
-            />
-          </LinearGradient>
-        )}
-      </TouchableOpacity>
+    <Modal
+      visible={modalOpen}
+      animationType="none"
+      transparent
+      onRequestClose={handleCloseModal}
+    >
+      <View style={styles.modalRoot}>
+        <Animated.View style={[styles.overlay, overlayStyle]}>
+          <Pressable style={styles.flex} onPress={handleCloseModal} />
+        </Animated.View>
 
-      <Modal
-        visible={modalOpen}
-        animationType="none"
-        transparent
-        onRequestClose={handleCloseModal}
-      >
-        <View style={styles.modalRoot}>
-          <Animated.View style={[styles.overlay, overlayStyle]}>
-            <Pressable style={styles.flex} onPress={handleCloseModal} />
-          </Animated.View>
+        <Animated.View
+          style={[
+            styles.sheet,
+            { backgroundColor: colors.background, borderColor: colors.border },
+            animatedStyle,
+          ]}
+        >
+          <View style={styles.handle} />
 
-          <Animated.View
-            style={[
-              styles.sheet,
-              { backgroundColor: colors.background, borderColor: colors.border },
-              animatedStyle,
-            ]}
+          <View style={styles.header}>
+            <View style={styles.headerTitleRow}>
+              <ListPlus size={22} color={colors.primary} strokeWidth={2} />
+              <Text
+                style={[styles.title, { color: colors.text }]}
+                testID="modal-title"
+              >
+                プレイリストに追加
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={handleCloseModal}
+              style={[styles.closeIconButton, { backgroundColor: colors.card }]}
+              testID="close-button"
+            >
+              <X size={20} color={colors.text} strokeWidth={1.5} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
           >
-            <View style={styles.handle} />
-            
-            <View style={styles.header}>
-              <View style={styles.headerTitleRow}>
-                <ListPlus size={22} color={colors.primary} strokeWidth={2} />
-                <Text style={[styles.title, { color: colors.text }]} testID="modal-title">
-                  プレイリストに追加
+            {playlists.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.subText }]}>
+                  プレイリストがありません
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={handleCloseModal}
-                style={[styles.closeIconButton, { backgroundColor: colors.card }]}
-                testID="close-button"
-              >
-                <X size={20} color={colors.text} strokeWidth={1.5} />
-              </TouchableOpacity>
-            </View>
+            ) : (
+              playlists.map((playlist) => (
+                <TouchableOpacity
+                  key={playlist.id}
+                  style={[
+                    styles.playlistItem,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                    },
+                    displayStatus[playlist.id] && {
+                      borderColor: colors.primary,
+                      backgroundColor: colors.primary + "10",
+                    },
+                  ]}
+                  onPress={() => handleAddToPlaylist(playlist.id)}
+                  disabled={isPending || displayStatus[playlist.id]}
+                  activeOpacity={0.7}
+                  testID="playlist-item"
+                >
+                  <View style={styles.playlistInfo}>
+                    <Text
+                      style={[
+                        styles.playlistName,
+                        { color: colors.text },
+                        displayStatus[playlist.id] && {
+                          color: colors.primary,
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {playlist.title}
+                    </Text>
+                  </View>
 
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-            <ScrollView
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {playlists.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Text style={[styles.emptyText, { color: colors.subText }]}>
-                    プレイリストがありません
-                  </Text>
-                </View>
-              ) : (
-                playlists.map((playlist) => (
-                  <TouchableOpacity
-                    key={playlist.id}
-                    style={[
-                      styles.playlistItem,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                      displayStatus[playlist.id] && {
-                        borderColor: colors.primary,
-                        backgroundColor: colors.primary + "10",
-                      },
-                    ]}
-                    onPress={() => handleAddToPlaylist(playlist.id)}
-                    disabled={isPending || displayStatus[playlist.id]}
-                    activeOpacity={0.7}
-                    testID="playlist-item"
-                  >
-                    <View style={styles.playlistInfo}>
-                      <Text
+                  <View style={styles.statusIcon}>
+                    {displayStatus[playlist.id] ? (
+                      <View
                         style={[
-                          styles.playlistName,
-                          { color: colors.text },
-                          displayStatus[playlist.id] && {
-                            color: colors.primary,
-                          },
+                          styles.checkWrapper,
+                          { backgroundColor: colors.primary },
                         ]}
-                        numberOfLines={1}
                       >
-                        {playlist.title}
-                      </Text>
-                    </View>
-                    
-                    <View style={styles.statusIcon}>
-                      {displayStatus[playlist.id] ? (
-                        <View style={[styles.checkWrapper, { backgroundColor: colors.primary }]}>
-                          <Check size={14} color="white" strokeWidth={3} />
-                        </View>
-                      ) : (
-                        <View style={[styles.uncheckWrapper, { borderColor: colors.border }]} />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
-            </ScrollView>
+                        <Check size={14} color="white" strokeWidth={3} />
+                      </View>
+                    ) : (
+                      <View
+                        style={[
+                          styles.uncheckWrapper,
+                          { borderColor: colors.border },
+                        ]}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
 
-            <TouchableOpacity
-              style={[styles.closeButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-              onPress={handleCloseModal}
-            >
-              <Text style={[styles.closeButtonText, { color: colors.text }]}>閉じる</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
-      </Modal>
-    </>
+          <TouchableOpacity
+            style={[
+              styles.closeButton,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+            onPress={handleCloseModal}
+          >
+            <Text style={[styles.closeButtonText, { color: colors.text }]}>
+              閉じる
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 }
 
@@ -502,4 +558,3 @@ export default memo(AddPlaylist, (prevProps, nextProps) => {
     prevProps.currentPlaylistId === nextProps.currentPlaylistId
   );
 });
-

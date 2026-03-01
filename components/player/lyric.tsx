@@ -148,134 +148,99 @@ const LyricLineItem = memo(
 
 LyricLineItem.displayName = "LyricLineItem";
 
-const Lyric: React.FC<LyricProps> = ({
-  lyrics,
-  songTitle,
-  artistName,
-  initialVisibleLines = 3,
-}) => {
-  if (lyrics === null || lyrics === undefined) {
-    throw new Error("Lyrics must be provided");
-  }
-  const [isExpanded, setIsExpanded] = useState(false);
-  const { position } = useProgress(100); // 100ms update for smoother sync
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [lineCoords, setLineCoords] = useState<{ [key: number]: number }>({});
-  const [containerHeight, setContainerHeight] = useState(0);
-  const isUserScrolling = useRef(false);
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
-  const colors = useThemeStore((state) => state.colors);
+const LyricContent = memo(
+  ({
+    lyrics,
+    isExpanded,
+    hasLrc,
+    toggleExpand,
+    initialVisibleLines,
+  }: {
+    lyrics: string;
+    isExpanded: boolean;
+    hasLrc: boolean;
+    toggleExpand: () => void;
+    initialVisibleLines: number;
+  }) => {
+    const { position } = useProgress(100);
+    const scrollViewRef = useRef<ScrollView>(null);
+    const [lineCoords, setLineCoords] = useState<{ [key: number]: number }>({});
+    const [containerHeight, setContainerHeight] = useState(0);
+    const isUserScrolling = useRef(false);
+    const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+    const colors = useThemeStore((state) => state.colors);
 
-  const parsedLyrics = useMemo(() => {
-    if (!lyrics) return [];
-    if (!lyrics.includes("[")) return []; // Plain text fallback
-    return parseLrc(lyrics);
-  }, [lyrics]);
+    const parsedLyrics = useMemo(() => {
+      if (!lyrics) return [];
+      if (!lyrics.includes("[")) return [];
+      return parseLrc(lyrics);
+    }, [lyrics]);
 
-  const hasLrc = parsedLyrics.length > 0;
+    const plainLines = useMemo(() => {
+      if (hasLrc || !lyrics) return [];
+      return lyrics.split("\n").filter((l) => l.trim() !== "");
+    }, [lyrics, hasLrc]);
 
-  // Non-LRC lines
-  const plainLines = useMemo(() => {
-    if (hasLrc || !lyrics) return [];
-    return lyrics.split("\n").filter((l) => l.trim() !== "");
-  }, [lyrics, hasLrc]);
-
-  // Find active index
-  const activeIndex = useMemo(() => {
-    if (!hasLrc) return -1;
-    // Helper: Find the *last* line that has started
-    let index = -1;
-    for (let i = 0; i < parsedLyrics.length; i++) {
-      if (parsedLyrics[i].time <= position) {
-        index = i;
-      } else {
-        break;
+    const activeIndex = useMemo(() => {
+      if (!hasLrc) return -1;
+      let index = -1;
+      for (let i = 0; i < parsedLyrics.length; i++) {
+        if (parsedLyrics[i].time <= position) {
+          index = i;
+        } else {
+          break;
+        }
       }
-    }
-    return index;
-  }, [position, parsedLyrics, hasLrc]);
+      return index;
+    }, [position, parsedLyrics, hasLrc]);
 
-  // Auto Scroll logic
-  useEffect(() => {
-    if (
-      !hasLrc ||
-      activeIndex === -1 ||
-      isUserScrolling.current ||
-      !scrollViewRef.current
-    )
-      return;
+    useEffect(() => {
+      if (
+        !hasLrc ||
+        activeIndex === -1 ||
+        isUserScrolling.current ||
+        !scrollViewRef.current
+      )
+        return;
 
-    const y = lineCoords[activeIndex];
-    // We want to center the active line.
-    if (y !== undefined && containerHeight > 0) {
-      // Estimate line height roughly as 40 if not measured, but we rely on y.
-      // Target scroll position = y - (viewHeight / 2) + (lineHeight / 2)
-      // We don't have exact line height, but let's assume ~30-40px.
-      const targetY = y - containerHeight / 2 + 20;
-      scrollViewRef.current.scrollTo({
-        y: Math.max(0, targetY),
-        animated: true,
+      const y = lineCoords[activeIndex];
+      if (y !== undefined && containerHeight > 0) {
+        const targetY = y - containerHeight / 2 + 20;
+        scrollViewRef.current.scrollTo({
+          y: Math.max(0, targetY),
+          animated: true,
+        });
+      }
+    }, [activeIndex, containerHeight, hasLrc]);
+
+    const handleScrollBegin = useCallback(() => {
+      isUserScrolling.current = true;
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    }, []);
+
+    const handleScrollEnd = useCallback(() => {
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+      scrollTimeout.current = setTimeout(() => {
+        isUserScrolling.current = false;
+      }, 2500);
+    }, []);
+
+    const handleSeek = useCallback((time: number) => {
+      TrackPlayer.seekTo(time);
+    }, []);
+
+    const handleLineLayout = useCallback((index: number, y: number) => {
+      setLineCoords((prev) => {
+        if (Math.abs((prev[index] || 0) - y) > 1) {
+          return { ...prev, [index]: y };
+        }
+        return prev;
       });
-    }
-  }, [activeIndex, containerHeight, hasLrc]); // lineCoords intentionally omitted to avoid loops, only trigger on index change
+    }, []);
 
-  const handleScrollBegin = useCallback(() => {
-    isUserScrolling.current = true;
-    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-  }, []);
-
-  const handleScrollEnd = useCallback(() => {
-    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-    scrollTimeout.current = setTimeout(() => {
-      isUserScrolling.current = false;
-    }, 2500);
-  }, []);
-
-  const toggleExpand = useCallback(() => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded((prev) => !prev);
-  }, []);
-
-  const handleSeek = useCallback((time: number) => {
-    TrackPlayer.seekTo(time);
-  }, []);
-
-  const handleLineLayout = useCallback((index: number, y: number) => {
-    setLineCoords((prev) => {
-      // Only update if changed significantly to avoid rerenders
-      if (Math.abs((prev[index] || 0) - y) > 1) {
-        return { ...prev, [index]: y };
-      }
-      return prev;
-    });
-  }, []);
-
-  // if (!lyrics) return null; // Handled at top
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.sectionTitleContainer}>
-        <View style={styles.titleRow}>
-          <Mic2 size={20} color={colors.primary} strokeWidth={1.5} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Lyrics
-          </Text>
-          <View style={{ flex: 1 }} />
-          <TouchableOpacity onPress={toggleExpand} style={styles.expandBtn}>
-            <MaterialCommunityIcons
-              name={
-                isExpanded ? "arrow-collapse-vertical" : "arrow-expand-vertical"
-              }
-              size={20}
-              color={colors.text}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.contentContainer}>
+    return (
+      <>
         {!hasLrc ? (
-          // PLAIN TEXT VIEW (Legacy behavior)
           <ScrollView
             showsVerticalScrollIndicator={false}
             style={styles.plainScrollView}
@@ -301,7 +266,6 @@ const Lyric: React.FC<LyricProps> = ({
             )}
           </ScrollView>
         ) : (
-          // SYNCED LYRICS VIEW
           <View style={{ height: isExpanded ? 400 : 250 }}>
             <ScrollView
               ref={scrollViewRef}
@@ -326,6 +290,88 @@ const Lyric: React.FC<LyricProps> = ({
               ))}
             </ScrollView>
           </View>
+        )}
+      </>
+    );
+  },
+);
+
+LyricContent.displayName = "LyricContent";
+
+const Lyric: React.FC<LyricProps> = ({
+  lyrics,
+  songTitle,
+  artistName,
+  initialVisibleLines = 3,
+}) => {
+  if (lyrics === null || lyrics === undefined) {
+    throw new Error("Lyrics must be provided");
+  }
+  const [isExpanded, setIsExpanded] = useState(false);
+  const colors = useThemeStore((state) => state.colors);
+
+  const toggleExpand = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsExpanded((prev) => !prev);
+  }, []);
+
+  const hasLrc = useMemo(() => {
+    if (!lyrics) return false;
+    if (!lyrics.includes("[")) return false;
+    return parseLrc(lyrics).length > 0;
+  }, [lyrics]);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.sectionTitleContainer}>
+        <TouchableOpacity
+          style={styles.titleRow}
+          onPress={toggleExpand}
+          activeOpacity={0.8}
+        >
+          <Mic2 size={20} color={colors.primary} strokeWidth={1.5} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Lyrics
+          </Text>
+          <View style={{ flex: 1 }} />
+          <View style={styles.expandBtn}>
+            <MaterialCommunityIcons
+              name={
+                isExpanded ? "arrow-collapse-vertical" : "arrow-expand-vertical"
+              }
+              size={20}
+              color={colors.text}
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.contentContainer}>
+        {(!hasLrc || isExpanded) && (
+          <LyricContent
+            lyrics={lyrics}
+            isExpanded={isExpanded}
+            hasLrc={hasLrc}
+            toggleExpand={toggleExpand}
+            initialVisibleLines={initialVisibleLines}
+          />
+        )}
+
+        {hasLrc && !isExpanded && (
+          <TouchableOpacity
+            style={styles.previewContainer}
+            onPress={toggleExpand}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.plainText,
+                { color: colors.subText, fontSize: 13, marginBottom: 0 },
+              ]}
+            >
+              Tap to view synced lyrics...
+            </Text>
+          </TouchableOpacity>
         )}
 
         <View style={styles.footer}>
@@ -373,6 +419,14 @@ const styles = StyleSheet.create({
   },
   plainContainer: {
     paddingVertical: 10,
+  },
+  previewContainer: {
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: 8,
+    marginTop: 8,
   },
   plainText: {
     color: "#E0E0E0", // Solid color instead of rgba

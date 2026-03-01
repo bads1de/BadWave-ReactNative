@@ -51,33 +51,19 @@ interface ListItemOptionsMenuProps {
   currentPlaylistId?: string;
 }
 
-function ListItemOptionsMenu({
+function ListItemOptionsModal({
   song,
   onDelete,
   currentPlaylistId,
-}: ListItemOptionsMenuProps) {
-  const [modalVisible, setModalVisible] = useState(false);
+  modalVisible,
+  handleCloseModal,
+  opacity,
+  translateY,
+}: any) {
   const { isOnline } = useNetworkStatus();
   const { session } = useAuth();
   const { colors } = useThemeStore();
   const userId = session?.user?.id;
-
-  // Animation shared values
-  const translateY = useSharedValue(SCREEN_HEIGHT);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    if (modalVisible) {
-      opacity.value = withTiming(1, { duration: 300 });
-      translateY.value = withSpring(0, {
-        damping: 25,
-        stiffness: 80,
-      });
-    } else {
-      opacity.value = withTiming(0, { duration: 200 });
-      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
-    }
-  }, [modalVisible]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -97,24 +83,15 @@ function ListItemOptionsMenu({
   const { isLiked } = useLikeStatus(song.id, userId);
   const { mutate: toggleLike, isPending: isLiking } = useLikeMutation(
     song.id,
-    userId
+    userId,
   );
-
-  const handleOpenModal = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setModalVisible(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
 
   const handleDownload = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isOnline) {
       Alert.alert(
         "オフラインです",
-        "ダウンロードにはインターネット接続が必要です"
+        "ダウンロードにはインターネット接続が必要です",
       );
       return;
     }
@@ -133,7 +110,7 @@ function ListItemOptionsMenu({
     if (!isOnline) {
       Alert.alert(
         "オフラインです",
-        "いいね操作にはインターネット接続が必要です"
+        "いいね操作にはインターネット接続が必要です",
       );
       return;
     }
@@ -165,7 +142,7 @@ function ListItemOptionsMenu({
     onPress: () => void,
     color: string = colors.text,
     isDisabled: boolean = false,
-    testID?: string
+    testID?: string,
   ) => (
     <TouchableOpacity
       style={[styles.option, isDisabled && styles.optionDisabled]}
@@ -176,7 +153,12 @@ function ListItemOptionsMenu({
       <View
         style={[
           styles.iconWrapper,
-          { backgroundColor: color === colors.error ? colors.error + "20" : "rgba(255,255,255,0.05)" },
+          {
+            backgroundColor:
+              color === colors.error
+                ? colors.error + "20"
+                : "rgba(255,255,255,0.05)",
+          },
         ]}
       >
         <Icon size={20} color={color} strokeWidth={1.5} />
@@ -184,6 +166,193 @@ function ListItemOptionsMenu({
       <Text style={[styles.optionText, { color }]}>{label}</Text>
     </TouchableOpacity>
   );
+
+  return (
+    <Modal
+      visible={modalVisible}
+      transparent
+      animationType="none"
+      onRequestClose={handleCloseModal}
+    >
+      <View style={styles.modalRoot}>
+        <Animated.View style={[styles.overlay, overlayStyle]}>
+          <Pressable style={styles.flex} onPress={handleCloseModal} />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.sheet,
+            { backgroundColor: colors.background, borderColor: colors.border },
+            animatedStyle,
+          ]}
+        >
+          <View style={styles.handle} />
+
+          {/* Song Header */}
+          <View style={styles.header}>
+            <Image
+              source={{ uri: song.image_path }}
+              style={styles.headerImage}
+              contentFit="cover"
+            />
+            <View style={styles.headerInfo}>
+              <Text
+                style={[styles.songTitle, { color: colors.text }]}
+                numberOfLines={1}
+              >
+                {song.title}
+              </Text>
+              <Text
+                style={[styles.songAuthor, { color: colors.subText }]}
+                numberOfLines={1}
+              >
+                {song.author}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.optionsList}>
+            {/* いいねオプション */}
+            {userId &&
+              renderOption(
+                isLiking ? "処理中..." : isLiked ? "いいねを解除" : "いいね",
+                Heart,
+                handleToggleLike,
+                isLiked ? "#ff4444" : colors.text,
+                isLiking || !isOnline,
+                "like-option",
+              )}
+
+            {/* プレイリストに追加 */}
+            {userId && (
+              <AddPlaylist
+                songId={song.id}
+                currentPlaylistId={currentPlaylistId}
+              >
+                <View
+                  style={[styles.option, !isOnline && styles.optionDisabled]}
+                  testID="add-to-playlist-option"
+                >
+                  <View style={styles.iconWrapper}>
+                    <PlusCircle
+                      size={20}
+                      color={isOnline ? colors.primary : colors.subText}
+                      strokeWidth={1.5}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: isOnline ? colors.text : colors.subText },
+                    ]}
+                  >
+                    プレイリストに追加
+                  </Text>
+                </View>
+              </AddPlaylist>
+            )}
+
+            {/* ダウンロード/削除オプション */}
+            {!isDownloaded
+              ? renderOption(
+                  isDownloading ? "ダウンロード中..." : "ダウンロード",
+                  Download,
+                  handleDownload,
+                  isOnline ? colors.text : colors.subText,
+                  isDownloading || !isOnline,
+                  "download-option",
+                )
+              : renderOption(
+                  isDeleting ? "削除中..." : "オフライン保存を削除",
+                  CloudOff,
+                  handleDeleteDownload,
+                  colors.error,
+                  isDeleting,
+                  "delete-download-option",
+                )}
+
+            {/* プレイリストから削除（オーナーのみ） */}
+            {onDelete &&
+              renderOption(
+                "プレイリストから削除",
+                Trash2,
+                () => {
+                  onDelete();
+                  handleCloseModal();
+                },
+                colors.error,
+                false,
+                "delete-option",
+              )}
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.closeButton,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+            onPress={handleCloseModal}
+          >
+            <Text style={[styles.closeButtonText, { color: colors.text }]}>
+              閉じる
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+function ListItemOptionsMenu({
+  song,
+  onDelete,
+  currentPlaylistId,
+}: ListItemOptionsMenuProps) {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  const { colors } = useThemeStore();
+
+  // Animation shared values
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (modalVisible) {
+      setShouldRender(true);
+      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, {
+        damping: 25,
+        stiffness: 80,
+      });
+    } else {
+      opacity.value = withTiming(0, { duration: 200 });
+      translateY.value = withTiming(
+        SCREEN_HEIGHT,
+        { duration: 300 },
+        (isFinished) => {
+          if (isFinished) {
+            // React Native Reanimatedのワークレット内から状態を更新するには少し工夫が必要な場合があるため
+            // タイムアウトなどを利用して安全にアンマウントする
+          }
+        },
+      );
+      const timeout = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [modalVisible, opacity, translateY]);
+
+  const handleOpenModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
 
   return (
     <>
@@ -195,120 +364,17 @@ function ListItemOptionsMenu({
         <MoreVertical size={20} color={colors.text} strokeWidth={1.5} />
       </TouchableOpacity>
 
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="none"
-        onRequestClose={handleCloseModal}
-      >
-        <View style={styles.modalRoot}>
-          <Animated.View style={[styles.overlay, overlayStyle]}>
-            <Pressable style={styles.flex} onPress={handleCloseModal} />
-          </Animated.View>
-
-          <Animated.View
-            style={[
-              styles.sheet,
-              { backgroundColor: colors.background, borderColor: colors.border },
-              animatedStyle,
-            ]}
-          >
-            <View style={styles.handle} />
-
-            {/* Song Header */}
-            <View style={styles.header}>
-              <Image
-                source={{ uri: song.image_path }}
-                style={styles.headerImage}
-                contentFit="cover"
-              />
-              <View style={styles.headerInfo}>
-                <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
-                  {song.title}
-                </Text>
-                <Text style={[styles.songAuthor, { color: colors.subText }]} numberOfLines={1}>
-                  {song.author}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.optionsList}>
-              {/* いいねオプション */}
-              {userId &&
-                renderOption(
-                  isLiking ? "処理中..." : isLiked ? "いいねを解除" : "いいね",
-                  Heart,
-                  handleToggleLike,
-                  isLiked ? "#ff4444" : colors.text,
-                  isLiking || !isOnline,
-                  "like-option"
-                )}
-
-              {/* プレイリストに追加 */}
-              {userId && (
-                <AddPlaylist
-                  songId={song.id}
-                  currentPlaylistId={currentPlaylistId}
-                >
-                  <View
-                    style={[styles.option, !isOnline && styles.optionDisabled]}
-                    testID="add-to-playlist-option"
-                  >
-                    <View style={styles.iconWrapper}>
-                      <PlusCircle size={20} color={isOnline ? colors.primary : colors.subText} strokeWidth={1.5} />
-                    </View>
-                    <Text style={[styles.optionText, { color: isOnline ? colors.text : colors.subText }]}>
-                      プレイリストに追加
-                    </Text>
-                  </View>
-                </AddPlaylist>
-              )}
-
-              {/* ダウンロード/削除オプション */}
-              {!isDownloaded
-                ? renderOption(
-                    isDownloading ? "ダウンロード中..." : "ダウンロード",
-                    Download,
-                    handleDownload,
-                    isOnline ? colors.text : colors.subText,
-                    isDownloading || !isOnline,
-                    "download-option"
-                  )
-                : renderOption(
-                    isDeleting ? "削除中..." : "オフライン保存を削除",
-                    CloudOff,
-                    handleDeleteDownload,
-                    colors.error,
-                    isDeleting,
-                    "delete-download-option"
-                  )}
-
-              {/* プレイリストから削除（オーナーのみ） */}
-              {onDelete &&
-                renderOption(
-                  "プレイリストから削除",
-                  Trash2,
-                  () => {
-                    onDelete();
-                    handleCloseModal();
-                  },
-                  colors.error,
-                  false,
-                  "delete-option"
-                )}
-            </View>
-
-            <TouchableOpacity
-              style={[styles.closeButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-              onPress={handleCloseModal}
-            >
-              <Text style={[styles.closeButtonText, { color: colors.text }]}>閉じる</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
-      </Modal>
+      {shouldRender && (
+        <ListItemOptionsModal
+          song={song}
+          onDelete={onDelete}
+          currentPlaylistId={currentPlaylistId}
+          modalVisible={modalVisible}
+          handleCloseModal={handleCloseModal}
+          translateY={translateY}
+          opacity={opacity}
+        />
+      )}
     </>
   );
 }
@@ -423,4 +489,3 @@ export default memo(ListItemOptionsMenu, (prevProps, nextProps) => {
     prevProps.currentPlaylistId === nextProps.currentPlaylistId
   );
 });
-

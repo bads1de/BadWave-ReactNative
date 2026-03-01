@@ -4,6 +4,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Spotlight } from "@/types";
 import SpotlightItem from "@/components/spotlights/SpotlightItem";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useSpotlightStore } from "@/hooks/stores/useSpotlightStore";
 
 interface SpotlightListProps {
   data: Spotlight[];
@@ -16,8 +17,8 @@ export default function SpotlightList({
   data,
   isParentFocused = true,
 }: SpotlightListProps) {
-  const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
   const tabBarHeight = useBottomTabBarHeight();
+  const setVisibleIndex = useSpotlightStore((state) => state.setVisibleIndex);
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -25,7 +26,7 @@ export default function SpotlightList({
         const visibleItem = viewableItems[0];
 
         if (visibleItem.index !== null) {
-          setCurrentVisibleIndex(visibleItem.index);
+          setVisibleIndex(visibleItem.index);
         }
       }
     },
@@ -39,11 +40,12 @@ export default function SpotlightList({
     ({ item, index }: { item: Spotlight; index: number }) => (
       <SpotlightItem
         item={item}
-        isVisible={index === currentVisibleIndex && isParentFocused}
+        index={index}
+        isParentFocused={isParentFocused}
         bottomPadding={Math.max(0, tabBarHeight - 20)}
       />
     ),
-    [currentVisibleIndex, isParentFocused, tabBarHeight],
+    [isParentFocused, tabBarHeight],
   );
 
   const keyExtractor = useCallback((item: Spotlight) => item.id, []);
@@ -56,7 +58,7 @@ export default function SpotlightList({
   return (
     <FlashList
       data={data}
-      extraData={currentVisibleIndex}
+      extraData={isParentFocused}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       pagingEnabled
