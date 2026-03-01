@@ -1,9 +1,15 @@
 import React, { useCallback } from "react";
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronLeft, CloudOff, Music2 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import getSongsByGenre from "@/actions/song/getSongsByGenre";
 import ListItem from "@/components/item/ListItem";
@@ -15,6 +21,10 @@ import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { COLORS, FONTS } from "@/constants/theme";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+
+const { width } = Dimensions.get("window");
 
 export default function GenreSongsScreen() {
   const router = useRouter();
@@ -50,7 +60,6 @@ export default function GenreSongsScreen() {
     [togglePlayPause],
   );
 
-  // renderItem関数をメモ化
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (
       <ListItem song={item} onPress={handleSongPress} />
@@ -58,7 +67,6 @@ export default function GenreSongsScreen() {
     [handleSongPress],
   );
 
-  // keyExtractor関数をメモ化
   const keyExtractor = useCallback((item: Song) => item.id, []);
 
   if (!isOnline) {
@@ -69,12 +77,11 @@ export default function GenreSongsScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" size={28} color="#fff" />
+            <ChevronLeft color={COLORS.text} size={28} strokeWidth={1.5} />
           </TouchableOpacity>
-          <Text style={styles.title}>{genre}</Text>
         </View>
         <View style={[styles.container, styles.center]}>
-          <Ionicons name="cloud-offline" size={64} color="#666" />
+          <CloudOff size={64} color={COLORS.subText} strokeWidth={1} />
           <Text style={styles.emptyText}>You are offline</Text>
           <Text style={styles.emptySubText}>
             Genre search is only available when online
@@ -88,72 +95,145 @@ export default function GenreSongsScreen() {
   if (error) return <Error message={error.message} />;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" size={28} color="#fff" />
+            <ChevronLeft color={COLORS.text} size={28} strokeWidth={1.5} />
           </TouchableOpacity>
-          <Text style={styles.title}>{genre}</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerSubtitle}>EXPLORE GENRE</Text>
+            <Animated.Text
+              entering={FadeInUp.duration(600)}
+              style={styles.title}
+            >
+              {genre}
+            </Animated.Text>
+          </View>
+          <View style={{ width: 44 }} />
         </View>
-        <FlashList
-          data={genreSongs}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          contentContainerStyle={styles.listContainer}
-          estimatedItemSize={80}
-        />
-      </View>
-    </SafeAreaView>
+
+        <View style={styles.listWrapper}>
+          <FlashList
+            data={genreSongs}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={styles.listContainer}
+            estimatedItemSize={80}
+            ListHeaderComponent={
+              <Animated.View
+                entering={FadeInDown.delay(200)}
+                style={styles.listHeader}
+              >
+                <View style={styles.countBadge}>
+                  <Music2 color={COLORS.primary} size={14} />
+                  <Text style={styles.countText}>
+                    {genreSongs.length} Curated Tracks
+                  </Text>
+                </View>
+                <View style={styles.divider} />
+              </Animated.View>
+            }
+          />
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: COLORS.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
   },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
+  headerTitleContainer: {
+    alignItems: "center",
     flex: 1,
   },
+  headerSubtitle: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontFamily: FONTS.semibold,
+    letterSpacing: 2,
+    marginBottom: 4,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.03)",
+  },
+  title: {
+    color: COLORS.text,
+    fontSize: 32,
+    fontFamily: FONTS.title,
+    textAlign: "center",
+  },
+  listWrapper: {
+    flex: 1,
+    marginTop: 20,
+  },
   listContainer: {
-    padding: 16,
-    paddingBottom: 96,
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  listHeader: {
+    marginBottom: 20,
+  },
+  countBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(212, 175, 55, 0.08)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+    marginBottom: 16,
+  },
+  countText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontFamily: FONTS.semibold,
+    letterSpacing: 0.5,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    width: "100%",
   },
   center: {
     justifyContent: "center",
     alignItems: "center",
+    paddingBottom: 100,
   },
   emptyText: {
-    color: "#666",
-    fontSize: 16,
-    marginTop: 16,
+    color: COLORS.text,
+    fontSize: 20,
+    fontFamily: FONTS.semibold,
+    marginTop: 24,
   },
   emptySubText: {
-    color: "#444",
+    color: COLORS.subText,
     fontSize: 14,
+    fontFamily: FONTS.body,
     marginTop: 8,
+    textAlign: "center",
+    paddingHorizontal: 40,
   },
 });

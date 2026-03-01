@@ -4,9 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Dimensions,
-  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
