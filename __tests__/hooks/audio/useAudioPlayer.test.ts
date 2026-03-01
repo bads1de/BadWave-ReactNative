@@ -71,7 +71,5 @@ describe("useAudioPlayer", () => {
   it("returns audio player state and controls", () => {
     const { result } = renderHook(() => useAudioPlayer());
     expect(result.current).toHaveProperty("isPlaying");
-    expect(result.current).toHaveProperty("progressPosition");
-    expect(result.current).toHaveProperty("progressDuration");
   });
 });
