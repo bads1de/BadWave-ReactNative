@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import React, { useState, useCallback, useMemo } from "react";
 import Loading from "@/components/common/Loading";
@@ -17,9 +17,13 @@ import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
-import { FONTS } from "@/constants/theme";
+import { FONTS, COLORS } from "@/constants/theme";
 import { BlurView } from "expo-blur";
-import { Heart, ListMusic } from "lucide-react-native";
+import { Heart, ListMusic, Plus } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
+
+const { width } = Dimensions.get("window");
 
 type LibraryType = "liked" | "playlists";
 
@@ -31,21 +35,18 @@ export default function LibraryScreen() {
   const userId = session?.user?.id;
   const { colors } = useThemeStore();
 
-  // SQLite から取得（Local-First）
   const {
     likedSongs = [],
     isLoading: isLikedLoading,
     error: likedError,
   } = useGetLikedSongs(userId);
 
-  // SQLite から取得（Local-First）
   const {
     playlists = [],
     isLoading: isPlaylistsLoading,
     error: playlistsError,
   } = useGetPlaylists(userId);
 
-  // コンテキストに応じて曲リストを切り替え
   const currentSongs = useMemo(() => {
     if (type === "liked") return likedSongs;
     return [];
@@ -56,7 +57,6 @@ export default function LibraryScreen() {
     type === "liked" ? "liked" : "playlist",
   );
 
-  // 曲をクリックしたときのハンドラをメモ化
   const handleSongPress = useCallback(
     async (songId: string) => {
       const song = likedSongs.find((s) => s.id === songId);
@@ -67,7 +67,6 @@ export default function LibraryScreen() {
     [likedSongs, togglePlayPause],
   );
 
-  // プレイリストをクリックしたときのハンドラをメモ化
   const handlePlaylistPress = useCallback(
     (playlist: Playlist) => {
       router.push({
@@ -78,7 +77,6 @@ export default function LibraryScreen() {
     [router],
   );
 
-  // keyExtractor関数をメモ化
   const keyExtractor = useCallback((item: Song | Playlist) => item.id, []);
 
   const renderLikedSongs = useCallback(
@@ -95,7 +93,6 @@ export default function LibraryScreen() {
     [handleSongPress],
   );
 
-  // プレイリストのrenderItem関数をメモ化
   const renderPlaylistItem = useCallback(
     ({ item }: { item: Playlist }) => (
       <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
@@ -114,172 +111,155 @@ export default function LibraryScreen() {
     );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <Text
-          style={[
-            styles.title,
-            {
-              color: colors.text,
-            },
-          ]}
-        >
-          Library
-        </Text>
-      </View>
-
-      {!session ? (
-        <View style={styles.loginContainer}>
-          <Text style={[styles.loginMessage, { color: colors.subText }]}>
-            Sign in to access your liked songs and playlists across all your
-            devices.
-          </Text>
-          <CustomButton
-            label="Sign In"
-            isActive
-            onPress={() => setShowAuthModal(true)}
-            activeStyle={[
-              styles.loginButton,
-              {
-                backgroundColor: colors.primary,
-                shadowColor: colors.primary,
-              },
-            ]}
-            inactiveStyle={{}}
-            activeTextStyle={styles.loginButtonText}
-            inactiveTextStyle={{}}
-          />
-        </View>
-      ) : (
-        <>
-          <View style={styles.tabContainerWrapper}>
-            <BlurView intensity={20} tint="dark" style={styles.tabContainer}>
-              <TouchableOpacity
-                onPress={() => setType("liked")}
-                style={[
-                  styles.tabItem,
-                  type === "liked" && {
-                    backgroundColor: colors.primary + "4D", // 30% opacity
-                  },
-                ]}
-                activeOpacity={0.7}
-              >
-                <Heart
-                  size={18}
-                  color={type === "liked" ? "#FFFFFF" : colors.subText}
-                />
-                <Text
-                  style={[
-                    styles.tabText,
-                    {
-                      color: type === "liked" ? "#FFFFFF" : colors.subText,
-                    },
-                  ]}
-                >
-                  Liked
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setType("playlists")}
-                style={[
-                  styles.tabItem,
-                  type === "playlists" && {
-                    backgroundColor: colors.primary + "4D", // 30% opacity
-                  },
-                ]}
-                activeOpacity={0.7}
-              >
-                <ListMusic
-                  size={18}
-                  color={type === "playlists" ? "#FFFFFF" : colors.subText}
-                />
-                <Text
-                  style={[
-                    styles.tabText,
-                    {
-                      color: type === "playlists" ? "#FFFFFF" : colors.subText,
-                    },
-                  ]}
-                >
-                  Playlists
-                </Text>
-              </TouchableOpacity>
-            </BlurView>
+    <View style={[styles.container, { backgroundColor: COLORS.background }]}>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.subtitle}>YOUR CURATED</Text>
+            <Text style={styles.title}>Library</Text>
           </View>
 
           {type === "playlists" && (
-            <View style={styles.createPlaylistContainer}>
-              <CreatePlaylist />
-            </View>
-          )}
-
-          {type === "liked" ? (
-            likedSongs && likedSongs.length > 0 ? (
-              <>
-                <View style={styles.bulkDownloadContainer}>
-                  <BulkDownloadButton songs={likedSongs} size="small" />
+            <Animated.View 
+              entering={FadeIn.duration(300)} 
+              exiting={FadeOut.duration(200)}
+            >
+              <CreatePlaylist>
+                <View style={styles.premiumPillButton}>
+                  <Plus color={COLORS.background} size={14} strokeWidth={3} />
+                  <Text style={styles.premiumPillText}>NEW</Text>
                 </View>
-                <FlashList
-                  key={"liked"}
-                  data={likedSongs}
-                  renderItem={renderLikedSongs}
-                  keyExtractor={keyExtractor}
-                  numColumns={2}
-                  contentContainerStyle={styles.listContainer}
-                  estimatedItemSize={250}
-                />
-              </>
-            ) : (
-              <View style={styles.emptyContainer}>
-                <BlurView intensity={15} tint="dark" style={styles.emptyGlass}>
-                  <Heart
-                    size={48}
-                    color={colors.subText}
-                    strokeWidth={1.5}
-                    opacity={0.6}
-                  />
-                  <Text style={[styles.emptyText, { color: colors.subText }]}>
-                    No liked songs
-                  </Text>
-                  <Text
-                    style={[styles.emptySubText, { color: colors.subText }]}
-                  >
-                    Start liking songs to see them here.
-                  </Text>
-                </BlurView>
-              </View>
-            )
-          ) : playlists && playlists.length > 0 ? (
-            <FlashList
-              key={"playlists"}
-              data={playlists}
-              renderItem={renderPlaylistItem}
-              numColumns={2}
-              keyExtractor={keyExtractor}
-              contentContainerStyle={styles.listContainer}
-              estimatedItemSize={220}
-            />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <BlurView intensity={15} tint="dark" style={styles.emptyGlass}>
-                <ListMusic
-                  size={48}
-                  color={colors.subText}
-                  strokeWidth={1.5}
-                  opacity={0.6}
-                />
-                <Text style={[styles.emptyText, { color: colors.subText }]}>
-                  No playlists
-                </Text>
-                <Text style={[styles.emptySubText, { color: colors.subText }]}>
-                  Create a playlist to organize your music.
-                </Text>
-              </BlurView>
-            </View>
+              </CreatePlaylist>
+            </Animated.View>
           )}
-        </>
-      )}
+        </View>
+
+        {!session ? (
+          <Animated.View entering={FadeIn.duration(800)} style={styles.loginContainer}>
+            <View style={styles.loginGlass}>
+              <Text style={styles.loginMessage}>
+                Unlock your musical sanctuary. Sign in to access your personal collection.
+              </Text>
+              <CustomButton
+                label="Sign In to Badwave"
+                isActive
+                onPress={() => setShowAuthModal(true)}
+                activeStyle={styles.loginButton}
+                activeTextStyle={styles.loginButtonText}
+              />
+            </View>
+          </Animated.View>
+        ) : (
+          <>
+            {/* Boutique Tab Switcher */}
+            <View style={styles.tabWrapper}>
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  onPress={() => setType("liked")}
+                  style={[
+                    styles.tabItem,
+                    type === "liked" && styles.tabItemActive,
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <Heart
+                    size={16}
+                    color={type === "liked" ? COLORS.background : COLORS.subText}
+                    fill={type === "liked" ? COLORS.background : "transparent"}
+                  />
+                  <Text
+                    style={[
+                      styles.tabText,
+                      { color: type === "liked" ? COLORS.background : COLORS.subText },
+                    ]}
+                  >
+                    Favorites
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setType("playlists")}
+                  style={[
+                    styles.tabItem,
+                    type === "playlists" && styles.tabItemActive,
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <ListMusic
+                    size={16}
+                    color={type === "playlists" ? COLORS.background : COLORS.subText}
+                  />
+                  <Text
+                    style={[
+                      styles.tabText,
+                      { color: type === "playlists" ? COLORS.background : COLORS.subText },
+                    ]}
+                  >
+                    Playlists
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.contentArea}>
+              {type === "liked" ? (
+                likedSongs && likedSongs.length > 0 ? (
+                  <>
+                    <Animated.View entering={FadeInDown} style={styles.utilityRow}>
+                      <View style={styles.countBadge}>
+                        <Text style={styles.countText}>{likedSongs.length} Tracks</Text>
+                      </View>
+                      <BulkDownloadButton songs={likedSongs} size="small" />
+                    </Animated.View>
+                    <FlashList
+                      key={"liked"}
+                      data={likedSongs}
+                      renderItem={renderLikedSongs}
+                      keyExtractor={keyExtractor}
+                      numColumns={2}
+                      contentContainerStyle={styles.listContainer}
+                      estimatedItemSize={250}
+                      showsVerticalScrollIndicator={false}
+                    />
+                  </>
+                ) : (
+                  <Animated.View entering={FadeIn.delay(200)} style={styles.emptyContainer}>
+                    <View style={styles.emptyGlass}>
+                      <Heart size={48} color={COLORS.primary} strokeWidth={1} opacity={0.4} />
+                      <Text style={styles.emptyTitle}>Pure Silence</Text>
+                      <Text style={styles.emptySubText}>
+                        Your heart hasn't found its rhythm yet. Start liking songs to curate your sanctuary.
+                      </Text>
+                    </View>
+                  </Animated.View>
+                )
+              ) : playlists && playlists.length > 0 ? (
+                <FlashList
+                  key={"playlists"}
+                  data={playlists}
+                  renderItem={renderPlaylistItem}
+                  numColumns={2}
+                  keyExtractor={keyExtractor}
+                  contentContainerStyle={styles.listContainer}
+                  estimatedItemSize={220}
+                  showsVerticalScrollIndicator={false}
+                />
+              ) : (
+                <Animated.View entering={FadeIn.delay(200)} style={styles.emptyContainer}>
+                  <View style={styles.emptyGlass}>
+                    <ListMusic size={48} color={COLORS.primary} strokeWidth={1} opacity={0.4} />
+                    <Text style={styles.emptyTitle}>Blank Canvas</Text>
+                    <Text style={styles.emptySubText}>
+                      Design your own musical journey. Create your first playlist to begin.
+                    </Text>
+                  </View>
+                </Animated.View>
+              )}
+            </View>
+          </>
+        )}
+      </SafeAreaView>
     </View>
   );
 }
@@ -287,109 +267,174 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 12,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  premiumPillButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+    marginBottom: 4,
+  },
+  premiumPillText: {
+    color: COLORS.background,
+    fontSize: 12,
+    fontFamily: FONTS.bold,
+    letterSpacing: 1,
+  },
+  subtitle: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontFamily: FONTS.semibold,
+    letterSpacing: 3,
+    marginBottom: 4,
   },
   title: {
-    fontSize: 34,
+    fontSize: 42,
     fontFamily: FONTS.title,
-    letterSpacing: 1,
+    color: COLORS.text,
+    lineHeight: 48,
   },
   loginContainer: {
     flex: 1,
+    paddingHorizontal: 24,
     justifyContent: "center",
+  },
+  loginGlass: {
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    borderRadius: 32,
+    padding: 32,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)",
     alignItems: "center",
-    paddingHorizontal: 32,
   },
   loginMessage: {
     fontSize: 18,
+    color: COLORS.subText,
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: 32,
     fontFamily: FONTS.body,
-    lineHeight: 28,
+    lineHeight: 26,
   },
   loginButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 44,
-    borderRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    width: "100%",
   },
   loginButtonText: {
+    color: COLORS.background,
     fontSize: 16,
-    fontFamily: FONTS.semibold,
+    fontFamily: FONTS.bold,
   },
-  tabContainerWrapper: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 10,
+  tabWrapper: {
+    paddingHorizontal: 24,
+    marginBottom: 20,
   },
   tabContainer: {
     flexDirection: "row",
-    borderRadius: 20,
-    overflow: "hidden",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: 30,
+    padding: 6,
     borderWidth: 1,
-    backgroundColor: "rgba(20, 20, 20, 0.4)",
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: "rgba(255, 255, 255, 0.05)",
   },
   tabItem: {
     flex: 1,
-    paddingVertical: 14,
     flexDirection: "row",
-    gap: 8,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    gap: 8,
+  },
+  tabItemActive: {
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 14,
+    fontFamily: FONTS.semibold,
+    letterSpacing: 0.5,
+  },
+  contentArea: {
+    flex: 1,
+  },
+  playlistActionRow: {
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  utilityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  countBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  countText: {
+    color: COLORS.subText,
+    fontSize: 12,
     fontFamily: FONTS.semibold,
   },
-  createPlaylistContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
   listContainer: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     paddingBottom: 120,
-  },
-  bulkDownloadContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
   },
   emptyContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 40,
   },
   emptyGlass: {
-    padding: 32,
+    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    borderRadius: 32,
+    padding: 40,
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 24,
     borderWidth: 1,
-    backgroundColor: "rgba(20, 20, 20, 0.4)",
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: "rgba(255, 255, 255, 0.05)",
+    borderStyle: "dashed",
   },
-  emptyText: {
-    fontSize: 18,
+  emptyTitle: {
+    fontSize: 24,
     fontFamily: FONTS.title,
-    marginTop: 16,
-    marginBottom: 8,
+    color: COLORS.text,
+    marginTop: 20,
+    marginBottom: 12,
   },
   emptySubText: {
     fontSize: 14,
-    fontFamily: FONTS.body,
+    color: COLORS.subText,
     textAlign: "center",
-    opacity: 0.6,
+    fontFamily: FONTS.body,
+    lineHeight: 22,
+    paddingHorizontal: 20,
   },
 });

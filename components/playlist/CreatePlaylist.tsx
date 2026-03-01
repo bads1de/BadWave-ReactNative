@@ -28,7 +28,11 @@ import { FONTS } from "@/constants/theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-function CreatePlaylist() {
+interface CreatePlaylistProps {
+  children?: React.ReactNode;
+}
+
+function CreatePlaylist({ children }: CreatePlaylistProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const queryClient = useQueryClient();
@@ -118,26 +122,32 @@ function CreatePlaylist() {
 
   return (
     <>
-      <TouchableOpacity
-        style={[
-          styles.createButton,
-          { backgroundColor: colors.primary },
-          !isOnline && styles.createButtonDisabled,
-        ]}
-        onPress={handleOpenModal}
-        testID="create-playlist-button"
-      >
-        <Plus size={18} color="#fff" strokeWidth={2.5} />
-        <Text
+      {children ? (
+        <TouchableOpacity onPress={handleOpenModal} activeOpacity={0.7}>
+          {children}
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
           style={[
-            styles.createButtonText,
-            { color: "#fff" },
-            !isOnline && styles.createButtonTextDisabled,
+            styles.createButton,
+            { backgroundColor: colors.primary },
+            !isOnline && styles.createButtonDisabled,
           ]}
+          onPress={handleOpenModal}
+          testID="create-playlist-button"
         >
-          New Playlist
-        </Text>
-      </TouchableOpacity>
+          <Plus size={18} color="#fff" strokeWidth={2.5} />
+          <Text
+            style={[
+              styles.createButtonText,
+              { color: "#fff" },
+              !isOnline && styles.createButtonTextDisabled,
+            ]}
+          >
+            New Playlist
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <Modal
         animationType="none"
