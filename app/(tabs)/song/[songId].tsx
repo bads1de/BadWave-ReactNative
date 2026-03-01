@@ -13,13 +13,11 @@ import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import {
-  ChevronLeft,
   Play,
   Pause,
   Layers,
@@ -32,6 +30,7 @@ import { COLORS, FONTS } from "@/constants/theme";
 import LikeButton from "@/components/LikeButton";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 import Lyric from "@/components/player/lyric";
+import BackButton from "@/components/common/BackButton";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -114,14 +113,11 @@ export default function SongDetailScreen() {
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         {/* Minimalist Top Nav */}
         <View style={styles.topNav}>
-          <TouchableOpacity
+          <BackButton
             onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <BlurView intensity={20} tint="dark" style={styles.backBlur}>
-              <ChevronLeft color={COLORS.text} size={24} strokeWidth={1.5} />
-            </BlurView>
-          </TouchableOpacity>
+            blurIntensity={20}
+            iconColor={COLORS.text}
+          />
         </View>
         <Animated.ScrollView
           ref={scrollRef}
@@ -298,19 +294,6 @@ const styles = StyleSheet.create({
     height: 60,
     justifyContent: "center",
     zIndex: 100,
-  },
-  backBlur: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-  },
-  backButton: {
-    width: 48,
   },
   scrollContent: {
     flexGrow: 1,

@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { Palette, RefreshCw, HardDrive, LogOut } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
@@ -25,6 +24,7 @@ import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { SettingSection } from "@/components/common/SettingSection";
 import { SettingItem } from "@/components/common/SettingItem";
 import { FONTS } from "@/constants/theme";
+import BackButton from "@/components/common/BackButton";
 
 /**
  * @file (tabs)/account.tsx
@@ -72,13 +72,7 @@ export default function AccountScreen() {
 
       {/* ヘッダー */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-          testID="back-button"
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
+        <BackButton testID="back-button" />
         <Text style={[styles.headerTitle, { color: colors.text }]}>
           Account
         </Text>
@@ -305,9 +299,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   backButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    // BackButton コンポーネントに統一 (スタイルは内部で管理)
   },
   headerTitle: {
     fontSize: 18,

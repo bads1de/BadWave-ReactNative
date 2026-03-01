@@ -24,6 +24,7 @@ import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import PlaylistOptionsMenu from "@/components/playlist/PlaylistOptionsMenu";
+import BackButton from "@/components/common/BackButton";
 import { useGetPlaylistSongs } from "@/hooks/data/useGetPlaylistSongs";
 import { useGetLocalPlaylist } from "@/hooks/data/useGetLocalPlaylist";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
@@ -147,19 +148,10 @@ export default function PlaylistDetailScreen() {
           />
 
           {/* 戻るボタン */}
-          <TouchableOpacity
-            style={[
-              styles.backButton,
-              {
-                borderColor: colors.glow,
-                backgroundColor: "rgba(10, 10, 10, 0.5)",
-              },
-            ]}
+          <BackButton
             onPress={() => router.push("/library")}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chevron-back" size={24} color={colors.primary} />
-          </TouchableOpacity>
+            style={styles.backButton}
+          />
         </View>
 
         <View style={styles.infoWrapper}>
@@ -352,12 +344,6 @@ const styles = StyleSheet.create({
     top: 20,
     left: 20,
     zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
   },
   infoWrapper: {
     marginTop: -width * 0.35,

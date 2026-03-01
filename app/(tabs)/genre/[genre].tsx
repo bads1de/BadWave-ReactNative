@@ -9,7 +9,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ChevronLeft, CloudOff, Music2 } from "lucide-react-native";
+import { CloudOff, Music2 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import getSongsByGenre from "@/actions/song/getSongsByGenre";
 import ListItem from "@/components/item/ListItem";
@@ -23,6 +23,7 @@ import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { COLORS, FONTS } from "@/constants/theme";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import BackButton from "@/components/common/BackButton";
 
 const { width } = Dimensions.get("window");
 
@@ -73,12 +74,7 @@ export default function GenreSongsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <ChevronLeft color={COLORS.text} size={28} strokeWidth={1.5} />
-          </TouchableOpacity>
+          <BackButton onPress={() => router.back()} />
         </View>
         <View style={[styles.container, styles.center]}>
           <CloudOff size={64} color={COLORS.subText} strokeWidth={1} />
@@ -98,12 +94,7 @@ export default function GenreSongsScreen() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <ChevronLeft color={COLORS.text} size={28} strokeWidth={1.5} />
-          </TouchableOpacity>
+          <BackButton onPress={() => router.back()} />
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerSubtitle}>EXPLORE GENRE</Text>
             <Animated.Text
@@ -171,12 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.03)",
+    // BackButton コンポーネントに統一 (スタイルは内部で管理)
   },
   title: {
     color: COLORS.text,
