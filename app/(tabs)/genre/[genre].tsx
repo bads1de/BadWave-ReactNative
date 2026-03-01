@@ -43,12 +43,19 @@ export default function GenreSongsScreen() {
 
   const { togglePlayPause } = usePlayControls(genreSongs, "genre", genre);
 
+  const handleSongPress = useCallback(
+    async (song: Song) => {
+      await togglePlayPause(song);
+    },
+    [togglePlayPause],
+  );
+
   // renderItem関数をメモ化
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (
-      <ListItem song={item} onPress={async () => await togglePlayPause(item)} />
+      <ListItem song={item} onPress={handleSongPress} />
     ),
-    [togglePlayPause],
+    [handleSongPress],
   );
 
   // keyExtractor関数をメモ化

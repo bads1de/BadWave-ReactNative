@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -43,21 +43,41 @@ function SpotlightItem({
   );
   const isVisible = isVisibleStore && isParentFocused;
   const player = useSpotlightPlayer(item.video_path, isVisible);
-  const rotation = useSharedValue(0);
-  const [isMuted, setIsMuted] = useState(player.muted);
 
+  // ミュート表示用のstate（true = ミュート中 = 音なし）
+  // 初期値は false（音あり）
+  const [isMuted, setIsMuted] = useState(false);
+
+  // isVisible の「前回値」を記憶するためのref
+  // これにより false→true に変化した瞬間だけリセット処理を行う
+  const prevIsVisibleRef = useRef(false);
+
+  useEffect(() => {
+    const wasVisible = prevIsVisibleRef.current;
+    prevIsVisibleRef.current = isVisible;
+
+    // 非表示→表示 に切り替わった瞬間だけミュートをリセット
+    if (!wasVisible && isVisible) {
+      player.muted = false;
+      setIsMuted(false);
+    }
+  }, [isVisible]); // player は依存に含めない（参照変化でリセットが誤発火するのを防ぐ）
+
+  // ミュートボタンを押したときの処理
+  // player.muted を先に反転させてからstateを合わせる
   const toggleMute = () => {
-    player.muted = !player.muted;
-    setIsMuted(player.muted);
+    const next = !isMuted;
+    player.muted = next;
+    setIsMuted(next);
   };
+
+  // ---- レコードのアニメーション ----
+  const rotation = useSharedValue(0);
 
   useEffect(() => {
     if (isVisible) {
       rotation.value = withRepeat(
-        withTiming(360, {
-          duration: 5000,
-          easing: Easing.linear,
-        }),
+        withTiming(360, { duration: 5000, easing: Easing.linear }),
         -1,
         false,
       );
@@ -66,11 +86,9 @@ function SpotlightItem({
     }
   }, [isVisible, rotation]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${rotation.value}deg` }],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
 
   return (
     <View style={styles.container}>
@@ -93,7 +111,7 @@ function SpotlightItem({
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.iconButton} onPress={toggleMute}>
             <Ionicons
-              name={isMuted ? "volume-medium" : "volume-mute"}
+              name={isMuted ? "volume-mute" : "volume-medium"}
               size={24}
               color="white"
             />
@@ -109,7 +127,6 @@ function SpotlightItem({
             <View style={styles.leftColumn}>
               <View style={styles.artistRow}>
                 <View style={styles.avatarContainer}>
-                  {/* Placeholder avatar if none exists */}
                   <Image
                     source={{ uri: "https://github.com/shadcn.png" }}
                     style={styles.avatar}
@@ -232,7 +249,7 @@ const styles = StyleSheet.create({
   overlayContainer: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "space-between",
-    paddingTop: 60, // Top safe area approximation
+    paddingTop: 60,
   },
   topBar: {
     flexDirection: "row",
@@ -324,7 +341,6 @@ const styles = StyleSheet.create({
   },
   actionIconContainer: {
     marginBottom: 2,
-    // Add shadow for better visibility
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,

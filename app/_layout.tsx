@@ -14,8 +14,17 @@ import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { useFonts, BodoniModa_400Regular, BodoniModa_700Bold } from "@expo-google-fonts/bodoni-moda";
-import { Jost_400Regular, Jost_600SemiBold, Jost_700Bold } from "@expo-google-fonts/jost";
+import { useNetworkStore } from "@/hooks/stores/useNetworkStore";
+import {
+  useFonts,
+  BodoniModa_400Regular,
+  BodoniModa_700Bold,
+} from "@expo-google-fonts/bodoni-moda";
+import {
+  Jost_400Regular,
+  Jost_600SemiBold,
+  Jost_700Bold,
+} from "@expo-google-fonts/jost";
 import { COLORS } from "@/constants/theme";
 
 // スプラッシュ画面を維持
@@ -46,6 +55,13 @@ export default function RootLayout() {
     Jost_600SemiBold,
     Jost_700Bold,
   });
+
+  const initNetwork = useNetworkStore((state) => state._init);
+
+  useEffect(() => {
+    const unsubscribe = initNetwork();
+    return () => unsubscribe();
+  }, [initNetwork]);
 
   useEffect(() => {
     if (loaded || error) {

@@ -1,4 +1,10 @@
-import React, { useEffect, createContext, useContext, useState } from "react";
+import React, {
+  useEffect,
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+} from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSyncSongs } from "@/hooks/sync/useSyncSongs";
@@ -101,7 +107,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   // 手動同期トリガー
-  const triggerSync = async () => {
+  const triggerSync = useCallback(async () => {
     if (!isOnline || !userId || isSyncing) {
       return;
     }
@@ -123,7 +129,17 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     if (duration < 1000) {
       await new Promise((resolve) => setTimeout(resolve, 1000 - duration));
     }
-  };
+  }, [
+    isOnline,
+    userId,
+    isSyncing,
+    syncSongs,
+    syncLiked,
+    syncPlaylists,
+    syncTrends,
+    syncRecs,
+    syncSpots,
+  ]);
 
   // 同期ステータスを監視して、同期完了時に更新
   const prevIsSyncing = React.useRef(isSyncing);
@@ -166,4 +182,3 @@ export function useSync() {
 }
 
 export default SyncProvider;
-

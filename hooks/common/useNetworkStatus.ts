@@ -1,31 +1,15 @@
-import { useState, useEffect } from "react";
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
+import { useNetworkStore } from "@/hooks/stores/useNetworkStore";
 
 /**
- * ネットワーク接続状態を監視するフック
- * @returns isOnline: ネットワーク接続状態
+ * ネットワーク接続状態を取得するフック（後方互換ラッパー）
+ *
+ * 以前は各コンポーネントが個別に NetInfo.addEventListener を登録していたが、
+ * 現在は useNetworkStore（Zustand）からサブスクライブするだけです。
+ * NetInfo のリスナーはアプリ全体で1つだけ存在します（_layout.tsx で初期化）。
  */
 export function useNetworkStatus() {
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    // 初期状態を取得
-    NetInfo.fetch().then((state: NetInfoState) => {
-      setIsOnline(state.isConnected ?? true);
-    });
-
-    // 変更を監視
-    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-      setIsOnline(state.isConnected ?? true);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
+  const isOnline = useNetworkStore((state) => state.isOnline);
   return { isOnline };
 }
 
 export default useNetworkStatus;
-

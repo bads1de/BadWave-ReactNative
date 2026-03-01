@@ -21,6 +21,8 @@ function PlaylistBoard() {
   const { data: playlists = [] } = useQuery({
     queryKey: [CACHED_QUERIES.getPublicPlaylists],
     queryFn: () => getPublicPlaylists(10),
+    staleTime: 1000 * 60 * 5, // 5分
+    refetchOnWindowFocus: false,
   });
 
   const router = useRouter();
