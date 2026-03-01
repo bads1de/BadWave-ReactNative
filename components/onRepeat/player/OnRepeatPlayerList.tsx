@@ -44,7 +44,7 @@ export default function OnRepeatPlayerList({
           onIndexChange(visibleItem.index);
         }
       }
-    }
+    },
   ).current;
 
   const viewabilityConfig = useRef({
@@ -58,12 +58,12 @@ export default function OnRepeatPlayerList({
         isVisible={index === currentIndex && isParentFocused}
       />
     ),
-    [currentIndex, isParentFocused]
+    [currentIndex, isParentFocused],
   );
 
   const extraData = useMemo(
     () => ({ currentIndex, isParentFocused }),
-    [currentIndex, isParentFocused]
+    [currentIndex, isParentFocused],
   );
 
   // リストが非表示になったらスクロール済みフラグをリセット
@@ -97,6 +97,8 @@ export default function OnRepeatPlayerList({
     }
   }, [currentIndex, songs.length, isParentFocused]);
 
+  const keyExtractor = useCallback((item: Song) => item.id, []);
+
   // 親がフォーカスを失った場合はリストをアンマウントしてリソースを解放
   if (!isParentFocused) {
     return null;
@@ -108,7 +110,7 @@ export default function OnRepeatPlayerList({
       data={songs}
       extraData={extraData}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id}
+      keyExtractor={keyExtractor}
       pagingEnabled
       showsVerticalScrollIndicator={false}
       snapToInterval={height}
@@ -121,4 +123,3 @@ export default function OnRepeatPlayerList({
     />
   );
 }
-

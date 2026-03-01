@@ -36,7 +36,7 @@ const ITEM_WIDTH = width * 0.6;
 // TrendItemをメモ化
 const TrendItem = memo(
   ({ song, index, onPlay, isDisabled }: TrendItemProps) => {
-    const { colors } = useThemeStore();
+    const colors = useThemeStore((state) => state.colors);
     return (
       <TouchableOpacity
         style={[
@@ -93,7 +93,7 @@ const TrendItem = memo(
         </BlurView>
       </TouchableOpacity>
     );
-  }
+  },
 );
 
 TrendItem.displayName = "TrendItem";
@@ -107,7 +107,7 @@ const PeriodSelector = memo(
     period: "all" | "month" | "week" | "day";
     setPeriod: (period: "all" | "month" | "week" | "day") => void;
   }) => {
-    const { colors } = useThemeStore();
+    const colors = useThemeStore((state) => state.colors);
 
     const activeButtonStyle = {
       backgroundColor: colors.primary,
@@ -160,7 +160,7 @@ const PeriodSelector = memo(
         </ScrollView>
       </View>
     );
-  }
+  },
 );
 
 PeriodSelector.displayName = "PeriodSelector";
@@ -173,7 +173,7 @@ function TrendBoard() {
   // ダウンロード済み曲のIDセットを作成（O(1)検索用）
   const downloadedSongIds = useMemo(
     () => new Set(downloadedSongs.map((d) => d.id)),
-    [downloadedSongs]
+    [downloadedSongs],
   );
 
   // SQLite から取得（Local-First）
@@ -186,7 +186,7 @@ function TrendBoard() {
     async (song: Song) => {
       await togglePlayPause(song);
     },
-    [togglePlayPause]
+    [togglePlayPause],
   );
 
   // キー抽出関数をメモ化
@@ -206,7 +206,7 @@ function TrendBoard() {
         />
       );
     },
-    [downloadedSongIds, isOnline, onPlay]
+    [downloadedSongIds, isOnline, onPlay],
   );
 
   if (isLoading) return <Loading />;
@@ -368,4 +368,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-

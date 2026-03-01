@@ -40,7 +40,7 @@ function ListItem({
   };
 
   const router = useRouter();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const handleDelete = useCallback(() => {
     if (onDelete) {

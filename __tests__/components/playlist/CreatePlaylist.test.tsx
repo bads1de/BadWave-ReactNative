@@ -16,6 +16,22 @@ jest.mock("react-native-toast-message", () => ({
   show: jest.fn(),
 }));
 jest.spyOn(Alert, "alert");
+jest.mock("expo-haptics", () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
+}));
+jest.mock("@/hooks/stores/useThemeStore", () => ({
+  useThemeStore: jest.fn(() => ({
+    colors: {
+      primary: "#000",
+      background: "#fff",
+      card: "#fff",
+      border: "#eee",
+      text: "#000",
+      subText: "#666",
+    },
+  })),
+}));
 
 const mockUseNetworkStatus = useNetworkStatus as jest.Mock;
 const mockCreatePlaylist = createPlaylist as jest.Mock;
@@ -50,7 +66,7 @@ describe("CreatePlaylist Component", () => {
 
     // 入力
     fireEvent.changeText(
-      getByPlaceholderText("My Playlist"),
+      getByPlaceholderText("My Awesome Playlist"),
       "New Cool Playlist",
     );
 
@@ -59,10 +75,7 @@ describe("CreatePlaylist Component", () => {
 
     await waitFor(() => {
       // react-query pass extra args to mutationFn
-      expect(mockCreatePlaylist).toHaveBeenCalledWith(
-        "New Cool Playlist",
-        expect.anything(),
-      );
+      expect(mockCreatePlaylist.mock.calls[0][0]).toBe("New Cool Playlist");
       expect(Toast.show).toHaveBeenCalledWith(
         expect.objectContaining({ type: "success" }),
       );

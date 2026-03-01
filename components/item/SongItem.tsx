@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect, useRef } from "react";
+import React, { useState, memo, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -45,16 +45,14 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
 
   const { width: windowWidth } = Dimensions.get("window");
 
-  const calculateItemSize = () => {
+  const dynamicStyle = useMemo(() => {
     if (dynamicSize) {
       const itemWidth = (windowWidth - 64) / 2 - 12;
       const itemHeight = itemWidth * 1.5; // Slightly taller for elegant proportions
       return { width: itemWidth, height: itemHeight };
     }
     return { width: 180, height: 300 };
-  };
-
-  const dynamicStyle = calculateItemSize();
+  }, [dynamicSize, windowWidth]);
 
   useEffect(() => {
     if (isImageLoaded && isFirstRender.current) {

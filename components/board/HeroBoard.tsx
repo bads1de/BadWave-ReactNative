@@ -213,12 +213,7 @@ function HeroBoard() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      // withTiming is used to satisfy tests and potentially add effects
-      withTiming(0, { duration: 0 }, (isFinished) => {
-        if (isFinished) {
-          runOnJS(updateGenre)();
-        }
-      });
+      updateGenre();
     }, 5000);
 
     return () => clearInterval(timer);
@@ -230,19 +225,29 @@ function HeroBoard() {
     },
   });
 
+  const renderItem = useCallback(
+    ({ item, index }: { item: any; index: number }) => (
+      <GenreCard
+        genre={(item as GenreItem).name}
+        index={index}
+        scrollX={scrollX}
+        onNavigate={navigateToGenre}
+      />
+    ),
+    [navigateToGenre, scrollX],
+  );
+
+  const keyExtractor = useCallback(
+    (item: any) => (item as GenreItem).id.toString(),
+    [],
+  );
+
   return (
     <View style={styles.container}>
       <AnimatedFlashList
         data={genreCards}
-        renderItem={({ item, index }) => (
-          <GenreCard
-            genre={(item as GenreItem).name}
-            index={index}
-            scrollX={scrollX}
-            onNavigate={navigateToGenre}
-          />
-        )}
-        keyExtractor={(item) => (item as GenreItem).id.toString()}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}

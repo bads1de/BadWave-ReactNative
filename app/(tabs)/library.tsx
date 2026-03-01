@@ -153,14 +153,7 @@ export default function LibraryScreen() {
       ) : (
         <>
           <View style={styles.tabContainerWrapper}>
-            <BlurView
-              intensity={20}
-              tint="dark"
-              style={[
-                styles.tabContainer,
-                { borderColor: "rgba(255, 255, 255, 0.12)" },
-              ]}
-            >
+            <BlurView intensity={20} tint="dark" style={styles.tabContainer}>
               <TouchableOpacity
                 onPress={() => setType("liked")}
                 style={[
@@ -231,7 +224,7 @@ export default function LibraryScreen() {
                   key={"liked"}
                   data={likedSongs}
                   renderItem={renderLikedSongs}
-                  keyExtractor={(item) => item.id}
+                  keyExtractor={keyExtractor}
                   numColumns={2}
                   contentContainerStyle={styles.listContainer}
                   estimatedItemSize={250}
@@ -239,14 +232,7 @@ export default function LibraryScreen() {
               </>
             ) : (
               <View style={styles.emptyContainer}>
-                <BlurView
-                  intensity={15}
-                  tint="dark"
-                  style={[
-                    styles.emptyGlass,
-                    { borderColor: "rgba(255, 255, 255, 0.12)" },
-                  ]}
-                >
+                <BlurView intensity={15} tint="dark" style={styles.emptyGlass}>
                   <Heart
                     size={48}
                     color={colors.subText}
@@ -276,14 +262,7 @@ export default function LibraryScreen() {
             />
           ) : (
             <View style={styles.emptyContainer}>
-              <BlurView
-                intensity={15}
-                tint="dark"
-                style={[
-                  styles.emptyGlass,
-                  { borderColor: "rgba(255, 255, 255, 0.12)" },
-                ]}
-              >
+              <BlurView intensity={15} tint="dark" style={styles.emptyGlass}>
                 <ListMusic
                   size={48}
                   color={colors.subText}
@@ -360,6 +339,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     backgroundColor: "rgba(20, 20, 20, 0.4)",
+    borderColor: "rgba(255, 255, 255, 0.12)",
   },
   tabItem: {
     flex: 1,
@@ -398,6 +378,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     backgroundColor: "rgba(20, 20, 20, 0.4)",
+    borderColor: "rgba(255, 255, 255, 0.12)",
   },
   emptyText: {
     fontSize: 18,

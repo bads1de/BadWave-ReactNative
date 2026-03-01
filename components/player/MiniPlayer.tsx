@@ -36,7 +36,7 @@ function ModernMiniPlayer({
   onPlayPause,
   onPress,
 }: MiniPlayerProps) {
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const { position, duration } = useProgress(500);
 
   const translateY = useSharedValue(100);
@@ -54,10 +54,6 @@ function ModernMiniPlayer({
     <Animated.View
       style={[
         styles.container,
-        {
-          backgroundColor: "rgba(20, 20, 20, 0.65)",
-          borderColor: "rgba(255, 255, 255, 0.15)",
-        },
         useAnimatedStyle(() => ({
           transform: [{ translateY: translateY.value }],
           opacity: opacity.value,
@@ -125,9 +121,6 @@ function ModernMiniPlayer({
                 width: progressWidth,
                 backgroundColor: colors.primary,
                 shadowColor: colors.primary,
-                shadowOpacity: 0.8,
-                shadowRadius: 6,
-                elevation: 4,
               },
             ]}
           />
@@ -150,6 +143,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 20,
     elevation: 8,
+    backgroundColor: "rgba(20, 20, 20, 0.65)",
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
   blurContainer: {
     flex: 1,
@@ -212,6 +207,9 @@ const styles = StyleSheet.create({
     height: "100%",
     borderTopRightRadius: 3,
     borderBottomRightRadius: 3,
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });
 

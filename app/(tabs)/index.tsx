@@ -24,7 +24,7 @@ import { FONTS } from "@/constants/theme";
  */
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   // SQLite から楽曲を取得（Local-First）
   const { data: songs = [], isLoading, error } = useGetLocalSongs();
@@ -38,19 +38,14 @@ export default function HomeScreen() {
         await togglePlayPause(song);
       }
     },
-    [songs, togglePlayPause]
+    [songs, togglePlayPause],
   );
 
   const renderItem = useCallback(
     ({ item }: { item: Song }) => (
-      <SongItem
-        song={item}
-        key={item.id}
-        onClick={handleSongPress}
-        dynamicSize={false}
-      />
+      <SongItem song={item} onClick={handleSongPress} dynamicSize={false} />
     ),
-    [handleSongPress]
+    [handleSongPress],
   );
 
   const renderSectionTitle = useCallback(
@@ -62,11 +57,15 @@ export default function HomeScreen() {
             {title}
           </Text>
         </View>
-        <View style={[styles.titleSeparator, { backgroundColor: colors.border }]} />
+        <View
+          style={[styles.titleSeparator, { backgroundColor: colors.border }]}
+        />
       </View>
     ),
-    [colors]
+    [colors],
   );
+
+  const keyExtractor = useCallback((item: Song) => item.id, []);
 
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
@@ -105,7 +104,7 @@ export default function HomeScreen() {
               <FlashList
                 data={songs}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id}
+                keyExtractor={keyExtractor}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 estimatedItemSize={220}

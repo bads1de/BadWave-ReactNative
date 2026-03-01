@@ -1,4 +1,4 @@
-import React, { memo, useRef, useEffect, useState } from "react";
+import React, { memo, useRef, useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -30,8 +30,11 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   // カラム数2で計算 (余白を広めに)
-  const itemWidth = (width - 64) / 2;
-  const itemHeight = itemWidth * 1.4;
+  const itemSize = useMemo(() => {
+    const itemWidth = (width - 64) / 2;
+    const itemHeight = itemWidth * 1.4;
+    return { width: itemWidth, height: itemHeight };
+  }, [width]);
 
   // Animations
   const scale = useSharedValue(1);
@@ -60,13 +63,13 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
 
   return (
     <Animated.View
-      style={[styles.wrapper, animatedStyle, { width: itemWidth }]}
+      style={[styles.wrapper, animatedStyle, { width: itemSize.width }]}
     >
       <TouchableOpacity
         style={[
           styles.container,
           {
-            height: itemHeight,
+            height: itemSize.height,
             backgroundColor: colors.card,
             borderColor: colors.border,
           },
@@ -165,4 +168,3 @@ export default memo(PlaylistItem, (prevProps, nextProps) => {
     prevProps.testID === nextProps.testID
   );
 });
-

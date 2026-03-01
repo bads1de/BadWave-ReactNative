@@ -311,7 +311,7 @@ function Player(props: PlayerProps) {
   return (
     <ScrollView
       style={[styles.scrollContainer, { backgroundColor: colors.background }]}
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.playerContainer}>
@@ -368,6 +368,9 @@ export default MemoizedPlayer;
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   playerContainer: {
     height: height * 0.9,

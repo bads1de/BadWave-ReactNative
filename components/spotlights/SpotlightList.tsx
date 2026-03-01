@@ -46,6 +46,8 @@ export default function SpotlightList({
     [currentVisibleIndex, isParentFocused, tabBarHeight],
   );
 
+  const keyExtractor = useCallback((item: Spotlight) => item.id, []);
+
   // タブがフォーカスを失った場合はリストをアンマウントしてリソースを解放
   if (!isParentFocused) {
     return null;
@@ -56,7 +58,7 @@ export default function SpotlightList({
       data={data}
       extraData={currentVisibleIndex}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id}
+      keyExtractor={keyExtractor}
       pagingEnabled
       showsVerticalScrollIndicator={false}
       snapToInterval={height}

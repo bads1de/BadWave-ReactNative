@@ -42,7 +42,7 @@ function SearchScreen() {
   const debouncedQuery = useDebounce(searchQuery, 500);
   const router = useRouter();
   const { isOnline } = useNetworkStatus();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const [isFocused, setIsFocused] = useState(false);
 
   // 検索履歴
@@ -226,16 +226,12 @@ function SearchScreen() {
         <View
           style={[
             styles.searchInputContainer,
-            {
-              backgroundColor: isFocused
-                ? "rgba(255,255,255,0.08)"
-                : "rgba(255,255,255,0.04)",
-              borderColor: isFocused ? colors.primary : "transparent",
-              borderWidth: 1,
-              shadowColor: isFocused ? colors.primary : "transparent",
-              shadowOpacity: isFocused ? 0.2 : 0,
-              shadowRadius: 10,
-            },
+            isFocused
+              ? [
+                  styles.searchInputFocused,
+                  { borderColor: colors.primary, shadowColor: colors.primary },
+                ]
+              : styles.searchInputNormal,
           ]}
         >
           <Search
@@ -268,23 +264,20 @@ function SearchScreen() {
             onPress={() => setSearchType("songs")}
             style={[
               styles.tabItem,
-              searchType === "songs" && styles.tabItemActive,
-              {
-                backgroundColor:
-                  searchType === "songs"
-                    ? "rgba(255,255,255,0.1)"
-                    : "transparent",
-              },
+              searchType === "songs"
+                ? styles.tabItemActive
+                : styles.tabItemInactive,
             ]}
             activeOpacity={0.7}
           >
             <Text
               style={[
                 styles.tabText,
+                searchType === "songs"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
                 {
                   color: searchType === "songs" ? colors.text : colors.subText,
-                  fontFamily:
-                    searchType === "songs" ? FONTS.bold : FONTS.semibold,
                 },
               ]}
             >
@@ -296,24 +289,21 @@ function SearchScreen() {
             onPress={() => setSearchType("playlists")}
             style={[
               styles.tabItem,
-              searchType === "playlists" && styles.tabItemActive,
-              {
-                backgroundColor:
-                  searchType === "playlists"
-                    ? "rgba(255,255,255,0.1)"
-                    : "transparent",
-              },
+              searchType === "playlists"
+                ? styles.tabItemActive
+                : styles.tabItemInactive,
             ]}
             activeOpacity={0.7}
           >
             <Text
               style={[
                 styles.tabText,
+                searchType === "playlists"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
                 {
                   color:
                     searchType === "playlists" ? colors.text : colors.subText,
-                  fontFamily:
-                    searchType === "playlists" ? FONTS.bold : FONTS.semibold,
                 },
               ]}
             >
@@ -407,6 +397,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     height: 56, // Slightly taller for emphasis
     marginBottom: 24,
+    borderWidth: 1,
+  },
+  searchInputFocused: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+  },
+  searchInputNormal: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderColor: "transparent",
+    shadowColor: "transparent",
+    shadowOpacity: 0,
   },
   searchIcon: {
     marginRight: 12,
@@ -435,14 +437,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tabItemActive: {
+    backgroundColor: "rgba(255,255,255,0.1)",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
   },
+  tabItemInactive: {
+    backgroundColor: "transparent",
+  },
   tabText: {
     fontSize: 14,
+  },
+  tabTextActive: {
+    fontFamily: FONTS.bold,
+  },
+  tabTextInactive: {
+    fontFamily: FONTS.semibold,
   },
   listContainer: {
     paddingHorizontal: 20,

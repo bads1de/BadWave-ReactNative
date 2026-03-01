@@ -26,6 +26,29 @@ jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.spyOn(Alert, "alert");
 
+jest.mock("expo-haptics", () => ({
+  impactAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
+  NotificationFeedbackType: {
+    Success: "success",
+    Warning: "warning",
+    Error: "error",
+  },
+}));
+jest.mock("@/hooks/stores/useThemeStore", () => ({
+  useThemeStore: jest.fn(() => ({
+    colors: {
+      primary: "#000",
+      background: "#fff",
+      card: "#fff",
+      border: "#eee",
+      text: "#000",
+      subText: "#666",
+    },
+  })),
+}));
+
 const mockUseAuth = useAuth as jest.Mock;
 const mockUseNetworkStatus = useNetworkStatus as jest.Mock;
 const mockUsePlaylistStatus = usePlaylistStatus as jest.Mock;
@@ -82,6 +105,7 @@ describe("AddPlaylist Component", () => {
         expect.objectContaining({
           playlistId: "p1",
           songId: "s1",
+          userId: "u1",
         }),
       );
     });

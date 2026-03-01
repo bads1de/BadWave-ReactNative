@@ -212,11 +212,10 @@ function CreatePlaylist() {
               style={[
                 styles.submitButton,
                 { backgroundColor: colors.primary },
-                (isPending || !playlistName.trim()) &&
-                  styles.submitButtonDisabled,
+                isPending && styles.submitButtonDisabled,
               ]}
               onPress={handleCreatePlaylist}
-              disabled={isPending || !playlistName.trim()}
+              disabled={isPending}
               testID="create-button"
             >
               <Text style={[styles.submitButtonText, { color: "#fff" }]}>
