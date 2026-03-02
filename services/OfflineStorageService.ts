@@ -13,6 +13,7 @@ export class OfflineStorageService {
   private readonly DOWNLOAD_DIR = FileSystem.documentDirectory + "downloads/";
   private readonly IMAGES_DIR =
     FileSystem.documentDirectory + "downloads/images/";
+  private readonly MINIMUM_FREE_SPACE = 50 * 1024 * 1024; // 50MB
 
   constructor() {
     this.ensureDownloadDirectory();
@@ -52,7 +53,7 @@ export class OfflineStorageService {
    */
   private async downloadImage(
     imageUrl: string,
-    songId: string
+    songId: string,
   ): Promise<string | null> {
     try {
       // 画像URLが空の場合はスキップ
@@ -72,19 +73,27 @@ export class OfflineStorageService {
       }
 
       // ダウンロード実行
-      const downloadResult = await FileSystem.downloadAsync(
-        imageUrl,
-        localPath
-      );
-
-      if (downloadResult.status === 200) {
-        console.log(`Image downloaded successfully: ${songId}`);
-        return localPath;
-      } else {
-        console.error(
-          `Image download failed with status code: ${downloadResult.status}`
+      try {
+        const downloadResult = await FileSystem.downloadAsync(
+          imageUrl,
+          localPath,
         );
-        return null;
+
+        if (downloadResult.status === 200) {
+          console.log(`Image downloaded successfully: ${songId}`);
+          return localPath;
+        } else {
+          console.error(
+            `Image download failed with status code: ${downloadResult.status}`,
+          );
+          // 失敗した場合は残留ファイルをクリーンアップ
+          await FileSystem.deleteAsync(localPath, { idempotent: true });
+          return null;
+        }
+      } catch (downloadError) {
+        // ネットワークエラー等での中断時もクリーンアップ
+        await FileSystem.deleteAsync(localPath, { idempotent: true });
+        throw downloadError;
       }
     } catch (error) {
       console.error("Error downloading image:", error);
@@ -98,9 +107,18 @@ export class OfflineStorageService {
    * @returns ダウンロード結果
    */
   async downloadSong(
-    song: Song
+    song: Song,
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      // ダウンロード前にストレージの空き容量をチェック
+      const freeSpace = await FileSystem.getFreeDiskStorageAsync();
+      if (freeSpace < this.MINIMUM_FREE_SPACE) {
+        return {
+          success: false,
+          error: "Not enough free storage space.",
+        };
+      }
+
       // ファイル名にはタイトルを使用（特殊文字を除去）
       const sanitizedTitle = song.title.replace(/[^a-zA-Z0-9]/g, "_");
 
@@ -118,31 +136,40 @@ export class OfflineStorageService {
       }
 
       // ダウンロード実行
-      const downloadResult = await FileSystem.downloadAsync(
-        song.song_path,
-        localPath
-      );
-
-      if (downloadResult.status === 200) {
-        // 画像もダウンロード
-        const imageLocalPath = await this.downloadImage(
-          song.image_path,
-          song.id
+      try {
+        const downloadResult = await FileSystem.downloadAsync(
+          song.song_path,
+          localPath,
         );
 
-        // SQLite にローカルパスを保存
-        await this.updateSongPathInDb(song.id, localPath, imageLocalPath);
+        if (downloadResult.status === 200) {
+          // 画像もダウンロード
+          const imageLocalPath = await this.downloadImage(
+            song.image_path,
+            song.id,
+          );
 
-        return { success: true };
-      } else {
-        console.error(
-          `Download failed with status code: ${downloadResult.status}`
-        );
+          // SQLite にローカルパスを保存
+          await this.updateSongPathInDb(song.id, localPath, imageLocalPath);
 
-        return {
-          success: false,
-          error: `Download failed with status code: ${downloadResult.status}`,
-        };
+          return { success: true };
+        } else {
+          console.error(
+            `Download failed with status code: ${downloadResult.status}`,
+          );
+
+          // 失敗した場合は残留ファイルをクリーンアップ
+          await FileSystem.deleteAsync(localPath, { idempotent: true });
+
+          return {
+            success: false,
+            error: `Download failed with status code: ${downloadResult.status}`,
+          };
+        }
+      } catch (downloadError) {
+        // ネットワークエラー等での中断時もクリーンアップ
+        await FileSystem.deleteAsync(localPath, { idempotent: true });
+        throw downloadError;
       }
     } catch (error) {
       console.error("Error downloading song:", error);
@@ -160,7 +187,7 @@ export class OfflineStorageService {
   private async updateSongPathInDb(
     songId: string,
     songPath: string | null,
-    imagePath: string | null
+    imagePath: string | null,
   ) {
     try {
       const updateData: any = {
@@ -188,7 +215,7 @@ export class OfflineStorageService {
    * @returns 削除結果
    */
   async deleteSong(
-    songId: string
+    songId: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // SQLite からパスを取得

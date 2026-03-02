@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { spotlights } from "@/lib/db/schema";
@@ -27,29 +28,31 @@ export function useSyncSpotlights() {
         return { synced: 0 };
       }
 
-      // SQLite に Upsert
-      for (const spot of remoteSpotlights) {
+      // SQLite に Upsert (Batch)
+      const valuesToInsert = remoteSpotlights.map((spot) => ({
+        id: spot.id,
+        title: spot.title,
+        author: spot.author,
+        description: spot.description,
+        genre: spot.genre,
+        originalVideoPath: spot.video_path,
+        originalThumbnailPath: spot.thumbnail_path,
+        createdAt: spot.created_at,
+      }));
+
+      if (valuesToInsert.length > 0) {
         await db
           .insert(spotlights)
-          .values({
-            id: spot.id,
-            title: spot.title,
-            author: spot.author,
-            description: spot.description,
-            genre: spot.genre,
-            originalVideoPath: spot.video_path,
-            originalThumbnailPath: spot.thumbnail_path,
-            createdAt: spot.created_at,
-          })
+          .values(valuesToInsert)
           .onConflictDoUpdate({
             target: spotlights.id,
             set: {
-              title: spot.title,
-              author: spot.author,
-              description: spot.description,
-              genre: spot.genre,
-              originalVideoPath: spot.video_path,
-              originalThumbnailPath: spot.thumbnail_path,
+              title: sql`excluded.title`,
+              author: sql`excluded.author`,
+              description: sql`excluded.description`,
+              genre: sql`excluded.genre`,
+              originalVideoPath: sql`excluded.original_video_path`,
+              originalThumbnailPath: sql`excluded.original_thumbnail_path`,
             },
           });
       }

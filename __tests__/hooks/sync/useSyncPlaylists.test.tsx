@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useSyncPlaylists } from "@/hooks/sync/useSyncPlaylists";
@@ -76,6 +76,10 @@ describe("useSyncPlaylists", () => {
       wrapper: createWrapper(),
     });
 
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
     await waitFor(() => {
       expect(result.current.isSyncing).toBe(false);
     });
@@ -84,17 +88,6 @@ describe("useSyncPlaylists", () => {
   });
 
   it("should sync playlists with upsert and transaction for playlist songs", async () => {
-    const mockRemotePlaylists = [
-      {
-        id: "playlist-1",
-        user_id: "user-123",
-        title: "My Playlist",
-        image_path: "/path/to/image",
-        is_public: false,
-        created_at: "2024-01-01T00:00:00Z",
-      },
-    ];
-
     const mockRemoteSongs = [
       {
         id: "ps-1",
@@ -107,6 +100,18 @@ describe("useSyncPlaylists", () => {
         playlist_id: "playlist-1",
         song_id: "song-2",
         created_at: "2024-01-02T00:00:00Z",
+      },
+    ];
+
+    const mockRemotePlaylists = [
+      {
+        id: "playlist-1",
+        user_id: "user-123",
+        title: "My Playlist",
+        image_path: "/path/to/image",
+        is_public: false,
+        created_at: "2024-01-01T00:00:00Z",
+        playlist_songs: mockRemoteSongs,
       },
     ];
 
@@ -142,27 +147,21 @@ describe("useSyncPlaylists", () => {
       return {};
     });
 
-    // プレイリストのUpsert
-    const mockPlaylistInsert = jest.fn().mockReturnValue({
-      values: jest.fn().mockReturnValue({
-        onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
-      }),
+    const mockInsert = jest.fn().mockImplementation((table) => {
+      return {
+        values: jest.fn().mockReturnValue({
+          onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
+        }),
+      };
     });
-    db.insert = mockPlaylistInsert;
 
-    // トランザクション内のモック
-    const mockSongInsert = jest.fn().mockReturnValue({
-      values: jest.fn().mockReturnValue({
-        onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
-      }),
-    });
     const mockDelete = jest.fn().mockReturnValue({
       where: jest.fn().mockResolvedValue(undefined),
     });
 
     const mockTransaction = jest.fn().mockImplementation(async (callback) => {
       const tx = {
-        insert: mockSongInsert,
+        insert: mockInsert,
         delete: mockDelete,
       };
       await callback(tx);
@@ -173,18 +172,26 @@ describe("useSyncPlaylists", () => {
       wrapper: createWrapper(),
     });
 
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
     await waitFor(() => {
       expect(result.current.isSyncing).toBe(false);
     });
 
-    // プレイリストのUpsertが呼ばれたことを確認
-    expect(mockPlaylistInsert).toHaveBeenCalled();
+    if (result.current.syncError) {
+      console.log("SYNC ERROR:", result.current.syncError);
+    }
+
+    // プレイリストのUpsertが呼ばれたことを確認 (トランザクション内のinsert)
+    expect(mockInsert).toHaveBeenCalledWith(expect.anything()); // mockInsert called for playlists and songs
 
     // トランザクションが使用されたことを確認
     expect(mockTransaction).toHaveBeenCalled();
 
-    // 曲のUpsertが呼ばれたことを確認
-    expect(mockSongInsert).toHaveBeenCalledTimes(2);
+    // 曲のUpsert用とプレイリストのUpsert用、それぞれで計2回 mockInsert が呼ばれたことを確認
+    expect(mockInsert).toHaveBeenCalledTimes(2);
 
     // 差分削除が呼ばれたことを確認
     expect(mockDelete).toHaveBeenCalled();
@@ -201,6 +208,7 @@ describe("useSyncPlaylists", () => {
         image_path: null,
         is_public: false,
         created_at: "2024-01-01T00:00:00Z",
+        playlist_songs: [],
       },
     ];
 
@@ -228,12 +236,13 @@ describe("useSyncPlaylists", () => {
       return {};
     });
 
-    const mockPlaylistInsert = jest.fn().mockReturnValue({
-      values: jest.fn().mockReturnValue({
-        onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
-      }),
+    const mockInsert = jest.fn().mockImplementation((table) => {
+      return {
+        values: jest.fn().mockReturnValue({
+          onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
+        }),
+      };
     });
-    db.insert = mockPlaylistInsert;
 
     const mockDelete = jest.fn().mockReturnValue({
       where: jest.fn().mockResolvedValue(undefined),
@@ -241,7 +250,7 @@ describe("useSyncPlaylists", () => {
 
     const mockTransaction = jest.fn().mockImplementation(async (callback) => {
       const tx = {
-        insert: jest.fn(),
+        insert: mockInsert,
         delete: mockDelete,
       };
       await callback(tx);
@@ -250,6 +259,10 @@ describe("useSyncPlaylists", () => {
 
     const { result } = renderHook(() => useSyncPlaylists("user-123"), {
       wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.triggerSync();
     });
 
     await waitFor(() => {
@@ -276,6 +289,10 @@ describe("useSyncPlaylists", () => {
       wrapper: createWrapper(),
     });
 
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
     await waitFor(() => {
       expect(result.current.isSyncing).toBe(false);
     });
@@ -283,4 +300,3 @@ describe("useSyncPlaylists", () => {
     expect(result.current.syncError).toBeDefined();
   });
 });
-

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { eq, and, notInArray } from "drizzle-orm";
+import { eq, and, notInArray, sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
@@ -26,10 +26,10 @@ export function useSyncPlaylists(userId?: string) {
         return { synced: 0 };
       }
 
-      // 1. プレイリスト一覧を取得
+      // 1. プレイリスト一覧とその中の曲データを一括で取得 (N+1の解消)
       const { data: remotePlaylists, error: playlistError } = await supabase
         .from("playlists")
-        .select("*")
+        .select("*, playlist_songs(*)")
         .eq("user_id", userId);
 
       if (playlistError) {
@@ -40,65 +40,58 @@ export function useSyncPlaylists(userId?: string) {
         return { synced: 0 };
       }
 
-      // 2. プレイリストを SQLite に同期
-      for (const playlist of remotePlaylists) {
-        await db
-          .insert(playlists)
-          .values({
-            id: playlist.id,
-            userId: playlist.user_id,
-            title: playlist.title,
-            imagePath: playlist.image_path,
-            isPublic: playlist.is_public,
-            createdAt: playlist.created_at,
-          })
-          .onConflictDoUpdate({
-            target: playlists.id,
-            set: {
-              title: playlist.title,
-              imagePath: playlist.image_path,
-              isPublic: playlist.is_public,
-            },
-          });
+      // 2. プレイリストと曲を SQLite に同期 (トランザクション内でバッチ処理)
+      await db.transaction(async (tx) => {
+        // --- プレイリスト本体のバッチUpsert ---
+        const playlistsToInsert = remotePlaylists.map((playlist) => ({
+          id: playlist.id,
+          userId: playlist.user_id,
+          title: playlist.title,
+          imagePath: playlist.image_path,
+          isPublic: playlist.is_public,
+          createdAt: playlist.created_at,
+        }));
 
-        // 3. プレイリスト内の曲を同期
-        const { data: remoteSongs, error: songsError } = await supabase
-          .from("playlist_songs")
-          .select("*")
-          .eq("playlist_id", playlist.id);
-
-        if (songsError) {
-          console.warn(
-            "[SyncPlaylists] Error fetching playlist songs:",
-            songsError,
-          );
-          continue;
+        if (playlistsToInsert.length > 0) {
+          await tx
+            .insert(playlists)
+            .values(playlistsToInsert)
+            .onConflictDoUpdate({
+              target: playlists.id,
+              set: {
+                title: sql`excluded.title`,
+                imagePath: sql`excluded.image_path`,
+                isPublic: sql`excluded.is_public`,
+              },
+            });
         }
 
-        // トランザクション内で安全に同期
-        await db.transaction(async (tx) => {
-          if (remoteSongs && remoteSongs.length > 0) {
-            // 1. リモートデータをUpsert
-            for (const song of remoteSongs) {
-              await tx
-                .insert(playlistSongs)
-                .values({
-                  id: song.id,
-                  playlistId: song.playlist_id,
-                  songId: song.song_id,
-                  addedAt: song.created_at,
-                })
-                .onConflictDoUpdate({
-                  target: playlistSongs.id,
-                  set: {
-                    songId: song.song_id,
-                    addedAt: song.created_at,
-                  },
-                });
-            }
+        // --- プレイリスト内の曲の同期 ---
+        for (const playlist of remotePlaylists) {
+          const remoteSongs = playlist.playlist_songs || [];
 
-            // 2. リモートにないデータを削除（Upsert完了後）
-            const remoteSongIds = remoteSongs.map((s) => s.id);
+          if (remoteSongs.length > 0) {
+            // 該当プレイリストの曲をバッチUpsert
+            const songsToInsert = remoteSongs.map((song: any) => ({
+              id: song.id,
+              playlistId: song.playlist_id,
+              songId: song.song_id,
+              addedAt: song.created_at,
+            }));
+
+            await tx
+              .insert(playlistSongs)
+              .values(songsToInsert)
+              .onConflictDoUpdate({
+                target: playlistSongs.id,
+                set: {
+                  songId: sql`excluded.song_id`,
+                  addedAt: sql`excluded.added_at`,
+                },
+              });
+
+            // リモートにないデータを削除（Upsert完了後）
+            const remoteSongIds = remoteSongs.map((s: any) => s.id);
             await tx
               .delete(playlistSongs)
               .where(
@@ -113,8 +106,8 @@ export function useSyncPlaylists(userId?: string) {
               .delete(playlistSongs)
               .where(eq(playlistSongs.playlistId, playlist.id));
           }
-        });
-      }
+        }
+      });
 
       return { synced: remotePlaylists.length };
     },

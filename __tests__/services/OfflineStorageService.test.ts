@@ -10,6 +10,7 @@ jest.mock("expo-file-system", () => ({
   makeDirectoryAsync: jest.fn(),
   downloadAsync: jest.fn(),
   deleteAsync: jest.fn(),
+  getFreeDiskStorageAsync: jest.fn(),
 }));
 
 // db クライアントをモック
@@ -54,6 +55,9 @@ describe("OfflineStorageService", () => {
     (FileSystem.makeDirectoryAsync as jest.Mock).mockResolvedValue(undefined);
     (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({ status: 200 });
     (FileSystem.deleteAsync as jest.Mock).mockResolvedValue(undefined);
+    (FileSystem.getFreeDiskStorageAsync as jest.Mock).mockResolvedValue(
+      100 * 1024 * 1024,
+    ); // 100MB
 
     // DBモックのリセット (デフォルトは空配列を返す)
     // 注意: mockReturnThis() はリセットされると消えるので、再度設定が必要かもしれないが、
@@ -73,11 +77,11 @@ describe("OfflineStorageService", () => {
       await (service as any).ensureDownloadDirectory();
 
       expect(FileSystem.getInfoAsync).toHaveBeenCalledWith(
-        "/mock/document/directory/downloads/"
+        "/mock/document/directory/downloads/",
       );
       expect(FileSystem.makeDirectoryAsync).toHaveBeenCalledWith(
         "/mock/document/directory/downloads/",
-        { intermediates: true }
+        { intermediates: true },
       );
     });
 
@@ -103,7 +107,7 @@ describe("OfflineStorageService", () => {
       // ダウンロード確認
       expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
         mockSong.song_path,
-        "/mock/document/directory/downloads/Test_Song.mp3"
+        "/mock/document/directory/downloads/Test_Song.mp3",
       );
 
       // DB更新確認
@@ -113,7 +117,7 @@ describe("OfflineStorageService", () => {
           songPath: "/mock/document/directory/downloads/Test_Song.mp3",
           imagePath:
             "/mock/document/directory/downloads/images/test-song-id_artwork.jpg",
-        })
+        }),
       );
     });
 
@@ -140,6 +144,19 @@ describe("OfflineStorageService", () => {
 
       expect(result.success).toBe(false);
     });
+
+    it("should fail download if free space is insufficient", async () => {
+      // 50MB未満の空き容量をモック
+      (FileSystem.getFreeDiskStorageAsync as jest.Mock).mockResolvedValue(
+        10 * 1024 * 1024,
+      );
+
+      const result = await service.downloadSong(mockSong);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Not enough free storage space.");
+      expect(FileSystem.downloadAsync).not.toHaveBeenCalled();
+    });
   });
 
   describe("deleteSong", () => {
@@ -151,10 +168,10 @@ describe("OfflineStorageService", () => {
         .mockImplementationOnce((cb) =>
           Promise.resolve([
             { songPath: "/path/to/song.mp3", imagePath: "/path/to/image.jpg" },
-          ]).then(cb)
+          ]).then(cb),
         )
         .mockImplementationOnce((cb) =>
-          Promise.resolve([{ imagePath: "/path/to/image.jpg" }]).then(cb)
+          Promise.resolve([{ imagePath: "/path/to/image.jpg" }]).then(cb),
         )
         .mockImplementationOnce((cb) => Promise.resolve([]).then(cb));
 
@@ -173,14 +190,14 @@ describe("OfflineStorageService", () => {
         expect.objectContaining({
           songPath: null,
           imagePath: null,
-        })
+        }),
       );
     });
 
     it("should handle case when song path not found in DB", async () => {
       // getSongLocalPath -> []
       (db.then as jest.Mock).mockImplementation((cb) =>
-        Promise.resolve([]).then(cb)
+        Promise.resolve([]).then(cb),
       );
 
       const result = await service.deleteSong(mockSong.id);
@@ -206,7 +223,7 @@ describe("OfflineStorageService", () => {
       ];
 
       (db.then as jest.Mock).mockImplementation((cb) =>
-        Promise.resolve(mockRows).then(cb)
+        Promise.resolve(mockRows).then(cb),
       );
       (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
         exists: true,
@@ -223,7 +240,7 @@ describe("OfflineStorageService", () => {
   describe("getSongLocalPath", () => {
     it("should return path from SQLite", async () => {
       (db.then as jest.Mock).mockImplementation((cb) =>
-        Promise.resolve([{ songPath: "/path/song.mp3" }]).then(cb)
+        Promise.resolve([{ songPath: "/path/song.mp3" }]).then(cb),
       );
       (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
         exists: true,
@@ -235,7 +252,7 @@ describe("OfflineStorageService", () => {
 
     it("should return null if not in SQLite", async () => {
       (db.then as jest.Mock).mockImplementation((cb) =>
-        Promise.resolve([]).then(cb)
+        Promise.resolve([]).then(cb),
       );
 
       const path = await service.getSongLocalPath("1");
@@ -263,7 +280,7 @@ describe("OfflineStorageService", () => {
       ];
 
       (db.then as jest.Mock).mockImplementation((cb) =>
-        Promise.resolve(mockRows).then(cb)
+        Promise.resolve(mockRows).then(cb),
       );
 
       // ファイルサイズのモック
@@ -279,7 +296,7 @@ describe("OfflineStorageService", () => {
 
     it("should return 0 when no songs are downloaded", async () => {
       (db.then as jest.Mock).mockImplementation((cb) =>
-        Promise.resolve([]).then(cb)
+        Promise.resolve([]).then(cb),
       );
 
       const size = await service.getDownloadedSongsSize();
@@ -298,7 +315,7 @@ describe("OfflineStorageService", () => {
       ];
 
       (db.then as jest.Mock).mockImplementation((cb) =>
-        Promise.resolve(mockRows).then(cb)
+        Promise.resolve(mockRows).then(cb),
       );
 
       (FileSystem.getInfoAsync as jest.Mock)
@@ -310,4 +327,3 @@ describe("OfflineStorageService", () => {
     });
   });
 });
-
