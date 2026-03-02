@@ -94,7 +94,7 @@ interface MediaBackgroundProps {
 const { width, height } = Dimensions.get("window");
 
 const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => {
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   return (
     <View style={styles.infoContainer}>
       <View style={styles.textContainer}>

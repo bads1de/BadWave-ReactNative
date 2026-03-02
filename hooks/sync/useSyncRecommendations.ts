@@ -27,7 +27,7 @@ export function useSyncRecommendations(userId?: string) {
         {
           p_user_id: userId,
           p_limit: 10,
-        }
+        },
       );
 
       if (error) {
@@ -60,7 +60,7 @@ export function useSyncRecommendations(userId?: string) {
     },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
-    enabled: !!userId,
+    enabled: false,
   });
 
   useEffect(() => {
@@ -80,4 +80,3 @@ export function useSyncRecommendations(userId?: string) {
 }
 
 export default useSyncRecommendations;
-

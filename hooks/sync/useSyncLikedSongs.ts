@@ -72,8 +72,8 @@ export function useSyncLikedSongs(userId?: string) {
           .where(
             and(
               eq(likedSongs.userId, userId),
-              notInArray(likedSongs.songId, remoteSongIds)
-            )
+              notInArray(likedSongs.songId, remoteSongIds),
+            ),
           );
       });
 
@@ -81,7 +81,7 @@ export function useSyncLikedSongs(userId?: string) {
     },
     staleTime: 1000 * 60 * 5, // 5分
     refetchOnWindowFocus: false,
-    enabled: !!userId,
+    enabled: false,
   });
 
   // 同期完了後、ローカルクエリを無効化
@@ -102,4 +102,3 @@ export function useSyncLikedSongs(userId?: string) {
 }
 
 export default useSyncLikedSongs;
-

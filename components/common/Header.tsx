@@ -14,7 +14,7 @@ function Header() {
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const { data: user } = useUser();
   const { session } = useAuth();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   return (
     <View

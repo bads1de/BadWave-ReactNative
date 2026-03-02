@@ -70,7 +70,7 @@ export function useSyncPlaylists(userId?: string) {
         if (songsError) {
           console.warn(
             "[SyncPlaylists] Error fetching playlist songs:",
-            songsError
+            songsError,
           );
           continue;
         }
@@ -104,8 +104,8 @@ export function useSyncPlaylists(userId?: string) {
               .where(
                 and(
                   eq(playlistSongs.playlistId, playlist.id),
-                  notInArray(playlistSongs.id, remoteSongIds)
-                )
+                  notInArray(playlistSongs.id, remoteSongIds),
+                ),
               );
           } else {
             // リモートが空の場合、ローカルも空にする
@@ -120,7 +120,7 @@ export function useSyncPlaylists(userId?: string) {
     },
     staleTime: 1000 * 60 * 5, // 5分
     refetchOnWindowFocus: false,
-    enabled: !!userId,
+    enabled: false,
   });
 
   // 同期完了後、ローカルクエリを無効化
@@ -141,4 +141,3 @@ export function useSyncPlaylists(userId?: string) {
 }
 
 export default useSyncPlaylists;
-

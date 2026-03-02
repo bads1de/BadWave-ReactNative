@@ -11,7 +11,7 @@ import PlayerContainer from "@/components/player/PlayerContainer";
 export default function TabLayout() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const showHeader = useHeaderStore((state) => state.showHeader);
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   return (
     <>

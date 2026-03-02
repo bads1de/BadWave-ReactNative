@@ -35,7 +35,7 @@ export function BulkDownloadButton({
 }: BulkDownloadButtonProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<"download" | "delete">("download");
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const { isOnline } = useNetworkStatus();
 

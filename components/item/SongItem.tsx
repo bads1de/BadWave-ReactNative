@@ -33,7 +33,7 @@ interface SongItemProps {
 function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const { isOnline } = useNetworkStatus();
   const isDownloaded = !!song.local_song_path;

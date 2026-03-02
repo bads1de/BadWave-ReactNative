@@ -36,7 +36,7 @@ function AuthModalInner() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const signInWithEmail = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

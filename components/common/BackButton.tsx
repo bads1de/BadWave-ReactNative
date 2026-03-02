@@ -38,7 +38,7 @@ function BackButton({
   iconColor,
 }: BackButtonProps) {
   const router = useRouter();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const handlePress = () => {
     if (onPress) {

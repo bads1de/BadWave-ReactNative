@@ -111,23 +111,31 @@ async function isPlayerServiceRunning(): Promise<boolean> {
  * TrackPlayer.registerPlaybackService(() => playbackService);
  * ```
  */
+// グローバルフラグ：イベントリスナーの二重登録を防ぐ
+let isServiceRegistered = false;
+
 export function playbackService() {
   return async () => {
+    if (isServiceRegistered) {
+      return;
+    }
+    isServiceRegistered = true;
+
     try {
       await TrackPlayer.addEventListener(Event.RemotePlay, () =>
-        TrackPlayer.play()
+        TrackPlayer.play(),
       );
       await TrackPlayer.addEventListener(Event.RemotePause, () =>
-        TrackPlayer.pause()
+        TrackPlayer.pause(),
       );
       await TrackPlayer.addEventListener(Event.RemoteStop, () =>
-        TrackPlayer.stop()
+        TrackPlayer.stop(),
       );
       await TrackPlayer.addEventListener(Event.RemoteNext, () =>
-        TrackPlayer.skipToNext()
+        TrackPlayer.skipToNext(),
       );
       await TrackPlayer.addEventListener(Event.RemotePrevious, () =>
-        TrackPlayer.skipToPrevious()
+        TrackPlayer.skipToPrevious(),
       );
       await TrackPlayer.addEventListener(Event.RemoteSeek, (event) => {
         TrackPlayer.seekTo(event.position);
@@ -138,11 +146,17 @@ export function playbackService() {
     } catch (error) {
       console.error(
         "プレイバックサービスの設定中にエラーが発生しました:",
-        error
+        error,
       );
+      isServiceRegistered = false; // エラー時はリセット
       throw error;
     }
   };
+}
+
+// テスト用のリセット関数 (内部状態クリア)
+export function __resetPlaybackService() {
+  isServiceRegistered = false;
 }
 
 // 型定義のエクスポート

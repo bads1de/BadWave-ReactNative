@@ -24,7 +24,7 @@ interface LoadingProps {
  * @returns {JSX.Element} ローディングインジケーターコンポーネント。
  */
 function Loading({ size, color, testID }: LoadingProps) {
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const indicatorColor = color || colors.primary;
 
   return (

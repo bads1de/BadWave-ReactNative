@@ -73,6 +73,7 @@ export function useSyncSongs() {
     staleTime: 1000 * 60 * 5, // 5分
     refetchOnWindowFocus: false,
     refetchOnMount: true,
+    enabled: false,
   });
 
   // 同期完了後、ローカルクエリを無効化
@@ -91,4 +92,3 @@ export function useSyncSongs() {
     triggerSync: refetch,
   };
 }
-

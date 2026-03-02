@@ -15,7 +15,7 @@ export const SettingSection = ({
   icon: IconComponent,
   children,
 }: SettingSectionProps) => {
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   return (
     <View style={styles.container}>

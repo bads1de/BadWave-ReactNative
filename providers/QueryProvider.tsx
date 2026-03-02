@@ -32,10 +32,9 @@ export function QueryProvider({ children }: QueryProviderProps) {
       }}
       // キャッシュが復元された後の処理
       onSuccess={async () => {
-        // オンラインの場合、一時停止されたミューテーションを再開し、クエリを再取得
+        // オンラインの場合、一時停止されたミューテーションを再開
         if (onlineManager.isOnline()) {
           await queryClient.resumePausedMutations();
-          await queryClient.invalidateQueries();
         }
       }}
     >
@@ -43,4 +42,3 @@ export function QueryProvider({ children }: QueryProviderProps) {
     </PersistQueryClientProvider>
   );
 }
-

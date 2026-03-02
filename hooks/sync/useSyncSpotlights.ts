@@ -58,6 +58,7 @@ export function useSyncSpotlights() {
     },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    enabled: false,
   });
 
   useEffect(() => {
@@ -77,4 +78,3 @@ export function useSyncSpotlights() {
 }
 
 export default useSyncSpotlights;
-

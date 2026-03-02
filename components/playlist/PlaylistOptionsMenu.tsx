@@ -72,7 +72,7 @@ export default function PlaylistOptionsMenu({
   const queryClient = useQueryClient();
   const router = useRouter();
   const { isOnline } = useNetworkStatus();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const isOwner = session?.user.id === userId;
 

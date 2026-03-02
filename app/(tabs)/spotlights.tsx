@@ -23,7 +23,7 @@ export default function SpotlightsScreen() {
     (state) => state.setIsMiniPlayerVisible
   );
   const { isOnline } = useNetworkStatus();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   // 画面のフォーカス状態に応じてUI（ヘッダー、ミニプレイヤー）の表示/非表示を切り替えます。
   useEffect(() => {

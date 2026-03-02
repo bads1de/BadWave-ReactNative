@@ -26,7 +26,7 @@ interface PlaylistItemProps {
 
 function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
   const { width } = useWindowDimensions();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   // カラム数2で計算 (余白を広めに)

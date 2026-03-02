@@ -4,7 +4,11 @@ import TrackPlayer, {
   Capability,
   AppKilledPlaybackBehavior,
 } from "react-native-track-player";
-import { setupPlayer, playbackService } from "@/services/PlayerService";
+import {
+  setupPlayer,
+  playbackService,
+  __resetPlaybackService,
+} from "@/services/PlayerService";
 
 jest.mock("react-native-track-player", () => ({
   setupPlayer: jest.fn(),
@@ -48,6 +52,7 @@ jest.mock("react-native-track-player", () => ({
 describe("PlayerService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetPlaybackService();
   });
 
   describe("setupPlayer", () => {
@@ -104,13 +109,13 @@ describe("PlayerService", () => {
       (TrackPlayer.setupPlayer as jest.Mock).mockRejectedValue(error);
 
       await expect(setupPlayer()).rejects.toThrow(
-        "プレイヤーのセットアップに失敗しました"
+        "プレイヤーのセットアップに失敗しました",
       );
     });
 
     it("getPlaybackStateでエラーが発生した場合、新規セットアップを試みる", async () => {
       (TrackPlayer.getPlaybackState as jest.Mock).mockRejectedValue(
-        new Error("Not initialized")
+        new Error("Not initialized"),
       );
       (TrackPlayer.setupPlayer as jest.Mock).mockResolvedValue(undefined);
       (TrackPlayer.updateOptions as jest.Mock).mockResolvedValue(undefined);
@@ -134,31 +139,31 @@ describe("PlayerService", () => {
 
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.RemotePlay,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.RemotePause,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.RemoteStop,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.RemoteNext,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.RemotePrevious,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.RemoteSeek,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.PlaybackError,
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -169,7 +174,7 @@ describe("PlayerService", () => {
           if (event === Event.RemotePlay) {
             playHandler = handler;
           }
-        }
+        },
       );
 
       const service = playbackService();
@@ -187,7 +192,7 @@ describe("PlayerService", () => {
           if (event === Event.RemotePause) {
             pauseHandler = handler;
           }
-        }
+        },
       );
 
       const service = playbackService();
@@ -205,7 +210,7 @@ describe("PlayerService", () => {
           if (event === Event.RemoteNext) {
             nextHandler = handler;
           }
-        }
+        },
       );
 
       const service = playbackService();
@@ -223,7 +228,7 @@ describe("PlayerService", () => {
           if (event === Event.RemoteSeek) {
             seekHandler = handler;
           }
-        }
+        },
       );
 
       const service = playbackService();
@@ -235,4 +240,3 @@ describe("PlayerService", () => {
     });
   });
 });
-

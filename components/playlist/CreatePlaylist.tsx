@@ -37,7 +37,7 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
   const [playlistName, setPlaylistName] = useState("");
   const queryClient = useQueryClient();
   const { isOnline } = useNetworkStatus();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   // Animation shared values
   const translateY = useSharedValue(SCREEN_HEIGHT);

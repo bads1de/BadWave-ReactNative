@@ -10,7 +10,7 @@ import { subMonths, subWeeks, subDays } from "date-fns";
  * トレンド曲のIDリストをSupabaseから取得し、sectionCacheに保存する同期フック
  */
 export function useSyncTrendSongs(
-  period: "all" | "month" | "week" | "day" = "all"
+  period: "all" | "month" | "week" | "day" = "all",
 ) {
   const queryClient = useQueryClient();
   const cacheKey = `trend_${period}`;
@@ -25,13 +25,13 @@ export function useSyncTrendSongs(
         case "month":
           query = query.gte(
             "created_at",
-            subMonths(new Date(), 1).toISOString()
+            subMonths(new Date(), 1).toISOString(),
           );
           break;
         case "week":
           query = query.gte(
             "created_at",
-            subWeeks(new Date(), 1).toISOString()
+            subWeeks(new Date(), 1).toISOString(),
           );
           break;
         case "day":
@@ -73,6 +73,7 @@ export function useSyncTrendSongs(
     },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    enabled: false,
   });
 
   // 同期完了後、ローカルクエリを無効化
@@ -93,4 +94,3 @@ export function useSyncTrendSongs(
 }
 
 export default useSyncTrendSongs;
-

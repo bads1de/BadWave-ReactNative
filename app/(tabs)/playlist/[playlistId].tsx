@@ -37,7 +37,7 @@ export default function PlaylistDetailScreen() {
   const router = useRouter();
   const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
   const { session } = useAuth();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
 
   useFocusEffect(

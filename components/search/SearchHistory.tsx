@@ -35,7 +35,7 @@ function SearchHistoryComponent({
   onRemove,
   onClearAll,
 }: SearchHistoryProps) {
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const handleSelect = useCallback(
     (query: string) => {

@@ -47,7 +47,7 @@ function AddPlaylist({
   currentPlaylistId,
 }: AddPlaylistProps) {
   const queryClient = useQueryClient();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
   const [modalOpen, setModalOpen] = useState(false);
@@ -152,7 +152,7 @@ function AddPlaylistModal({
   opacity,
 }: any) {
   const queryClient = useQueryClient();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const { session } = useAuth();
 
   const { data: playlists = DEFAULT_PLAYLISTS } = useQuery({

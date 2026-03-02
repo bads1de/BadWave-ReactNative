@@ -41,7 +41,7 @@ describe("QueryProvider", () => {
     const { getByText } = render(
       <QueryProvider>
         <Text>Test Child</Text>
-      </QueryProvider>
+      </QueryProvider>,
     );
     expect(getByText("Test Child")).toBeTruthy();
   });
@@ -50,7 +50,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <Text>Test Child</Text>
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     expect(PersistQueryClientProvider).toHaveBeenCalledWith(
@@ -60,25 +60,22 @@ describe("QueryProvider", () => {
           maxAge: 1000 * 60 * 60 * 24,
         }),
       }),
-      expect.anything()
+      expect.anything(),
     );
   });
 
-  it("オンライン時に onSuccess が呼ばれると、ミューテーションを再開しクエリを無効化すること", async () => {
+  it("オンライン時に onSuccess が呼ばれると、ミューテーションを再開すること", async () => {
     (onlineManager.isOnline as jest.Mock).mockReturnValue(true);
 
     // queryClient のメソッドをスパイ
     const resumeSpy = jest
       .spyOn(queryClient, "resumePausedMutations")
-      .mockResolvedValue();
-    const invalidateSpy = jest
-      .spyOn(queryClient, "invalidateQueries")
-      .mockResolvedValue();
+      .mockResolvedValue(undefined as any);
 
     render(
       <QueryProvider>
         <Text>Test Child</Text>
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     // PersistQueryClientProvider の props から onSuccess を取得して実行
@@ -87,10 +84,8 @@ describe("QueryProvider", () => {
     await onSuccess();
 
     expect(resumeSpy).toHaveBeenCalled();
-    expect(invalidateSpy).toHaveBeenCalled();
 
     resumeSpy.mockRestore();
-    invalidateSpy.mockRestore();
   });
 
   it("オフライン時に onSuccess が呼ばれても、クエリの更新を行わないこと", async () => {
@@ -98,15 +93,12 @@ describe("QueryProvider", () => {
 
     const resumeSpy = jest
       .spyOn(queryClient, "resumePausedMutations")
-      .mockResolvedValue();
-    const invalidateSpy = jest
-      .spyOn(queryClient, "invalidateQueries")
-      .mockResolvedValue();
+      .mockResolvedValue(undefined as any);
 
     render(
       <QueryProvider>
         <Text>Test Child</Text>
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     const { onSuccess } = (PersistQueryClientProvider as jest.Mock).mock
@@ -114,10 +106,7 @@ describe("QueryProvider", () => {
     await onSuccess();
 
     expect(resumeSpy).not.toHaveBeenCalled();
-    expect(invalidateSpy).not.toHaveBeenCalled();
 
     resumeSpy.mockRestore();
-    invalidateSpy.mockRestore();
   });
 });
-

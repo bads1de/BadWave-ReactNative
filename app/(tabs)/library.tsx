@@ -39,7 +39,7 @@ export default function LibraryScreen() {
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const router = useRouter();
   const userId = session?.user?.id;
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const {
     likedSongs = [],

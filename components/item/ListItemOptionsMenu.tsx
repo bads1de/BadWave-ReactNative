@@ -62,7 +62,7 @@ function ListItemOptionsModal({
 }: any) {
   const { isOnline } = useNetworkStatus();
   const { session } = useAuth();
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
   const userId = session?.user?.id;
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -312,7 +312,7 @@ function ListItemOptionsMenu({
 }: ListItemOptionsMenuProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   // Animation shared values
   const translateY = useSharedValue(SCREEN_HEIGHT);

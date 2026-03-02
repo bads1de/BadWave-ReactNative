@@ -155,10 +155,44 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   // 初回マウント時に同期を開始（オンライン & 認証済みの場合）
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    // 初回同期用の関数。優先度をつけて段階的に同期を行う。
+    // ※ manual_sync（ユーザーが手動で更新引っ張る場合）は今まで通り triggerSync() で一括ですが、
+    // ここでは初期バックグラウンド同期を制御します。
+    const runInitialSync = async () => {
+      // コアデータ (ユーザーのライブラリ) は即座に同期を開始
+      const coreSyncs = [syncSongs(), syncLiked(), syncPlaylists()];
+      await Promise.allSettled(coreSyncs);
+
+      // 初期描画が落ち着くまで少し時間をおく (例: 3秒)
+      timeoutId = setTimeout(async () => {
+        if (!isOnline || !userId) return;
+        // 周辺データ (トレンド、おすすめ、スポットライト) の同期を開始
+        const secondarySyncs = [syncTrends(), syncRecs(), syncSpots()];
+        await Promise.allSettled(secondarySyncs);
+      }, 3000);
+    };
+
     if (isOnline && userId) {
-      // 同期フックは enabled: !!userId で自動的に実行される
+      runInitialSync();
     }
-  }, [isOnline, userId]);
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [
+    isOnline,
+    userId,
+    syncSongs,
+    syncLiked,
+    syncPlaylists,
+    syncTrends,
+    syncRecs,
+    syncSpots,
+  ]);
 
   const value: SyncContextValue = {
     isSyncing,

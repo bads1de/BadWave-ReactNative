@@ -33,7 +33,7 @@ export const SettingItem = ({
   destructive = false,
   disabled = false,
 }: SettingItemProps) => {
-  const { colors } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
 
   const Content = (
     <View style={[styles.container, style, disabled && styles.disabled]}>
