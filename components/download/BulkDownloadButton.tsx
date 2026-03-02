@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from "react";
-import { TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { TouchableOpacity, Text, StyleSheet, Alert, View } from "react-native";
+import { CloudDownload, Trash2 } from "lucide-react-native";
+import { BlurView } from "expo-blur";
 import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "@/components/download/BulkDownloadModal";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 interface BulkDownloadButtonProps {
   songs: Song[];
@@ -15,15 +17,8 @@ interface BulkDownloadButtonProps {
   size?: "small" | "medium" | "large";
 }
 
-const hexToRgba = (hex: string, alpha: number) => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
 /**
- * 一括ダウンロード/削除ボタン
+ * 一括ダウンロード/削除ボタン (Premium HUD Design)
  * - 未ダウンロード: 「すべてダウンロード」
  * - 一部ダウンロード: 「残りをダウンロード (N曲)」
  * - 全ダウンロード: 「すべて削除」
@@ -51,31 +46,30 @@ export function BulkDownloadButton({
     cancel,
   } = useBulkDownload(songs);
 
-  const getButtonConfig = (): {
-    label: string;
-    icon: keyof typeof Ionicons.glyphMap;
-    action: () => void;
-  } => {
+  const getButtonConfig = () => {
     const remainingCount = totalCount - downloadedCount;
 
     switch (status) {
       case "none":
         return {
-          label: `すべてダウンロード (${totalCount}曲)`,
-          icon: "cloud-download-outline",
+          label: `Download All (${totalCount})`,
+          Icon: CloudDownload,
           action: handleDownload,
+          isDelete: false,
         };
       case "partial":
         return {
-          label: `残りをダウンロード (${remainingCount}曲)`,
-          icon: "cloud-download-outline",
+          label: `Download Rest (${remainingCount})`,
+          Icon: CloudDownload,
           action: handleDownload,
+          isDelete: false,
         };
       case "all":
         return {
-          label: "すべて削除",
-          icon: "trash-outline",
+          label: "Delete All Downloads",
+          Icon: Trash2,
           action: handleDelete,
+          isDelete: true,
         };
     }
   };
@@ -84,7 +78,7 @@ export function BulkDownloadButton({
     if (!isOnline) {
       Alert.alert(
         "オフライン",
-        "ダウンロードにはインターネット接続が必要です。"
+        "ダウンロードにはインターネット接続が必要です。",
       );
       return;
     }
@@ -108,7 +102,7 @@ export function BulkDownloadButton({
             startDelete();
           },
         },
-      ]
+      ],
     );
   }, [downloadedCount, startDelete]);
 
@@ -128,45 +122,71 @@ export function BulkDownloadButton({
     return null;
   }
 
-  const primaryStyle = {
-    backgroundColor: hexToRgba(colors.primary, 0.2),
-    borderWidth: 1,
-    borderColor: hexToRgba(colors.primary, 0.3),
-  };
+  // サイズ計算
+  const isSmall = size === "small";
+  const isLarge = size === "large";
+  const buttonHeight = isSmall ? 36 : isLarge ? 56 : 44;
+  const fontSize = isSmall ? 12 : isLarge ? 15 : 14;
+  const iconSize = isSmall ? 16 : isLarge ? 20 : 18;
+  const borderRadius = isSmall ? 12 : 16;
+  const paddingH = isSmall ? 14 : isLarge ? 24 : 18;
 
-  const buttonStyles = [
-    styles.button,
-    variant === "primary" ? primaryStyle : styles.secondaryButton, // styles.primaryButtonの代わりに動的スタイルを使用
-    size === "small" && styles.smallButton,
-    size === "large" && styles.largeButton,
-    status === "all" && styles.deleteButton,
-  ];
+  // カラー計算
+  const isDel = config.isDelete;
+  const baseColor = isDel
+    ? "#EF4444"
+    : variant === "primary"
+      ? colors.primary
+      : colors.text;
+  const borderColor = isDel
+    ? "rgba(239, 68, 68, 0.4)"
+    : variant === "primary"
+      ? colors.primary + "50"
+      : "rgba(255, 255, 255, 0.15)";
+  const bgColor = isDel
+    ? "rgba(239, 68, 68, 0.15)"
+    : variant === "primary"
+      ? "rgba(10, 10, 10, 0.4)" // BlurView with tint dark
+      : "rgba(255, 255, 255, 0.05)";
 
-  const textStyles = [
-    styles.buttonText,
-    size === "small" && styles.smallText,
-    size === "large" && styles.largeText,
-    status === "all" && styles.deleteText,
-    { color: status === "all" ? "#ef4444" : colors.text }, // テキスト色もテーマ適用
-  ];
-
-  const iconSize = size === "small" ? 16 : size === "large" ? 24 : 20;
+  const textColor = isDel ? "#EF4444" : colors.text;
 
   return (
     <>
       <TouchableOpacity
-        style={buttonStyles}
+        style={[
+          styles.touchable,
+          { height: buttonHeight, borderRadius },
+          isDownloading && { opacity: 0.5 },
+        ]}
         onPress={config.action}
         activeOpacity={0.7}
         disabled={isDownloading}
       >
-        <Ionicons
-          name={config.icon}
-          size={iconSize}
-          color={status === "all" ? "#ef4444" : colors.text}
-          style={styles.icon}
+        <BlurView
+          intensity={variant === "primary" && !isDel ? 20 : 10}
+          tint="dark"
+          style={[
+            StyleSheet.absoluteFillObject,
+            styles.blurLayer,
+            {
+              borderRadius,
+              backgroundColor: bgColor,
+              borderColor,
+              borderWidth: 1,
+            },
+          ]}
         />
-        <Text style={textStyles}>{config.label}</Text>
+        <View style={[styles.contentWrapper, { paddingHorizontal: paddingH }]}>
+          <config.Icon
+            size={iconSize}
+            color={baseColor}
+            strokeWidth={isSmall ? 2 : 1.8}
+          />
+          <Text style={[styles.label, { fontSize, color: textColor }]}>
+            {config.label}
+          </Text>
+        </View>
       </TouchableOpacity>
 
       <BulkDownloadModal
@@ -183,55 +203,24 @@ export function BulkDownloadButton({
 }
 
 const styles = StyleSheet.create({
-  button: {
+  touchable: {
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-start",
+  },
+  blurLayer: {
+    // BlurView 自体のスタイル
+  },
+  contentWrapper: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
     gap: 8,
+    height: "100%",
   },
-  primaryButton: {
-    backgroundColor: "rgba(167, 139, 250, 0.2)",
-    borderWidth: 1,
-    borderColor: "rgba(167, 139, 250, 0.3)",
-  },
-  secondaryButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-  deleteButton: {
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
-    borderColor: "rgba(239, 68, 68, 0.3)",
-  },
-  smallButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
-  largeButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-    borderRadius: 16,
-  },
-  icon: {
-    marginRight: 4,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  smallText: {
-    fontSize: 12,
-  },
-  largeText: {
-    fontSize: 16,
-  },
-  deleteText: {
-    color: "#ef4444",
+  label: {
+    fontFamily: FONTS.semibold,
+    letterSpacing: 0.3,
   },
 });
-

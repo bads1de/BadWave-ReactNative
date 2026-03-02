@@ -23,8 +23,13 @@ jest.mock("@/hooks/stores/useThemeStore", () => ({
   })),
 }));
 
-jest.mock("@expo/vector-icons", () => ({
-  Ionicons: "Ionicons",
+jest.mock("lucide-react-native", () => ({
+  CloudDownload: "CloudDownload",
+  Trash2: "Trash2",
+}));
+
+jest.mock("expo-blur", () => ({
+  BlurView: "BlurView",
 }));
 
 // mock modal
@@ -53,10 +58,10 @@ describe("BulkDownloadButton", () => {
 
   it("renders 'Download All' when status is none", () => {
     const { getByText } = render(<BulkDownloadButton songs={mockSongs} />);
-    expect(getByText(/すべてダウンロード \(1曲\)/)).toBeTruthy();
+    expect(getByText(/Download All \(1\)/)).toBeTruthy();
   });
 
-  it("renders 'Download Remaining' when status is partial", () => {
+  it("renders 'Download Rest' when status is partial", () => {
     (useBulkDownload as jest.Mock).mockReturnValue({
       status: "partial",
       downloadedCount: 1,
@@ -70,10 +75,10 @@ describe("BulkDownloadButton", () => {
     });
 
     const { getByText } = render(<BulkDownloadButton songs={mockSongs} />);
-    expect(getByText(/残りをダウンロード \(2曲\)/)).toBeTruthy();
+    expect(getByText(/Download Rest \(2\)/)).toBeTruthy();
   });
 
-  it("renders 'Delete All' when status is all", () => {
+  it("renders 'Delete All Downloads' when status is all", () => {
     (useBulkDownload as jest.Mock).mockReturnValue({
       status: "all",
       downloadedCount: 1,
@@ -87,7 +92,7 @@ describe("BulkDownloadButton", () => {
     });
 
     const { getByText } = render(<BulkDownloadButton songs={mockSongs} />);
-    expect(getByText("すべて削除")).toBeTruthy();
+    expect(getByText("Delete All Downloads")).toBeTruthy();
   });
 
   it("calls startDownload when download button is pressed", () => {
@@ -105,7 +110,7 @@ describe("BulkDownloadButton", () => {
     });
 
     const { getByText } = render(<BulkDownloadButton songs={mockSongs} />);
-    fireEvent.press(getByText(/すべてダウンロード/));
+    fireEvent.press(getByText(/Download All/));
 
     expect(startDownload).toHaveBeenCalled();
   });
@@ -115,7 +120,7 @@ describe("BulkDownloadButton", () => {
     const spyAlert = jest.spyOn(Alert, "alert");
 
     const { getByText } = render(<BulkDownloadButton songs={mockSongs} />);
-    fireEvent.press(getByText(/すべてダウンロード/));
+    fireEvent.press(getByText(/Download All/));
 
     expect(spyAlert).toHaveBeenCalledWith("オフライン", expect.any(String));
   });
