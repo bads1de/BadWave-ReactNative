@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import SkeletonBox from "@/components/common/SkeletonBox";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import ListSkeleton from "@/components/common/ListSkeleton";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -23,9 +24,13 @@ function PlaylistDetailSkeleton({
   songCount = 5,
 }: PlaylistDetailSkeletonProps) {
   const heroHeight = SCREEN_WIDTH * heroHeightRatio;
+  const colors = useThemeStore((state) => state.colors);
 
   return (
-    <View testID="playlist-detail-skeleton" style={styles.container}>
+    <View
+      testID="playlist-detail-skeleton"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* ヒーロー画像エリア */}
       <SkeletonBox
         testID="playlist-detail-skeleton-hero"
@@ -35,7 +40,10 @@ function PlaylistDetailSkeleton({
       />
 
       {/* 情報カード */}
-      <View testID="playlist-detail-skeleton-info" style={styles.infoCard}>
+      <View
+        testID="playlist-detail-skeleton-info"
+        style={[styles.infoCard, { backgroundColor: colors.card + "D9" }]}
+      >
         {/* タイトル行 */}
         <View style={styles.titleRow}>
           <SkeletonBox width="60%" height={28} borderRadius={8} />
@@ -84,7 +92,6 @@ const styles = StyleSheet.create({
   infoCard: {
     marginTop: -(SCREEN_WIDTH * 1.05 * 0.35),
     marginHorizontal: 16,
-    backgroundColor: "rgba(20, 20, 20, 0.85)",
     borderRadius: 28,
     padding: 24,
     gap: 20,

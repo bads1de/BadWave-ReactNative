@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import SkeletonBox from "@/components/common/SkeletonBox";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -23,9 +24,13 @@ function SongDetailSkeleton({
   lyricsLineCount = 8,
 }: SongDetailSkeletonProps) {
   const heroHeight = SCREEN_HEIGHT * heroHeightRatio;
+  const colors = useThemeStore((state) => state.colors);
 
   return (
-    <View testID="song-detail-skeleton" style={styles.container}>
+    <View
+      testID="song-detail-skeleton"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* ヒーロー画像エリア */}
       <SkeletonBox
         testID="song-detail-skeleton-hero"
@@ -35,7 +40,12 @@ function SongDetailSkeleton({
       />
 
       {/* メインコンテンツ */}
-      <View style={[styles.mainContent, { marginTop: -40 }]}>
+      <View
+        style={[
+          styles.mainContent,
+          { backgroundColor: colors.background, marginTop: -40 },
+        ]}
+      >
         {/* タイトルセクション */}
         <View testID="song-detail-skeleton-title" style={styles.titleSection}>
           <SkeletonBox width="75%" height={48} borderRadius={10} />
@@ -78,7 +88,15 @@ function SongDetailSkeleton({
             <SkeletonBox width={140} height={24} borderRadius={6} />
           </View>
 
-          <View style={styles.lyricsBox}>
+          <View
+            style={[
+              styles.lyricsBox,
+              {
+                backgroundColor: colors.card + "40",
+                borderColor: colors.border,
+              },
+            ]}
+          >
             {Array.from({ length: lyricsLineCount }).map((_, i) => (
               <SkeletonBox
                 key={i}
@@ -98,11 +116,9 @@ function SongDetailSkeleton({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0A0A0A",
   },
   mainContent: {
     paddingHorizontal: 30,
-    backgroundColor: "#0A0A0A",
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     paddingTop: 50,
@@ -146,12 +162,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   lyricsBox: {
-    backgroundColor: "rgba(255,255,255,0.02)",
     borderRadius: 30,
     padding: 24,
     gap: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
   },
   lyricLine: {
     marginVertical: 2,

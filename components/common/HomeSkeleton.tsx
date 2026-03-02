@@ -1,8 +1,8 @@
 import React, { memo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import SkeletonBox from "@/components/common/SkeletonBox";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
-const BG = "#0A0A0A";
 const GAP = 16;
 
 /**
@@ -13,9 +13,11 @@ const GAP = 16;
  * を模した構成
  */
 function HomeSkeleton() {
+  const colors = useThemeStore((state) => state.colors);
+
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       scrollEnabled={false}
       testID="home-skeleton"
@@ -73,7 +75,6 @@ function SectionSkeleton({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BG,
   },
   content: {
     padding: 24,

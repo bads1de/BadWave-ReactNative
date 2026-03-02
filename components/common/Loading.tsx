@@ -57,45 +57,47 @@ function Loading({
 }: LoadingProps) {
   const colors = useThemeStore((state) => state.colors);
 
+  let content = null;
+
   if (variant === "home") {
-    return <HomeSkeleton />;
+    content = <HomeSkeleton />;
+  } else if (variant === "list") {
+    content = <ListSkeleton {...listProps} />;
+  } else if (variant === "grid") {
+    content = <GridSkeleton {...gridProps} />;
+  } else if (variant === "playlist-detail") {
+    content = <PlaylistDetailSkeleton {...playlistDetailProps} />;
+  } else if (variant === "song-detail") {
+    content = <SongDetailSkeleton {...songDetailProps} />;
+  } else {
+    // デフォルト: spinner
+    const indicatorColor = color || colors.primary;
+    content = (
+      <View style={styles.spinnerContainer}>
+        <ActivityIndicator
+          size={size}
+          color={indicatorColor}
+          testID="loading-indicator"
+        />
+      </View>
+    );
   }
-
-  if (variant === "list") {
-    return <ListSkeleton {...listProps} />;
-  }
-
-  if (variant === "grid") {
-    return <GridSkeleton {...gridProps} />;
-  }
-
-  if (variant === "playlist-detail") {
-    return <PlaylistDetailSkeleton {...playlistDetailProps} />;
-  }
-
-  if (variant === "song-detail") {
-    return <SongDetailSkeleton {...songDetailProps} />;
-  }
-
-  // デフォルト: spinner
-  const indicatorColor = color || colors.primary;
 
   return (
     <View
       style={[styles.container, { backgroundColor: colors.background }]}
       testID={testID || "loading-container"}
     >
-      <ActivityIndicator
-        size={size}
-        color={indicatorColor}
-        testID="loading-indicator"
-      />
+      {content}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  spinnerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

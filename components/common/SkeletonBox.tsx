@@ -8,6 +8,7 @@ import Animated, {
   Easing,
   interpolate,
 } from "react-native-reanimated";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 interface SkeletonBoxProps {
   width?: number | `${number}%`;
@@ -29,6 +30,7 @@ function SkeletonBox({
   testID,
 }: SkeletonBoxProps) {
   const shimmer = useSharedValue(0);
+  const colors = useThemeStore((state) => state.colors);
 
   useEffect(() => {
     shimmer.value = withRepeat(
@@ -50,7 +52,7 @@ function SkeletonBox({
           width,
           height,
           borderRadius,
-          backgroundColor: "#2A2A2A",
+          backgroundColor: colors.card,
         },
         animatedStyle,
         style,
