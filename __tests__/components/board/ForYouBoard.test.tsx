@@ -3,6 +3,10 @@ import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ForYouBoard from "@/components/board/ForYouBoard";
 
+jest.mock("react-native-reanimated", () => {
+  const Reanimated = require("react-native-reanimated/mock");
+  return Reanimated;
+});
 jest.mock("@/components/item/SongItem", () => ({
   __esModule: true,
   default: () => null,
@@ -15,7 +19,10 @@ jest.mock("@/components/common/Error", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
+  useAudioPlayer: jest.fn(),
+  usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
+}));
 jest.mock("@/hooks/data/useGetLocalRecommendations", () => ({
   useGetLocalRecommendations: jest.fn(() => ({
     data: [],
@@ -51,4 +58,3 @@ describe("ForYouBoard", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
-

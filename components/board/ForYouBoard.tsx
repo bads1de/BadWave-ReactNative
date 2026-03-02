@@ -49,7 +49,13 @@ function ForYouBoard() {
   // keyExtractor関数をメモ化
   const keyExtractor = useCallback((item: Song) => item.id, []);
 
-  if (isLoading) return <Loading />;
+  if (isLoading)
+    return (
+      <Loading
+        variant="list"
+        listProps={{ count: 3, avatarSize: 64, paddingHorizontal: 16 }}
+      />
+    );
   if (error) return <Error message={error.message} />;
 
   if (recommendations.length === 0) {

@@ -221,7 +221,19 @@ function TrendBoard() {
     [onPlay],
   );
 
-  if (isLoading) return <Loading />;
+  if (isLoading)
+    return (
+      <Loading
+        variant="list"
+        listProps={{
+          count: 3,
+          avatarSize: 80,
+          avatarRadius: 16,
+          itemHeight: 96,
+          paddingHorizontal: 16,
+        }}
+      />
+    );
 
   if (error) return <Error message={error.message} />;
 

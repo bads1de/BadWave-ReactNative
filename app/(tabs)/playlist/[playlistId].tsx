@@ -280,7 +280,8 @@ export default function PlaylistDetailScreen() {
     ],
   );
 
-  if (isLoading || isLoadingPlaylist) return <Loading />;
+  if (isLoading || isLoadingPlaylist)
+    return <Loading variant="playlist-detail" />;
   if (error || playlistError)
     return <Error message={error?.message || playlistError?.message} />;
 

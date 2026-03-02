@@ -171,7 +171,13 @@ function SearchScreen() {
     ) : null;
   }, [activeQuery.length, colors]);
 
-  if (isLoading) return <Loading />;
+  if (isLoading)
+    return (
+      <Loading
+        variant="list"
+        listProps={{ count: 6, showHeader: true, paddingHorizontal: 20 }}
+      />
+    );
   if (error) return <Error message={error.message} />;
 
   const hasResults =

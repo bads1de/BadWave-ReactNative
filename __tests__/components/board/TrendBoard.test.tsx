@@ -3,9 +3,12 @@ import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TrendBoard from "@/components/board/TrendBoard";
 
+jest.mock("react-native-reanimated", () => {
+  const Reanimated = require("react-native-reanimated/mock");
+  return Reanimated;
+});
 jest.mock("expo-image", () => ({ ImageBackground: "ImageBackground" }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
-jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("expo-blur", () => ({ BlurView: "BlurView" }));
 jest.mock("@/components/common/CustomButton", () => ({
@@ -27,8 +30,20 @@ jest.mock("@/hooks/data/useGetLocalTrendSongs", () => ({
     error: null,
   })),
 }));
-
-const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
+  usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
+}));
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
+  useNetworkStatus: jest.fn(() => ({ isOnline: true })),
+}));
+jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
+  useDownloadedSongs: jest.fn(() => ({ songs: [] })),
+}));
+jest.mock("@/hooks/stores/useThemeStore", () => ({
+  useThemeStore: jest.fn(() => ({
+    colors: { primary: "#D4AF37", activeTab: "#2A2A2A" },
+  })),
+}));
 
 describe("TrendBoard", () => {
   let queryClient: QueryClient;
@@ -37,7 +52,6 @@ describe("TrendBoard", () => {
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    useAudioPlayer.mockReturnValue({ onPlaySong: jest.fn() });
   });
 
   const wrapper = ({ children }: any) => (
@@ -49,4 +63,3 @@ describe("TrendBoard", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
-

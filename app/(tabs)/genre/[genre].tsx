@@ -87,7 +87,10 @@ export default function GenreSongsScreen() {
     );
   }
 
-  if (isLoading) return <Loading />;
+  if (isLoading)
+    return (
+      <Loading variant="list" listProps={{ count: 7, showHeader: true }} />
+    );
   if (error) return <Error message={error.message} />;
 
   return (

@@ -15,10 +15,15 @@ import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback } from "react";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import Loading from "@/components/common/Loading";
 
 function PlaylistBoard() {
   const colors = useThemeStore((state) => state.colors);
-  const { data: playlists = [] } = useQuery({
+  const {
+    data: playlists = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: [CACHED_QUERIES.getPublicPlaylists],
     queryFn: () => getPublicPlaylists(10),
     staleTime: 1000 * 60 * 5, // 5分
@@ -39,6 +44,18 @@ function PlaylistBoard() {
     },
     [router],
   );
+
+  if (isLoading)
+    return (
+      <View style={styles.container}>
+        <Loading
+          variant="grid"
+          gridProps={{ count: 2, columns: 2, paddingHorizontal: 16 }}
+        />
+      </View>
+    );
+
+  if (error) return null;
 
   return (
     <View style={styles.container}>

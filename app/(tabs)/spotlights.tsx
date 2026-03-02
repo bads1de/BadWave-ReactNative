@@ -20,7 +20,7 @@ export default function SpotlightsScreen() {
   const isFocused = useIsFocused();
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
   const setIsMiniPlayerVisible = usePlayerStore(
-    (state) => state.setIsMiniPlayerVisible
+    (state) => state.setIsMiniPlayerVisible,
   );
   const { isOnline } = useNetworkStatus();
   const colors = useThemeStore((state) => state.colors);
@@ -41,9 +41,17 @@ export default function SpotlightsScreen() {
 
   if (!isOnline) {
     return (
-      <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.container,
+          styles.center,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <CloudOff size={64} color={colors.subText} />
-        <Text style={[styles.emptyText, { color: colors.text }]}>You are offline</Text>
+        <Text style={[styles.emptyText, { color: colors.text }]}>
+          You are offline
+        </Text>
         <Text style={[styles.emptySubText, { color: colors.subText }]}>
           Spotlights are only available when online
         </Text>
@@ -51,7 +59,13 @@ export default function SpotlightsScreen() {
     );
   }
 
-  if (isLoading) return <Loading />;
+  if (isLoading)
+    return (
+      <Loading
+        variant="list"
+        listProps={{ count: 5, avatarSize: 80, avatarRadius: 16 }}
+      />
+    );
   if (error) return <Error message={error.message} />;
 
   return (
@@ -81,4 +95,3 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
-

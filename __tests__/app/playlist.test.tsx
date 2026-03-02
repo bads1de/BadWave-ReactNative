@@ -3,6 +3,10 @@ import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PlaylistDetailScreen from "@/app/(tabs)/playlist/[playlistId]";
 
+jest.mock("react-native-reanimated", () => {
+  const Reanimated = require("react-native-reanimated/mock");
+  return Reanimated;
+});
 // コンポーネントのモック
 jest.mock("@/components/item/ListItem", () => ({
   __esModule: true,
@@ -24,6 +28,7 @@ jest.mock("@/components/playlist/PlaylistOptionsMenu", () => ({
 // フックのモック
 jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
+  usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
 }));
 jest.mock("@/hooks/stores/useHeaderStore", () => ({
   useHeaderStore: jest.fn(),
@@ -73,9 +78,9 @@ jest.mock("@shopify/flash-list", () => ({
       props.data && props.data.length > 0
         ? props.data.map((item: any) => props.renderItem({ item }))
         : props.ListEmptyComponent &&
-          (typeof props.ListEmptyComponent === "function"
-            ? props.ListEmptyComponent()
-            : props.ListEmptyComponent),
+            (typeof props.ListEmptyComponent === "function"
+              ? props.ListEmptyComponent()
+              : props.ListEmptyComponent),
     );
   },
 }));
@@ -121,11 +126,11 @@ describe("PlaylistDetailScreen", () => {
       error: null,
     });
     useGetLocalPlaylist.mockReturnValue({
-      playlist: { 
-        id: "p1", 
-        title: "Test Playlist", 
+      playlist: {
+        id: "p1",
+        title: "Test Playlist",
         user_id: "test-user",
-        created_at: "2024-01-01T00:00:00Z"
+        created_at: "2024-01-01T00:00:00Z",
       },
       isLoading: false,
     });

@@ -3,6 +3,10 @@ import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import LibraryScreen from "@/app/(tabs)/library";
 
+jest.mock("react-native-reanimated", () => {
+  const Reanimated = require("react-native-reanimated/mock");
+  return Reanimated;
+});
 jest.mock("@/components/item/SongItem", () => ({
   __esModule: true,
   default: () => null,
@@ -27,7 +31,10 @@ jest.mock("@/components/playlist/CreatePlaylist", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
+  useAudioPlayer: jest.fn(),
+  usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
+}));
 jest.mock("@/hooks/stores/useAuthStore", () => ({ useAuthStore: jest.fn() }));
 jest.mock("@/providers/AuthProvider", () => ({ useAuth: jest.fn() }));
 jest.mock("expo-router", () => ({ useRouter: jest.fn() }));
@@ -86,4 +93,3 @@ describe("LibraryScreen", () => {
     expect(UNSAFE_root).toBeTruthy();
   });
 });
-

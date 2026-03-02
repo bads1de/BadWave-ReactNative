@@ -106,7 +106,13 @@ export default function LibraryScreen() {
     [handlePlaylistPress],
   );
 
-  if (isLikedLoading || isPlaylistsLoading) return <Loading />;
+  if (isLikedLoading || isPlaylistsLoading)
+    return (
+      <Loading
+        variant="grid"
+        gridProps={{ count: 6, showHeader: true, paddingHorizontal: 12 }}
+      />
+    );
   if (likedError || playlistsError)
     return (
       <Error
