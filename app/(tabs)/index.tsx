@@ -70,7 +70,7 @@ export default function HomeScreen() {
 
   const keyExtractor = useCallback((item: Song) => item.id, []);
 
-  if (isLoading) return <Loading />;
+  if (isLoading) return <Loading variant="home" />;
   if (error) return <Error message={error.message} />;
 
   const sections = [

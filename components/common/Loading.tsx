@@ -1,30 +1,32 @@
 import React, { memo } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import HomeSkeleton from "@/components/common/HomeSkeleton";
+
+export type LoadingVariant = "spinner" | "home";
 
 interface LoadingProps {
   size?: "small" | "large" | number;
   color?: string;
   testID?: string;
+  /** ローディング演出の種類。'spinner'（デフォルト）か 'home' スケルトン */
+  variant?: LoadingVariant;
 }
 
 /**
- * 画面中央にローディングインジケーターを表示するコンポーネントです。
+ * ローディングコンポーネント。
+ * variant="spinner"（デフォルト）: ぐるぐるインジケーター
+ * variant="home":                 ホーム画面に近いスケルトンレイアウト
  *
- * @param {LoadingProps} props - コンポーネントのプロパティ。
- * @param {'small' | 'large' | number} [props.size='large'] - インジケーターのサイズ。
- * @param {string} [props.color='#4c1d95'] - インジケーターの色。
-/**
- * 画面中央にローディングインジケーターを表示するコンポーネントです。
- *
- * @param {LoadingProps} props - コンポーネントのプロパティ。
- * @param {'small' | 'large' | number} [props.size='large'] - インジケーターのサイズ。
- * @param {string} [props.color='#4c1d95'] - インジケーターの色。
  * @param {string} [props.testID] - テスト用のID。
- * @returns {JSX.Element} ローディングインジケーターコンポーネント。
  */
-function Loading({ size, color, testID }: LoadingProps) {
+function Loading({ size, color, testID, variant = "spinner" }: LoadingProps) {
   const colors = useThemeStore((state) => state.colors);
+
+  if (variant === "home") {
+    return <HomeSkeleton />;
+  }
+
   const indicatorColor = color || colors.primary;
 
   return (
@@ -50,4 +52,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(Loading);
-
