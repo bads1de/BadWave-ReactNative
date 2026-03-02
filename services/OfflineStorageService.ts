@@ -287,23 +287,18 @@ export class OfflineStorageService {
 
       for (const row of sqliteResults) {
         if (row.songPath) {
-          // ファイルの存在確認を行うべきか？
-          // パフォーマンスのため、基本的にはDBを信じるが、
-          // 整合性チェックのために行う場合はここに入れる。
-          // いったんファイルシステムのチェックも入れる（非同期ループになるので注意）
-          const fileInfo = await FileSystem.getInfoAsync(row.songPath);
-          if (fileInfo.exists) {
-            downloadedSongs.push({
-              id: row.id,
-              title: row.title,
-              author: row.author,
-              image_path: row.imagePath ?? row.originalImagePath ?? "",
-              song_path: row.songPath,
-              user_id: row.userId,
-              created_at: row.createdAt ?? "",
-              // 必要に応じて他のフィールドもマッピング
-            });
-          }
+          // パフォーマンス改善（N+1問題の解消）のため、
+          // FileSystem.getInfoAsyncによる実ファイルチェックは省略し、
+          // SQLiteの情報を「真」として扱う（再生時等の呼び出し元でファイルが無ければ対処する方針）
+          downloadedSongs.push({
+            id: row.id,
+            title: row.title,
+            author: row.author,
+            image_path: row.imagePath ?? row.originalImagePath ?? "",
+            song_path: row.songPath,
+            user_id: row.userId,
+            created_at: row.createdAt ?? "",
+          });
         }
       }
 
@@ -343,11 +338,8 @@ export class OfflineStorageService {
         .limit(1);
 
       if (sqliteResult.length > 0 && sqliteResult[0].songPath) {
-        const localPath = sqliteResult[0].songPath;
-        const fileInfo = await FileSystem.getInfoAsync(localPath);
-        if (fileInfo.exists) {
-          return localPath;
-        }
+        // パフォーマンス改善のため、実ファイルチェックは省略しDBの値を信頼する
+        return sqliteResult[0].songPath;
       }
       return null;
     } catch (error) {

@@ -2,6 +2,7 @@
 import { Track } from "react-native-track-player";
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
+import * as FileSystem from "expo-file-system";
 
 // グローバルインスタンス
 let offlineStorageService: OfflineStorageService;
@@ -24,7 +25,21 @@ export function getOfflineStorageService(): OfflineStorageService {
 export async function convertSongToTrack(song: Song): Promise<Track> {
   try {
     const storage = getOfflineStorageService();
-    const localPath = await storage.getSongLocalPath(song.id);
+    let localPath = await storage.getSongLocalPath(song.id);
+
+    if (localPath) {
+      // 再生直前に実ファイルが存在するか最終チェック
+      const fileInfo = await FileSystem.getInfoAsync(localPath);
+      if (!fileInfo.exists) {
+        // OS都合等でファイルが消えた（DBに齟齬がある）場合、自己修復してリモートへフォールバック
+        console.warn(
+          `[TrackPlayer] Missing local file for ${song.title}. Falling back to streaming.`,
+        );
+        localPath = null;
+        // DBから記録を消去し、アイコンなども未ダウンロード状態に戻るようにする
+        await storage.deleteSong(song.id);
+      }
+    }
 
     const track = {
       id: song.id,
@@ -59,7 +74,7 @@ export async function convertToTracks(songs: Song[]): Promise<Track[]> {
 
   // Promise.allを使用して並列処理
   const tracks = await Promise.all(
-    songs.map((song) => convertSongToTrack(song))
+    songs.map((song) => convertSongToTrack(song)),
   );
   return tracks;
 }
@@ -86,7 +101,7 @@ export function logError(error: unknown, context: string): void {
 export async function safeAsyncOperation<T>(
   operation: () => Promise<T>,
   errorContext: string,
-  onError?: (error: unknown) => void
+  onError?: (error: unknown) => void,
 ): Promise<T | undefined> {
   try {
     return await operation();
@@ -112,4 +127,3 @@ export function shuffleArray<T>(array: T[]): T[] {
   }
   return shuffled;
 }
-
