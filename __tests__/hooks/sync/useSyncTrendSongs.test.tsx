@@ -1,7 +1,8 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useSyncTrendSongs } from "@/hooks/sync/useSyncTrendSongs";
+import { CACHED_QUERIES } from "@/constants";
 
 // モック
 jest.mock("@/lib/supabase", () => ({
@@ -78,6 +79,10 @@ describe("useSyncTrendSongs", () => {
       wrapper: createWrapper(),
     });
 
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
     await waitFor(() => {
       expect(result.current.isSyncing).toBe(false);
     });
@@ -108,6 +113,10 @@ describe("useSyncTrendSongs", () => {
 
     const { result } = renderHook(() => useSyncTrendSongs("all"), {
       wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.triggerSync();
     });
 
     await waitFor(() => {

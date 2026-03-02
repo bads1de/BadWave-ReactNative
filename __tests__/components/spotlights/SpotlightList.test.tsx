@@ -14,13 +14,16 @@ jest.mock("@shopify/flash-list", () => {
 // Mock SpotlightItem to check props
 jest.mock("@/components/spotlights/SpotlightItem", () => {
   const { View, Text } = require("react-native");
+  const { useSpotlightStore } = require("@/hooks/stores/useSpotlightStore");
   return function MockSpotlightItem({
     item,
-    isVisible,
+    index,
   }: {
     item: any;
-    isVisible: boolean;
+    index: number;
   }) {
+    const visibleIndex = useSpotlightStore((state: any) => state.visibleIndex);
+    const isVisible = visibleIndex === index;
     return (
       <View testID={`spotlight-item-${item.id}`}>
         <Text>{item.title}</Text>
@@ -29,6 +32,11 @@ jest.mock("@/components/spotlights/SpotlightItem", () => {
     );
   };
 });
+
+// Mock useBottomTabBarHeight
+jest.mock("@react-navigation/bottom-tabs", () => ({
+  useBottomTabBarHeight: () => 49,
+}));
 
 describe("SpotlightList", () => {
   const mockSpotlights: Spotlight[] = [

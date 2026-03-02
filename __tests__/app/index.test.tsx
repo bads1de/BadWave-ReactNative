@@ -31,9 +31,40 @@ jest.mock("@/components/board/HeroBoard", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/hooks/audio/useAudioPlayer", () => ({ useAudioPlayer: jest.fn() }));
-jest.mock("@/hooks/stores/usePlayerStore", () => ({ usePlayerStore: jest.fn() }));
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
+  useAudioPlayer: jest.fn(),
+  usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
+}));
+jest.mock("@/hooks/stores/usePlayerStore", () => ({
+  usePlayerStore: jest.fn((selector) =>
+    selector({ showPlayer: false, setPlayerState: jest.fn() }),
+  ),
+}));
+jest.mock("@/hooks/stores/useAudioStore", () => ({
+  useAudioStore: jest.fn((selector) =>
+    selector({ currentSong: null, setCurrentSong: jest.fn() }),
+  ),
+}));
+jest.mock("@/hooks/stores/useThemeStore", () => ({
+  useThemeStore: jest.fn((selector) =>
+    selector({
+      colors: {
+        primary: "#000",
+        text: "#000",
+        background: "#fff",
+        border: "#eee",
+      },
+    }),
+  ),
+}));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
+jest.mock("lucide-react-native", () => ({
+  TrendingUp: "TrendingUp",
+  Heart: "Heart",
+  List: "List",
+  Disc: "Disc",
+}));
+
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("@/hooks/data/useGetLocalSongs", () => ({
   useGetLocalSongs: jest.fn(() => ({

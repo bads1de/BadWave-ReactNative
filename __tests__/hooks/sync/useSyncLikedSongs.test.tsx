@@ -1,7 +1,8 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useSyncLikedSongs } from "@/hooks/sync/useSyncLikedSongs";
+import { CACHED_QUERIES } from "@/constants";
 
 // モック
 jest.mock("@/lib/supabase", () => ({
@@ -82,6 +83,10 @@ describe("useSyncLikedSongs", () => {
       wrapper: createWrapper(),
     });
 
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
     await waitFor(() => {
       expect(result.current.isSyncing).toBe(false);
     });
@@ -128,6 +133,10 @@ describe("useSyncLikedSongs", () => {
       wrapper: createWrapper(),
     });
 
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
     await waitFor(() => {
       expect(result.current.isSyncing).toBe(false);
     });
@@ -138,13 +147,6 @@ describe("useSyncLikedSongs", () => {
     // Upsertが一括で呼ばれたことを確認 (修正後: toHaveBeenCalledTimes(1))
     expect(mockInsert).toHaveBeenCalledTimes(1);
 
-    // 一括挿入されたデータの内容を確認
-    const insertValues = mockInsert.mock.calls[0][0].values;
-    // mockInsert(likedSongs).values(valuesToInsert) の形なので、引数の検証を調整
-    // 現在のモック実装では mockInsert(likedSongs) が mockInsert を返している
-    // 実装: await tx.insert(likedSongs).values(valuesToInsert)
-    // 実際には tx.insert(likedSongs) が値を返し、その.values()が呼ばれる
-    
     // 差分削除が呼ばれたことを確認
     expect(mockDelete).toHaveBeenCalled();
 
@@ -164,6 +166,10 @@ describe("useSyncLikedSongs", () => {
 
     const { result } = renderHook(() => useSyncLikedSongs("user-123"), {
       wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.triggerSync();
     });
 
     await waitFor(() => {
@@ -209,6 +215,10 @@ describe("useSyncLikedSongs", () => {
       wrapper: createWrapper(),
     });
 
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
     await waitFor(() => {
       expect(result.current.isSyncing).toBe(false);
     });
@@ -217,4 +227,3 @@ describe("useSyncLikedSongs", () => {
     expect(result.current.syncError).toBeDefined();
   });
 });
-

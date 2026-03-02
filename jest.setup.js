@@ -128,10 +128,17 @@ jest.mock("expo-sqlite", () => ({
   openDatabaseSync: jest.fn(() => ({
     transaction: jest.fn(),
     execAsync: jest.fn(),
+    execSync: jest.fn(),
     runAsync: jest.fn(),
     getFirstAsync: jest.fn(),
     getAllAsync: jest.fn(),
     prepareAsync: jest.fn(),
+    prepareSync: jest.fn(() => ({
+      executeSync: jest.fn(),
+      executeForRawResultSync: jest.fn(() => ({
+        getAllSync: jest.fn(() => []),
+      })),
+    })),
     closeSync: jest.fn(),
   })),
   SQLite: {
@@ -196,6 +203,21 @@ jest.mock("react-native-reanimated", () => {
 });
 
 // React Navigation のモック
+jest.mock("react-native-safe-area-context", () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest
+      .fn()
+      .mockImplementation(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+  };
+});
+
 jest.mock("@react-navigation/bottom-tabs", () => ({
   useBottomTabBarHeight: () => 60, // Default mock height
 }));

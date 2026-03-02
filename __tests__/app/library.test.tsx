@@ -29,13 +29,15 @@ jest.mock("@/components/common/CustomButton", () => ({
 }));
 jest.mock("@/components/playlist/CreatePlaylist", () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ children }: any) => children,
 }));
 jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
   usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
 }));
-jest.mock("@/hooks/stores/useAuthStore", () => ({ useAuthStore: jest.fn() }));
+jest.mock("@/hooks/stores/useAuthStore", () => ({
+  useAuthStore: jest.fn((selector) => selector({ setShowAuthModal: jest.fn() })),
+}));
 jest.mock("@/providers/AuthProvider", () => ({ useAuth: jest.fn() }));
 jest.mock("expo-router", () => ({ useRouter: jest.fn() }));
 jest.mock("@/hooks/data/useGetLikedSongs", () => ({
@@ -54,13 +56,27 @@ jest.mock("@/hooks/data/useGetPlaylists", () => ({
 }));
 
 jest.mock("@/hooks/stores/useThemeStore", () => ({
-  useThemeStore: jest.fn(() => ({
-    colors: require("@/constants/ThemeColors").THEMES.violet.colors,
-  })),
+  useThemeStore: jest.fn((selector) =>
+    selector({
+      colors: {
+        primary: "#000",
+        text: "#000",
+        background: "#fff",
+        border: "#eee",
+        subText: "#666",
+      },
+    }),
+  ),
 }));
 
 jest.mock("@/components/download/BulkDownloadButton", () => ({
   BulkDownloadButton: () => null,
+}));
+
+jest.mock("lucide-react-native", () => ({
+  Heart: "Heart",
+  ListMusic: "ListMusic",
+  Plus: "Plus",
 }));
 
 const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");

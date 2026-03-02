@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useSyncSpotlights } from "@/hooks/sync/useSyncSpotlights";
@@ -87,11 +87,13 @@ describe("useSyncSpotlights", () => {
       ),
     });
 
-    await waitFor(() => expect(result.current.isSyncing).toBe(false), {
-      timeout: 3000,
+    await act(async () => {
+      await result.current.triggerSync();
     });
 
-    expect(result.current.syncedCount).toBe(1);
+    await waitFor(() => expect(result.current.syncedCount).toBe(1), {
+      timeout: 3000,
+    });
     expect(_supabase.from).toHaveBeenCalledWith("spotlights");
     expect(db.insert).toHaveBeenCalled();
     expect(mockOnConflictDoUpdate).toHaveBeenCalled();
@@ -113,10 +115,13 @@ describe("useSyncSpotlights", () => {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isSyncing).toBe(false), {
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
+    await waitFor(() => expect(result.current.syncedCount).toBe(0), {
       timeout: 3000,
     });
-    expect(result.current.syncedCount).toBe(0);
     expect(db.insert).not.toHaveBeenCalled();
   });
 
@@ -131,10 +136,13 @@ describe("useSyncSpotlights", () => {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isSyncing).toBe(false), {
+    await act(async () => {
+      await result.current.triggerSync();
+    });
+
+    await waitFor(() => expect(result.current.syncError).toBeDefined(), {
       timeout: 3000,
     });
-    expect(result.current.syncError).toBeDefined();
     expect(result.current.syncError?.message).toBe("Supabase Error");
   });
 });
