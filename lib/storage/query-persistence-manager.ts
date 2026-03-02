@@ -97,4 +97,41 @@ export class QueryPersistenceManager {
       console.error("Failed to clear all cache:", error);
     }
   }
+
+  /**
+   * 期限切れのキャッシュをすべて検査し、MMKVから削除するクリーンアップ処理
+   * （アクセスされないまま放置された古いデータを削除し、ストレージを解放するため）
+   */
+  cleanUpOldCache() {
+    try {
+      const allKeys = storage.getAllKeys();
+      let deletedCount = 0;
+
+      allKeys.forEach((key) => {
+        if (key.startsWith(CACHE_PREFIX)) {
+          const cacheStr = storage.getString(key);
+          if (cacheStr) {
+            try {
+              const { timestamp } = JSON.parse(cacheStr);
+              // gcTimeを過ぎている場合は削除
+              if (Date.now() - timestamp >= CACHE_CONFIG.gcTime) {
+                storage.delete(key);
+                deletedCount++;
+              }
+            } catch (e) {
+              // パースエラーなどの不正なキャッシュは問答無用で削除
+              storage.delete(key);
+              deletedCount++;
+            }
+          }
+        }
+      });
+
+      if (deletedCount > 0) {
+        console.log(`[Cache Cleanup]: Removed ${deletedCount} expired items.`);
+      }
+    } catch (error) {
+      console.error("Failed to cleanup old cache:", error);
+    }
+  }
 }
