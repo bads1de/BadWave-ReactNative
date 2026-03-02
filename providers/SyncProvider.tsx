@@ -5,6 +5,8 @@ import React, {
   useState,
   useCallback,
 } from "react";
+import { AppState, Platform } from "react-native";
+import { focusManager } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSyncSongs } from "@/hooks/sync/useSyncSongs";
@@ -39,6 +41,18 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     return saved ? new Date(saved) : null;
   });
   const [syncError, setSyncError] = useState<Error | null>(null);
+
+  // AppStateをReact Queryに連携（バックグラウンド時の無駄なフェッチ・リトライを停止）
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (status) => {
+      if (Platform.OS !== "web") {
+        focusManager.setFocused(status === "active");
+      }
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // 各同期フック
   const {
@@ -108,7 +122,12 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   // 手動同期トリガー
   const triggerSync = useCallback(async () => {
-    if (!isOnline || !userId || isSyncing) {
+    if (
+      !isOnline ||
+      !userId ||
+      isSyncing ||
+      AppState.currentState !== "active"
+    ) {
       return;
     }
 
@@ -161,13 +180,16 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     // ※ manual_sync（ユーザーが手動で更新引っ張る場合）は今まで通り triggerSync() で一括ですが、
     // ここでは初期バックグラウンド同期を制御します。
     const runInitialSync = async () => {
+      if (!isOnline || !userId || AppState.currentState !== "active") return;
+
       // コアデータ (ユーザーのライブラリ) は即座に同期を開始
       const coreSyncs = [syncSongs(), syncLiked(), syncPlaylists()];
       await Promise.allSettled(coreSyncs);
 
       // 初期描画が落ち着くまで少し時間をおく (例: 3秒)
       timeoutId = setTimeout(async () => {
-        if (!isOnline || !userId) return;
+        // オフライン、未ログイン、またはアプリがバックグラウンドに回った場合は処理を中断
+        if (!isOnline || !userId || AppState.currentState !== "active") return;
         // 周辺データ (トレンド、おすすめ、スポットライト) の同期を開始
         const secondarySyncs = [syncTrends(), syncRecs(), syncSpots()];
         await Promise.allSettled(secondarySyncs);

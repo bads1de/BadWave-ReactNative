@@ -11,8 +11,17 @@ import { useSyncTrendSongs } from "@/hooks/sync/useSyncTrendSongs";
 import { useSyncRecommendations } from "@/hooks/sync/useSyncRecommendations";
 import { useSyncSpotlights } from "@/hooks/sync/useSyncSpotlights";
 import { SYNC_STORAGE_KEY } from "@/constants";
+import { AppState, AppStateStatus } from "react-native";
+import { focusManager } from "@tanstack/react-query";
 
 // Mocks
+jest.mock("@tanstack/react-query", () => ({
+  ...jest.requireActual("@tanstack/react-query"),
+  focusManager: {
+    setFocused: jest.fn(),
+  },
+}));
+
 jest.mock("@/providers/AuthProvider");
 jest.mock("@/hooks/common/useNetworkStatus");
 jest.mock("@/hooks/sync/useSyncSongs");
@@ -32,6 +41,7 @@ jest.mock("@/lib/storage/mmkv-storage", () => ({
 const mockTriggerSync = jest.fn();
 
 describe("SyncProvider", () => {
+  let appStateCallback: ((state: AppStateStatus) => void) | null = null;
   beforeEach(() => {
     jest.clearAllMocks();
     (useAuth as jest.Mock).mockReturnValue({
@@ -51,6 +61,17 @@ describe("SyncProvider", () => {
     (useSyncTrendSongs as jest.Mock).mockReturnValue(defaultSyncHook);
     (useSyncRecommendations as jest.Mock).mockReturnValue(defaultSyncHook);
     (useSyncSpotlights as jest.Mock).mockReturnValue(defaultSyncHook);
+
+    jest
+      .spyOn(AppState, "addEventListener")
+      .mockImplementation((_, callback) => {
+        appStateCallback = callback;
+        return { remove: jest.fn() } as any;
+      });
+    Object.defineProperty(AppState, "currentState", {
+      value: "active",
+      writable: true,
+    });
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -104,7 +125,7 @@ describe("SyncProvider", () => {
     expect(result.current.lastSyncTime).toBeInstanceOf(Date);
     expect(storage.set).toHaveBeenCalledWith(
       SYNC_STORAGE_KEY,
-      expect.any(String)
+      expect.any(String),
     );
   });
 
@@ -118,5 +139,33 @@ describe("SyncProvider", () => {
 
     expect(mockTriggerSync).not.toHaveBeenCalled();
   });
-});
 
+  it("should not trigger sync if AppState is not active", async () => {
+    Object.defineProperty(AppState, "currentState", {
+      value: "background",
+      writable: true,
+    });
+    const { result } = renderHook(() => useSync(), { wrapper });
+
+    await act(async () => {
+      result.current.triggerSync();
+    });
+
+    expect(mockTriggerSync).not.toHaveBeenCalled();
+  });
+
+  it("should set react-query focusManager dynamically via AppState listener", () => {
+    // 最初のマウント時に active => background への切り替えをシミュレート
+    renderHook(() => useSync(), { wrapper });
+
+    act(() => {
+      if (appStateCallback) appStateCallback("background");
+    });
+    expect(focusManager.setFocused).toHaveBeenCalledWith(false);
+
+    act(() => {
+      if (appStateCallback) appStateCallback("active");
+    });
+    expect(focusManager.setFocused).toHaveBeenCalledWith(true);
+  });
+});

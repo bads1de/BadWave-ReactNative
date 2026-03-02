@@ -1,5 +1,6 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act } from "@testing-library/react-native";
+import { AppState, AppStateStatus } from "react-native";
 import PlayerProgress from "@/components/player/PlayerProgress";
 import { useProgress } from "react-native-track-player";
 
@@ -29,8 +30,26 @@ jest.mock("@react-native-community/slider", () => {
 });
 
 describe("PlayerProgress", () => {
+  let appStateCallback: ((state: AppStateStatus) => void) | null = null;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    (useProgress as jest.Mock).mockReturnValue({
+      position: 0,
+      duration: 100,
+    });
+
+    // Default mock for AppState
+    jest
+      .spyOn(AppState, "addEventListener")
+      .mockImplementation((_, callback) => {
+        appStateCallback = callback;
+        return { remove: jest.fn() } as any;
+      });
+    Object.defineProperty(AppState, "currentState", {
+      value: "active",
+      writable: true,
+    });
   });
 
   it("renders correctly with current position and duration", () => {
@@ -69,5 +88,31 @@ describe("PlayerProgress", () => {
     fireEvent(slider, "onSlidingComplete", 50000);
 
     expect(onSeek).toHaveBeenCalledWith(50000);
+  });
+
+  it("changes update interval based on AppState", () => {
+    const { rerender } = render(<PlayerProgress onSeek={jest.fn()} />);
+
+    // Initially active, interval should be 200
+    expect(useProgress).toHaveBeenCalledWith(200);
+
+    // Change to background
+    act(() => {
+      if (appStateCallback) appStateCallback("background");
+    });
+
+    // Component should re-render with new interval
+    rerender(<PlayerProgress onSeek={jest.fn()} />);
+
+    expect(useProgress).toHaveBeenCalledWith(5000);
+
+    // Change back to active
+    act(() => {
+      if (appStateCallback) appStateCallback("active");
+    });
+
+    rerender(<PlayerProgress onSeek={jest.fn()} />);
+
+    expect(useProgress).toHaveBeenLastCalledWith(200);
   });
 });

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { eq, and, notInArray, sql } from "drizzle-orm";
+import { eq, and, notInArray, inArray, sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
@@ -66,45 +66,53 @@ export function useSyncPlaylists(userId?: string) {
             });
         }
 
-        // --- プレイリスト内の曲の同期 ---
+        // --- プレイリスト内の曲の同期 (N+1問題の解消) ---
+        const allSongsToInsert: any[] = [];
+        const validPlaylistSongIds: string[] = [];
+        const remotePlaylistIds = remotePlaylists.map((p) => p.id);
+
         for (const playlist of remotePlaylists) {
           const remoteSongs = playlist.playlist_songs || [];
-
-          if (remoteSongs.length > 0) {
-            // 該当プレイリストの曲をバッチUpsert
-            const songsToInsert = remoteSongs.map((song: any) => ({
+          for (const song of remoteSongs) {
+            allSongsToInsert.push({
               id: song.id,
               playlistId: song.playlist_id,
               songId: song.song_id,
               addedAt: song.created_at,
-            }));
+            });
+            validPlaylistSongIds.push(song.id);
+          }
+        }
 
-            await tx
-              .insert(playlistSongs)
-              .values(songsToInsert)
-              .onConflictDoUpdate({
-                target: playlistSongs.id,
-                set: {
-                  songId: sql`excluded.song_id`,
-                  addedAt: sql`excluded.added_at`,
-                },
-              });
+        if (allSongsToInsert.length > 0) {
+          await tx
+            .insert(playlistSongs)
+            .values(allSongsToInsert)
+            .onConflictDoUpdate({
+              target: playlistSongs.id,
+              set: {
+                songId: sql`excluded.song_id`,
+                addedAt: sql`excluded.added_at`,
+              },
+            });
+        }
 
-            // リモートにないデータを削除（Upsert完了後）
-            const remoteSongIds = remoteSongs.map((s: any) => s.id);
+        // リモートに存在しないプレイリスト曲を一括削除
+        if (remotePlaylistIds.length > 0) {
+          if (validPlaylistSongIds.length > 0) {
             await tx
               .delete(playlistSongs)
               .where(
                 and(
-                  eq(playlistSongs.playlistId, playlist.id),
-                  notInArray(playlistSongs.id, remoteSongIds),
+                  inArray(playlistSongs.playlistId, remotePlaylistIds),
+                  notInArray(playlistSongs.id, validPlaylistSongIds),
                 ),
               );
           } else {
-            // リモートが空の場合、ローカルも空にする
+            // すべてのプレイリストが空の場合
             await tx
               .delete(playlistSongs)
-              .where(eq(playlistSongs.playlistId, playlist.id));
+              .where(inArray(playlistSongs.playlistId, remotePlaylistIds));
           }
         }
       });

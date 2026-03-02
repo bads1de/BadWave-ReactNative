@@ -1,5 +1,5 @@
-import React, { memo } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { memo, useState, useEffect } from "react";
+import { View, Text, StyleSheet, AppState, AppStateStatus } from "react-native";
 import Slider from "@react-native-community/slider";
 import { formatTime } from "@/lib/utils/formatTime";
 import { useProgress } from "react-native-track-player";
@@ -14,7 +14,23 @@ interface PlayerProgressProps {
  * 再生位置の更新による再レンダリングをこのコンポーネント内に閉じ込める
  */
 const PlayerProgress = memo(({ onSeek }: PlayerProgressProps) => {
-  const { position, duration } = useProgress(200);
+  const [appState, setAppState] = useState<AppStateStatus>(
+    AppState.currentState,
+  );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      setAppState(nextAppState);
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  // アプリがバックグラウンドの時は更新頻度を落としリソース消費を抑える
+  const updateInterval = appState === "active" ? 200 : 5000;
+  const { position, duration } = useProgress(updateInterval);
+
   const colors = useThemeStore((state) => state.colors);
 
   const handleSeek = (value: number) => {
@@ -68,4 +84,3 @@ const styles = StyleSheet.create({
 });
 
 export default PlayerProgress;
-
