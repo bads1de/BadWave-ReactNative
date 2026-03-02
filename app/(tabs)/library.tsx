@@ -1,4 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import React, { useState, useCallback, useMemo } from "react";
 import Loading from "@/components/common/Loading";
@@ -121,8 +127,8 @@ export default function LibraryScreen() {
           </View>
 
           {type === "playlists" && (
-            <Animated.View 
-              entering={FadeIn.duration(300)} 
+            <Animated.View
+              entering={FadeIn.duration(300)}
               exiting={FadeOut.duration(200)}
             >
               <CreatePlaylist>
@@ -136,10 +142,14 @@ export default function LibraryScreen() {
         </View>
 
         {!session ? (
-          <Animated.View entering={FadeIn.duration(800)} style={styles.loginContainer}>
+          <Animated.View
+            entering={FadeIn.duration(800)}
+            style={styles.loginContainer}
+          >
             <View style={styles.loginGlass}>
               <Text style={styles.loginMessage}>
-                Unlock your musical sanctuary. Sign in to access your personal collection.
+                Unlock your musical sanctuary. Sign in to access your personal
+                collection.
               </Text>
               <CustomButton
                 label="Sign In to Badwave"
@@ -165,13 +175,18 @@ export default function LibraryScreen() {
                 >
                   <Heart
                     size={16}
-                    color={type === "liked" ? COLORS.background : COLORS.subText}
+                    color={
+                      type === "liked" ? COLORS.background : COLORS.subText
+                    }
                     fill={type === "liked" ? COLORS.background : "transparent"}
                   />
                   <Text
                     style={[
                       styles.tabText,
-                      { color: type === "liked" ? COLORS.background : COLORS.subText },
+                      {
+                        color:
+                          type === "liked" ? COLORS.background : COLORS.subText,
+                      },
                     ]}
                   >
                     Favorites
@@ -188,12 +203,19 @@ export default function LibraryScreen() {
                 >
                   <ListMusic
                     size={16}
-                    color={type === "playlists" ? COLORS.background : COLORS.subText}
+                    color={
+                      type === "playlists" ? COLORS.background : COLORS.subText
+                    }
                   />
                   <Text
                     style={[
                       styles.tabText,
-                      { color: type === "playlists" ? COLORS.background : COLORS.subText },
+                      {
+                        color:
+                          type === "playlists"
+                            ? COLORS.background
+                            : COLORS.subText,
+                      },
                     ]}
                   >
                     Playlists
@@ -206,9 +228,14 @@ export default function LibraryScreen() {
               {type === "liked" ? (
                 likedSongs && likedSongs.length > 0 ? (
                   <>
-                    <Animated.View entering={FadeInDown} style={styles.utilityRow}>
+                    <Animated.View
+                      entering={FadeInDown}
+                      style={styles.utilityRow}
+                    >
                       <View style={styles.countBadge}>
-                        <Text style={styles.countText}>{likedSongs.length} Tracks</Text>
+                        <Text style={styles.countText}>
+                          {likedSongs.length} Tracks
+                        </Text>
                       </View>
                       <BulkDownloadButton songs={likedSongs} size="small" />
                     </Animated.View>
@@ -219,17 +246,26 @@ export default function LibraryScreen() {
                       keyExtractor={keyExtractor}
                       numColumns={2}
                       contentContainerStyle={styles.listContainer}
-                      estimatedItemSize={250}
+                      estimatedItemSize={280} // Actual mapped item height is ~276px
                       showsVerticalScrollIndicator={false}
                     />
                   </>
                 ) : (
-                  <Animated.View entering={FadeIn.delay(200)} style={styles.emptyContainer}>
+                  <Animated.View
+                    entering={FadeIn.delay(200)}
+                    style={styles.emptyContainer}
+                  >
                     <View style={styles.emptyGlass}>
-                      <Heart size={48} color={COLORS.primary} strokeWidth={1} opacity={0.4} />
+                      <Heart
+                        size={48}
+                        color={COLORS.primary}
+                        strokeWidth={1}
+                        opacity={0.4}
+                      />
                       <Text style={styles.emptyTitle}>Pure Silence</Text>
                       <Text style={styles.emptySubText}>
-                        Your heart hasn't found its rhythm yet. Start liking songs to curate your sanctuary.
+                        Your heart hasn't found its rhythm yet. Start liking
+                        songs to curate your sanctuary.
                       </Text>
                     </View>
                   </Animated.View>
@@ -246,12 +282,21 @@ export default function LibraryScreen() {
                   showsVerticalScrollIndicator={false}
                 />
               ) : (
-                <Animated.View entering={FadeIn.delay(200)} style={styles.emptyContainer}>
+                <Animated.View
+                  entering={FadeIn.delay(200)}
+                  style={styles.emptyContainer}
+                >
                   <View style={styles.emptyGlass}>
-                    <ListMusic size={48} color={COLORS.primary} strokeWidth={1} opacity={0.4} />
+                    <ListMusic
+                      size={48}
+                      color={COLORS.primary}
+                      strokeWidth={1}
+                      opacity={0.4}
+                    />
                     <Text style={styles.emptyTitle}>Blank Canvas</Text>
                     <Text style={styles.emptySubText}>
-                      Design your own musical journey. Create your first playlist to begin.
+                      Design your own musical journey. Create your first
+                      playlist to begin.
                     </Text>
                   </View>
                 </Animated.View>

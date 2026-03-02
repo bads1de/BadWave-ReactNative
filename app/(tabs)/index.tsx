@@ -12,6 +12,7 @@ import TrendBoard from "@/components/board/TrendBoard";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import Song from "@/types";
+import { FlatList } from "react-native";
 import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
@@ -72,53 +73,99 @@ export default function HomeScreen() {
   if (isLoading) return <Loading />;
   if (error) return <Error message={error.message} />;
 
+  const sections = [
+    { type: "hero" },
+    { type: "trending" },
+    { type: "foryou" },
+    { type: "collections" },
+    { type: "recent" },
+  ];
+
+  const renderScreenSection = useCallback(
+    ({ item }: { item: { type: string } }) => {
+      switch (item.type) {
+        case "hero":
+          return (
+            <View style={styles.heroContainer}>
+              <HeroBoard />
+            </View>
+          );
+        case "trending":
+          return (
+            <>
+              {renderSectionTitle("Trending Now", TrendingUp)}
+              <View style={styles.sectionContent}>
+                <TrendBoard />
+              </View>
+            </>
+          );
+        case "foryou":
+          return (
+            <>
+              {renderSectionTitle("Personalized for You", Heart)}
+              <View style={styles.sectionContent}>
+                <ForYouBoard />
+              </View>
+            </>
+          );
+        case "collections":
+          return (
+            <>
+              {renderSectionTitle("Your Collections", List)}
+              <View style={styles.sectionContent}>
+                <PlaylistBoard />
+              </View>
+            </>
+          );
+        case "recent":
+          return songs && songs.length > 0 ? (
+            <>
+              {renderSectionTitle("Recently Discovered", Disc)}
+              <View style={[styles.sectionContent, styles.songsSection]}>
+                <View style={styles.songsList}>
+                  <FlashList
+                    data={songs}
+                    renderItem={renderItem}
+                    keyExtractor={keyExtractor}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    estimatedItemSize={200} // Actual width of SongItem mapping (180 + 20 margin)
+                    contentContainerStyle={{
+                      ...styles.songsContainer,
+                      ...(currentSong && !showPlayer
+                        ? { paddingBottom: 10 }
+                        : {}),
+                    }}
+                  />
+                </View>
+              </View>
+            </>
+          ) : null;
+        default:
+          return null;
+      }
+    },
+    [
+      songs,
+      renderItem,
+      keyExtractor,
+      renderSectionTitle,
+      currentSong,
+      showPlayer,
+    ],
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <ScrollView
+      <FlatList
+        data={sections}
+        renderItem={renderScreenSection}
+        keyExtractor={(item) => item.type}
         contentContainerStyle={[styles.listWrapper, { paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.heroContainer}>
-          <HeroBoard />
-        </View>
-
-        {renderSectionTitle("Trending Now", TrendingUp)}
-        <View style={styles.sectionContent}>
-          <TrendBoard />
-        </View>
-
-        {renderSectionTitle("Personalized for You", Heart)}
-        <View style={styles.sectionContent}>
-          <ForYouBoard />
-        </View>
-
-        {renderSectionTitle("Your Collections", List)}
-        <View style={styles.sectionContent}>
-          <PlaylistBoard />
-        </View>
-
-        {renderSectionTitle("Recently Discovered", Disc)}
-        {songs && songs.length > 0 ? (
-          <View style={[styles.sectionContent, styles.songsSection]}>
-            <View style={styles.songsList}>
-              <FlashList
-                data={songs}
-                renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                estimatedItemSize={220}
-                contentContainerStyle={{
-                  ...styles.songsContainer,
-                  ...(currentSong && !showPlayer ? { paddingBottom: 10 } : {}),
-                }}
-              />
-            </View>
-          </View>
-        ) : null}
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 }

@@ -7,21 +7,16 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { VideoView } from "expo-video";
-import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
+import { Volume2, VolumeX } from "lucide-react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Spotlight } from "@/types";
 import { useSpotlightPlayer } from "@/hooks/audio/useSpotlightPlayer";
 import { useSpotlightStore } from "@/hooks/stores/useSpotlightStore";
+import { COLORS, FONTS } from "@/constants/theme";
 
 const { width, height } = Dimensions.get("window");
 
@@ -36,59 +31,33 @@ function SpotlightItem({
   item,
   index,
   isParentFocused,
-  bottomPadding,
+  bottomPadding = 0,
 }: SpotlightItemProps) {
+  const insets = useSafeAreaInsets();
   const isVisibleStore = useSpotlightStore(
     (state) => state.visibleIndex === index,
   );
   const isVisible = isVisibleStore && isParentFocused;
   const player = useSpotlightPlayer(item.video_path, isVisible);
 
-  // ミュート表示用のstate（true = ミュート中 = 音なし）
-  // 初期値は false（音あり）
   const [isMuted, setIsMuted] = useState(false);
-
-  // isVisible の「前回値」を記憶するためのref
-  // これにより false→true に変化した瞬間だけリセット処理を行う
   const prevIsVisibleRef = useRef(false);
 
   useEffect(() => {
     const wasVisible = prevIsVisibleRef.current;
     prevIsVisibleRef.current = isVisible;
 
-    // 非表示→表示 に切り替わった瞬間だけミュートをリセット
     if (!wasVisible && isVisible) {
       player.muted = false;
       setIsMuted(false);
     }
-  }, [isVisible]); // player は依存に含めない（参照変化でリセットが誤発火するのを防ぐ）
+  }, [isVisible]);
 
-  // ミュートボタンを押したときの処理
-  // player.muted を先に反転させてからstateを合わせる
   const toggleMute = () => {
     const next = !isMuted;
     player.muted = next;
     setIsMuted(next);
   };
-
-  // ---- レコードのアニメーション ----
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    if (isVisible) {
-      rotation.value = withRepeat(
-        withTiming(360, { duration: 5000, easing: Easing.linear }),
-        -1,
-        false,
-      );
-    } else {
-      rotation.value = 0;
-    }
-  }, [isVisible, rotation]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
 
   return (
     <View style={styles.container}>
@@ -99,127 +68,167 @@ function SpotlightItem({
         nativeControls={false}
       />
 
-      {/* Gradient Overlay for better visibility */}
+      {/* グラデーションオーバーレイでテキスト等の視認性を高める */}
       <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.4)", "rgba(0,0,0,0.8)"]}
-        locations={[0, 0.6, 1]}
+        colors={[
+          "rgba(0,0,0,0.6)",
+          "transparent",
+          "transparent",
+          "rgba(10,10,10,0.6)",
+          COLORS.background,
+        ]}
+        locations={[0, 0.15, 0.5, 0.85, 1]}
         style={styles.gradientOverlay}
       />
 
-      <View style={styles.overlayContainer}>
-        {/* Top Bar */}
+      <View style={[styles.overlayContainer, { paddingTop: insets.top + 20 }]}>
+        {/* トップバー (ミュートボタン) */}
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.iconButton} onPress={toggleMute}>
-            <Ionicons
-              name={isMuted ? "volume-mute" : "volume-medium"}
-              size={24}
-              color="white"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="add" size={28} color="white" />
+          <TouchableOpacity
+            onPress={toggleMute}
+            activeOpacity={0.7}
+            style={styles.muteButton}
+          >
+            <BlurView intensity={25} tint="dark" style={styles.iconBlur}>
+              {isMuted ? (
+                <VolumeX color={COLORS.text} size={22} strokeWidth={1.5} />
+              ) : (
+                <Volume2 color={COLORS.text} size={22} strokeWidth={1.5} />
+              )}
+            </BlurView>
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.bottomSection, { paddingBottom: bottomPadding }]}>
-          <View style={styles.bottomRow}>
-            {/* Left Side: Artist & Description */}
-            <View style={styles.leftColumn}>
-              <View style={styles.artistRow}>
-                <View style={styles.avatarContainer}>
-                  <Image
-                    source={{ uri: "https://github.com/shadcn.png" }}
-                    style={styles.avatar}
-                  />
-                </View>
-                <Text style={styles.artistName}>{item.author}</Text>
-                <TouchableOpacity style={styles.followButton}>
-                  <Text style={styles.followButtonText}>Follow</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.tagContainer}>
-                <Ionicons
-                  name="shuffle"
-                  size={14}
-                  color="#e0e0e0"
-                  style={{ marginRight: 4 }}
-                />
-                <Text style={styles.tagText}>Remix of {item.author}</Text>
-              </View>
-            </View>
-
-            {/* Right Side: Action Buttons */}
-            <View style={styles.rightColumn}>
-              <ActionItem icon="refresh" />
-              <ActionItem icon="heart" count="24" isLiked />
-              <ActionItem icon="chatbubble-ellipses" count="2" />
-              <ActionItem icon="share-social" label="Share" />
-              <ActionItem icon="ellipsis-horizontal" />
-
-              <View style={styles.discContainer}>
-                <Animated.View style={[styles.disc, animatedStyle]}>
-                  <Image
-                    source={{ uri: "https://github.com/shadcn.png" }}
-                    style={styles.discImage}
-                  />
-                </Animated.View>
-              </View>
-            </View>
-          </View>
-
-          {/* Bottom Context Bar */}
-          <View style={styles.contextBarWrapper}>
-            <BlurView intensity={20} tint="dark" style={styles.contextBar}>
-              <View style={styles.contextInfo}>
-                <Image
-                  source={{ uri: "https://github.com/shadcn.png" }}
-                  style={styles.miniArt}
-                />
-                <View>
-                  <Text style={styles.contextTitle} numberOfLines={1}>
-                    {item.title}
+        {/* 下部情報セクション */}
+        <View
+          style={[styles.bottomSection, { paddingBottom: bottomPadding + 30 }]}
+        >
+          <Animated.View entering={FadeInDown.duration(600).delay(200)}>
+            <BlurView intensity={25} tint="dark" style={styles.infoContainer}>
+              {item.genre && (
+                <View style={styles.genreBadge}>
+                  <Text style={styles.genreText}>
+                    {item.genre.toUpperCase()}
                   </Text>
-                  <Text style={styles.contextArtist}>{item.author}</Text>
                 </View>
-              </View>
-              <TouchableOpacity style={styles.saveButton}>
-                <Ionicons
-                  name="add"
-                  size={16}
-                  color="white"
-                  style={{ marginRight: 4 }}
-                />
-                <Text style={styles.saveButtonText}>SAVE</Text>
-              </TouchableOpacity>
+              )}
+
+              <Text style={styles.title} numberOfLines={2}>
+                {item.title}
+              </Text>
+
+              <Text
+                style={[
+                  styles.author,
+                  item.description ? { marginBottom: 16 } : null,
+                ]}
+              >
+                {item.author}
+              </Text>
+
+              {item.description && (
+                <Text style={styles.description} numberOfLines={3}>
+                  {item.description}
+                </Text>
+              )}
             </BlurView>
-          </View>
+          </Animated.View>
         </View>
       </View>
     </View>
   );
 }
 
-// Helper component for Right Action Items
-const ActionItem = ({
-  icon,
-  count,
-  label,
-  isLiked,
-}: {
-  icon: any;
-  count?: string;
-  label?: string;
-  isLiked?: boolean;
-}) => (
-  <View style={styles.actionItem}>
-    <TouchableOpacity style={styles.actionIconContainer}>
-      <Ionicons name={icon} size={32} color={isLiked ? "#ff4081" : "white"} />
-    </TouchableOpacity>
-    {count && <Text style={styles.actionText}>{count}</Text>}
-    {label && <Text style={styles.actionTextSmall}>{label}</Text>}
-  </View>
-);
+const styles = StyleSheet.create({
+  container: {
+    width,
+    height,
+    backgroundColor: COLORS.background,
+  },
+  video: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  overlayContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "space-between",
+  },
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingHorizontal: 20,
+    zIndex: 10,
+  },
+  muteButton: {
+    width: 44,
+    height: 44,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  iconBlur: {
+    flex: 1,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(10,10,10,0.4)",
+  },
+  bottomSection: {
+    paddingHorizontal: 20,
+    justifyContent: "flex-end",
+  },
+  infoContainer: {
+    padding: 24,
+    borderRadius: 28,
+    overflow: "hidden",
+    backgroundColor: "rgba(20, 20, 20, 0.45)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  genreBadge: {
+    backgroundColor: "rgba(212, 175, 55, 0.12)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: "flex-start",
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(212, 175, 55, 0.3)",
+  },
+  genreText: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+    letterSpacing: 2,
+  },
+  title: {
+    color: COLORS.text,
+    fontSize: 32,
+    fontFamily: FONTS.title,
+    lineHeight: 38,
+    marginBottom: 8,
+  },
+  author: {
+    color: COLORS.subText,
+    fontSize: 16,
+    fontFamily: FONTS.semibold,
+    letterSpacing: 0.5,
+  },
+  description: {
+    color: COLORS.subText,
+    fontSize: 13,
+    fontFamily: FONTS.body,
+    opacity: 0.7,
+    lineHeight: 20,
+  },
+});
 
 export default memo(SpotlightItem, (prevProps, nextProps) => {
   return (
@@ -227,208 +236,4 @@ export default memo(SpotlightItem, (prevProps, nextProps) => {
     prevProps.index === nextProps.index &&
     prevProps.isParentFocused === nextProps.isParentFocused
   );
-});
-
-const styles = StyleSheet.create({
-  container: {
-    width,
-    height,
-    backgroundColor: "#000",
-  },
-  video: {
-    width: "100%",
-    height: "100%",
-  },
-  gradientOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "100%",
-  },
-  overlayContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "space-between",
-    paddingTop: 60,
-  },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    zIndex: 10,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bottomSection: {
-    justifyContent: "flex-end",
-    paddingBottom: 20,
-  },
-  bottomRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  leftColumn: {
-    flex: 1,
-    paddingRight: 16,
-    justifyContent: "flex-end",
-    marginBottom: 10,
-  },
-  artistRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  avatarContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "white",
-    overflow: "hidden",
-    marginRight: 8,
-  },
-  avatar: {
-    width: "100%",
-    height: "100%",
-  },
-  artistName: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-    marginRight: 8,
-  },
-  followButton: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-  },
-  followButtonText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  tagContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignSelf: "flex-start",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  tagText: {
-    color: "#e0e0e0",
-    fontSize: 12,
-  },
-  rightColumn: {
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  actionItem: {
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  actionIconContainer: {
-    marginBottom: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-  },
-  actionText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.5,
-    shadowRadius: 1,
-  },
-  actionTextSmall: {
-    color: "white",
-    fontSize: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.5,
-    shadowRadius: 1,
-  },
-  discContainer: {
-    marginTop: 10,
-  },
-  disc: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#222",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 8,
-    borderColor: "#111",
-  },
-  discImage: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  contextBarWrapper: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  contextBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "rgba(20, 20, 20, 0.6)",
-    borderRadius: 30,
-    padding: 8,
-    paddingRight: 16,
-    overflow: "hidden",
-    borderWidth: 0.5,
-    borderColor: "rgba(255,255,255,0.1)",
-  },
-  contextInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  miniArt: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 10,
-    backgroundColor: "#333",
-  },
-  contextTitle: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  contextArtist: {
-    color: "#aaa",
-    fontSize: 10,
-  },
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  saveButtonText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
 });

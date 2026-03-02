@@ -326,7 +326,7 @@ function SearchScreen() {
                 ...styles.playlistContainer,
               }}
               numColumns={2}
-              estimatedItemSize={220}
+              estimatedItemSize={250} // Actual height is around 248px
               ListEmptyComponent={playlistsEmptyComponent}
             />
           )}
