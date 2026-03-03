@@ -37,7 +37,9 @@ export default function AccountScreen() {
   const router = useRouter();
   const { data: user } = useUser();
   const userId = user?.id;
-  const { colors, currentTheme, setTheme } = useThemeStore();
+  const colors = useThemeStore((state) => state.colors);
+  const currentTheme = useThemeStore((state) => state.currentTheme);
+  const setTheme = useThemeStore((state) => state.setTheme);
 
   // 実データの取得
   const { playlists } = useGetPlaylists(userId);

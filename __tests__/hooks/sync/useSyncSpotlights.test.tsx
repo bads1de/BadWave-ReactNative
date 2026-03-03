@@ -140,9 +140,9 @@ describe("useSyncSpotlights", () => {
       await result.current.triggerSync();
     });
 
-    await waitFor(() => expect(result.current.syncError).toBeDefined(), {
+    await waitFor(() => expect(result.current.syncError).not.toBeNull(), {
       timeout: 3000,
     });
-    expect(result.current.syncError?.message).toBe("Supabase Error");
+    expect((result.current.syncError as Error).message).toBe("Supabase Error");
   });
 });

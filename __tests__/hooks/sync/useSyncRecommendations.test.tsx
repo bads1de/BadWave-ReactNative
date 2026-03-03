@@ -132,9 +132,9 @@ describe("useSyncRecommendations", () => {
       await result.current.triggerSync();
     });
 
-    await waitFor(() => expect(result.current.syncError).toBeDefined(), {
+    await waitFor(() => expect(result.current.syncError).not.toBeNull(), {
       timeout: 3000,
     });
-    expect(result.current.syncError?.message).toBe("RPC Error");
+    expect((result.current.syncError as Error).message).toBe("RPC Error");
   });
 });

@@ -44,8 +44,11 @@ function SearchScreen() {
   const colors = useThemeStore((state) => state.colors);
 
   // 検索履歴
-  const { history, addQuery, removeQuery, clearHistory, loadHistory } =
-    useSearchHistoryStore();
+  const history = useSearchHistoryStore((state) => state.history);
+  const addQuery = useSearchHistoryStore((state) => state.addQuery);
+  const removeQuery = useSearchHistoryStore((state) => state.removeQuery);
+  const clearHistory = useSearchHistoryStore((state) => state.clearHistory);
+  const loadHistory = useSearchHistoryStore((state) => state.loadHistory);
 
   // マウント時にMMKVから履歴を復元
   useEffect(() => {

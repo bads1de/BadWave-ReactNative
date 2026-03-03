@@ -2,7 +2,11 @@ import { useCallback, useMemo } from "react";
 import TrackPlayer from "react-native-track-player";
 import Song from "@/types";
 import { PlayContext, QueueState } from "@/hooks/audio/TrackPlayer/types";
-import { convertToTracks, safeAsyncOperation, shuffleArray } from "@/hooks/audio/TrackPlayer/utils";
+import {
+  convertToTracks,
+  safeAsyncOperation,
+  shuffleArray,
+} from "@/hooks/audio/TrackPlayer/utils";
 import { useQueueStore } from "@/hooks/audio/TrackPlayer/useQueueStore";
 
 /**
@@ -25,9 +29,9 @@ export function usePlayerState({ songs }: { songs: Song[] }) {
  * キュー操作フック
  */
 export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
-  // キューの状態管理 (Zustandストアを使用)
-  const queueState = useQueueStore();
-  const { setQueueState, resetQueueState } = queueState;
+  // キューの状態更新関数のみを取得
+  const setQueueState = useQueueStore((state) => state.setQueueState);
+  const resetQueueState = useQueueStore((state) => state.resetQueueState);
 
   /**
    * キューの状態を安全に取得する
@@ -49,7 +53,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
     (updater: (state: QueueState) => Partial<QueueState>) => {
       setQueueState(updater);
     },
-    [setQueueState]
+    [setQueueState],
   );
 
   /**
@@ -72,7 +76,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
 
         // 現在の曲を除外してシャッフル
         const remainingTracks = queue.filter(
-          (track) => track.id !== currentTrack.id
+          (track) => track.id !== currentTrack.id,
         );
 
         // シャッフルする
@@ -96,7 +100,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
         return true;
       },
       "キューのシャッフル中にエラーが発生しました",
-      handleError
+      handleError,
     );
   }, [setIsPlaying, updateQueueState]);
 
@@ -117,7 +121,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
 
         // 現在の曲のインデックスを取得
         const currentIndex = currentQueueState.originalQueue.findIndex(
-          (track) => track.id === currentTrack.id
+          (track) => track.id === currentTrack.id,
         );
 
         // 現在の曲が見つからなかった場合は何もしない
@@ -127,7 +131,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
 
         // 現在の曲より後の曲をキューに追加
         const remainingTracks = currentQueueState.originalQueue.slice(
-          currentIndex + 1
+          currentIndex + 1,
         );
 
         // キューをクリアして再構築
@@ -146,7 +150,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
         return true;
       },
       "シャッフル解除中にエラーが発生しました",
-      handleError
+      handleError,
     );
   }, [getQueueState, setIsPlaying, updateQueueState]);
 
@@ -210,10 +214,10 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
           return true;
         },
         "キューの更新中にエラーが発生しました",
-        handleError
+        handleError,
       );
     },
-    [setIsPlaying, updateQueueState]
+    [setIsPlaying, updateQueueState],
   );
 
   /**
@@ -246,7 +250,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
         return true;
       }, "キューに曲を追加中にエラーが発生しました");
     },
-    [updateQueueState]
+    [updateQueueState],
   );
 
   /**
@@ -278,7 +282,6 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
       updateQueueWithContext,
       getCurrentContext,
       resetQueue,
-      queueState: queueState,
       getQueueState,
       updateQueueState,
     }),
@@ -290,12 +293,10 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
       updateQueueWithContext,
       getCurrentContext,
       resetQueue,
-      queueState,
       getQueueState,
       updateQueueState,
-    ]
+    ],
   );
 
   return returnValues;
 }
-
