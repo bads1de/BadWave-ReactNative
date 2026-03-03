@@ -7,7 +7,7 @@ import Toast from "react-native-toast-message";
 import Song from "@/types";
 import OnRepeatPlayerControls from "@/components/onRepeat/player/OnRepeatPlayerControls";
 import { useOnRepeatPlayer } from "@/hooks/audio/useOnRepeatPlayer";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 
 const { width, height } = Dimensions.get("screen");
@@ -32,7 +32,7 @@ function OnRepeatPlayerItem({ song, isVisible }: OnRepeatPlayerItemProps) {
 
   // オーディオプレイヤー（フル再生用）
   // OnRepeatコンテキストとして初期化
-  const { togglePlayPause } = useAudioPlayer(songs, "home"); // TODO: 適切なContextTypeを検討
+  const { togglePlayPause } = usePlayControls(songs, "home"); // TODO: 適切なContextTypeを検討
 
   // フル再生ハンドラ
   const handlePlayFull = useCallback(async () => {

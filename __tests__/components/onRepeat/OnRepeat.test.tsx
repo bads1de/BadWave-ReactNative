@@ -3,14 +3,17 @@ import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import OnRepeat from "@/components/onRepeat/OnRepeat";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/actions/user/getUser";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { useIsPlaying } from "@/hooks/audio/useAudioPlayer";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import TrackPlayer from "react-native-track-player";
 
 // モックの設定
 jest.mock("@tanstack/react-query");
 jest.mock("@/actions/user/getUser");
-jest.mock("@/hooks/audio/useAudioPlayer");
+jest.mock("@/hooks/audio/useAudioPlayer", () => ({
+  useAudioPlayer: jest.fn(),
+  useIsPlaying: jest.fn(),
+}));
 jest.mock("@/hooks/stores/useOnRepeatStore");
 jest.mock("react-native-track-player");
 jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
@@ -33,8 +36,8 @@ jest.mock("@/actions/song/getTopPlayedSongs", () => ({
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseUser = useUser as jest.MockedFunction<typeof useUser>;
-const mockUseAudioPlayer = useAudioPlayer as jest.MockedFunction<
-  typeof useAudioPlayer
+const mockUseIsPlaying = useIsPlaying as jest.MockedFunction<
+  typeof useIsPlaying
 >;
 const mockUseOnRepeatStore = useOnRepeatStore as jest.MockedFunction<
   typeof useOnRepeatStore
@@ -105,11 +108,7 @@ describe("OnRepeat", () => {
       refetch: jest.fn(),
     } as any);
 
-    mockUseAudioPlayer.mockReturnValue({
-      isPlaying: false,
-      togglePlayPause: jest.fn(),
-      currentSong: null,
-    } as any);
+    mockUseIsPlaying.mockReturnValue(false);
 
     mockUseOnRepeatStore.mockImplementation((selector) => {
       const state = {
@@ -187,11 +186,7 @@ describe("OnRepeat", () => {
     });
 
     it("再生中に別の曲をタップすると現在の再生が一時停止される", async () => {
-      mockUseAudioPlayer.mockReturnValue({
-        isPlaying: true,
-        togglePlayPause: jest.fn(),
-        currentSong: mockSongs[0],
-      } as any);
+      mockUseIsPlaying.mockReturnValue(true);
 
       const { getByText } = render(<OnRepeat />);
 
@@ -252,14 +247,10 @@ describe("OnRepeat", () => {
         .spyOn(console, "error")
         .mockImplementation(() => {});
       (TrackPlayer.pause as jest.Mock).mockRejectedValue(
-        new Error("Pause failed")
+        new Error("Pause failed"),
       );
 
-      mockUseAudioPlayer.mockReturnValue({
-        isPlaying: true,
-        togglePlayPause: jest.fn(),
-        currentSong: mockSongs[0],
-      } as any);
+      mockUseIsPlaying.mockReturnValue(true);
 
       const { getByText } = render(<OnRepeat />);
 
@@ -274,4 +265,3 @@ describe("OnRepeat", () => {
     });
   });
 });
-

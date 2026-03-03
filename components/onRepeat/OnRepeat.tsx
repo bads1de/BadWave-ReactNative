@@ -10,7 +10,7 @@ import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
 import getTopPlayedSongs from "@/actions/song/getTopPlayedSongs";
 import { useUser } from "@/actions/user/getUser";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { useIsPlaying } from "@/hooks/audio/useAudioPlayer";
 import TrackPlayer from "react-native-track-player";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
@@ -91,7 +91,7 @@ OnRepeatItem.displayName = "OnRepeatItem";
 function OnRepeat() {
   const { data: user } = useUser();
   const userId = user?.id;
-  const { isPlaying } = useAudioPlayer();
+  const isPlaying = useIsPlaying();
   const openOnRepeatPlayer = useOnRepeatStore((state) => state.open);
   const colors = useThemeStore((state) => state.colors);
 

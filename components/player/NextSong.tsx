@@ -15,9 +15,10 @@ import { FONTS } from "@/constants/theme";
 
 import MarqueeText from "@/components/common/MarqueeText";
 
+import { useAudioStore } from "@/hooks/stores/useAudioStore";
+
 interface NextSongProps {
-  repeatMode: RepeatMode;
-  shuffle: boolean;
+  // Props removed to use Zustand selectors directly for better performance
 }
 
 /**
@@ -26,10 +27,14 @@ interface NextSongProps {
  * @param {boolean} shuffle - シャッフルモード
  * @returns {React.ReactElement} 次の曲の表示
  */
-function NextSong({ repeatMode, shuffle }: NextSongProps) {
+function NextSong({}: NextSongProps) {
   const activeTrack = useActiveTrack();
   const [nextSong, setNextSong] = useState<Track | null>(null);
   const colors = useThemeStore((state) => state.colors);
+
+  // Zustandから直接最小限の状態を購読
+  const repeatMode = useAudioStore((state) => state.repeatMode);
+  const shuffle = useAudioStore((state) => state.shuffle);
 
   useEffect(() => {
     const fetchNextTrack = async () => {
@@ -77,6 +82,14 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
         }
 
         setNextSong(queue[nextTrackIndex]);
+
+        // 次の曲のアートワークをプリフェッチして表示をスムーズにする
+        const nextArtwork = queue[nextTrackIndex]?.artwork;
+        if (nextArtwork && typeof nextArtwork === "string") {
+          Image.prefetch([nextArtwork]).catch(() => {
+            // プリフェッチ失敗はサイレントに無視
+          });
+        }
       } catch (error) {
         console.error("次の曲の取得中にエラーが発生しました:", error);
       }
@@ -91,6 +104,11 @@ function NextSong({ repeatMode, shuffle }: NextSongProps) {
       const track = await TrackPlayer.getTrack(event.nextTrack);
       if (track) {
         setNextSong(track);
+
+        // 次の曲のアートワークをプリフェッチする
+        if (track.artwork && typeof track.artwork === "string") {
+          Image.prefetch([track.artwork]).catch(() => {});
+        }
       }
     }
   });
@@ -255,11 +273,4 @@ const styles = StyleSheet.create({
   },
 });
 
-// メモ化してエクスポート
-export default memo(NextSong, (prevProps, nextProps) => {
-  // repeatModeとshuffleが同じ場合は再レンダリングしない
-  return (
-    prevProps.repeatMode === nextProps.repeatMode &&
-    prevProps.shuffle === nextProps.shuffle
-  );
-});
+export default memo(NextSong);

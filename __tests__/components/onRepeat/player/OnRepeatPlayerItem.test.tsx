@@ -33,6 +33,7 @@ jest.mock("@/hooks/mutations/useLikeMutation", () => ({
 
 jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(() => ({ togglePlayPause: jest.fn() })),
+  usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
 }));
 
 const mockClose = jest.fn();
@@ -42,7 +43,7 @@ const mockState = {
 };
 jest.mock("@/hooks/stores/useOnRepeatStore", () => ({
   useOnRepeatStore: jest.fn((selector) =>
-    selector ? selector(mockState) : mockState
+    selector ? selector(mockState) : mockState,
   ),
 }));
 
@@ -72,19 +73,21 @@ describe("OnRepeatPlayerItem", () => {
     image_path: "https://example.com/image.jpg",
     song_path: "https://example.com/song.mp3",
     video_path: "https://example.com/video.mp4",
+    user_id: "user1",
+    created_at: "2024-01-01",
   };
 
   describe("基本的なレンダリング", () => {
     it("曲のタイトルを表示すること", () => {
       const { getByText } = render(
-        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />,
       );
       expect(getByText("Test Song")).toBeTruthy();
     });
 
     it("アーティスト名を表示すること", () => {
       const { getByText } = render(
-        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />,
       );
       expect(getByText("Test Artist")).toBeTruthy();
     });
@@ -100,18 +103,18 @@ describe("OnRepeatPlayerItem", () => {
       });
 
       const { UNSAFE_getByType } = render(
-        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />,
       );
 
       // VideoViewがレンダリングされることを確認
-      expect(UNSAFE_getByType("VideoView")).toBeTruthy();
+      expect(UNSAFE_getByType("VideoView" as any)).toBeTruthy();
     });
   });
 
   describe("コントロールボタン", () => {
     it("OnRepeatPlayerControls を表示すること", () => {
       const { getByTestId } = render(
-        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />
+        <OnRepeatPlayerItem song={mockSongWithVideo} isVisible={true} />,
       );
       expect(getByTestId("on-repeat-player-controls")).toBeTruthy();
     });

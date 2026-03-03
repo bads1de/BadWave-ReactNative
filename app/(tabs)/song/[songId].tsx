@@ -11,7 +11,8 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useGetLocalSongById } from "@/hooks/data/useGetLocalSongById";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { usePlayControls, useIsPlaying } from "@/hooks/audio/useAudioPlayer";
+import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   SafeAreaView,
@@ -53,9 +54,9 @@ export default function SongDetailScreen() {
   const scrollRef = React.useRef<Animated.ScrollView>(null);
 
   const { data: song, isLoading, error } = useGetLocalSongById(songId);
-  const { isPlaying, currentSong, togglePlayPause } = useAudioPlayer(
-    song ? [song] : [],
-  );
+  const isPlaying = useIsPlaying();
+  const currentSong = useAudioStore((state) => state.currentSong);
+  const { togglePlayPause } = usePlayControls(song ? [song] : []);
 
   useFocusEffect(
     useCallback(() => {

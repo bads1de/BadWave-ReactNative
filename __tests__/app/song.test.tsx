@@ -33,7 +33,13 @@ jest.mock("@/components/player/lyric", () => ({
 }));
 jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
+  useIsPlaying: jest.fn(() => false),
   usePlayControls: jest.fn(() => ({ togglePlayPause: jest.fn() })),
+}));
+jest.mock("@/hooks/stores/useAudioStore", () => ({
+  useAudioStore: jest.fn((selector: any) =>
+    selector({ currentSong: null, repeatMode: 0, shuffle: false }),
+  ),
 }));
 jest.mock("@/hooks/stores/useHeaderStore", () => ({
   useHeaderStore: jest.fn(),

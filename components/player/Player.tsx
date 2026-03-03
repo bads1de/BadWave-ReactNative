@@ -346,7 +346,7 @@ function Player(props: PlayerProps) {
             testID="lyrics-component"
           />
         )}
-        <NextSong repeatMode={repeatMode} shuffle={shuffle} />
+        <NextSong />
         <OnRepeat />
       </View>
     </ScrollView>

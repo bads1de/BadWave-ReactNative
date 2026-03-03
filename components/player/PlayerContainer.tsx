@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
 import OnRepeatPlayer from "@/components/onRepeat/player/OnRepeatPlayer";
-import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
+import { useIsPlaying, usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
@@ -32,16 +32,16 @@ function PlayerContainer() {
   // OnRepeat Playerの状態
   const showOnRepeatPlayer = useOnRepeatStore((state) => state.isVisible);
 
-  // 再生コントロール関数と進捗情報を取得
+  // 再生状態とコントロール情報を取得
+  const isPlaying = useIsPlaying();
   const {
-    isPlaying,
     togglePlayPause,
     playNextSong,
     playPrevSong,
     seekTo,
     setRepeat,
     setShuffle,
-  } = useAudioPlayer();
+  } = usePlayControls();
 
   // メインプレイヤーが表示されない条件
   const shouldHideMainPlayer = !currentSong;

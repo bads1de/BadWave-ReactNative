@@ -28,6 +28,17 @@ jest.mock("@/hooks/stores/usePlayerStore", () => ({
 
 jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
+  useIsPlaying: jest.fn(() => false),
+}));
+
+jest.mock("@/hooks/stores/useAudioStore", () => ({
+  useAudioStore: jest.fn((selector) =>
+    selector({
+      repeatMode: 0,
+      shuffle: false,
+      currentSong: null,
+    }),
+  ),
 }));
 
 jest.mock("@/components/item/SongItem", () => ({
@@ -37,13 +48,19 @@ jest.mock("@/components/item/SongItem", () => ({
 
 const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
 const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
-const { useActiveTrack, useTrackPlayerEvents } = require("react-native-track-player");
+const { useAudioStore } = require("@/hooks/stores/useAudioStore");
+const {
+  useActiveTrack,
+  useTrackPlayerEvents,
+} = require("react-native-track-player");
 
 describe("NextSong", () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
     usePlayerStore.mockReturnValue({
       queue: [],
       currentIndex: 0,
@@ -56,7 +73,7 @@ describe("NextSong", () => {
       title: "Current Song",
     });
     useTrackPlayerEvents.mockImplementation((events: any[], callback: any) => {
-       // No-op for basic render test
+      // No-op for basic render test
     });
   });
 
@@ -65,12 +82,7 @@ describe("NextSong", () => {
   );
 
   it("renders without crashing", () => {
-    const { UNSAFE_root } = render(
-      <NextSong repeatMode={RepeatMode.Off} shuffle={false} />,
-      { wrapper }
-    );
+    const { UNSAFE_root } = render(<NextSong />, { wrapper });
     expect(UNSAFE_root).toBeTruthy();
   });
 });
-
-

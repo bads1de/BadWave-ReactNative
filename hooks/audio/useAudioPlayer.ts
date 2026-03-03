@@ -284,6 +284,11 @@ export function useAudioPlayer(
   return returnValues;
 }
 
+export function useIsPlaying() {
+  const playbackState = usePlaybackState();
+  return playbackState.state === State.Playing;
+}
+
 export function usePlayControls(
   songs: Song[] = [],
   contextType: PlayContextType = null,
@@ -291,6 +296,8 @@ export function usePlayControls(
 ) {
   const onPlay = useOnPlay();
   const { updateCurrentSongAndState } = useAudioActions();
+  const setStoreRepeatMode = useAudioStore((state) => state.setRepeatMode);
+  const setStoreShuffle = useAudioStore((state) => state.setShuffle);
 
   const setTrackPlayerIsPlaying = useCallback((playing: boolean) => {
     TrackPlayer.getPlaybackState().then((state) => {
@@ -302,9 +309,15 @@ export function usePlayControls(
     });
   }, []);
 
-  const { updateQueueWithContext } = useQueueOperations(
+  const { updateQueueWithContext, toggleShuffle } = useQueueOperations(
     setTrackPlayerIsPlaying,
   );
+
+  const handleToggleShuffle = useCallback(async () => {
+    const isShuffled = await toggleShuffle();
+    setStoreShuffle(isShuffled);
+    return isShuffled;
+  }, [toggleShuffle, setStoreShuffle]);
 
   const togglePlayPause = useCallback(
     async (
@@ -349,7 +362,48 @@ export function usePlayControls(
     ],
   );
 
-  return { togglePlayPause };
+  const seekTo = useCallback(async (millis: number) => {
+    return safeAsyncOperation(async () => {
+      await TrackPlayer.seekTo(millis / 1000);
+      return true;
+    }, "シーク中にエラーが発生しました");
+  }, []);
+
+  const playNextSong = useCallback(async () => {
+    return safeAsyncOperation(async () => {
+      await TrackPlayer.skipToNext();
+      await TrackPlayer.play();
+      return true;
+    }, "次の曲の再生中にエラーが発生しました");
+  }, []);
+
+  const playPrevSong = useCallback(async () => {
+    return safeAsyncOperation(async () => {
+      await TrackPlayer.skipToPrevious();
+      await TrackPlayer.play();
+      return true;
+    }, "前の曲の再生中にエラーが発生しました");
+  }, []);
+
+  const setRepeat = useCallback(
+    async (mode: RepeatMode) => {
+      return safeAsyncOperation(async () => {
+        await TrackPlayer.setRepeatMode(mode);
+        setStoreRepeatMode(mode);
+        return true;
+      }, "リピートモードの設定中にエラーが発生しました");
+    },
+    [setStoreRepeatMode],
+  );
+
+  return {
+    togglePlayPause,
+    seekTo,
+    playNextSong,
+    playPrevSong,
+    setRepeat,
+    setShuffle: handleToggleShuffle,
+  };
 }
 
 export { RepeatMode, State };
