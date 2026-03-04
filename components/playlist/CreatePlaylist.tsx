@@ -22,7 +22,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
 
@@ -90,7 +89,6 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
   });
 
   const handleCreatePlaylist = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!playlistName.trim()) {
       Toast.show({
         type: "error",
@@ -106,7 +104,6 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
     setModalOpen(false);
   };
 
-  // オフライン時はモーダルを開く前にアラートを表示
   const handleOpenModal = () => {
     if (!isOnline) {
       Alert.alert(
@@ -116,7 +113,6 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
       );
       return;
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setModalOpen(true);
   };
 

@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -118,7 +117,6 @@ export default function PlaylistOptionsMenu({
   const allDownloaded = bulkStatus === "all";
 
   const handleOpenMenu = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setShowOptionsModal(true);
   };
 
@@ -199,7 +197,6 @@ export default function PlaylistOptionsMenu({
   };
 
   const handleRename = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (!isOnline) {
       showOfflineAlert();
       setShowRenameModal(false);
@@ -211,7 +208,6 @@ export default function PlaylistOptionsMenu({
   };
 
   const handleTogglePublic = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isOnline) {
       showOfflineAlert();
       return;
@@ -220,7 +216,6 @@ export default function PlaylistOptionsMenu({
   };
 
   const handleBulkDownload = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!isOnline) {
       showOfflineAlert();
       return;
@@ -232,7 +227,6 @@ export default function PlaylistOptionsMenu({
   };
 
   const handleBulkDelete = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     handleCloseMenu();
     setBulkMode("delete");
     setShowBulkModal(true);
@@ -337,12 +331,24 @@ export default function PlaylistOptionsMenu({
                     contentFit="cover"
                   />
                 ) : (
-                  <View style={[styles.headerImagePlaceholder, { backgroundColor: colors.card }]}>
-                    <Settings2 size={24} color={colors.subText} strokeWidth={1.5} />
+                  <View
+                    style={[
+                      styles.headerImagePlaceholder,
+                      { backgroundColor: colors.card },
+                    ]}
+                  >
+                    <Settings2
+                      size={24}
+                      color={colors.subText}
+                      strokeWidth={1.5}
+                    />
                   </View>
                 )}
                 <View style={styles.headerTextContainer}>
-                  <Text style={[styles.sheetTitle, { color: colors.text }]} numberOfLines={1}>
+                  <Text
+                    style={[styles.sheetTitle, { color: colors.text }]}
+                    numberOfLines={1}
+                  >
                     {currentTitle}
                   </Text>
                   <Text style={styles.sheetSubTitle} numberOfLines={1}>

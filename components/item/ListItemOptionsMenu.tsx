@@ -10,8 +10,6 @@ import {
   Pressable,
 } from "react-native";
 import { Image } from "expo-image";
-import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -87,7 +85,6 @@ function ListItemOptionsModal({
   );
 
   const handleDownload = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isOnline) {
       Alert.alert(
         "オフラインです",
@@ -100,13 +97,11 @@ function ListItemOptionsModal({
   };
 
   const handleDeleteDownload = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     deleteSong(song.id);
     handleCloseModal();
   };
 
   const handleToggleLike = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isOnline) {
       Alert.alert(
         "オフラインです",
@@ -346,7 +341,6 @@ function ListItemOptionsMenu({
   }, [modalVisible, opacity, translateY]);
 
   const handleOpenModal = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setModalVisible(true);
   };
 

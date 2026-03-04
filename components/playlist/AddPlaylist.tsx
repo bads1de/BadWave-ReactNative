@@ -29,7 +29,6 @@ import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "@/constants/theme";
-import * as Haptics from "expo-haptics";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -96,7 +95,6 @@ function AddPlaylist({
       });
       return;
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setModalOpen(true);
   };
 
@@ -178,7 +176,6 @@ function AddPlaylistModal({
       return addPlaylistSong({ playlistId, userId: session.user.id, songId });
     },
     onMutate: async (playlistId) => {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlistSongs],
@@ -269,9 +266,7 @@ function AddPlaylistModal({
         return;
       }
 
-      // Check if the song is already added to this playlist
       if (displayStatus[playlistId]) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         Toast.show({
           type: "info",
           text1: "追加済みです",
