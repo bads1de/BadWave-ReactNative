@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "badmusicapp-mobile",
-    "slug": "badmusicapp-mobile",
+    "name": "BadWave",
+    "slug": "badwave",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.s3xmaxman.badmusicappmobile"
+      "package": "com.s3xmaxman.badwave"
     },
     "androidStatusBar": {
       "backgroundColor": "#000000",
