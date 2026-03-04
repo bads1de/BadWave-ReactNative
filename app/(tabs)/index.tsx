@@ -1,8 +1,7 @@
 import React, { useCallback } from "react";
-import { SafeAreaView, Text, ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView, Text, StyleSheet, View, FlatList } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { TrendingUp, Heart, List, Disc } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useGetLocalSongs } from "@/hooks/data/useGetLocalSongs";
 import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
@@ -12,11 +11,9 @@ import TrendBoard from "@/components/board/TrendBoard";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import Song from "@/types";
-import { FlatList } from "react-native";
 import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
-
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
 
@@ -69,9 +66,6 @@ export default function HomeScreen() {
   );
 
   const keyExtractor = useCallback((item: Song) => item.id, []);
-
-  if (isLoading) return <Loading variant="home" />;
-  if (error) return <Error message={error.message} />;
 
   const sections = [
     { type: "hero" },
@@ -129,7 +123,7 @@ export default function HomeScreen() {
                     keyExtractor={keyExtractor}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    estimatedItemSize={200} // Actual width of SongItem mapping (180 + 20 margin)
+                    estimatedItemSize={200}
                     contentContainerStyle={{
                       ...styles.songsContainer,
                       ...(currentSong && !showPlayer
@@ -155,6 +149,10 @@ export default function HomeScreen() {
     ],
   );
 
+  // ★ 早期リターンはすべてのフック定義の後に置く
+  if (isLoading) return <Loading variant="home" />;
+  if (error) return <Error message={error.message} />;
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -175,7 +173,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listWrapper: {
-    padding: 24, // Generous padding
+    padding: 24,
   },
   heroContainer: {
     marginTop: 8,
@@ -193,7 +191,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontFamily: FONTS.title, // Bodoni Moda for elegance
+    fontFamily: FONTS.title,
     letterSpacing: 0.5,
   },
   titleSeparator: {
@@ -202,10 +200,10 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sectionContent: {
-    marginBottom: 40, // Significant whitespace
+    marginBottom: 40,
   },
   songsSection: {
-    marginHorizontal: -24, // Extend to edges
+    marginHorizontal: -24,
   },
   songsList: {
     height: 340,
