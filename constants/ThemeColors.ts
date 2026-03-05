@@ -29,11 +29,9 @@ export interface ThemeDefinition {
     activeTab: string;
     glow: string;
 
-    // Error and Success
     error: string;
     success: string;
 
-    // Helper Gradients
     gradient: [string, string];
     accentGradient: [string, string, string];
   };

@@ -198,7 +198,8 @@ const styles = StyleSheet.create({
   },
   songsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between", // Fixed precise alignment
+    justifyContent: "flex-start",
+    gap: 12, // 3つのアイテムがちょうど収まるように調整
   },
   songItem: {
     width: ITEM_WIDTH,

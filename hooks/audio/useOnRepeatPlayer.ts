@@ -21,23 +21,39 @@ export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
   const randomStartRef = useRef<number | null>(null);
   const hasSeenkedRef = useRef(false);
 
-  // 動画プレイヤー
-  const player = useVideoPlayer(
-    (song.video_path || song.song_path) as VideoSource,
+  // 動画プレイヤー (動画パスがあれば動画をセット、非表示時はリソースを確保しない)
+  const videoPlayerSource = hasVideo && isVisible ? song.video_path : null;
+  const videoPlayer = useVideoPlayer(
+    videoPlayerSource as VideoSource | null,
+    (p) => {
+      p.loop = true;
+      p.muted = true; // 動画は常に無音
+      if (!isVisibleRef.current) {
+        p.pause();
+      }
+    },
+  );
+
+  // 音声用プレイヤー (必ず曲のパスをセット、非表示時はリソースを確保しない)
+  const audioPlayerSource = isVisible ? song.song_path : null;
+  const audioPlayer = useVideoPlayer(
+    audioPlayerSource as VideoSource | null,
     (p) => {
       p.loop = true;
       if (!isVisibleRef.current) {
         p.pause();
       }
-    }
+    },
   );
 
-  // ランダムな再生位置にシーク
+  // ランダムな再生位置にシーク (両方のプレイヤーを同期)
   useEffect(() => {
-    if (isVisible && player && !hasSeenkedRef.current) {
+    // trySeek内でvideoPlayerとaudioPlayerを使うが、videoPlayerはnullになる可能性があるのでaudioPlayerを必須条件にする
+    if (isVisible && audioPlayer && !hasSeenkedRef.current) {
       // プレイヤーの準備ができたらランダム位置にシーク
       const trySeek = () => {
-        const duration = player.duration;
+        // メインの音源の長さを基準にする
+        const duration = audioPlayer.duration;
         if (duration && duration > 0) {
           // 曲の20%〜80%の間でランダムな位置を選択
           const minPosition = duration * 0.2;
@@ -49,9 +65,16 @@ export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
             randomStartRef.current = randomPosition;
           }
 
-          player.currentTime = randomStartRef.current;
+          if (videoPlayer) {
+            videoPlayer.currentTime = randomStartRef.current;
+          }
+          audioPlayer.currentTime = randomStartRef.current;
           hasSeenkedRef.current = true;
-          player.play();
+
+          if (videoPlayer) {
+            videoPlayer.play();
+          }
+          audioPlayer.play();
           return true;
         }
         return false;
@@ -77,19 +100,25 @@ export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
         clearTimeout(timeout);
       };
     }
-  }, [isVisible, player]);
+  }, [isVisible, videoPlayer, audioPlayer]);
 
-  // 再生制御
+  // 再生制御 (両方のプレイヤーを連動)
   useEffect(() => {
     if (isVisible) {
       // 既にシーク済みの場合のみ再生
       if (hasSeenkedRef.current) {
-        player.play();
+        if (videoPlayer) {
+          videoPlayer.play();
+        }
+        audioPlayer.play();
       }
     } else {
-      player.pause();
+      if (videoPlayer) {
+        videoPlayer.pause();
+      }
+      audioPlayer.pause();
     }
-  }, [isVisible, player]);
+  }, [isVisible, videoPlayer, audioPlayer]);
 
   // 曲が変わったらリセット
   useEffect(() => {
@@ -98,8 +127,8 @@ export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
   }, [song.id]);
 
   return {
-    player,
+    player: videoPlayer, // UIの<VideoView>に渡すのは動画用のプレイヤー
+    audioPlayer, // 内部で音を鳴らす用のプレイヤー
     hasVideo,
   };
 };
-

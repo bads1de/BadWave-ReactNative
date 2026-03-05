@@ -45,6 +45,7 @@ export default function LibraryScreen() {
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const router = useRouter();
   const userId = session?.user?.id;
+  const colors = useThemeStore((state) => state.colors);
 
   const {
     likedSongs = [],
@@ -128,13 +129,15 @@ export default function LibraryScreen() {
     );
 
   return (
-    <View style={[styles.container, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.subtitle}>YOUR CURATED</Text>
-            <Text style={styles.title}>Library</Text>
+            <Text style={[styles.subtitle, { color: colors.primary }]}>
+              YOUR CURATED
+            </Text>
+            <Text style={[styles.title, { color: colors.text }]}>Library</Text>
           </View>
 
           {type === "playlists" && (
@@ -143,9 +146,24 @@ export default function LibraryScreen() {
               exiting={FadeOut.duration(200)}
             >
               <CreatePlaylist>
-                <View style={styles.premiumPillButton}>
-                  <Plus color={COLORS.background} size={14} strokeWidth={3} />
-                  <Text style={styles.premiumPillText}>NEW</Text>
+                <View
+                  style={[
+                    styles.premiumPillButton,
+                    {
+                      backgroundColor: colors.primary,
+                      shadowColor: colors.primary,
+                    },
+                  ]}
+                >
+                  <Plus color={colors.background} size={14} strokeWidth={3} />
+                  <Text
+                    style={[
+                      styles.premiumPillText,
+                      { color: colors.background },
+                    ]}
+                  >
+                    NEW
+                  </Text>
                 </View>
               </CreatePlaylist>
             </Animated.View>
