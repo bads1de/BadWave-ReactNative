@@ -25,6 +25,7 @@ import {
   CloudOff,
   Library as LibraryIcon,
   Music,
+  ListMusic,
 } from "lucide-react-native";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -32,8 +33,14 @@ import { useSearchHistoryStore } from "@/hooks/stores/useSearchHistoryStore";
 import { SearchHistory } from "@/components/search/SearchHistory";
 import { SearchBar } from "@/components/search/SearchBar";
 import { FONTS } from "@/constants/theme";
+import { TabSwitcher, TabOption } from "@/components/common/TabSwitcher";
 
 type SearchType = "songs" | "playlists";
+
+const SEARCH_TAB_OPTIONS: TabOption<SearchType>[] = [
+  { label: "Songs", value: "songs", icon: Music },
+  { label: "Playlists", value: "playlists", icon: ListMusic },
+];
 
 function SearchScreen() {
   const [activeQuery, setActiveQuery] = useState("");
@@ -236,58 +243,11 @@ function SearchScreen() {
           externalQuery={externalQuery}
         />
 
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            onPress={() => setSearchType("songs")}
-            style={[
-              styles.tabItem,
-              searchType === "songs"
-                ? styles.tabItemActive
-                : styles.tabItemInactive,
-            ]}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                searchType === "songs"
-                  ? styles.tabTextActive
-                  : styles.tabTextInactive,
-                {
-                  color: searchType === "songs" ? colors.text : colors.subText,
-                },
-              ]}
-            >
-              Songs
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setSearchType("playlists")}
-            style={[
-              styles.tabItem,
-              searchType === "playlists"
-                ? styles.tabItemActive
-                : styles.tabItemInactive,
-            ]}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                searchType === "playlists"
-                  ? styles.tabTextActive
-                  : styles.tabTextInactive,
-                {
-                  color:
-                    searchType === "playlists" ? colors.text : colors.subText,
-                },
-              ]}
-            >
-              Playlists
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TabSwitcher
+          options={SEARCH_TAB_OPTIONS}
+          value={searchType}
+          onValueChange={setSearchType}
+        />
       </View>
 
       {/* 検索バーが空の時に検索履歴を表示 */}
@@ -366,40 +326,6 @@ const styles = StyleSheet.create({
   searchSection: {
     paddingHorizontal: 20,
     marginBottom: 12,
-  },
-  tabContainer: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255,255,255,0.03)",
-    padding: 6,
-    borderRadius: 24,
-    marginBottom: 16,
-  },
-  tabItem: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  tabItemActive: {
-    backgroundColor: "rgba(255,255,255,0.1)",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  tabItemInactive: {
-    backgroundColor: "transparent",
-  },
-  tabText: {
-    fontSize: 14,
-  },
-  tabTextActive: {
-    fontFamily: FONTS.bold,
-  },
-  tabTextInactive: {
-    fontFamily: FONTS.semibold,
   },
   listContainer: {
     paddingHorizontal: 20,

@@ -28,10 +28,16 @@ import { BlurView } from "expo-blur";
 import { Heart, ListMusic, Plus } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
+import { TabSwitcher, TabOption } from "@/components/common/TabSwitcher";
 
 const { width } = Dimensions.get("window");
 
 type LibraryType = "liked" | "playlists";
+
+const TAB_OPTIONS: TabOption<LibraryType>[] = [
+  { label: "Favorites", value: "liked", icon: Heart },
+  { label: "Playlists", value: "playlists", icon: ListMusic },
+];
 
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
@@ -170,64 +176,11 @@ export default function LibraryScreen() {
           <>
             {/* Boutique Tab Switcher */}
             <View style={styles.tabWrapper}>
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  onPress={() => setType("liked")}
-                  style={[
-                    styles.tabItem,
-                    type === "liked" && styles.tabItemActive,
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  <Heart
-                    size={16}
-                    color={
-                      type === "liked" ? COLORS.background : COLORS.subText
-                    }
-                    fill={type === "liked" ? COLORS.background : "transparent"}
-                  />
-                  <Text
-                    style={[
-                      styles.tabText,
-                      {
-                        color:
-                          type === "liked" ? COLORS.background : COLORS.subText,
-                      },
-                    ]}
-                  >
-                    Favorites
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setType("playlists")}
-                  style={[
-                    styles.tabItem,
-                    type === "playlists" && styles.tabItemActive,
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  <ListMusic
-                    size={16}
-                    color={
-                      type === "playlists" ? COLORS.background : COLORS.subText
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.tabText,
-                      {
-                        color:
-                          type === "playlists"
-                            ? COLORS.background
-                            : COLORS.subText,
-                      },
-                    ]}
-                  >
-                    Playlists
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <TabSwitcher
+                options={TAB_OPTIONS}
+                value={type}
+                onValueChange={setType}
+              />
             </View>
 
             <View style={styles.contentArea}>
