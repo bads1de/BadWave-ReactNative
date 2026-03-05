@@ -1,125 +1,56 @@
-import React, { useState, useCallback, useMemo, useEffect, memo } from "react";
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  SafeAreaView,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import React, { memo, useCallback } from "react";
+import { View, StyleSheet, SafeAreaView, Text } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { useQuery } from "@tanstack/react-query";
-import getSongsByTitle from "@/actions/song/getSongsByTitle";
-import getPlaylistsByTitle from "@/actions/playlist/getPlaylistsByTitle";
-import ListItem from "@/components/item/ListItem";
-import PlaylistItem from "@/components/item/PlaylistItem";
-import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
-import { CACHED_QUERIES } from "@/constants";
-import Loading from "@/components/common/Loading";
-import Error from "@/components/common/Error";
-import { useRouter } from "expo-router";
-import { Playlist } from "@/types";
-import Song from "@/types";
-import {
-  Search,
-  CloudOff,
-  Library as LibraryIcon,
-  Music,
-  ListMusic,
-} from "lucide-react-native";
+import { Search, CloudOff, Music, ListMusic } from "lucide-react-native";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
-import { useSearchHistoryStore } from "@/hooks/stores/useSearchHistoryStore";
-import { SearchHistory } from "@/components/search/SearchHistory";
+import { useSearchScreen, SearchType } from "@/hooks/useSearchScreen";
 import { SearchBar } from "@/components/search/SearchBar";
-import { FONTS } from "@/constants/theme";
+import { SearchHistory } from "@/components/search/SearchHistory";
 import { TabSwitcher, TabOption } from "@/components/common/TabSwitcher";
-
-type SearchType = "songs" | "playlists";
+import ListItem from "@/components/item/ListItem";
+import PlaylistItem from "@/components/item/PlaylistItem";
+import Loading from "@/components/common/Loading";
+import Error from "@/components/common/Error";
+import { FONTS } from "@/constants/theme";
+import { ThemeDefinition } from "@/constants/ThemeColors";
+import { Playlist } from "@/types";
+import Song from "@/types";
 
 const SEARCH_TAB_OPTIONS: TabOption<SearchType>[] = [
   { label: "Songs", value: "songs", icon: Music },
   { label: "Playlists", value: "playlists", icon: ListMusic },
 ];
 
+// ----------------------------------------
+// SearchScreen
+// ----------------------------------------
 function SearchScreen() {
-  const [activeQuery, setActiveQuery] = useState("");
-  const [externalQuery, setExternalQuery] = useState<string | undefined>();
-  const [searchType, setSearchType] = useState<SearchType>("songs");
-  const router = useRouter();
   const { isOnline } = useNetworkStatus();
   const colors = useThemeStore((state) => state.colors);
 
-  // 検索履歴
-  const history = useSearchHistoryStore((state) => state.history);
-  const addQuery = useSearchHistoryStore((state) => state.addQuery);
-  const removeQuery = useSearchHistoryStore((state) => state.removeQuery);
-  const clearHistory = useSearchHistoryStore((state) => state.clearHistory);
-  const loadHistory = useSearchHistoryStore((state) => state.loadHistory);
-
-  // マウント時にMMKVから履歴を復元
-  useEffect(() => {
-    loadHistory();
-  }, [loadHistory]);
-
   const {
-    data: searchSongs = [],
-    isLoading: isSongsLoading,
-    error: songsError,
-    isSuccess: isSongsSuccess,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.songs, CACHED_QUERIES.search, activeQuery],
-    queryFn: () => getSongsByTitle(activeQuery),
-    enabled: activeQuery.length > 0 && searchType === "songs",
-  });
+    rawQuery,
+    controlledValue,
+    searchType,
+    songs,
+    playlists,
+    history,
+    isLoading,
+    error,
+    showHistory,
+    showEmptyState,
+    setRawQuery,
+    setDebouncedQuery,
+    setSearchType,
+    handleSongPress,
+    handlePlaylistPress,
+    handleHistorySelect,
+    handleSubmit,
+    removeQuery,
+    clearHistory,
+  } = useSearchScreen();
 
-  const {
-    data: searchPlaylists = [],
-    isLoading: isPlaylistsLoading,
-    error: playlistsError,
-    isSuccess: isPlaylistsSuccess,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.playlists, CACHED_QUERIES.search, activeQuery],
-    queryFn: () => getPlaylistsByTitle(activeQuery),
-    enabled: activeQuery.length > 0 && searchType === "playlists",
-  });
-
-  // 検索結果が返ってきた時に履歴に保存
-  useEffect(() => {
-    if (activeQuery.length > 0 && (isSongsSuccess || isPlaylistsSuccess)) {
-      addQuery(activeQuery);
-    }
-  }, [activeQuery, isSongsSuccess, isPlaylistsSuccess, addQuery]);
-
-  const { togglePlayPause } = usePlayControls(searchSongs, "search");
-
-  // 曲の再生/一時停止を切り替えるハンドラをメモ化
-  const handleSongPress = useCallback(
-    async (song: Song) => {
-      await togglePlayPause(song);
-    },
-    [togglePlayPause],
-  );
-
-  // 検索履歴からキーワードを選択した時のハンドラ
-  const handleHistorySelect = useCallback((query: string) => {
-    setActiveQuery(query);
-    setExternalQuery(query);
-  }, []);
-
-  const isLoading =
-    searchType === "songs" ? isSongsLoading : isPlaylistsLoading;
-  const error = searchType === "songs" ? songsError : playlistsError;
-
-  // プレイリストをクリックしたときのハンドラをメモ化
-  const handlePlaylistPress = useCallback(
-    (playlist: Playlist) => {
-      router.push(`/playlist/${playlist.id}`);
-    },
-    [router],
-  );
-
-  // FlashListのrenderItem関数をメモ化
   const renderSongItem = useCallback(
     ({ item }: { item: Song }) => (
       <ListItem song={item} onPress={handleSongPress} />
@@ -127,7 +58,6 @@ function SearchScreen() {
     [handleSongPress],
   );
 
-  // プレイリストのrenderItem関数をメモ化
   const renderPlaylistItem = useCallback(
     ({ item }: { item: Playlist }) => (
       <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
@@ -135,114 +65,25 @@ function SearchScreen() {
     [handlePlaylistPress],
   );
 
-  // keyExtractor関数をメモ化
   const keyExtractor = useCallback((item: Song | Playlist) => item.id, []);
-
-  // ListEmptyComponentをメモ化
-  const songsEmptyComponent = useMemo(() => {
-    return activeQuery.length === 0 ? (
-      <View style={[styles.emptyContainer, { opacity: 0.8 }]}>
-        <View
-          style={[
-            styles.iconCircle,
-            { backgroundColor: colors.card, shadowColor: colors.primary },
-          ]}
-        >
-          <Music size={32} color={colors.primary} />
-        </View>
-        <Text style={[styles.emptyText, { color: colors.text }]}>
-          Search for songs
-        </Text>
-        <Text style={[styles.emptySubText, { color: colors.subText }]}>
-          Find your favorite tracks
-        </Text>
-      </View>
-    ) : null;
-  }, [activeQuery.length, colors]);
-
-  const playlistsEmptyComponent = useMemo(() => {
-    return activeQuery.length === 0 ? (
-      <View style={[styles.emptyContainer, { opacity: 0.8 }]}>
-        <View
-          style={[
-            styles.iconCircle,
-            { backgroundColor: colors.card, shadowColor: colors.primary },
-          ]}
-        >
-          <LibraryIcon size={32} color={colors.primary} />
-        </View>
-        <Text style={[styles.emptyText, { color: colors.text }]}>
-          Search for playlists
-        </Text>
-        <Text style={[styles.emptySubText, { color: colors.subText }]}>
-          Discover new collections
-        </Text>
-      </View>
-    ) : null;
-  }, [activeQuery.length, colors]);
-
-  if (isLoading)
-    return (
-      <Loading
-        variant="list"
-        listProps={{ count: 6, showHeader: true, paddingHorizontal: 20 }}
-      />
-    );
-  if (error) return <Error message={error.message} />;
-
-  const hasResults =
-    searchType === "songs"
-      ? searchSongs.length > 0
-      : searchPlaylists.length > 0;
-
-  const showEmptyState = activeQuery.length > 0 && !hasResults;
-
-  if (!isOnline) {
-    return (
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background }]}
-      >
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Search
-          </Text>
-        </View>
-        <View style={styles.emptyContainer}>
-          <CloudOff size={64} color={colors.subText} />
-          <Text style={[styles.emptyText, { color: colors.text }]}>
-            You are offline
-          </Text>
-          <Text style={[styles.emptySubText, { color: colors.subText }]}>
-            Search is only available when online
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
+      {/* ヘッダー */}
       <View style={styles.header}>
-        <Text
-          style={[
-            styles.headerTitle,
-            {
-              color: colors.text,
-            },
-          ]}
-        >
-          Search
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Search</Text>
       </View>
 
+      {/* 検索バー + タブ（常にマウント維持して入力値をキープ） */}
       <View style={styles.searchSection}>
         <SearchBar
-          onDebouncedChange={setActiveQuery}
-          externalQuery={externalQuery}
+          onDebouncedChange={setDebouncedQuery}
+          onInputChange={setRawQuery}
+          onSubmit={handleSubmit}
+          controlledValue={controlledValue}
         />
-
         <TabSwitcher
           options={SEARCH_TAB_OPTIONS}
           value={searchType}
@@ -250,8 +91,16 @@ function SearchScreen() {
         />
       </View>
 
-      {/* 検索バーが空の時に検索履歴を表示 */}
-      {activeQuery.length === 0 && history.length > 0 && (
+      {/* オフライン */}
+      {!isOnline ? (
+        <EmptyState
+          icon={<CloudOff size={64} color={colors.subText} />}
+          title="You are offline"
+          subtitle="Search is only available when online"
+          colors={colors}
+        />
+      ) : /* 検索前: 履歴表示 */
+      showHistory ? (
         <View style={styles.historySection}>
           <SearchHistory
             history={history}
@@ -260,51 +109,76 @@ function SearchScreen() {
             onClearAll={clearHistory}
           />
         </View>
-      )}
-
-      {showEmptyState ? (
-        <View style={styles.emptyContainer}>
-          <Search size={64} color={colors.subText} />
-          <Text style={[styles.emptyText, { color: colors.text }]}>
-            No results found
-          </Text>
-          <Text style={[styles.emptySubText, { color: colors.subText }]}>
-            Try adjusting your search terms
-          </Text>
-        </View>
+      ) : /* ローディング中 */
+      isLoading ? (
+        <Loading
+          variant="list"
+          listProps={{ count: 6, showHeader: false, paddingHorizontal: 20 }}
+        />
+      ) : /* エラー */
+      error ? (
+        <Error message={error.message} />
+      ) : /* 検索結果なし */
+      showEmptyState ? (
+        <EmptyState
+          icon={<Search size={64} color={colors.subText} />}
+          title="No results found"
+          subtitle="Try adjusting your search terms"
+          colors={colors}
+        />
+      ) : /* 検索結果 */
+      searchType === "songs" ? (
+        <FlashList
+          key="songs-list"
+          data={songs}
+          keyExtractor={keyExtractor}
+          renderItem={renderSongItem}
+          estimatedItemSize={80}
+          contentContainerStyle={styles.listContainer}
+        />
       ) : (
-        <>
-          {searchType === "songs" ? (
-            <FlashList
-              key="songs-list"
-              data={searchSongs}
-              keyExtractor={keyExtractor}
-              renderItem={renderSongItem}
-              contentContainerStyle={styles.listContainer}
-              estimatedItemSize={80}
-              ListEmptyComponent={songsEmptyComponent}
-            />
-          ) : (
-            <FlashList
-              key="playlists-list"
-              data={searchPlaylists}
-              keyExtractor={keyExtractor}
-              renderItem={renderPlaylistItem}
-              contentContainerStyle={{
-                ...styles.listContainer,
-                ...styles.playlistContainer,
-              }}
-              numColumns={2}
-              estimatedItemSize={250} // Actual height is around 248px
-              ListEmptyComponent={playlistsEmptyComponent}
-            />
-          )}
-        </>
+        <FlashList
+          key="playlists-list"
+          data={playlists}
+          keyExtractor={keyExtractor}
+          renderItem={renderPlaylistItem}
+          estimatedItemSize={250}
+          numColumns={2}
+          contentContainerStyle={{
+            ...styles.listContainer,
+            ...styles.playlistContainer,
+          }}
+        />
       )}
     </SafeAreaView>
   );
 }
 
+// ----------------------------------------
+// EmptyState (ローカル小コンポーネント)
+// ----------------------------------------
+interface EmptyStateProps {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  colors: ThemeDefinition["colors"];
+}
+
+function EmptyState({ icon, title, subtitle, colors }: EmptyStateProps) {
+  return (
+    <View style={styles.emptyContainer}>
+      {icon}
+      <Text style={[styles.emptyText, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.emptySubText, { color: colors.subText }]}>
+        {subtitle}
+      </Text>
+    </View>
+  );
+}
+
+// ----------------------------------------
+// Styles
+// ----------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -319,11 +193,11 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.title,
     letterSpacing: 1,
   },
-  historySection: {
+  searchSection: {
     paddingHorizontal: 20,
     marginBottom: 12,
   },
-  searchSection: {
+  historySection: {
     paddingHorizontal: 20,
     marginBottom: 12,
   },
@@ -338,33 +212,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    gap: 8,
     paddingTop: 60,
-  },
-  iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   emptyText: {
     fontSize: 20,
     fontFamily: FONTS.semibold,
-    marginBottom: 8,
+    marginTop: 16,
   },
   emptySubText: {
     fontSize: 15,
     fontFamily: FONTS.body,
-    marginBottom: 8,
   },
 });
 
-// コンポーネント全体をメモ化してエクスポート
 export default memo(SearchScreen);
