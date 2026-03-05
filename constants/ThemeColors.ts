@@ -39,105 +39,100 @@ export interface ThemeDefinition {
   };
 }
 
-const LUXURY_BASE_COLORS = {
-  background: "#0A0A0A",
-  card: "#171717",
-  text: "#F5F5F5",
-  subText: "#A8A29E",
-  border: "#262626",
-  error: "#991B1B",
-  success: "#166534",
+const BASE_COLORS = {
+  background: "#000000",
+  card: "#18181b", // zinc-900
+  text: "#ffffff",
+  subText: "#a1a1aa", // zinc-400
+  border: "#27272a", // zinc-800
+  error: "#ef4444",
+  success: "#22c55e",
 };
 
 export const THEMES: Record<ThemeType, ThemeDefinition> = {
   violet: {
-    // Midnight Gold
     name: "violet",
-    label: "Midnight",
+    label: "Violet",
     colors: {
-      ...LUXURY_BASE_COLORS,
-      primary: "#D4AF37", // Gold
-      primaryDark: "#1C1917",
-      primaryLight: "#FDE68A",
-      accentFrom: "#D4AF37",
-      accentVia: "#A8A29E",
-      accentTo: "#F5F5F5",
-      activeTab: "#D4AF37",
-      glow: "rgba(212, 175, 55, 0.3)",
-      gradient: ["#1C1917", "#0A0A0A"],
-      accentGradient: ["#D4AF37", "#A8A29E", "#F5F5F5"],
+      ...BASE_COLORS,
+      primary: "#4c1d95", // --primary-color
+      primaryDark: "#581c87", // --theme-900
+      primaryLight: "#8b5cf6", // --theme-500
+      accentFrom: "#7c3aed", // --accent-from
+      accentVia: "#3b82f6", // --accent-via
+      accentTo: "#ec4899", // --accent-to
+      activeTab: "#4c1d95", // --active-tab-color
+      glow: "rgba(139, 92, 246, 0.4)", // --glow-color
+      gradient: ["#4c1d95", "#000000"],
+      accentGradient: ["#7c3aed", "#3b82f6", "#ec4899"],
     },
   },
   emerald: {
-    // Deep Forest
     name: "emerald",
-    label: "Forest",
+    label: "Emerald",
     colors: {
-      ...LUXURY_BASE_COLORS,
-      primary: "#064E3B",
-      primaryDark: "#022C22",
-      primaryLight: "#10B981",
-      accentFrom: "#064E3B",
-      accentVia: "#065F46",
-      accentTo: "#059669",
-      activeTab: "#10B981",
-      glow: "rgba(16, 185, 129, 0.2)",
-      gradient: ["#022C22", "#0A0A0A"],
-      accentGradient: ["#064E3B", "#065F46", "#059669"],
+      ...BASE_COLORS,
+      primary: "#064e3b",
+      primaryDark: "#064e3b",
+      primaryLight: "#10b981",
+      accentFrom: "#10b981",
+      accentVia: "#06b6d4",
+      accentTo: "#3b82f6",
+      activeTab: "#064e3b",
+      glow: "rgba(16, 185, 129, 0.4)",
+      gradient: ["#064e3b", "#000000"],
+      accentGradient: ["#10b981", "#06b6d4", "#3b82f6"],
     },
   },
   rose: {
-    // Velvet Wine
     name: "rose",
-    label: "Velvet",
+    label: "Rose",
     colors: {
-      ...LUXURY_BASE_COLORS,
-      primary: "#450A0A",
-      primaryDark: "#2D0606",
-      primaryLight: "#991B1B",
-      accentFrom: "#450A0A",
-      accentVia: "#7F1D1D",
-      accentTo: "#B91C1C",
-      activeTab: "#B91C1C",
-      glow: "rgba(185, 28, 28, 0.2)",
-      gradient: ["#2D0606", "#0A0A0A"],
-      accentGradient: ["#450A0A", "#7F1D1D", "#B91C1C"],
+      ...BASE_COLORS,
+      primary: "#881337",
+      primaryDark: "#881337",
+      primaryLight: "#f43f5e",
+      accentFrom: "#f43f5e",
+      accentVia: "#ec4899",
+      accentTo: "#a855f7",
+      activeTab: "#881337",
+      glow: "rgba(244, 63, 94, 0.4)",
+      gradient: ["#881337", "#000000"],
+      accentGradient: ["#f43f5e", "#ec4899", "#a855f7"],
     },
   },
   amber: {
-    // Royal Sand
     name: "amber",
-    label: "Sand",
+    label: "Amber",
     colors: {
-      ...LUXURY_BASE_COLORS,
-      primary: "#78350F",
-      primaryDark: "#451A03",
-      primaryLight: "#D97706",
-      accentFrom: "#78350F",
-      accentVia: "#B45309",
-      accentTo: "#F59E0B",
-      activeTab: "#F59E0B",
-      glow: "rgba(245, 158, 11, 0.2)",
-      gradient: ["#451A03", "#0A0A0A"],
-      accentGradient: ["#78350F", "#B45309", "#F59E0B"],
+      ...BASE_COLORS,
+      primary: "#78350f",
+      primaryDark: "#78350f",
+      primaryLight: "#f59e0b",
+      accentFrom: "#f59e0b",
+      accentVia: "#ef4444",
+      accentTo: "#ec4899",
+      activeTab: "#78350f",
+      glow: "rgba(245, 158, 11, 0.4)",
+      gradient: ["#78350f", "#000000"],
+      accentGradient: ["#f59e0b", "#ef4444", "#ec4899"],
     },
   },
   sky: {
-    // Arctic Slate
     name: "sky",
-    label: "Slate",
+    label: "Sky",
     colors: {
-      ...LUXURY_BASE_COLORS,
-      primary: "#0F172A",
-      primaryDark: "#020617",
-      primaryLight: "#334155",
-      accentFrom: "#0F172A",
-      accentVia: "#1E293B",
-      accentTo: "#475569",
-      activeTab: "#94A3B8",
-      glow: "rgba(148, 163, 184, 0.2)",
-      gradient: ["#020617", "#0A0A0A"],
-      accentGradient: ["#0F172A", "#1E293B", "#475569"],
+      ...BASE_COLORS,
+      primary: "#0c4a6e",
+      primaryDark: "#0c4a6e",
+      primaryLight: "#0ea5e9",
+      accentFrom: "#0ea5e9",
+      accentVia: "#6366f1",
+      accentTo: "#8b5cf6",
+      activeTab: "#0c4a6e",
+      glow: "rgba(14, 165, 233, 0.4)",
+      gradient: ["#0c4a6e", "#000000"],
+      accentGradient: ["#0ea5e9", "#6366f1", "#8b5cf6"],
     },
   },
 };

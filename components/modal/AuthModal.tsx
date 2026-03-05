@@ -22,7 +22,6 @@ import { Chrome, Mail, Lock, LogOut, X } from "lucide-react-native";
 import { CACHED_QUERIES } from "@/constants";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
-import * as Haptics from "expo-haptics";
 
 GoogleSignin.configure({
   webClientId:
@@ -32,14 +31,18 @@ GoogleSignin.configure({
 function AuthModalInner() {
   const { session } = useAuth();
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
+
+  // モード切り替え用の状態
+  const [isSignUp, setIsSignUp] = useState(false);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
   const colors = useThemeStore((state) => state.colors);
 
   const signInWithEmail = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!email || !password) {
       Alert.alert("エラー", "メールアドレスとパスワードを入力してください");
       return;
@@ -67,9 +70,13 @@ function AuthModalInner() {
   }, [email, password, queryClient, setShowAuthModal]);
 
   const signUpWithEmail = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!email || !password) {
       Alert.alert("エラー", "メールアドレスとパスワードを入力してください");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("エラー", "パスワードが一致しません");
       return;
     }
 
@@ -83,16 +90,18 @@ function AuthModalInner() {
 
       if (error) throw error;
 
-      Alert.alert("成功", "確認メールを送信しました！");
+      Alert.alert("成功", "確認メールを送信しました！メールをご確認ください。");
+      setIsSignUp(false); // 成功したらログイン画面に戻す
+      setPassword("");
+      setConfirmPassword("");
     } catch (error: any) {
       Alert.alert("エラー", error.message);
     } finally {
       setLoading(false);
     }
-  }, [email, password]);
+  }, [email, password, confirmPassword]);
 
   const signInWithGoogle = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setLoading(true);
 
     try {
@@ -132,7 +141,6 @@ function AuthModalInner() {
   }, [queryClient, setShowAuthModal]);
 
   const signOut = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
       const { error } = await supabase.auth.signOut();
 
@@ -145,6 +153,13 @@ function AuthModalInner() {
     }
   }, [queryClient, setShowAuthModal]);
 
+  const toggleAuthMode = useCallback(() => {
+    setIsSignUp((prev) => !prev);
+    // モードを切り替える時にパスワード等の入力をクリアする
+    setPassword("");
+    setConfirmPassword("");
+  }, []);
+
   return (
     <Modal visible transparent animationType="fade">
       <View style={styles.backdrop}>
@@ -153,7 +168,10 @@ function AuthModalInner() {
           style={[styles.modalContainer, { borderColor: colors.border }]}
         >
           <TouchableOpacity
-            style={[styles.closeIconButton, { backgroundColor: colors.background + "80" }]}
+            style={[
+              styles.closeIconButton,
+              { backgroundColor: colors.background + "80" },
+            ]}
             onPress={() => setShowAuthModal(false)}
           >
             <X size={20} color={colors.text} strokeWidth={1.5} />
@@ -162,15 +180,26 @@ function AuthModalInner() {
           {session ? (
             <View style={styles.content}>
               <View style={styles.userInfo}>
-                <View style={[styles.avatarPlaceholder, { backgroundColor: colors.primary + "20" }]}>
-                  <Text style={[styles.avatarInitial, { color: colors.primary }]}>
+                <View
+                  style={[
+                    styles.avatarPlaceholder,
+                    { backgroundColor: colors.primary + "20" },
+                  ]}
+                >
+                  <Text
+                    style={[styles.avatarInitial, { color: colors.primary }]}
+                  >
                     {session.user.email?.charAt(0).toUpperCase()}
                   </Text>
                 </View>
-                <Text style={[styles.welcomeText, { color: colors.text }]}>おかえりなさい</Text>
-                <Text style={[styles.emailText, { color: colors.subText }]}>{session.user.email}</Text>
+                <Text style={[styles.welcomeText, { color: colors.text }]}>
+                  おかえりなさい
+                </Text>
+                <Text style={[styles.emailText, { color: colors.subText }]}>
+                  {session.user.email}
+                </Text>
               </View>
-              
+
               <TouchableOpacity
                 style={[styles.button, styles.logoutButton]}
                 onPress={signOut}
@@ -182,28 +211,71 @@ function AuthModalInner() {
           ) : (
             <View style={styles.content}>
               <View style={styles.header}>
-                <Text style={[styles.title, { color: colors.text }]}>BadWave</Text>
-                <Text style={[styles.subtitle, { color: colors.subText }]}>音楽体験を、もっと身近に</Text>
+                <Text style={[styles.title, { color: colors.text }]}>
+                  BadWave
+                </Text>
+                <Text style={[styles.subtitle, { color: colors.subText }]}>
+                  {isSignUp
+                    ? "新しくアカウントを作成"
+                    : "音楽体験を、もっと身近に"}
+                </Text>
               </View>
 
-              <TouchableOpacity
-                style={[styles.googleButton, { backgroundColor: "#fff" }]}
-                onPress={signInWithGoogle}
-                disabled={loading}
-              >
-                <Chrome size={22} color="#4285F4" strokeWidth={2.5} style={styles.googleIcon} />
-                <Text style={styles.googleButtonText}>Googleでログイン</Text>
-              </TouchableOpacity>
+              {!isSignUp && (
+                <>
+                  <TouchableOpacity
+                    style={[styles.googleButton, { backgroundColor: "#fff" }]}
+                    onPress={signInWithGoogle}
+                    disabled={loading}
+                  >
+                    <Chrome
+                      size={22}
+                      color="#4285F4"
+                      strokeWidth={2.5}
+                      style={styles.googleIcon}
+                    />
+                    <Text style={styles.googleButtonText}>
+                      Googleでログイン
+                    </Text>
+                  </TouchableOpacity>
 
-              <View style={styles.divider}>
-                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-                <Text style={[styles.dividerText, { color: colors.subText }]}>または</Text>
-                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-              </View>
+                  <View style={styles.divider}>
+                    <View
+                      style={[
+                        styles.dividerLine,
+                        { backgroundColor: colors.border },
+                      ]}
+                    />
+                    <Text
+                      style={[styles.dividerText, { color: colors.subText }]}
+                    >
+                      または
+                    </Text>
+                    <View
+                      style={[
+                        styles.dividerLine,
+                        { backgroundColor: colors.border },
+                      ]}
+                    />
+                  </View>
+                </>
+              )}
 
               <View style={styles.inputContainer}>
-                <View style={[styles.inputWrapper, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                  <Mail size={18} color={colors.subText} style={styles.inputIcon} />
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <Mail
+                    size={18}
+                    color={colors.subText}
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={[styles.input, { color: colors.text }]}
                     placeholder="メールアドレス"
@@ -215,8 +287,20 @@ function AuthModalInner() {
                   />
                 </View>
 
-                <View style={[styles.inputWrapper, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                  <Lock size={18} color={colors.subText} style={styles.inputIcon} />
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <Lock
+                    size={18}
+                    color={colors.subText}
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={[styles.input, { color: colors.text }]}
                     placeholder="パスワード"
@@ -228,27 +312,73 @@ function AuthModalInner() {
                     selectionColor={colors.primary}
                   />
                 </View>
+
+                {isSignUp && (
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      {
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                  >
+                    <Lock
+                      size={18}
+                      color={colors.subText}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={[styles.input, { color: colors.text }]}
+                      placeholder="パスワード（確認用）"
+                      placeholderTextColor={colors.subText + "80"}
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      selectionColor={colors.primary}
+                    />
+                  </View>
+                )}
               </View>
 
               <TouchableOpacity
-                style={[styles.button, { backgroundColor: colors.primary }, loading && styles.disabledButton]}
-                onPress={signInWithEmail}
+                style={[
+                  styles.button,
+                  { backgroundColor: colors.primary },
+                  loading && styles.disabledButton,
+                ]}
+                onPress={isSignUp ? signUpWithEmail : signInWithEmail}
                 disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color={colors.primaryDark} />
                 ) : (
-                  <Text style={[styles.buttonText, { color: colors.primaryDark }]}>ログイン</Text>
+                  <Text
+                    style={[styles.buttonText, { color: colors.primaryDark }]}
+                  >
+                    {isSignUp ? "アカウントを作成" : "ログイン"}
+                  </Text>
                 )}
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.secondaryButton, { borderColor: colors.primary }]}
-                onPress={signUpWithEmail}
+                style={[
+                  styles.secondaryButton,
+                  { borderColor: colors.primary },
+                ]}
+                onPress={toggleAuthMode}
                 disabled={loading}
               >
-                <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
-                  アカウントをお持ちでない方はこちら
+                <Text
+                  style={[
+                    styles.secondaryButtonText,
+                    { color: colors.primary },
+                  ]}
+                >
+                  {isSignUp
+                    ? "すでにアカウントをお持ちの方はこちら"
+                    : "アカウントをお持ちでない方はこちら"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -419,6 +549,3 @@ const styles = StyleSheet.create({
 });
 
 export default memo(AuthModalInner);
-
-
-

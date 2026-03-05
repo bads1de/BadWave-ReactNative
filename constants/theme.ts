@@ -1,13 +1,13 @@
 export const COLORS = {
-  primary: "#D4AF37", // Elegant Gold
-  secondary: "#1C1917", // Deep Stone
-  background: "#0A0A0A", // Deep Onyx
-  text: "#F5F5F5", // Off-White
-  subText: "#A8A29E", // Muted Stone
-  error: "#991B1B", // Deep Red
-  success: "#166534", // Forest Green
-  border: "#262626", // Subtle border
-  card: "#171717", // Dark card
+  primary: "#4c1d95", // Violet Primary
+  secondary: "#18181b", // Zinc 900
+  background: "#000000", // Black
+  text: "#ffffff", // White
+  subText: "#a1a1aa", // Zinc 400
+  error: "#ef4444", // Red 500
+  success: "#22c55e", // Green 500
+  border: "#27272a", // Zinc 800
+  card: "#18181b", // Zinc 900
 };
 
 export const FONTS = {
@@ -18,8 +18,8 @@ export const FONTS = {
 };
 
 export const GRADIENTS = {
-  primary: ["#D4AF37", "#1C1917"],
-  success: ["#166534", "#064E3B"],
-  error: ["#991B1B", "#450A0A"],
-  pinkBlue: ["#D4AF37", "#F5F5F5"], // Luxury Gold/White transition
+  primary: ["#4c1d95", "#000000"],
+  success: ["#22c55e", "#166534"],
+  error: ["#ef4444", "#991b1b"],
+  pinkBlue: ["#7c3aed", "#ec4899"], // Violet accent transition
 } as const;

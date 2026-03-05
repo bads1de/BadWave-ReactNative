@@ -9,6 +9,7 @@ import {
   Dimensions,
   Pressable,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import Animated, {
   useSharedValue,
@@ -62,6 +63,7 @@ function ListItemOptionsModal({
   const { session } = useAuth();
   const colors = useThemeStore((state) => state.colors);
   const userId = session?.user?.id;
+  const insets = useSafeAreaInsets();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -177,7 +179,11 @@ function ListItemOptionsModal({
         <Animated.View
           style={[
             styles.sheet,
-            { backgroundColor: colors.background, borderColor: colors.border },
+            {
+              backgroundColor: colors.background,
+              borderColor: colors.border,
+              paddingBottom: Math.max(insets.bottom, 20) + 60, // タブバーの高さとの干渉を避ける
+            },
             animatedStyle,
           ]}
         >
