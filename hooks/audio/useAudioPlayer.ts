@@ -396,14 +396,24 @@ export function usePlayControls(
     [setStoreRepeatMode],
   );
 
-  return {
-    togglePlayPause,
-    seekTo,
-    playNextSong,
-    playPrevSong,
-    setRepeat,
-    setShuffle: handleToggleShuffle,
-  };
+  return useMemo(
+    () => ({
+      togglePlayPause,
+      seekTo,
+      playNextSong,
+      playPrevSong,
+      setRepeat,
+      setShuffle: handleToggleShuffle,
+    }),
+    [
+      togglePlayPause,
+      seekTo,
+      playNextSong,
+      playPrevSong,
+      setRepeat,
+      handleToggleShuffle,
+    ],
+  );
 }
 
 export { RepeatMode, State };

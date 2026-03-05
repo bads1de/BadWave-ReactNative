@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/actions/user/getUser";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 /**
@@ -29,11 +29,10 @@ const usePlayHistory = () => {
         console.error("再生の記録中にエラーが発生しました:", error);
       }
     },
-    [isOnline, user?.id]
+    [isOnline, user?.id],
   );
 
-  return { recordPlay };
+  return useMemo(() => ({ recordPlay }), [recordPlay]);
 };
 
 export default usePlayHistory;
-

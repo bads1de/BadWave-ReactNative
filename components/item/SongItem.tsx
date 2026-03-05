@@ -175,7 +175,9 @@ export default memo(SongItem, (prevProps, nextProps) => {
     prevProps.song.image_path === nextProps.song.image_path &&
     prevProps.song.count === nextProps.song.count &&
     prevProps.song.like_count === nextProps.song.like_count &&
-    prevProps.dynamicSize === nextProps.dynamicSize
+    prevProps.song.local_song_path === nextProps.song.local_song_path &&
+    prevProps.dynamicSize === nextProps.dynamicSize &&
+    prevProps.onClick === nextProps.onClick
   );
 });
 

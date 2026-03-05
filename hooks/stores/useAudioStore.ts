@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { create } from "zustand";
 import Song from "@/types";
 import { RepeatMode } from "react-native-track-player";
@@ -38,11 +39,13 @@ export const useAudioStore = create<AudioState>((set) => ({
 export const useAudioActions = () => {
   const setCurrentSong = useAudioStore((state) => state.setCurrentSong);
 
-  return {
-    // 曲を変更する
-    updateCurrentSongAndState: (song: Song | null) => {
-      setCurrentSong(song);
-    },
-  };
+  return useMemo(
+    () => ({
+      // 曲を変更する
+      updateCurrentSongAndState: (song: Song | null) => {
+        setCurrentSong(song);
+      },
+    }),
+    [setCurrentSong],
+  );
 };
-

@@ -4,7 +4,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Search, CloudOff, Music, ListMusic } from "lucide-react-native";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
-import { useSearchScreen, SearchType } from "@/hooks/useSearchScreen";
+import { useSearchScreen, SearchType } from "@/hooks/common/useSearchScreen";
 import { SearchBar } from "@/components/search/SearchBar";
 import { SearchHistory } from "@/components/search/SearchHistory";
 import { TabSwitcher, TabOption } from "@/components/common/TabSwitcher";
