@@ -22,9 +22,15 @@ const SEARCH_TAB_OPTIONS: TabOption<SearchType>[] = [
   { label: "Playlists", value: "playlists", icon: ListMusic },
 ];
 
-// ----------------------------------------
-// SearchScreen
-// ----------------------------------------
+/**
+ * 検索画面（Search Screen）
+ *
+ * ユーザーが楽曲やプレイリストを検索できるメインインターフェースです。
+ * ローカル履歴の表示、デバウンス検索、オンライン/オフライン状態のハンドリングを含みます。
+ * ロジックは `useSearchScreen` カスタムフックにカプセル化されています。
+ *
+ * @returns {JSX.Element} 検索画面コンポーネント
+ */
 function SearchScreen() {
   const { isOnline } = useNetworkStatus();
   const colors = useThemeStore((state) => state.colors);
@@ -154,16 +160,25 @@ function SearchScreen() {
   );
 }
 
+// --- Helper Components ---
+
 // ----------------------------------------
 // EmptyState (ローカル小コンポーネント)
 // ----------------------------------------
 interface EmptyStateProps {
+  /** 表示するアイコン */
   icon: React.ReactNode;
+  /** タイトルテキスト */
   title: string;
+  /** サブタイトルテキスト */
   subtitle: string;
+  /** テーマカラー定義 */
   colors: ThemeDefinition["colors"];
 }
 
+/**
+ * 検索画面内の空状態（履歴なし、結果なし、オフライン）を表示するための内部コンポーネント
+ */
 function EmptyState({ icon, title, subtitle, colors }: EmptyStateProps) {
   return (
     <View style={styles.emptyContainer}>
@@ -176,9 +191,6 @@ function EmptyState({ icon, title, subtitle, colors }: EmptyStateProps) {
   );
 }
 
-// ----------------------------------------
-// Styles
-// ----------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,

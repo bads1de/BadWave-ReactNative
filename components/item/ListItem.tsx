@@ -118,6 +118,16 @@ function ListItem({
                   {Number(song.like_count).toLocaleString()}
                 </Text>
               </View>
+              {/* ダウンロード済みのみ表示 */}
+              {song.local_song_path && (
+                <View style={styles.statsItem}>
+                  <Ionicons
+                    name="cloud-done"
+                    size={14}
+                    color={colors.primary}
+                  />
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -202,6 +212,7 @@ export default memo(ListItem, (prevProps, nextProps) => {
     prevProps.song.image_path === nextProps.song.image_path &&
     prevProps.song.count === nextProps.song.count &&
     prevProps.song.like_count === nextProps.song.like_count &&
+    prevProps.song.local_song_path === nextProps.song.local_song_path &&
     prevProps.onPress === nextProps.onPress &&
     prevProps.showStats === nextProps.showStats &&
     prevProps.imageSize === nextProps.imageSize &&

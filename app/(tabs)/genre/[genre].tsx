@@ -25,8 +25,6 @@ import { COLORS, FONTS } from "@/constants/theme";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import BackButton from "@/components/common/BackButton";
 
-const { width } = Dimensions.get("window");
-
 export default function GenreSongsScreen() {
   const router = useRouter();
   const { genre } = useLocalSearchParams<{ genre: string }>();
