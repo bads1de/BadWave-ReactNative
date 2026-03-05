@@ -11,12 +11,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
 import {
   Heart,
   PlusCircle,
@@ -41,12 +35,9 @@ import AddPlaylist from "@/components/playlist/AddPlaylist";
 import Toast from "react-native-toast-message";
 import { FONTS } from "@/constants/theme";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-
 interface ListItemOptionsMenuProps {
   song: Song;
   onDelete?: () => void;
-  /** プレイリスト画面から呼び出された場合のプレイリストID（追加済み判定に使用） */
   currentPlaylistId?: string;
 }
 
@@ -56,22 +47,12 @@ function ListItemOptionsModal({
   currentPlaylistId,
   modalVisible,
   handleCloseModal,
-  opacity,
-  translateY,
 }: any) {
   const { isOnline } = useNetworkStatus();
   const { session } = useAuth();
   const colors = useThemeStore((state) => state.colors);
   const userId = session?.user?.id;
   const insets = useSafeAreaInsets();
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
 
   // ダウンロード状態
   const { data: isDownloaded = false } = useDownloadStatus(song.id);
@@ -168,23 +149,22 @@ function ListItemOptionsModal({
     <Modal
       visible={modalVisible}
       transparent
-      animationType="none"
+      animationType="slide"
       onRequestClose={handleCloseModal}
     >
       <View style={styles.modalRoot}>
-        <Animated.View style={[styles.overlay, overlayStyle]}>
+        <View style={styles.overlay}>
           <Pressable style={styles.flex} onPress={handleCloseModal} />
-        </Animated.View>
+        </View>
 
-        <Animated.View
+        <View
           style={[
             styles.sheet,
             {
               backgroundColor: colors.background,
               borderColor: colors.border,
-              paddingBottom: Math.max(insets.bottom, 20) + 60, // タブバーの高さとの干渉を避ける
+              paddingBottom: Math.max(insets.bottom, 20) + 60,
             },
-            animatedStyle,
           ]}
         >
           <View style={styles.handle} />
@@ -300,7 +280,7 @@ function ListItemOptionsModal({
               閉じる
             </Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
@@ -315,43 +295,20 @@ function ListItemOptionsMenu({
   const [shouldRender, setShouldRender] = useState(false);
   const colors = useThemeStore((state) => state.colors);
 
-  // Animation shared values
-  const translateY = useSharedValue(SCREEN_HEIGHT);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    if (modalVisible) {
-      setShouldRender(true);
-      opacity.value = withTiming(1, { duration: 300 });
-      translateY.value = withSpring(0, {
-        damping: 25,
-        stiffness: 80,
-      });
-    } else {
-      opacity.value = withTiming(0, { duration: 200 });
-      translateY.value = withTiming(
-        SCREEN_HEIGHT,
-        { duration: 300 },
-        (isFinished) => {
-          if (isFinished) {
-            // React Native Reanimatedのワークレット内から状態を更新するには少し工夫が必要な場合があるため
-            // タイムアウトなどを利用して安全にアンマウントする
-          }
-        },
-      );
-      const timeout = setTimeout(() => {
-        setShouldRender(false);
-      }, 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [modalVisible, opacity, translateY]);
-
   const handleOpenModal = () => {
-    setModalVisible(true);
+    setShouldRender(true);
+    // マウントされたのちにアニメーションさせるためごくわずかに遅延
+    setTimeout(() => {
+      setModalVisible(true);
+    }, 10);
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
+    // スライドダウン完了（OS標準の約300ms）を待ってアンマウントする
+    setTimeout(() => {
+      setShouldRender(false);
+    }, 300);
   };
 
   return (
@@ -371,8 +328,6 @@ function ListItemOptionsMenu({
           currentPlaylistId={currentPlaylistId}
           modalVisible={modalVisible}
           handleCloseModal={handleCloseModal}
-          translateY={translateY}
-          opacity={opacity}
         />
       )}
     </>

@@ -146,7 +146,7 @@ export function BulkDownloadButton({
   const bgColor = isDel
     ? "rgba(239, 68, 68, 0.15)"
     : variant === "primary"
-      ? "rgba(10, 10, 10, 0.4)" // BlurView with tint dark
+      ? "rgba(10, 10, 10, 0.4)"
       : "rgba(255, 255, 255, 0.05)";
 
   const textColor = isDel ? "#EF4444" : colors.text;
@@ -168,7 +168,6 @@ export function BulkDownloadButton({
           tint="dark"
           style={[
             StyleSheet.absoluteFillObject,
-            styles.blurLayer,
             {
               borderRadius,
               backgroundColor: bgColor,
@@ -209,9 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "flex-start",
   },
-  blurLayer: {
-    // BlurView 自体のスタイル
-  },
+
   contentWrapper: {
     flexDirection: "row",
     alignItems: "center",
