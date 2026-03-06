@@ -7,7 +7,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -89,11 +88,6 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
             onLoad={() => setIsImageLoaded(true)}
             transition={300}
           />
-          <LinearGradient
-            colors={["transparent", "rgba(10, 10, 10, 0.5)", "#0A0A0A"]}
-            locations={[0.4, 0.8, 1]}
-            style={styles.gradient}
-          />
         </View>
 
         <View style={styles.content}>
@@ -136,10 +130,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-  },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 2,
   },
   content: {
     padding: 12,

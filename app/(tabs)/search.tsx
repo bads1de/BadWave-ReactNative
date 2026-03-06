@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from "react";
-import { View, StyleSheet, SafeAreaView, Text } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { Search, CloudOff, Music, ListMusic } from "lucide-react-native";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";

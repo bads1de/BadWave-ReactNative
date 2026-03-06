@@ -1,5 +1,6 @@
-import React, { useCallback } from "react";
-import { SafeAreaView, Text, StyleSheet, View, ScrollView } from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { Text, StyleSheet, View, FlatList } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { TrendingUp, Heart, List, Disc } from "lucide-react-native";
 import { useGetLocalSongs } from "@/hooks/data/useGetLocalSongs";
@@ -21,6 +22,16 @@ import { FONTS } from "@/constants/theme";
  * @file index.tsx
  * @description アプリケーションのホーム画面コンポーネント (Badwave Refined)
  */
+
+// セクションの種類を定義
+enum HomeSectionType {
+  HERO = "HERO",
+  TRENDING = "TRENDING",
+  FOR_YOU = "FOR_YOU",
+  PLAYLISTS = "PLAYLISTS",
+  RECENTLY_DISCOVERED = "RECENTLY_DISCOVERED",
+}
+
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const colors = useThemeStore((state) => state.colors);
@@ -41,7 +52,7 @@ export default function HomeScreen() {
     [songs, togglePlayPause],
   );
 
-  const renderItem = useCallback(
+  const renderRecentSongItem = useCallback(
     ({ item }: { item: Song }) => (
       <SongItem song={item} onClick={handleSongPress} dynamicSize={false} />
     ),
@@ -65,7 +76,99 @@ export default function HomeScreen() {
     [colors],
   );
 
-  const keyExtractor = useCallback((item: Song) => item.id, []);
+  const keyExtractorRecent = useCallback((item: Song) => item.id, []);
+
+  // 画面構成データ
+  const sections = useMemo(() => {
+    const data = [
+      { id: HomeSectionType.HERO },
+      { id: HomeSectionType.TRENDING },
+      { id: HomeSectionType.FOR_YOU },
+      { id: HomeSectionType.PLAYLISTS },
+    ];
+    
+    // 最近見つけた曲がある場合のみセクションを追加
+    if (songs && songs.length > 0) {
+      data.push({ id: HomeSectionType.RECENTLY_DISCOVERED });
+    }
+    
+    return data;
+  }, [songs]);
+
+  // 各セクションのレンダリング
+  const renderSection = useCallback(
+    ({ item }: { item: { id: HomeSectionType } }) => {
+      switch (item.id) {
+        case HomeSectionType.HERO:
+          return (
+            <View style={styles.heroContainer}>
+              <HeroBoard />
+            </View>
+          );
+        case HomeSectionType.TRENDING:
+          return (
+            <>
+              {renderSectionTitle("Trending Now", TrendingUp)}
+              <View style={styles.sectionContent}>
+                <TrendBoard />
+              </View>
+            </>
+          );
+        case HomeSectionType.FOR_YOU:
+          return (
+            <>
+              {renderSectionTitle("Personalized for You", Heart)}
+              <View style={styles.sectionContent}>
+                <ForYouBoard />
+              </View>
+            </>
+          );
+        case HomeSectionType.PLAYLISTS:
+          return (
+            <>
+              {renderSectionTitle("Your Collections", List)}
+              <View style={styles.sectionContent}>
+                <PlaylistBoard />
+              </View>
+            </>
+          );
+        case HomeSectionType.RECENTLY_DISCOVERED:
+          return (
+            <>
+              {renderSectionTitle("Recently Discovered", Disc)}
+              <View style={[styles.sectionContent, styles.songsSection]}>
+                <View style={styles.songsList}>
+                  <FlashList
+                    data={songs}
+                    renderItem={renderRecentSongItem}
+                    keyExtractor={keyExtractorRecent}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    estimatedItemSize={200}
+                    contentContainerStyle={{
+                      ...styles.songsContainer,
+                      ...(currentSong && !showPlayer
+                        ? { paddingBottom: 10 }
+                        : {}),
+                    }}
+                  />
+                </View>
+              </View>
+            </>
+          );
+        default:
+          return null;
+      }
+    },
+    [
+      renderSectionTitle,
+      renderRecentSongItem,
+      keyExtractorRecent,
+      songs,
+      currentSong,
+      showPlayer,
+    ]
+  );
 
   // ★ 早期リターンはすべてのフック定義の後に置く
   if (isLoading) return <Loading variant="home" />;
@@ -75,53 +178,18 @@ export default function HomeScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <ScrollView
+      <FlatList
+        data={sections}
+        renderItem={renderSection}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.listWrapper, { paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.heroContainer}>
-          <HeroBoard />
-        </View>
-
-        {renderSectionTitle("Trending Now", TrendingUp)}
-        <View style={styles.sectionContent}>
-          <TrendBoard />
-        </View>
-
-        {renderSectionTitle("Personalized for You", Heart)}
-        <View style={styles.sectionContent}>
-          <ForYouBoard />
-        </View>
-
-        {renderSectionTitle("Your Collections", List)}
-        <View style={styles.sectionContent}>
-          <PlaylistBoard />
-        </View>
-
-        {songs && songs.length > 0 && (
-          <>
-            {renderSectionTitle("Recently Discovered", Disc)}
-            <View style={[styles.sectionContent, styles.songsSection]}>
-              <View style={styles.songsList}>
-                <FlashList
-                  data={songs}
-                  renderItem={renderItem}
-                  keyExtractor={keyExtractor}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  estimatedItemSize={200}
-                  contentContainerStyle={{
-                    ...styles.songsContainer,
-                    ...(currentSong && !showPlayer
-                      ? { paddingBottom: 10 }
-                      : {}),
-                  }}
-                />
-              </View>
-            </View>
-          </>
-        )}
-      </ScrollView>
+        // 画面外のレンダリングを最適化
+        windowSize={3}
+        initialNumToRender={3}
+        maxToRenderPerBatch={2}
+        removeClippedSubviews={true}
+      />
     </SafeAreaView>
   );
 }

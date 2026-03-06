@@ -2,12 +2,12 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { FlashList } from "@shopify/flash-list";
 import { Playlist } from "@/types";
 import { CACHED_QUERIES } from "@/constants";
 import getPublicPlaylists from "@/actions/playlist/getPublicPlaylists";
@@ -16,6 +16,62 @@ import { memo, useCallback } from "react";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import Loading from "@/components/common/Loading";
+
+const { width } = Dimensions.get("window");
+const ITEM_WIDTH = 160;
+
+interface PlaylistCardProps {
+  playlist: Playlist;
+  onPress: (playlist: Playlist) => void;
+  colors: any;
+}
+
+const PlaylistCard = memo(({ playlist, onPress, colors }: PlaylistCardProps) => {
+  return (
+    <View style={styles.animatedCardItem}>
+      <TouchableOpacity
+        onPress={() => onPress(playlist)}
+        style={[
+          styles.cardTouchable,
+          {
+            backgroundColor: colors.card + "66", // 40% opacity
+            borderColor: colors.glow + "0D", // 5% opacity
+          },
+        ]}
+      >
+        {/* アートワーク */}
+        <View style={styles.imageWrapper}>
+          <Image
+            source={{
+              uri: playlist.image_path,
+            }}
+            style={styles.image}
+            contentFit="cover"
+            cachePolicy="disk"
+          />
+
+          {/* オーバーレイグラデーション */}
+          <View style={styles.overlayGradient} />
+        </View>
+
+        {/* プレイリスト情報 */}
+        <View style={styles.infoWrapper}>
+          <View style={styles.infoContent}>
+            <Text style={styles.playlistTitle} numberOfLines={1}>
+              {playlist.title}
+            </Text>
+
+            <Text style={styles.playlistAuthor} numberOfLines={1}>
+              {playlist.user_name || "Anonymous"}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+});
+
+PlaylistCard.displayName = "PlaylistCard";
 
 function PlaylistBoard() {
   const colors = useThemeStore((state) => state.colors);
@@ -45,6 +101,15 @@ function PlaylistBoard() {
     [router],
   );
 
+  const renderItem = useCallback(
+    ({ item }: { item: Playlist }) => (
+      <PlaylistCard playlist={item} onPress={handlePlaylistPress} colors={colors} />
+    ),
+    [handlePlaylistPress, colors]
+  );
+
+  const keyExtractor = useCallback((item: Playlist) => item.id, []);
+
   if (isLoading)
     return (
       <View style={styles.container}>
@@ -59,58 +124,15 @@ function PlaylistBoard() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <FlashList
+        data={playlists}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-      >
-        {playlists.map((playlist, i) => (
-          <Animated.View
-            key={playlist.id}
-            entering={FadeInDown.delay(i * 100)}
-            style={styles.animatedCardItem}
-          >
-            <TouchableOpacity
-              onPress={() => handlePlaylistPress(playlist)}
-              style={[
-                styles.cardTouchable,
-                {
-                  backgroundColor: colors.card + "66", // 40% opacity (元の 23,23,23, 0.4 に相当)
-                  borderColor: colors.glow + "0D", // 5% opacity (元の 255,255,255, 0.05 に相当)
-                },
-              ]}
-            >
-              {/* アートワーク */}
-              <View style={styles.imageWrapper}>
-                <Image
-                  source={{
-                    uri: playlist.image_path,
-                  }}
-                  style={styles.image}
-                  contentFit="cover"
-                  cachePolicy="disk"
-                />
-
-                {/* オーバーレイグラデーション */}
-                <View style={styles.overlayGradient} />
-              </View>
-
-              {/* プレイリスト情報 */}
-              <View style={styles.infoWrapper}>
-                <View style={styles.infoContent}>
-                  <Text style={styles.playlistTitle} numberOfLines={1}>
-                    {playlist.title}
-                  </Text>
-
-                  <Text style={styles.playlistAuthor} numberOfLines={1}>
-                    {playlist.user_name || "Anonymous"}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-        ))}
-      </ScrollView>
+        estimatedItemSize={ITEM_WIDTH + 16} // Item width + gap
+      />
     </View>
   );
 }
@@ -118,14 +140,15 @@ function PlaylistBoard() {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    height: ITEM_WIDTH, // Fixed height for horizontal FlashList
   },
   scrollContent: {
-    gap: 16,
     paddingHorizontal: 16,
   },
   animatedCardItem: {
-    width: 160,
-    aspectRatio: 1,
+    width: ITEM_WIDTH,
+    height: ITEM_WIDTH,
+    marginRight: 16, // Instead of gap in ScrollView
   },
   cardTouchable: {
     flex: 1,

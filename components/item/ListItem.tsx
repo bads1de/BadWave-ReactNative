@@ -1,7 +1,6 @@
 import React, { memo, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Song from "@/types";
@@ -76,10 +75,6 @@ function ListItem({
           style={styles.image}
           contentFit="cover"
           cachePolicy="disk"
-        />
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.7)"]}
-          style={styles.gradient}
         />
       </View>
 
@@ -159,9 +154,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-  },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
   },
   contentContainer: {
     flex: 1,
