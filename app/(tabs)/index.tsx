@@ -184,11 +184,6 @@ export default function HomeScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.listWrapper, { paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
-        // 画面外のレンダリングを最適化
-        windowSize={3}
-        initialNumToRender={3}
-        maxToRenderPerBatch={2}
-        removeClippedSubviews={true}
       />
     </SafeAreaView>
   );
