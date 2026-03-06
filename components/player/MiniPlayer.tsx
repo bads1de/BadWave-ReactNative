@@ -14,7 +14,6 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { Image } from "expo-image";
-import { BlurView } from "expo-blur";
 import { Play, Pause } from "lucide-react-native";
 import Song from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -56,7 +55,7 @@ function ModernMiniPlayer({
         })),
       ]}
     >
-      <BlurView intensity={90} tint="dark" style={styles.blurContainer}>
+      <View style={styles.blurContainer}>
         <TouchableOpacity
           style={styles.contentContainer}
           onPress={onPress}
@@ -112,7 +111,7 @@ function ModernMiniPlayer({
         <View style={styles.progressBarContainer}>
           <MiniPlayerProgressBar colors={colors} />
         </View>
-      </BlurView>
+      </View>
     </Animated.View>
   );
 }

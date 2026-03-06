@@ -24,7 +24,6 @@ import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS, COLORS } from "@/constants/theme";
-import { BlurView } from "expo-blur";
 import { Heart, ListMusic, Plus } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";

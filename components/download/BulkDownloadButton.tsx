@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { TouchableOpacity, Text, StyleSheet, Alert, View } from "react-native";
 import { CloudDownload, Trash2 } from "lucide-react-native";
-import { BlurView } from "expo-blur";
 import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "@/components/download/BulkDownloadModal";
 import Song from "@/types";
@@ -163,9 +162,7 @@ export function BulkDownloadButton({
         activeOpacity={0.7}
         disabled={isDownloading}
       >
-        <BlurView
-          intensity={variant === "primary" && !isDel ? 20 : 10}
-          tint="dark"
+        <View
           style={[
             StyleSheet.absoluteFillObject,
             {

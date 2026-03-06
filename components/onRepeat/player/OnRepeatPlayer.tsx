@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import { View, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import OnRepeatPlayerList from "@/components/onRepeat/player/OnRepeatPlayerList";
 
@@ -26,7 +25,7 @@ export default function OnRepeatPlayer() {
     (index: number) => {
       setCurrentIndex(index);
     },
-    [setCurrentIndex]
+    [setCurrentIndex],
   );
 
   // 非表示の場合は何も表示しない
@@ -43,7 +42,7 @@ export default function OnRepeatPlayer() {
       />
 
       {/* 閉じるボタン */}
-      <BlurView intensity={30} style={styles.closeButtonContainer} tint="dark">
+      <View style={styles.closeButtonContainer}>
         <TouchableOpacity
           style={styles.closeButton}
           onPress={handleClose}
@@ -51,7 +50,7 @@ export default function OnRepeatPlayer() {
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-      </BlurView>
+      </View>
 
       {/* 曲リスト */}
       <OnRepeatPlayerList
@@ -81,6 +80,7 @@ const styles = StyleSheet.create({
     zIndex: 1001,
     borderRadius: 20,
     overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   closeButton: {
     width: 40,
@@ -89,4 +89,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-

@@ -8,7 +8,6 @@ import {
   Animated,
   Dimensions,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -72,7 +71,12 @@ export function ConfirmModal({
             style={styles.fullScreen}
             onPress={onCancel}
           >
-            <BlurView intensity={30} tint="dark" style={styles.fullScreen} />
+            <View
+              style={[
+                styles.fullScreen,
+                { backgroundColor: "rgba(0,0,0,0.5)" },
+              ]}
+            />
           </TouchableOpacity>
         </Animated.View>
 
@@ -248,4 +252,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-

@@ -5,14 +5,11 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
 } from "react-native";
 import { ImageBackground } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { BlurView } from "expo-blur";
 import { ArrowRight } from "lucide-react-native";
 import { genreCards } from "@/constants";
 import Animated, {
@@ -21,9 +18,6 @@ import Animated, {
   useAnimatedScrollHandler,
   interpolate,
   Extrapolate,
-  withSpring,
-  withTiming,
-  runOnJS,
 } from "react-native-reanimated";
 import { FONTS } from "@/constants/theme";
 
@@ -131,10 +125,10 @@ const GenreCard = memo(function GenreCard({
               onPress={handlePress}
               style={styles.exploreButton}
             >
-              <BlurView intensity={20} tint="light" style={styles.blurButton}>
+              <View style={styles.blurButton}>
                 <Text style={styles.exploreText}>DISCOVER</Text>
                 <ArrowRight size={14} color="#fff" strokeWidth={1.5} />
-              </BlurView>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -333,6 +327,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.2)",
     overflow: "hidden",
     gap: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
   exploreText: {
     color: "#fff",

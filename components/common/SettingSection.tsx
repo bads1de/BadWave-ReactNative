@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { BlurView } from "expo-blur";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
 
@@ -50,7 +49,6 @@ export const SettingSection = ({
             { backgroundColor: "rgba(20, 20, 20, 0.4)" }, // matching library tab background
           ]}
         />
-        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
         <View style={styles.content}>{children}</View>
       </View>
     </View>

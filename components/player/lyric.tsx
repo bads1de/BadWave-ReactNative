@@ -17,7 +17,6 @@ import {
   UIManager,
   LayoutChangeEvent,
 } from "react-native";
-import { BlurView } from "expo-blur";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Mic2 } from "lucide-react-native";

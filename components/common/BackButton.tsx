@@ -1,6 +1,5 @@
 import React, { memo } from "react";
-import { StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
-import { BlurView } from "expo-blur";
+import { StyleSheet, TouchableOpacity, ViewStyle, View } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -10,8 +9,6 @@ interface BackButtonProps {
   onPress?: () => void;
   /** ボタンのサイズ (デフォルト: 44) */
   size?: number;
-  /** BlurView のぼかし強度 (デフォルト: 18) */
-  blurIntensity?: number;
   /** 追加スタイル */
   style?: ViewStyle;
   /** テスト ID */
@@ -32,7 +29,6 @@ interface BackButtonProps {
 function BackButton({
   onPress,
   size = 44,
-  blurIntensity = 18,
   style,
   testID = "back-button",
   iconColor,
@@ -58,9 +54,7 @@ function BackButton({
       activeOpacity={0.75}
       testID={testID}
     >
-      <BlurView
-        intensity={blurIntensity}
-        tint="dark"
+      <View
         style={[
           styles.blur,
           {
@@ -74,7 +68,7 @@ function BackButton({
           size={iconSize}
           strokeWidth={1.5}
         />
-      </BlurView>
+      </View>
     </TouchableOpacity>
   );
 }

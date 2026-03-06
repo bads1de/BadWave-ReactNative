@@ -12,7 +12,6 @@ import { ImageBackground } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import Song from "@/types";
 import { useGetLocalTrendSongs } from "@/hooks/data/useGetLocalTrendSongs";
 import CustomButton from "@/components/common/CustomButton";
@@ -57,7 +56,7 @@ const TrendItem = memo(
             style={styles.gradient}
           />
         </ImageBackground>
-        <BlurView intensity={20} style={styles.blurContainer}>
+        <View style={styles.blurContainer}>
           <View
             style={[
               styles.rankContainer,
@@ -90,7 +89,7 @@ const TrendItem = memo(
               </Text>
             </View>
           </View>
-        </BlurView>
+        </View>
       </TouchableOpacity>
     );
   },
@@ -312,7 +311,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   rankContainer: {
     position: "absolute",

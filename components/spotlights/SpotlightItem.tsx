@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { Volume2, VolumeX } from "lucide-react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -89,13 +88,13 @@ function SpotlightItem({
             activeOpacity={0.7}
             style={styles.muteButton}
           >
-            <BlurView intensity={25} tint="dark" style={styles.iconBlur}>
+            <View style={styles.iconBlur}>
               {isMuted ? (
                 <VolumeX color={COLORS.text} size={22} strokeWidth={1.5} />
               ) : (
                 <Volume2 color={COLORS.text} size={22} strokeWidth={1.5} />
               )}
-            </BlurView>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -104,7 +103,7 @@ function SpotlightItem({
           style={[styles.bottomSection, { paddingBottom: bottomPadding + 30 }]}
         >
           <Animated.View entering={FadeInDown.duration(600).delay(200)}>
-            <BlurView intensity={25} tint="dark" style={styles.infoContainer}>
+            <View style={styles.infoContainer}>
               {item.genre && (
                 <View style={styles.genreBadge}>
                   <Text style={styles.genreText}>
@@ -131,7 +130,7 @@ function SpotlightItem({
                   {item.description}
                 </Text>
               )}
-            </BlurView>
+            </View>
           </Animated.View>
         </View>
       </View>

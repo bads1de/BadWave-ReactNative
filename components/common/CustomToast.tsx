@@ -1,14 +1,13 @@
 import React, { memo } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import Toast, { BaseToastProps } from "react-native-toast-message";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, GRADIENTS } from "@/constants/theme";
 
 const ToastConfig = {
   success: (props: BaseToastProps) => (
-    <BlurView intensity={30} style={styles.container} tint="dark">
+    <View style={[styles.container, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
       <LinearGradient
         colors={GRADIENTS.success}
         style={styles.gradient}
@@ -18,11 +17,11 @@ const ToastConfig = {
         <Ionicons name="checkmark-circle" size={24} color={COLORS.text} />
         <Text style={styles.text}>{props.text1}</Text>
       </LinearGradient>
-    </BlurView>
+    </View>
   ),
 
   error: (props: BaseToastProps) => (
-    <BlurView intensity={30} style={styles.container} tint="dark">
+    <View style={[styles.container, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
       <LinearGradient
         colors={GRADIENTS.error}
         style={styles.gradient}
@@ -32,14 +31,12 @@ const ToastConfig = {
         <Ionicons name="alert-circle" size={24} color={COLORS.text} />
         <Text style={styles.text}>{props.text1}</Text>
       </LinearGradient>
-    </BlurView>
+    </View>
   ),
 
   info: (props: BaseToastProps) => (
-    <BlurView
-      intensity={30}
+    <View
       style={[styles.container, { backgroundColor: "rgba(76,29,149,0.3)" }]}
-      tint="dark"
     >
       <LinearGradient
         colors={["#4c1d95", "#6d28d9"]}
@@ -50,7 +47,7 @@ const ToastConfig = {
         <Ionicons name="information-circle" size={24} color={COLORS.text} />
         <Text style={styles.text}>{props.text1}</Text>
       </LinearGradient>
-    </BlurView>
+    </View>
   ),
 };
 
@@ -95,4 +92,3 @@ export const ToastComponent = memo(() => (
 ));
 
 ToastComponent.displayName = "ToastComponent";
-

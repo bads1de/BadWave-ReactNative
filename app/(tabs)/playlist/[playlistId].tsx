@@ -10,7 +10,6 @@ import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -155,11 +154,7 @@ export default function PlaylistDetailScreen() {
         </View>
 
         <View style={styles.infoWrapper}>
-          <BlurView
-            intensity={25}
-            tint="dark"
-            style={[styles.infoContainer, { borderColor: colors.border }]}
-          >
+          <View style={[styles.infoContainer, { borderColor: colors.border }]}>
             <View style={styles.titleRow}>
               <Text
                 style={[styles.title, { color: colors.text }]}
@@ -265,7 +260,7 @@ export default function PlaylistDetailScreen() {
                 songs={playlistSongs}
               />
             </View>
-          </BlurView>
+          </View>
         </View>
       </View>
     ),

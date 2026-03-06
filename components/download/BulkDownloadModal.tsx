@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import type { BulkDownloadProgress } from "@/hooks/downloads/useBulkDownload";
 
@@ -60,7 +59,7 @@ export function BulkDownloadModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <BlurView intensity={40} tint="dark" style={styles.overlay}>
+      <View style={styles.overlay}>
         <View style={styles.container}>
           {/* アイコン */}
           <View style={styles.iconContainer}>
@@ -124,7 +123,7 @@ export function BulkDownloadModal({
             )}
           </View>
         </View>
-      </BlurView>
+      </View>
     </Modal>
   );
 }
@@ -134,6 +133,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.7)",
   },
   container: {
     backgroundColor: "rgba(30, 30, 36, 0.95)",
@@ -217,5 +217,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-
-

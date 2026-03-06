@@ -40,8 +40,6 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
   const isDisabled = !isOnline && !isDownloaded;
 
   const scaleAnim = useSharedValue(1);
-  const opacityAnim = useSharedValue(0);
-  const isFirstRender = useRef(true);
 
   const { width: windowWidth } = Dimensions.get("window");
 
@@ -53,13 +51,6 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
     }
     return { width: 180, height: 300 };
   }, [dynamicSize, windowWidth]);
-
-  useEffect(() => {
-    if (isImageLoaded && isFirstRender.current) {
-      opacityAnim.value = withTiming(1, { duration: 600 });
-      isFirstRender.current = false;
-    }
-  }, [isImageLoaded, opacityAnim]);
 
   const handlePressIn = () => {
     if (isDisabled) return;
@@ -83,7 +74,6 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
         dynamicStyle,
         useAnimatedStyle(() => ({
           transform: [{ scale: scaleAnim.value }],
-          opacity: opacityAnim.value,
         })),
         isDisabled && { opacity: 0.4 },
       ]}

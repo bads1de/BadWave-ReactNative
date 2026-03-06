@@ -1,7 +1,6 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import Song from "@/types";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 import LikeButton from "@/components/LikeButton";
@@ -27,21 +26,21 @@ function OnRepeatPlayerControls({
     <View style={styles.container}>
       {/* いいねボタン */}
       <View style={styles.button}>
-        <BlurView intensity={30} tint="dark" style={styles.blurButton}>
+        <View style={styles.blurButton}>
           <LikeButton songId={song.id} size={24} />
-        </BlurView>
+        </View>
       </View>
 
       {/* プレイリストに追加ボタン */}
       <AddPlaylist songId={song.id}>
         <View style={styles.button}>
-          <BlurView intensity={30} tint="dark" style={styles.blurButton}>
+          <View style={styles.blurButton}>
             <MaterialCommunityIcons
               name="playlist-plus"
               size={24}
               color="#fff"
             />
-          </BlurView>
+          </View>
         </View>
       </AddPlaylist>
 
@@ -51,10 +50,10 @@ function OnRepeatPlayerControls({
         onPress={onPlayFull}
         testID="play-full-button"
       >
-        <BlurView intensity={40} tint="dark" style={styles.playFullBlur}>
+        <View style={styles.playFullBlur}>
           <MaterialCommunityIcons name="play" size={20} color="#fff" />
           <Text style={styles.playFullText}>フルで聴く</Text>
-        </BlurView>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -80,6 +79,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   playFullButton: {
     borderRadius: 24,
@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
     gap: 8,
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   playFullText: {
     color: "#fff",

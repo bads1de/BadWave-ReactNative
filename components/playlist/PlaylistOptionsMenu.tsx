@@ -11,7 +11,6 @@ import {
   Dimensions,
 } from "react-native";
 import { Image } from "expo-image";
-import { BlurView } from "expo-blur";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -455,12 +454,7 @@ export default function PlaylistOptionsMenu({
 
       {/* 名称変更モーダル */}
       <Modal visible={showRenameModal} transparent animationType="fade">
-        <BlurView
-          intensity={20}
-          tint="dark"
-          style={styles.renameOverlay}
-          testID="rename-modal"
-        >
+        <View style={styles.renameOverlay} testID="rename-modal">
           <View
             style={[
               styles.renameCard,
@@ -503,7 +497,7 @@ export default function PlaylistOptionsMenu({
               </Text>
             </TouchableOpacity>
           </View>
-        </BlurView>
+        </View>
       </Modal>
 
       <CustomAlertDialog
@@ -652,6 +646,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   renameCard: {
     width: "100%",
