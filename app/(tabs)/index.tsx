@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { Text, StyleSheet, View, FlatList } from "react-native";
+import { Text, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { TrendingUp, Heart, List, Disc } from "lucide-react-native";
@@ -174,16 +174,19 @@ export default function HomeScreen() {
   if (isLoading) return <Loading variant="home" />;
   if (error) return <Error message={error.message} />;
 
+// app/(tabs)/index.tsx の変更
+// import { FlatList } を削除し、代わりに FlashList を使用します
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <FlatList
+      <FlashList
         data={sections}
         renderItem={renderSection}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.listWrapper, { paddingBottom: 120 }]}
+        contentContainerStyle={{ ...styles.listWrapper, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
+        estimatedItemSize={400} // 平均的なセクションの高さを指定
       />
     </SafeAreaView>
   );

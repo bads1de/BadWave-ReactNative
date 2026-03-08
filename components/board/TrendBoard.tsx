@@ -50,6 +50,8 @@ const TrendItem = memo(
           source={{ uri: song.image_path }}
           style={[styles.image, isDisabled && { opacity: 0.5 }]}
           contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={200}
         >
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.9)"]}
@@ -259,6 +261,10 @@ function TrendBoard() {
           decelerationRate="fast"
           contentContainerStyle={styles.listContent}
           estimatedItemSize={ITEM_WIDTH}
+          removeClippedSubviews={true}
+          overrideItemLayout={(layout) => {
+            layout.size = ITEM_WIDTH + 16;
+          }}
         />
       </View>
     </View>
