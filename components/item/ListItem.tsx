@@ -74,7 +74,8 @@ function ListItem({
           source={{ uri: song.image_path }}
           style={styles.image}
           contentFit="cover"
-          cachePolicy="disk"
+          cachePolicy="memory-disk" // キャッシュポリシーをメモリ・ディスク併用に変更
+          transition={200} // 表示時のアニメーションを追加
         />
       </View>
 

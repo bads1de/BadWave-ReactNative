@@ -126,6 +126,8 @@ const GenreCardInner: React.FC<GenreCardProps> = ({ genre }) => {
             source={backgroundImages[genre as keyof typeof backgroundImages]}
             style={styles.backgroundImage}
             contentFit="cover"
+            cachePolicy="memory-disk" // メモリとディスクの両方でキャッシュ
+            transition={200} // ふわっと表示させるトランジション
           >
             <LinearGradient
               colors={getGradientColors(genre)}

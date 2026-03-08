@@ -96,7 +96,8 @@ function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
             style={styles.image}
             onLoad={() => setIsImageLoaded(true)}
             contentFit="cover"
-            cachePolicy="disk"
+            cachePolicy="memory-disk" // メモリとディスクを併用した高速なキャッシュ
+            transition={200} // 読み込み完了時のフェードイン
           />
           <LinearGradient
             colors={["transparent", "rgba(10, 10, 10, 0.8)", "#0A0A0A"]}

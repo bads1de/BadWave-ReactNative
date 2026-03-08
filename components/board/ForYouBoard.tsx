@@ -77,7 +77,11 @@ function ForYouBoard() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        estimatedItemSize={200}
+        estimatedItemSize={180}
+        removeClippedSubviews={true}
+        overrideItemLayout={(layout) => {
+          layout.size = 200; // SongItem + マージンの幅
+        }}
       />
     </View>
   );

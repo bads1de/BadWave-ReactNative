@@ -47,7 +47,8 @@ const PlaylistCard = memo(({ playlist, onPress, colors }: PlaylistCardProps) => 
             }}
             style={styles.image}
             contentFit="cover"
-            cachePolicy="disk"
+            cachePolicy="memory-disk"
+            transition={200}
           />
 
           {/* オーバーレイグラデーション */}
@@ -131,7 +132,11 @@ function PlaylistBoard() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        estimatedItemSize={ITEM_WIDTH + 16} // Item width + gap
+        estimatedItemSize={ITEM_WIDTH + 16} // アイテム幅 + マージン
+        removeClippedSubviews={true} // 画面外のサブビューを削除して描画性能を向上
+        overrideItemLayout={(layout) => {
+          layout.size = ITEM_WIDTH + 16;
+        }}
       />
     </View>
   );
