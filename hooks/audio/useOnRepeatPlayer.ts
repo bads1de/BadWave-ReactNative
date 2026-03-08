@@ -1,29 +1,38 @@
 import { useEffect, useRef } from "react";
 import { useVideoPlayer, VideoSource } from "expo-video";
 import Song from "@/types";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 
 /**
  * OnRepeat Player 用の再生制御フック
  *
  * 曲に動画がある場合は動画を再生します。
- * プレビュー機能として、曲のランダムな位置から再生を開始します。
+ * プレビュー機能として、ストアで事前に計算された位置から再生を開始します。
  *
  * @param song 再生する曲
  * @param isVisible この曲が現在表示されているかどうか
+ * @param isPreloading この曲を事前にロードするかどうか
  * @returns player インスタンスと hasVideo フラグ
  */
-export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
+export const useOnRepeatPlayer = (
+  song: Song,
+  isVisible: boolean,
+  isPreloading: boolean = false
+) => {
   const hasVideo = !!song.video_path;
   const isVisibleRef = useRef(isVisible);
   isVisibleRef.current = isVisible;
 
-  // ランダム位置を一度だけ計算（曲が変わるまで固定）
-  const randomStartRef = useRef<number | null>(null);
-  const hasSeenkedRef = useRef(false);
+  // ストアから事前に計算された開始位置（パーセンテージ）を取得
+  const startPercentage = useOnRepeatStore(
+    (state) => state.startPercentages[song.id]
+  );
+  
+  const hasSeekedRef = useRef(false);
 
-  // 動画プレイヤー (動画パスがあれば動画をセット、非表示時はリソースを確保しない)
-  const videoPlayerSource = hasVideo && isVisible ? song.video_path : null;
-  const videoPlayer = useVideoPlayer(
+  // 動画プレイヤー (isVisible または isPreloading の場合にリソースを確保)
+  const videoPlayerSource = hasVideo && (isVisible || isPreloading) ? song.video_path : null;
+  const videoPlayerArr = useVideoPlayer(
     videoPlayerSource as VideoSource | null,
     (p) => {
       p.loop = true;
@@ -33,9 +42,12 @@ export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
       }
     },
   );
+  // useVideoPlayer returns an array or object depending on version, but badwave project seems to use it as an object based on previous code.
+  // Wait, line 26 in original code: const videoPlayer = useVideoPlayer(...)
+  const videoPlayer = videoPlayerArr;
 
-  // 音声用プレイヤー (必ず曲のパスをセット、非表示時はリソースを確保しない)
-  const audioPlayerSource = isVisible ? song.song_path : null;
+  // 音声用プレイヤー (isVisible または isPreloading の場合にリソースを確保)
+  const audioPlayerSource = (isVisible || isPreloading) ? song.song_path : null;
   const audioPlayer = useVideoPlayer(
     audioPlayerSource as VideoSource | null,
     (p) => {
@@ -46,89 +58,71 @@ export const useOnRepeatPlayer = (song: Song, isVisible: boolean) => {
     },
   );
 
-  // ランダムな再生位置にシーク (両方のプレイヤーを同期)
+  // プリフェッチ・シーク処理 (両方のプレイヤーを同期)
   useEffect(() => {
-    // trySeek内でvideoPlayerとaudioPlayerを使うが、videoPlayerはnullになる可能性があるのでaudioPlayerを必須条件にする
-    if (isVisible && audioPlayer && !hasSeenkedRef.current) {
-      // プレイヤーの準備ができたらランダム位置にシーク
+    // startPercentageがない（ストアが初期化されていない）場合は何もしない
+    if (startPercentage === undefined) return;
+
+    // ロードされたら指定の位置にシーク
+    if ((isVisible || isPreloading) && audioPlayer && !hasSeekedRef.current) {
       const trySeek = () => {
-        // メインの音源の長さを基準にする
         const duration = audioPlayer.duration;
         if (duration && duration > 0) {
-          // 曲の20%〜80%の間でランダムな位置を選択
-          const minPosition = duration * 0.2;
-          const maxPosition = duration * 0.8;
-          const randomPosition =
-            minPosition + Math.random() * (maxPosition - minPosition);
-
-          if (randomStartRef.current === null) {
-            randomStartRef.current = randomPosition;
-          }
+          const seekPosition = duration * startPercentage;
 
           if (videoPlayer) {
-            videoPlayer.currentTime = randomStartRef.current;
+            videoPlayer.currentTime = seekPosition;
           }
-          audioPlayer.currentTime = randomStartRef.current;
-          hasSeenkedRef.current = true;
+          audioPlayer.currentTime = seekPosition;
+          hasSeekedRef.current = true;
 
-          if (videoPlayer) {
-            videoPlayer.play();
+          // 表示中の場合は再生開始
+          if (isVisibleRef.current) {
+            if (videoPlayer) videoPlayer.play();
+            audioPlayer.play();
           }
-          audioPlayer.play();
           return true;
         }
         return false;
       };
 
-      // 即時実行を試みる
       if (trySeek()) return;
 
-      // ロード待ちポーリング (200ms間隔)
       const interval = setInterval(() => {
-        if (trySeek()) {
-          clearInterval(interval);
-        }
+        if (trySeek()) clearInterval(interval);
       }, 200);
 
-      // 10秒でタイムアウト
-      const timeout = setTimeout(() => {
-        clearInterval(interval);
-      }, 10000);
-
+      const timeout = setTimeout(() => clearInterval(interval), 10000);
       return () => {
         clearInterval(interval);
         clearTimeout(timeout);
       };
     }
-  }, [isVisible, videoPlayer, audioPlayer]);
+  }, [isVisible, isPreloading, videoPlayer, audioPlayer, startPercentage]);
 
-  // 再生制御 (両方のプレイヤーを連動)
+  // 再生・一時停止制御
   useEffect(() => {
     if (isVisible) {
-      // 既にシーク済みの場合のみ再生
-      if (hasSeenkedRef.current) {
-        if (videoPlayer) {
-          videoPlayer.play();
-        }
+      if (hasSeekedRef.current) {
+        if (videoPlayer) videoPlayer.play();
         audioPlayer.play();
       }
     } else {
-      if (videoPlayer) {
-        videoPlayer.pause();
-      }
+      if (videoPlayer) videoPlayer.pause();
       audioPlayer.pause();
     }
   }, [isVisible, videoPlayer, audioPlayer]);
 
-  // 曲が変わったらリセット
-  useEffect(() => {
-    randomStartRef.current = null;
-    hasSeenkedRef.current = false;
-  }, [song.id]);
+  // 曲が変わったら再生位置の記憶をリセット
+  const prevSongIdRef = useRef<string | null>(null);
+  if (prevSongIdRef.current !== song.id) {
+    hasSeekedRef.current = false;
+    prevSongIdRef.current = song.id;
+  }
 
   return {
-    player: videoPlayer, // UIの<VideoView>に渡すのは動画用のプレイヤー
-    audioPlayer, // 内部で音を鳴らす用のプレイヤー
+    player: videoPlayer,
+    audioPlayer,
     hasVideo,
   };
 };

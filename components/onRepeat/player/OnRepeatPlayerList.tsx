@@ -52,12 +52,19 @@ export default function OnRepeatPlayerList({
   }).current;
 
   const renderItem = useCallback(
-    ({ item, index }: { item: Song; index: number }) => (
-      <OnRepeatPlayerItem
-        song={item}
-        isVisible={index === currentIndex && isParentFocused}
-      />
-    ),
+    ({ item, index }: { item: Song; index: number }) => {
+      const isVisible = index === currentIndex && isParentFocused;
+      // 現在のインデックスから前後1曲をプリロード対象とする
+      const isPreloading = isParentFocused && Math.abs(index - currentIndex) <= 1;
+      
+      return (
+        <OnRepeatPlayerItem
+          song={item}
+          isVisible={isVisible}
+          isPreloading={isPreloading}
+        />
+      );
+    },
     [currentIndex, isParentFocused],
   );
 

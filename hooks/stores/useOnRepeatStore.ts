@@ -17,6 +17,8 @@ type OnRepeatState = {
   currentIndex: number;
   /** プレビュー再生時間（秒） */
   previewDuration: number;
+  /** 曲ごとのランダム再生開始位置（0.0〜1.0） */
+  startPercentages: Record<string, number>;
 };
 
 type OnRepeatActions = {
@@ -39,24 +41,34 @@ const initialState: OnRepeatState = {
   songs: [],
   currentIndex: 0,
   previewDuration: 15,
+  startPercentages: {},
 };
 
 export const useOnRepeatStore = create<OnRepeatState & OnRepeatActions>(
   (set) => ({
     ...initialState,
 
-    open: (songs, startIndex) =>
+    open: (songs, startIndex) => {
+      // 各曲の開始位置を事前に計算（0.2〜0.8の範囲）
+      const startPercentages: Record<string, number> = {};
+      songs.forEach((song) => {
+        startPercentages[song.id] = 0.2 + Math.random() * 0.6;
+      });
+
       set({
         songs,
         currentIndex: startIndex,
         isVisible: true,
-      }),
+        startPercentages,
+      });
+    },
 
     close: () =>
       set({
         isVisible: false,
         songs: [],
         currentIndex: 0,
+        startPercentages: {},
       }),
 
     setCurrentIndex: (index) => set({ currentIndex: index }),

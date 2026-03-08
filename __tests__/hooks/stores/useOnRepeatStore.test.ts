@@ -18,6 +18,8 @@ describe("useOnRepeatStore", () => {
       author: "Artist 1",
       image_path: "https://example.com/image1.jpg",
       song_path: "https://example.com/song1.mp3",
+      user_id: "user1",
+      created_at: "2024-01-01",
     },
     {
       id: "2",
@@ -25,6 +27,8 @@ describe("useOnRepeatStore", () => {
       author: "Artist 2",
       image_path: "https://example.com/image2.jpg",
       song_path: "https://example.com/song2.mp3",
+      user_id: "user1",
+      created_at: "2024-01-01",
     },
     {
       id: "3",
@@ -32,6 +36,8 @@ describe("useOnRepeatStore", () => {
       author: "Artist 3",
       image_path: "https://example.com/image3.jpg",
       song_path: "https://example.com/song3.mp3",
+      user_id: "user1",
+      created_at: "2024-01-01",
     },
   ];
 
@@ -54,6 +60,11 @@ describe("useOnRepeatStore", () => {
     it("previewDuration のデフォルト値は 15 秒であること", () => {
       const { result } = renderHook(() => useOnRepeatStore());
       expect(result.current.previewDuration).toBe(15);
+    });
+
+    it("startPercentages は空オブジェクトであること", () => {
+      const { result } = renderHook(() => useOnRepeatStore());
+      expect(result.current.startPercentages).toEqual({});
     });
   });
 
@@ -88,6 +99,21 @@ describe("useOnRepeatStore", () => {
       });
 
       expect(result.current.currentIndex).toBe(2);
+    });
+
+    it("open 時に各曲の startPercentages が 0.2〜0.8 の範囲で生成されること", () => {
+      const { result } = renderHook(() => useOnRepeatStore());
+
+      act(() => {
+        result.current.open(mockSongs, 0);
+      });
+
+      const percentages = result.current.startPercentages;
+      expect(Object.keys(percentages)).toHaveLength(mockSongs.length);
+      mockSongs.forEach((song) => {
+        expect(percentages[song.id]).toBeGreaterThanOrEqual(0.2);
+        expect(percentages[song.id]).toBeLessThanOrEqual(0.8);
+      });
     });
   });
 
@@ -134,6 +160,20 @@ describe("useOnRepeatStore", () => {
         result.current.close();
       });
       expect(result.current.currentIndex).toBe(0);
+    });
+
+    it("startPercentages をクリアすること", () => {
+      const { result } = renderHook(() => useOnRepeatStore());
+
+      act(() => {
+        result.current.open(mockSongs, 0);
+      });
+      expect(Object.keys(result.current.startPercentages).length).toBe(3);
+
+      act(() => {
+        result.current.close();
+      });
+      expect(result.current.startPercentages).toEqual({});
     });
   });
 

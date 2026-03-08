@@ -17,14 +17,16 @@ interface OnRepeatPlayerItemProps {
   song: Song;
   /** この曲が現在表示されているか */
   isVisible: boolean;
+  /** この曲を事前にロードするか（隣接するアイテムなど） */
+  isPreloading?: boolean;
 }
 
 /**
  * OnRepeat Player の個別アイテムコンポーネント
  * Spotify風のリッチなプレビュー画面
  */
-function OnRepeatPlayerItem({ song, isVisible }: OnRepeatPlayerItemProps) {
-  const { player, hasVideo } = useOnRepeatPlayer(song, isVisible);
+function OnRepeatPlayerItem({ song, isVisible, isPreloading = false }: OnRepeatPlayerItemProps) {
+  const { player, hasVideo } = useOnRepeatPlayer(song, isVisible, isPreloading);
 
   // ストアから全曲リストを取得（フル再生時のキュー用）
   const songs = useOnRepeatStore((state) => state.songs);
