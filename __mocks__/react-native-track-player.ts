@@ -28,6 +28,7 @@ const mockTrackPlayer = {
 
 export default mockTrackPlayer;
 
+export const useActiveTrack = jest.fn().mockReturnValue(null);
 export const useTrackPlayerEvents = jest.fn();
 export const useProgress = jest.fn().mockReturnValue({
   position: 0,

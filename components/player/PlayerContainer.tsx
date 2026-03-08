@@ -1,5 +1,6 @@
-import React, { memo } from "react";
+import React, { memo, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
+import { useActiveTrack } from "react-native-track-player";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
 import OnRepeatPlayer from "@/components/onRepeat/player/OnRepeatPlayer";
@@ -7,6 +8,7 @@ import { useIsPlaying, usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
+import Song from "@/types";
 
 /**
  * プレーヤーコンテナコンポーネント
@@ -26,8 +28,22 @@ function PlayerContainer() {
     (state) => state.isMiniPlayerVisible,
   );
   const currentSong = useAudioStore((state) => state.currentSong);
+  const setCurrentSong = useAudioStore((state) => state.setCurrentSong);
   const repeatMode = useAudioStore((state) => state.repeatMode);
   const shuffle = useAudioStore((state) => state.shuffle);
+
+  // アクティブなトラックの同期処理（曲の切り替わり時にUIを更新するため）
+  const activeTrack = useActiveTrack();
+  useEffect(() => {
+    if (!activeTrack) return;
+    
+    if (activeTrack.originalSong) {
+      const song = activeTrack.originalSong as Song;
+      if (currentSong?.id !== song.id) {
+        setCurrentSong(song);
+      }
+    }
+  }, [activeTrack, currentSong?.id, setCurrentSong]);
 
   // OnRepeat Playerの状態
   const showOnRepeatPlayer = useOnRepeatStore((state) => state.isVisible);
