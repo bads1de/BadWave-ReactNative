@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
@@ -17,12 +17,12 @@ interface TabSwitcherProps<T> {
   containerStyle?: ViewStyle;
 }
 
-export const TabSwitcher = <T extends string>({
+function TabSwitcherInner<T extends string>({
   options,
   value,
   onValueChange,
   containerStyle,
-}: TabSwitcherProps<T>) => {
+}: TabSwitcherProps<T>) {
   const colors = useThemeStore((state) => state.colors);
 
   return (
@@ -71,7 +71,9 @@ export const TabSwitcher = <T extends string>({
       })}
     </View>
   );
-};
+}
+
+export const TabSwitcher = memo(TabSwitcherInner);
 
 const styles = StyleSheet.create({
   tabContainer: {

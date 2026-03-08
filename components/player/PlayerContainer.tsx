@@ -59,6 +59,21 @@ function PlayerContainer() {
     setShuffle,
   } = usePlayControls();
 
+  // 再生/一時停止の切り替え
+  const handlePlayPause = React.useCallback(async () => {
+    await togglePlayPause();
+  }, [togglePlayPause]);
+
+  // プレイヤーを閉じる
+  const handleClosePlayer = React.useCallback(() => {
+    setShowPlayer(false);
+  }, [setShowPlayer]);
+
+  // プレイヤーを開く
+  const handleOpenPlayer = React.useCallback(() => {
+    setShowPlayer(true);
+  }, [setShowPlayer]);
+
   // メインプレイヤーが表示されない条件
   const shouldHideMainPlayer = !currentSong;
 
@@ -79,11 +94,11 @@ function PlayerContainer() {
               <Player
                 isPlaying={isPlaying}
                 currentSong={currentSong}
-                onPlayPause={() => togglePlayPause()}
+                onPlayPause={handlePlayPause}
                 onNext={playNextSong}
                 onPrev={playPrevSong}
                 onSeek={seekTo}
-                onClose={() => setShowPlayer(false)}
+                onClose={handleClosePlayer}
                 repeatMode={repeatMode}
                 setRepeatMode={setRepeat}
                 shuffle={shuffle}
@@ -96,8 +111,8 @@ function PlayerContainer() {
                 <MiniPlayer
                   currentSong={currentSong}
                   isPlaying={isPlaying}
-                  onPlayPause={() => togglePlayPause()}
-                  onPress={() => setShowPlayer(true)}
+                  onPlayPause={handlePlayPause}
+                  onPress={handleOpenPlayer}
                 />
               </View>
             )

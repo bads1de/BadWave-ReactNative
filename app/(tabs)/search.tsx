@@ -58,6 +58,10 @@ function SearchScreen() {
     clearHistory,
   } = useSearchScreen();
 
+  const handleTypeChange = useCallback((val: string) => {
+    setSearchType(val as SearchType);
+  }, [setSearchType]);
+
   const renderSongItem = useCallback(
     ({ item }: { item: Song }) => (
       <ListItem song={item} onPress={handleSongPress} />
@@ -94,7 +98,7 @@ function SearchScreen() {
         <TabSwitcher
           options={SEARCH_TAB_OPTIONS}
           value={searchType}
-          onValueChange={setSearchType}
+          onValueChange={handleTypeChange}
         />
       </View>
 

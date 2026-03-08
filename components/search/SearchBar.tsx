@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Search as SearchIcon, CircleX } from "lucide-react-native";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -18,7 +18,7 @@ interface SearchBarProps {
   onBlur?: () => void;
 }
 
-export function SearchBar({
+function SearchBarInner({
   onDebouncedChange,
   onInputChange,
   onSubmit,
@@ -112,6 +112,8 @@ export function SearchBar({
     </View>
   );
 }
+
+export const SearchBar = memo(SearchBarInner);
 
 const styles = StyleSheet.create({
   container: {

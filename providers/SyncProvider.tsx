@@ -4,6 +4,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  memo,
 } from "react";
 import { AppState, Platform } from "react-native";
 import { focusManager } from "@tanstack/react-query";
@@ -31,7 +32,7 @@ const SyncContext = createContext<SyncContextValue | undefined>(undefined);
  * 同期状態を管理するプロバイダー
  * 認証済みユーザーに対して自動的に Supabase -> SQLite の同期を開始
  */
-export function SyncProvider({ children }: { children: React.ReactNode }) {
+function SyncProviderInner({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
   const userId = session?.user?.id;
@@ -216,15 +217,17 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     syncSpots,
   ]);
 
-  const value: SyncContextValue = {
+  const value: SyncContextValue = React.useMemo(() => ({
     isSyncing,
     lastSyncTime,
     triggerSync,
     syncError,
-  };
+  }), [isSyncing, lastSyncTime, triggerSync, syncError]);
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }
+
+export const SyncProvider = memo(SyncProviderInner);
 
 /**
  * 同期状態を取得するフック

@@ -63,6 +63,10 @@ export default function LibraryScreen() {
     return [];
   }, [type, likedSongs]);
 
+  const handleTypeChange = useCallback((val: string) => {
+    setType(val as LibraryType);
+  }, [setType]);
+
   const { togglePlayPause } = usePlayControls(
     currentSongs,
     type === "liked" ? "liked" : "playlist",
@@ -195,7 +199,7 @@ export default function LibraryScreen() {
               <TabSwitcher
                 options={TAB_OPTIONS}
                 value={type}
-                onValueChange={setType}
+                onValueChange={handleTypeChange}
               />
             </View>
 

@@ -125,6 +125,9 @@ function OnRepeat() {
     [isPlaying, topSongs, openOnRepeatPlayer],
   );
 
+    // 表示する上位3曲をメモ化
+  const displayedSongs = useMemo(() => topSongs.slice(0, 3), [topSongs]);
+
   if (!isOnline) return null; // オフライン時は非表示
 
   if (topSongs.length === 0) return null;
@@ -148,7 +151,7 @@ function OnRepeat() {
 
       <View style={styles.contentContainer}>
         <View style={styles.songsContainer}>
-          {topSongs.slice(0, 3).map((song, index) => {
+          {displayedSongs.map((song, index) => {
             // ダウンロード済みかチェック（Setを使用してO(1)で検索）
             // topSongsにはlocal_song_pathがないので、downloadedSongIdsと照合
             const isDownloaded = downloadedSongIds.has(song.id);

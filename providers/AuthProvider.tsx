@@ -9,6 +9,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useMemo,
   ReactNode,
 } from "react";
 import { Session } from "@supabase/supabase-js";
@@ -57,11 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
-  return (
-    <AuthContext.Provider value={{ session, setSession }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = useMemo(() => ({ session, setSession }), [session, setSession]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 /**
@@ -79,4 +78,3 @@ export function useAuth() {
 
   return context;
 }
-
