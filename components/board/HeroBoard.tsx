@@ -59,22 +59,6 @@ const GenreCard = memo(function GenreCard({
 }: GenreCardProps) {
   const scale = useSharedValue(1);
 
-  const parallaxStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      scrollX.value,
-      [
-        (index - 1) * SNAP_INTERVAL,
-        index * SNAP_INTERVAL,
-        (index + 1) * SNAP_INTERVAL,
-      ],
-      [-CARD_WIDTH * 0.1, 0, CARD_WIDTH * 0.1],
-      Extrapolate.CLAMP,
-    );
-    return {
-      transform: [{ translateX }, { scale: 1.1 }],
-    };
-  });
-
   const animatedStyle = useAnimatedStyle(() => {
     const cardScale = interpolate(
       scrollX.value,
@@ -102,13 +86,11 @@ const GenreCard = memo(function GenreCard({
     >
       <Animated.View style={[styles.card, animatedStyle]}>
         <View style={styles.imageContainer}>
-          <Animated.View style={[StyleSheet.absoluteFill, parallaxStyle]}>
-            <ImageBackground
-              source={backgroundImages[genre as keyof typeof backgroundImages]}
-              style={styles.backgroundImage}
-              contentFit="cover"
-            />
-          </Animated.View>
+          <ImageBackground
+            source={backgroundImages[genre as keyof typeof backgroundImages]}
+            style={styles.backgroundImage}
+            contentFit="cover"
+          />
 
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.8)"]}
