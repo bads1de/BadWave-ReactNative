@@ -41,18 +41,37 @@ interface ListItemOptionsMenuProps {
   currentPlaylistId?: string;
 }
 
+interface ListItemOptionsModalProps {
+  song: Song;
+  onDelete?: () => void;
+  currentPlaylistId?: string;
+  modalVisible: boolean;
+  handleCloseModal: () => void;
+  /** Modal 外（親）で取得した SafeAreaInsets.bottom を渡す */
+  bottomInset: number;
+}
+
 function ListItemOptionsModal({
   song,
   onDelete,
   currentPlaylistId,
   modalVisible,
   handleCloseModal,
-}: any) {
+  bottomInset,
+}: ListItemOptionsModalProps) {
   const { isOnline } = useNetworkStatus();
   const { session } = useAuth();
   const colors = useThemeStore((state) => state.colors);
   const userId = session?.user?.id;
-  const insets = useSafeAreaInsets();
+
+  /**
+   * sheetPaddingBottom:
+   * - bottomInset: Android システムナビゲーションバー(◁○□)の高さ。
+   *   Modal 内では useSafeAreaInsets が 0 を返す場合があるため、
+   *   親コンポーネント(ListItemOptionsMenu)で取得して props で受け取る。
+   * - 最低保証余白 20px を加算。
+   */
+  const sheetPaddingBottom = Math.max(bottomInset, 20) + 20;
 
   // ダウンロード状態
   const { data: isDownloaded = false } = useDownloadStatus(song.id);
@@ -163,7 +182,7 @@ function ListItemOptionsModal({
             {
               backgroundColor: colors.background,
               borderColor: colors.border,
-              paddingBottom: Math.max(insets.bottom, 20) + 60,
+              paddingBottom: sheetPaddingBottom,
             },
           ]}
         >
@@ -294,6 +313,11 @@ function ListItemOptionsMenu({
   const [modalVisible, setModalVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const colors = useThemeStore((state) => state.colors);
+  /**
+   * Modal の外で取得することで Android での insets 取得漏れを防ぐ。
+   * useSafeAreaInsets を Modal 内で呼ぶと Android では 0 になる場合がある。
+   */
+  const { bottom: bottomInset } = useSafeAreaInsets();
 
   const handleOpenModal = () => {
     setShouldRender(true);
@@ -328,6 +352,7 @@ function ListItemOptionsMenu({
           currentPlaylistId={currentPlaylistId}
           modalVisible={modalVisible}
           handleCloseModal={handleCloseModal}
+          bottomInset={bottomInset}
         />
       )}
     </>
