@@ -8,10 +8,13 @@ import { useAuth } from "@/providers/AuthProvider";
 import Error from "@/components/common/Error";
 import Loading from "@/components/common/Loading";
 import Song from "@/types";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 function ForYouBoard() {
   const { session } = useAuth();
   const userId = session?.user?.id;
+  // ネットワーク状態はここで1回だけ取得し、各 SongItem に props として渡す
+  const { isOnline } = useNetworkStatus();
 
   // SQLite から取得（Local-First）
   const {
@@ -41,9 +44,10 @@ function ForYouBoard() {
         key={item.id}
         onClick={handleSongClick}
         dynamicSize={false}
+        isOnline={isOnline}
       />
     ),
-    [handleSongClick],
+    [handleSongClick, isOnline],
   );
 
   // keyExtractor関数をメモ化

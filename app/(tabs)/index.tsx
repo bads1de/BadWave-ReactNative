@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from "react";
-import { Text, StyleSheet, View } from "react-native";
+import React, { useCallback } from "react";
+import { Text, StyleSheet, View, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { TrendingUp, Heart, List, Disc } from "lucide-react-native";
@@ -16,21 +16,13 @@ import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { FONTS } from "@/constants/theme";
 
 /**
  * @file index.tsx
  * @description アプリケーションのホーム画面コンポーネント (Badwave Refined)
  */
-
-// セクションの種類を定義
-enum HomeSectionType {
-  HERO = "HERO",
-  TRENDING = "TRENDING",
-  FOR_YOU = "FOR_YOU",
-  PLAYLISTS = "PLAYLISTS",
-  RECENTLY_DISCOVERED = "RECENTLY_DISCOVERED",
-}
 
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
@@ -41,6 +33,9 @@ export default function HomeScreen() {
 
   const currentSong = useAudioStore((state) => state.currentSong);
   const { togglePlayPause } = usePlayControls(songs, "home");
+
+  // ネットワーク状態はここで1回だけ取得し、各 SongItem に props として渡す
+  const { isOnline } = useNetworkStatus();
 
   const handleSongPress = useCallback(
     async (songId: string) => {
@@ -54,9 +49,14 @@ export default function HomeScreen() {
 
   const renderRecentSongItem = useCallback(
     ({ item }: { item: Song }) => (
-      <SongItem song={item} onClick={handleSongPress} dynamicSize={false} />
+      <SongItem
+        song={item}
+        onClick={handleSongPress}
+        dynamicSize={false}
+        isOnline={isOnline}
+      />
     ),
-    [handleSongPress],
+    [handleSongPress, isOnline],
   );
 
   const renderSectionTitle = useCallback(
@@ -78,116 +78,71 @@ export default function HomeScreen() {
 
   const keyExtractorRecent = useCallback((item: Song) => item.id, []);
 
-  // 画面構成データ
-  const sections = useMemo(() => {
-    const data = [
-      { id: HomeSectionType.HERO },
-      { id: HomeSectionType.TRENDING },
-      { id: HomeSectionType.FOR_YOU },
-      { id: HomeSectionType.PLAYLISTS },
-    ];
-    
-    // 最近見つけた曲がある場合のみセクションを追加
-    if (songs && songs.length > 0) {
-      data.push({ id: HomeSectionType.RECENTLY_DISCOVERED });
-    }
-    
-    return data;
-  }, [songs]);
-
-  // 各セクションのレンダリング
-  const renderSection = useCallback(
-    ({ item }: { item: { id: HomeSectionType } }) => {
-      switch (item.id) {
-        case HomeSectionType.HERO:
-          return (
-            <View style={styles.heroContainer}>
-              <HeroBoard />
-            </View>
-          );
-        case HomeSectionType.TRENDING:
-          return (
-            <>
-              {renderSectionTitle("Trending Now", TrendingUp)}
-              <View style={styles.sectionContent}>
-                <TrendBoard />
-              </View>
-            </>
-          );
-        case HomeSectionType.FOR_YOU:
-          return (
-            <>
-              {renderSectionTitle("Personalized for You", Heart)}
-              <View style={styles.sectionContent}>
-                <ForYouBoard />
-              </View>
-            </>
-          );
-        case HomeSectionType.PLAYLISTS:
-          return (
-            <>
-              {renderSectionTitle("Your Collections", List)}
-              <View style={styles.sectionContent}>
-                <PlaylistBoard />
-              </View>
-            </>
-          );
-        case HomeSectionType.RECENTLY_DISCOVERED:
-          return (
-            <>
-              {renderSectionTitle("Recently Discovered", Disc)}
-              <View style={[styles.sectionContent, styles.songsSection]}>
-                <View style={styles.songsList}>
-                  <FlashList
-                    data={songs}
-                    renderItem={renderRecentSongItem}
-                    keyExtractor={keyExtractorRecent}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    estimatedItemSize={200}
-                    contentContainerStyle={{
-                      ...styles.songsContainer,
-                      ...(currentSong && !showPlayer
-                        ? { paddingBottom: 10 }
-                        : {}),
-                    }}
-                  />
-                </View>
-              </View>
-            </>
-          );
-        default:
-          return null;
-      }
-    },
-    [
-      renderSectionTitle,
-      renderRecentSongItem,
-      keyExtractorRecent,
-      songs,
-      currentSong,
-      showPlayer,
-    ]
-  );
-
   // ★ 早期リターンはすべてのフック定義の後に置く
   if (isLoading) return <Loading variant="home" />;
   if (error) return <Error message={error.message} />;
 
-// app/(tabs)/index.tsx の変更
-// import { FlatList } を削除し、代わりに FlashList を使用します
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <FlashList
-        data={sections}
-        renderItem={renderSection}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ ...styles.listWrapper, paddingBottom: 120 }}
+      {/*
+       * 外側リストは固定5セクションのため FlashList の仮想化メリットがない。
+       * FlashList → ScrollView に変更することで、ネストした FlashList による
+       * レイアウト再計算コストを排除し、フレームレートを向上させる。
+       */}
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        estimatedItemSize={400} // 平均的なセクションの高さを指定
-      />
+        contentContainerStyle={{ ...styles.listWrapper, paddingBottom: 120 }}
+      >
+        {/* Hero セクション */}
+        <View style={styles.heroContainer}>
+          <HeroBoard />
+        </View>
+
+        {/* Trending セクション */}
+        {renderSectionTitle("Trending Now", TrendingUp)}
+        <View style={styles.sectionContent}>
+          <TrendBoard />
+        </View>
+
+        {/* For You セクション */}
+        {renderSectionTitle("Personalized for You", Heart)}
+        <View style={styles.sectionContent}>
+          <ForYouBoard />
+        </View>
+
+        {/* Playlists セクション */}
+        {renderSectionTitle("Your Collections", List)}
+        <View style={styles.sectionContent}>
+          <PlaylistBoard />
+        </View>
+
+        {/* Recently Discovered セクション（曲がある場合のみ） */}
+        {songs.length > 0 && (
+          <>
+            {renderSectionTitle("Recently Discovered", Disc)}
+            <View style={[styles.sectionContent, styles.songsSection]}>
+              <View style={styles.songsList}>
+                <FlashList
+                  data={songs}
+                  renderItem={renderRecentSongItem}
+                  keyExtractor={keyExtractorRecent}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  estimatedItemSize={200}
+                  contentContainerStyle={{
+                    ...styles.songsContainer,
+                    ...(currentSong && !showPlayer
+                      ? { paddingBottom: 10 }
+                      : {}),
+                  }}
+                />
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }

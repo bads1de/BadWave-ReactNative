@@ -28,14 +28,18 @@ interface SongItemProps {
   song: Song;
   onClick: (id: string) => void;
   dynamicSize?: boolean;
+  /** 親コンポーネントでまとめて取得した isOnline 値。渡さない場合は内部で取得します */
+  isOnline?: boolean;
 }
 
-function SongItem({ song, onClick, dynamicSize = false }: SongItemProps) {
+function SongItem({ song, onClick, dynamicSize = false, isOnline: isOnlineProp }: SongItemProps) {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const colors = useThemeStore((state) => state.colors);
 
-  const { isOnline } = useNetworkStatus();
+  // props から渡された場合はそれを使い、未渡し時のみフックで取得 (後方互換)
+  const { isOnline: isOnlineFromHook } = useNetworkStatus();
+  const isOnline = isOnlineProp !== undefined ? isOnlineProp : isOnlineFromHook;
   const isDownloaded = !!song.local_song_path;
   const isDisabled = !isOnline && !isDownloaded;
 
@@ -168,7 +172,8 @@ export default memo(SongItem, (prevProps, nextProps) => {
     prevProps.song.like_count === nextProps.song.like_count &&
     prevProps.song.local_song_path === nextProps.song.local_song_path &&
     prevProps.dynamicSize === nextProps.dynamicSize &&
-    prevProps.onClick === nextProps.onClick
+    prevProps.onClick === nextProps.onClick &&
+    prevProps.isOnline === nextProps.isOnline
   );
 });
 
