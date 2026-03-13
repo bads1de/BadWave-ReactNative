@@ -1,4 +1,4 @@
-import React, { useCallback, memo, useEffect, useRef } from "react";
+import React, { useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -86,11 +86,13 @@ const GenreCard = memo(function GenreCard({
     >
       <Animated.View style={[styles.card, animatedStyle]}>
         <View style={styles.imageContainer}>
-          <ImageBackground
-            source={backgroundImages[genre as keyof typeof backgroundImages]}
-            style={styles.backgroundImage}
-            contentFit="cover"
-          />
+          <View style={StyleSheet.absoluteFill}>
+            <ImageBackground
+              source={backgroundImages[genre as keyof typeof backgroundImages]}
+              style={styles.backgroundImage}
+              contentFit="cover"
+            />
+          </View>
 
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.8)"]}
@@ -165,8 +167,6 @@ const PaginationIndicator = ({ scrollX, count }: PaginationIndicatorProps) => (
 function HeroBoard() {
   const router = useRouter();
   const scrollX = useSharedValue(0);
-  const listRef = useRef<any>(null);
-  const currentIndexRef = useRef(0);
 
   const navigateToGenre = useCallback(
     (genre: string) => {
@@ -177,23 +177,6 @@ function HeroBoard() {
     },
     [router],
   );
-
-  const updateGenre = useCallback(() => {
-    if (!listRef.current) return;
-    currentIndexRef.current = (currentIndexRef.current + 1) % genreCards.length;
-    listRef.current.scrollToIndex({
-      index: currentIndexRef.current,
-      animated: true,
-    });
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      updateGenre();
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [updateGenre]);
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -229,7 +212,6 @@ function HeroBoard() {
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
         onScroll={onScroll}
-        ref={listRef}
         scrollEventThrottle={16}
         estimatedItemSize={SCREEN_WIDTH}
       />
@@ -287,7 +269,7 @@ const styles = StyleSheet.create({
   genreTitle: {
     color: "#fff",
     fontSize: 36,
-    fontFamily: FONTS.title, // Bodoni Moda
+    fontFamily: FONTS.title,
     letterSpacing: -0.5,
   },
   genreSubtitle: {
