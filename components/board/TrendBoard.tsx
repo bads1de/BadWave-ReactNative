@@ -238,35 +238,35 @@ function TrendBoard() {
 
   if (error) return <Error message={error.message} />;
 
-  if (!trends || trends.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>トレンドデータがありません</Text>
-      </View>
-    );
-  }
+  const hasTrends = trends.length > 0;
 
   return (
     <View style={styles.container}>
       <PeriodSelector period={period} setPeriod={setPeriod} />
-      <View style={styles.list}>
-        <FlashList
-          data={trends}
-          horizontal
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          extraData={extraData}
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={ITEM_WIDTH + 16}
-          decelerationRate="fast"
-          contentContainerStyle={styles.listContent}
-          estimatedItemSize={ITEM_WIDTH}
-          removeClippedSubviews={true}
-          overrideItemLayout={(layout) => {
-            layout.size = ITEM_WIDTH + 16;
-          }}
-        />
-      </View>
+      {hasTrends ? (
+        <View style={styles.list}>
+          <FlashList
+            data={trends}
+            horizontal
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            extraData={extraData}
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={ITEM_WIDTH + 16}
+            decelerationRate="fast"
+            contentContainerStyle={styles.listContent}
+            estimatedItemSize={ITEM_WIDTH}
+            removeClippedSubviews={true}
+            overrideItemLayout={(layout) => {
+              layout.size = ITEM_WIDTH + 16;
+            }}
+          />
+        </View>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>トレンドデータがありません</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -387,10 +387,10 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   emptyContainer: {
-    flex: 1,
+    height: ITEM_WIDTH * 1.2,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 16,

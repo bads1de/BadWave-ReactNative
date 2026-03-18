@@ -11,10 +11,19 @@ jest.mock("expo-image", () => ({ ImageBackground: "ImageBackground" }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("expo-blur", () => ({ BlurView: "BlurView" }));
-jest.mock("@/components/common/CustomButton", () => ({
-  __esModule: true,
-  default: "CustomButton",
-}));
+jest.mock("@/components/common/CustomButton", () => {
+  const React = require("react");
+  const { TouchableOpacity, Text } = require("react-native");
+
+  return {
+    __esModule: true,
+    default: ({ label, onPress }: any) => (
+      <TouchableOpacity onPress={onPress}>
+        <Text>{label}</Text>
+      </TouchableOpacity>
+    ),
+  };
+});
 jest.mock("@/components/common/Loading", () => ({
   __esModule: true,
   default: () => null,
@@ -40,10 +49,14 @@ jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
   useDownloadedSongs: jest.fn(() => ({ songs: [] })),
 }));
 jest.mock("@/hooks/stores/useThemeStore", () => ({
-  useThemeStore: jest.fn(() => ({
-    colors: { primary: "#D4AF37", activeTab: "#2A2A2A" },
-  })),
+  useThemeStore: jest.fn((selector: any) =>
+    selector({
+      colors: { primary: "#D4AF37", activeTab: "#2A2A2A" },
+    }),
+  ),
 }));
+
+const { useGetLocalTrendSongs } = require("@/hooks/data/useGetLocalTrendSongs");
 
 describe("TrendBoard", () => {
   let queryClient: QueryClient;
@@ -61,5 +74,21 @@ describe("TrendBoard", () => {
   it("renders without crashing", () => {
     const { UNSAFE_root } = render(<TrendBoard />, { wrapper });
     expect(UNSAFE_root).toBeTruthy();
+  });
+
+  it("shows the period selector even when trend data is empty", () => {
+    useGetLocalTrendSongs.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    });
+
+    const { getByText } = render(<TrendBoard />, { wrapper });
+
+    expect(getByText("トレンドデータがありません")).toBeTruthy();
+    expect(getByText("All")).toBeTruthy();
+    expect(getByText("Month")).toBeTruthy();
+    expect(getByText("Week")).toBeTruthy();
+    expect(getByText("Day")).toBeTruthy();
   });
 });
