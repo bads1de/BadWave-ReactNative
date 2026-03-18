@@ -79,6 +79,16 @@ describe("MarqueeText", () => {
       expect(getByTestId("marquee-component")).toBeTruthy();
       expect(getByText(veryLongText)).toBeTruthy();
     });
+
+    it("animate=false の場合、長いテキストでも通常のTextが表示される", () => {
+      const longText = "This is a very long text";
+      const { getByText, queryByTestId } = render(
+        <MarqueeText text={longText} animate={false} />
+      );
+
+      expect(getByText(longText)).toBeTruthy();
+      expect(queryByTestId("marquee-component")).toBeNull();
+    });
   });
 
   describe("データ表示", () => {

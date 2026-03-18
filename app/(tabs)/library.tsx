@@ -6,7 +6,7 @@ import {
   Dimensions,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import CustomButton from "@/components/common/CustomButton";
@@ -23,6 +23,7 @@ import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { FONTS, COLORS } from "@/constants/theme";
 import { Heart, ListMusic, Plus } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -40,11 +41,16 @@ const TAB_OPTIONS: TabOption<LibraryType>[] = [
 
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
+  const [isLikedListScrolling, setIsLikedListScrolling] = useState(false);
+  const marqueeResumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const { session } = useAuth();
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const router = useRouter();
   const userId = session?.user?.id;
   const colors = useThemeStore((state) => state.colors);
+  const { isOnline } = useNetworkStatus();
 
   const {
     likedSongs = [],
@@ -94,18 +100,45 @@ export default function LibraryScreen() {
 
   const keyExtractor = useCallback((item: Song | Playlist) => item.id, []);
 
+  const clearMarqueeResumeTimeout = useCallback(() => {
+    if (marqueeResumeTimeoutRef.current) {
+      clearTimeout(marqueeResumeTimeoutRef.current);
+      marqueeResumeTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearMarqueeResumeTimeout();
+    };
+  }, [clearMarqueeResumeTimeout]);
+
+  const handleLikedListScrollStart = useCallback(() => {
+    clearMarqueeResumeTimeout();
+    setIsLikedListScrolling(true);
+  }, [clearMarqueeResumeTimeout]);
+
+  const handleLikedListScrollStop = useCallback(() => {
+    clearMarqueeResumeTimeout();
+    marqueeResumeTimeoutRef.current = setTimeout(() => {
+      setIsLikedListScrolling(false);
+      marqueeResumeTimeoutRef.current = null;
+    }, 350);
+  }, [clearMarqueeResumeTimeout]);
+
   const renderLikedSongs = useCallback(
     ({ item }: { item: Song }) => {
       return (
         <SongItem
-          key={item.id}
           song={item}
           onClick={handleSongPress}
           dynamicSize={true}
+          isOnline={isOnline}
+          pauseTitleAnimation={isLikedListScrolling}
         />
       );
     },
-    [handleSongPress],
+    [handleSongPress, isLikedListScrolling, isOnline],
   );
 
   const renderPlaylistItem = useCallback(
@@ -227,6 +260,10 @@ export default function LibraryScreen() {
                       contentContainerStyle={styles.listContainer}
                       estimatedItemSize={280} // Actual mapped item height is ~276px
                       showsVerticalScrollIndicator={false}
+                      onScrollBeginDrag={handleLikedListScrollStart}
+                      onMomentumScrollBegin={handleLikedListScrollStart}
+                      onScrollEndDrag={handleLikedListScrollStop}
+                      onMomentumScrollEnd={handleLikedListScrollStop}
                     />
                   </>
                 ) : (

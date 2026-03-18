@@ -1,5 +1,5 @@
-import React, { useCallback } from "react";
-import { Text, StyleSheet, View, ScrollView } from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { Text, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { TrendingUp, Heart, List, Disc } from "lucide-react-native";
@@ -23,6 +23,8 @@ import { FONTS } from "@/constants/theme";
  * @file index.tsx
  * @description アプリケーションのホーム画面コンポーネント (Badwave Refined)
  */
+
+type HomeSectionKey = "hero" | "trending" | "forYou" | "playlists" | "recent";
 
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
@@ -77,6 +79,87 @@ export default function HomeScreen() {
   );
 
   const keyExtractorRecent = useCallback((item: Song) => item.id, []);
+  const homeSections = useMemo<HomeSectionKey[]>(
+    () =>
+      songs.length > 0
+        ? ["hero", "trending", "forYou", "playlists", "recent"]
+        : ["hero", "trending", "forYou", "playlists"],
+    [songs.length],
+  );
+  const keyExtractorSection = useCallback((item: HomeSectionKey) => item, []);
+  const getSectionType = useCallback((item: HomeSectionKey) => item, []);
+
+  const renderHomeSection = useCallback(
+    ({ item }: { item: HomeSectionKey }) => {
+      switch (item) {
+        case "hero":
+          return (
+            <View style={styles.heroContainer}>
+              <HeroBoard />
+            </View>
+          );
+        case "trending":
+          return (
+            <>
+              {renderSectionTitle("Trending Now", TrendingUp)}
+              <View style={styles.sectionContent}>
+                <TrendBoard />
+              </View>
+            </>
+          );
+        case "forYou":
+          return (
+            <>
+              {renderSectionTitle("Personalized for You", Heart)}
+              <View style={styles.sectionContent}>
+                <ForYouBoard />
+              </View>
+            </>
+          );
+        case "playlists":
+          return (
+            <>
+              {renderSectionTitle("Your Collections", List)}
+              <View style={styles.sectionContent}>
+                <PlaylistBoard />
+              </View>
+            </>
+          );
+        case "recent":
+          return (
+            <>
+              {renderSectionTitle("Recently Discovered", Disc)}
+              <View style={[styles.sectionContent, styles.songsSection]}>
+                <View style={styles.songsList}>
+                  <FlashList
+                    data={songs}
+                    renderItem={renderRecentSongItem}
+                    keyExtractor={keyExtractorRecent}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    estimatedItemSize={200}
+                    contentContainerStyle={{
+                      ...styles.songsContainer,
+                      ...(currentSong && !showPlayer
+                        ? { paddingBottom: 10 }
+                        : {}),
+                    }}
+                  />
+                </View>
+              </View>
+            </>
+          );
+      }
+    },
+    [
+      currentSong,
+      keyExtractorRecent,
+      renderRecentSongItem,
+      renderSectionTitle,
+      showPlayer,
+      songs,
+    ],
+  );
 
   // ★ 早期リターンはすべてのフック定義の後に置く
   if (isLoading) return <Loading variant="home" />;
@@ -86,63 +169,15 @@ export default function HomeScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      {/*
-       * 外側リストは固定5セクションのため FlashList の仮想化メリットがない。
-       * FlashList → ScrollView に変更することで、ネストした FlashList による
-       * レイアウト再計算コストを排除し、フレームレートを向上させる。
-       */}
-      <ScrollView
+      <FlashList
+        data={homeSections}
+        renderItem={renderHomeSection}
+        keyExtractor={keyExtractorSection}
+        getItemType={getSectionType}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ ...styles.listWrapper, paddingBottom: 120 }}
-      >
-        {/* Hero セクション */}
-        <View style={styles.heroContainer}>
-          <HeroBoard />
-        </View>
-
-        {/* Trending セクション */}
-        {renderSectionTitle("Trending Now", TrendingUp)}
-        <View style={styles.sectionContent}>
-          <TrendBoard />
-        </View>
-
-        {/* For You セクション */}
-        {renderSectionTitle("Personalized for You", Heart)}
-        <View style={styles.sectionContent}>
-          <ForYouBoard />
-        </View>
-
-        {/* Playlists セクション */}
-        {renderSectionTitle("Your Collections", List)}
-        <View style={styles.sectionContent}>
-          <PlaylistBoard />
-        </View>
-
-        {/* Recently Discovered セクション（曲がある場合のみ） */}
-        {songs.length > 0 && (
-          <>
-            {renderSectionTitle("Recently Discovered", Disc)}
-            <View style={[styles.sectionContent, styles.songsSection]}>
-              <View style={styles.songsList}>
-                <FlashList
-                  data={songs}
-                  renderItem={renderRecentSongItem}
-                  keyExtractor={keyExtractorRecent}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  estimatedItemSize={200}
-                  contentContainerStyle={{
-                    ...styles.songsContainer,
-                    ...(currentSong && !showPlayer
-                      ? { paddingBottom: 10 }
-                      : {}),
-                  }}
-                />
-              </View>
-            </View>
-          </>
-        )}
-      </ScrollView>
+        contentContainerStyle={styles.listWrapper}
+        estimatedItemSize={420}
+      />
     </SafeAreaView>
   );
 }
@@ -153,6 +188,7 @@ const styles = StyleSheet.create({
   },
   listWrapper: {
     padding: 24,
+    paddingBottom: 120,
   },
   heroContainer: {
     marginTop: 8,

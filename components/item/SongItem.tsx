@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect, useRef, useMemo } from "react";
+import React, { memo, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,18 +9,16 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
   withSpring,
 } from "react-native-reanimated";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Play, Heart } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Song from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useRouter } from "expo-router";
-import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import MarqueeText from "@/components/common/MarqueeText";
-import { DownloadButton } from "@/components/download/DownloadButton";
 import ListItemOptionsMenu from "@/components/item/ListItemOptionsMenu";
 import { FONTS } from "@/constants/theme";
 
@@ -28,18 +26,21 @@ interface SongItemProps {
   song: Song;
   onClick: (id: string) => void;
   dynamicSize?: boolean;
-  /** 親コンポーネントでまとめて取得した isOnline 値。渡さない場合は内部で取得します */
-  isOnline?: boolean;
+  /** 親コンポーネントでまとめて取得した isOnline 値 */
+  isOnline: boolean;
+  /** 一覧スクロール中など、タイトル marquee を一時停止したい場合に指定します */
+  pauseTitleAnimation?: boolean;
 }
 
-function SongItem({ song, onClick, dynamicSize = false, isOnline: isOnlineProp }: SongItemProps) {
+function SongItem({
+  song,
+  onClick,
+  dynamicSize = false,
+  isOnline,
+  pauseTitleAnimation = false,
+}: SongItemProps) {
   const router = useRouter();
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const colors = useThemeStore((state) => state.colors);
-
-  // props から渡された場合はそれを使い、未渡し時のみフックで取得 (後方互換)
-  const { isOnline: isOnlineFromHook } = useNetworkStatus();
-  const isOnline = isOnlineProp !== undefined ? isOnlineProp : isOnlineFromHook;
   const isDownloaded = !!song.local_song_path;
   const isDisabled = !isOnline && !isDownloaded;
 
@@ -70,15 +71,17 @@ function SongItem({ song, onClick, dynamicSize = false, isOnline: isOnlineProp }
     if (isDisabled) return;
     onClick(song.id);
   };
+  const animatedScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleAnim.value }],
+  }));
+  const downloadIconOpacity = !isDownloaded && !isOnline ? 0.4 : 1;
 
   return (
     <Animated.View
       style={[
         styles.containerWrapper,
         dynamicStyle,
-        useAnimatedStyle(() => ({
-          transform: [{ scale: scaleAnim.value }],
-        })),
+        animatedScaleStyle,
         isDisabled && { opacity: 0.4 },
       ]}
     >
@@ -98,10 +101,8 @@ function SongItem({ song, onClick, dynamicSize = false, isOnline: isOnlineProp }
           <Image
             source={{ uri: song.image_path }}
             style={styles.image}
-            onLoad={() => setIsImageLoaded(true)}
             contentFit="cover"
             cachePolicy="memory-disk" // メモリとディスクを併用した高速なキャッシュ
-            transition={200} // 読み込み完了時のフェードイン
           />
           <LinearGradient
             colors={["transparent", "rgba(10, 10, 10, 0.8)", "#0A0A0A"]}
@@ -130,6 +131,7 @@ function SongItem({ song, onClick, dynamicSize = false, isOnline: isOnlineProp }
               withGesture={false}
               fontFamily={FONTS.body}
               fontSize={15}
+              animate={!pauseTitleAnimation}
             />
             <Text
               style={[styles.author, { color: colors.subText }]}
@@ -154,7 +156,14 @@ function SongItem({ song, onClick, dynamicSize = false, isOnline: isOnlineProp }
                 </Text>
               </View>
             </View>
-            <DownloadButton song={song} size={14} readOnly={true} />
+            <View style={styles.downloadIconContainer} testID="download-status-icon">
+              <Ionicons
+                name={isDownloaded ? "cloud-done" : "cloud-download-outline"}
+                size={14}
+                color="white"
+                style={{ opacity: downloadIconOpacity }}
+              />
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -173,7 +182,8 @@ export default memo(SongItem, (prevProps, nextProps) => {
     prevProps.song.local_song_path === nextProps.song.local_song_path &&
     prevProps.dynamicSize === nextProps.dynamicSize &&
     prevProps.onClick === nextProps.onClick &&
-    prevProps.isOnline === nextProps.isOnline
+    prevProps.isOnline === nextProps.isOnline &&
+    prevProps.pauseTitleAnimation === nextProps.pauseTitleAnimation
   );
 });
 
@@ -245,5 +255,8 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     zIndex: 10,
+  },
+  downloadIconContainer: {
+    padding: 8,
   },
 });

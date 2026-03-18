@@ -24,10 +24,6 @@ jest.mock("expo-linear-gradient", () => ({
   LinearGradient: "LinearGradient",
 }));
 
-jest.mock("@/components/download/DownloadButton", () => ({
-  DownloadButton: "DownloadButton",
-}));
-
 jest.mock("@/components/item/ListItemOptionsMenu", () => {
   const { View } = require("react-native");
   return (props: any) => <View testID="list-item-options-menu" />;
@@ -67,7 +63,7 @@ describe("SongItem", () => {
   it("正しく曲情報を表示する", () => {
     const mockOnClick = jest.fn();
     const { getByText } = render(
-      <SongItem song={mockSong} onClick={mockOnClick} />
+      <SongItem song={mockSong} onClick={mockOnClick} isOnline={true} />
     );
 
     expect(getByText("テスト曲")).toBeTruthy();
@@ -79,7 +75,7 @@ describe("SongItem", () => {
   it("曲をクリックすると適切な関数が呼ばれる", () => {
     const mockOnClick = jest.fn();
     const { getByTestId } = render(
-      <SongItem song={mockSong} onClick={mockOnClick} />
+      <SongItem song={mockSong} onClick={mockOnClick} isOnline={true} />
     );
 
     // 曲のコンテナをクリック
@@ -91,7 +87,7 @@ describe("SongItem", () => {
   it("タイトルをクリックするとルーターのpushが呼ばれる", () => {
     const mockOnClick = jest.fn();
     const { getByTestId } = render(
-      <SongItem song={mockSong} onClick={mockOnClick} />
+      <SongItem song={mockSong} onClick={mockOnClick} isOnline={true} />
     );
 
     // タイトルをクリック
@@ -106,7 +102,12 @@ describe("SongItem", () => {
   it("dynamicSizeがtrueの場合、サイズが動的に計算される", () => {
     const mockOnClick = jest.fn();
     const { getByText } = render(
-      <SongItem song={mockSong} onClick={mockOnClick} dynamicSize={true} />
+      <SongItem
+        song={mockSong}
+        onClick={mockOnClick}
+        dynamicSize={true}
+        isOnline={true}
+      />
     );
 
     // コンポーネントが正しくレンダリングされていることを確認
@@ -116,7 +117,7 @@ describe("SongItem", () => {
   it("SongItemがレンダリングされる", () => {
     const mockOnClick = jest.fn();
     const { getByText } = render(
-      <SongItem song={mockSong} onClick={mockOnClick} />
+      <SongItem song={mockSong} onClick={mockOnClick} isOnline={true} />
     );
 
     // コンポーネントが正しくレンダリングされていることを確認

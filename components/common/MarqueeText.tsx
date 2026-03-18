@@ -10,6 +10,7 @@ interface MarqueeTextProps {
   withGesture?: boolean;
   fontSize?: number;
   fontFamily?: string;
+  animate?: boolean;
 }
 
 function MarqueeText({
@@ -20,15 +21,17 @@ function MarqueeText({
   withGesture = false,
   fontSize = 16,
   fontFamily,
+  animate = true,
 }: MarqueeTextProps) {
   const textStyle: TextStyle = {
     fontSize,
     ...(fontFamily ? { fontFamily } : {}),
   };
+  const shouldAnimate = animate && text.length > 15;
 
   return (
     <View style={[styles.container, style]} testID="marquee-text-container">
-      {text.length > 15 ? (
+      {shouldAnimate ? (
         <Marquee speed={speed} spacing={spacing} withGesture={withGesture}>
           <Text style={[styles.text, textStyle]}>{text}</Text>
         </Marquee>
@@ -59,6 +62,7 @@ export default memo(MarqueeText, (prevProps, nextProps) => {
     prevProps.style === nextProps.style &&
     prevProps.withGesture === nextProps.withGesture &&
     prevProps.fontSize === nextProps.fontSize &&
-    prevProps.fontFamily === nextProps.fontFamily
+    prevProps.fontFamily === nextProps.fontFamily &&
+    prevProps.animate === nextProps.animate
   );
 });

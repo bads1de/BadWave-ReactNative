@@ -54,6 +54,9 @@ jest.mock("@/hooks/data/useGetPlaylists", () => ({
     error: null,
   })),
 }));
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
+  useNetworkStatus: jest.fn(() => ({ isOnline: true })),
+}));
 
 jest.mock("@/hooks/stores/useThemeStore", () => ({
   useThemeStore: jest.fn((selector) =>

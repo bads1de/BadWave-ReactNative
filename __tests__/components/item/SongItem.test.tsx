@@ -2,12 +2,8 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import SongItem from "@/components/item/SongItem";
 import Song from "@/types";
-import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
 // モック
-jest.mock("@/hooks/common/useNetworkStatus", () => ({
-  useNetworkStatus: jest.fn(),
-}));
 jest.mock("expo-router", () => ({
   useRouter: jest.fn(() => ({ push: jest.fn() })),
 }));
@@ -15,12 +11,7 @@ jest.mock("expo-image", () => ({ Image: "Image" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("@/components/common/MarqueeText", () => "MarqueeText");
-jest.mock("@/components/download/DownloadButton", () => ({
-  DownloadButton: "DownloadButton",
-}));
 jest.mock("@/components/item/ListItemOptionsMenu", () => "ListItemOptionsMenu");
-
-const mockUseNetworkStatus = useNetworkStatus as jest.Mock;
 
 describe("SongItem Component", () => {
   const mockSong: Song = {
@@ -37,12 +28,11 @@ describe("SongItem Component", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNetworkStatus.mockReturnValue({ isOnline: true });
   });
 
   it("基本情報が表示される", () => {
     const { getByText } = render(
-      <SongItem song={mockSong} onClick={jest.fn()} />,
+      <SongItem song={mockSong} onClick={jest.fn()} isOnline={true} />,
     );
 
     expect(getByText("Test Author")).toBeTruthy();
@@ -54,7 +44,7 @@ describe("SongItem Component", () => {
   it("オンライン時: 押下で onClick が呼ばれる", () => {
     const onClickMock = jest.fn();
     const { getByTestId } = render(
-      <SongItem song={mockSong} onClick={onClickMock} />,
+      <SongItem song={mockSong} onClick={onClickMock} isOnline={true} />,
     );
 
     fireEvent.press(getByTestId("song-container"));
@@ -62,12 +52,12 @@ describe("SongItem Component", () => {
   });
 
   it("オフラインかつ未ダウンロード: 無効化され onClick が呼ばれない", () => {
-    mockUseNetworkStatus.mockReturnValue({ isOnline: false });
     const onClickMock = jest.fn();
     const { getByTestId } = render(
       <SongItem
         song={{ ...mockSong, local_song_path: undefined }}
         onClick={onClickMock}
+        isOnline={false}
       />,
     );
 
@@ -80,12 +70,12 @@ describe("SongItem Component", () => {
   });
 
   it("オフラインでもダウンロード済みなら有効", () => {
-    mockUseNetworkStatus.mockReturnValue({ isOnline: false });
     const onClickMock = jest.fn();
     const { getByTestId } = render(
       <SongItem
         song={{ ...mockSong, local_song_path: "file://local" }}
         onClick={onClickMock}
+        isOnline={false}
       />,
     );
 
