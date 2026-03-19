@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import LikeButton from "@/components/LikeButton";
+import LikeButton from "@/components/common/LikeButton";
 
 // モック
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));

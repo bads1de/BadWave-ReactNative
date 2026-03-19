@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Song from "@/types";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
-import LikeButton from "@/components/LikeButton";
+import LikeButton from "@/components/common/LikeButton";
 
 interface OnRepeatPlayerControlsProps {
   /** 現在の曲 */

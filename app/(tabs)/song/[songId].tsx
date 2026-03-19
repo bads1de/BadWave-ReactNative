@@ -28,7 +28,7 @@ import {
 } from "lucide-react-native";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import { COLORS, FONTS } from "@/constants/theme";
-import LikeButton from "@/components/LikeButton";
+import LikeButton from "@/components/common/LikeButton";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 import Lyric from "@/components/player/lyric";
 import BackButton from "@/components/common/BackButton";

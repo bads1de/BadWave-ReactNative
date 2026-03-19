@@ -24,7 +24,7 @@ import Song from "@/types";
 import { RepeatMode } from "react-native-track-player";
 import MarqueeText from "@/components/common/MarqueeText";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
-import LikeButton from "@/components/LikeButton";
+import LikeButton from "@/components/common/LikeButton";
 import Lyric from "@/components/player/lyric";
 import NextSong from "@/components/player/NextSong";
 import OnRepeat from "@/components/onRepeat/OnRepeat";
