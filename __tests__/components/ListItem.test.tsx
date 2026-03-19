@@ -15,9 +15,9 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
 
-jest.mock("@/components/item/ListItemOptionsMenu", () => ({
+jest.mock("@/components/item/ItemOptionsMenu", () => ({
   __esModule: true,
-  default: "ListItemOptionsMenu",
+  default: "ItemOptionsMenu",
 }));
 
 describe("ListItem", () => {
@@ -108,7 +108,7 @@ describe("ListItem", () => {
       <ListItem song={mockSong} onPress={mockOnPress} testID="list-item" />
     );
 
-    // ListItemOptionsMenuがレンダリングされていることを確認
+    // ItemOptionsMenuがレンダリングされていることを確認
     expect(getByTestId("list-item")).toBeTruthy();
   });
 });

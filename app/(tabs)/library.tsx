@@ -11,7 +11,7 @@ import CreatePlaylist from "@/components/playlist/CreatePlaylist";
 import { LibraryAuthPrompt } from "@/components/library/LibraryAuthPrompt";
 import { LibraryLikedSection } from "@/components/library/LibraryLikedSection";
 import { LibraryPlaylistsSection } from "@/components/library/LibraryPlaylistsSection";
-import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
+import { ItemOptionsSheet } from "@/components/item/ItemOptionsMenu";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
@@ -160,7 +160,7 @@ export default function LibraryScreen() {
         )}
       </SafeAreaView>
 
-      <ListItemOptionsSheet
+      <ItemOptionsSheet
         song={selectedSong}
         visible={isSongOptionsVisible}
         onClose={closeSongOptions}
@@ -225,4 +225,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-

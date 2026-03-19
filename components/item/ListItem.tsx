@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Song from "@/types";
-import ListItemOptionsMenu from "@/components/item/ListItemOptionsMenu";
+import ItemOptionsMenu from "@/components/item/ItemOptionsMenu";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
 
@@ -128,7 +128,7 @@ function ListItem({
           )}
         </View>
       </View>
-      <ListItemOptionsMenu
+      <ItemOptionsMenu
         song={song}
         onDelete={handleDelete}
         currentPlaylistId={currentPlaylistId}

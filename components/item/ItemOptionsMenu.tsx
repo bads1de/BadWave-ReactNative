@@ -38,13 +38,13 @@ import Toast from "react-native-toast-message";
 import { FONTS } from "@/constants/theme";
 import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
 
-interface ListItemOptionsMenuProps {
+interface ItemOptionsMenuProps {
   song: Song;
   onDelete?: () => void;
   currentPlaylistId?: string;
 }
 
-interface ListItemOptionsModalProps {
+interface ItemOptionsModalProps {
   song: Song;
   onDelete?: () => void;
   currentPlaylistId?: string;
@@ -52,12 +52,12 @@ interface ListItemOptionsModalProps {
   handleCloseModal: () => void;
 }
 
-interface ListItemOptionsButtonProps {
+interface ItemOptionsButtonProps {
   onPress: () => void;
   testID?: string;
 }
 
-interface ListItemOptionsSheetProps {
+interface ItemOptionsSheetProps {
   song: Song | null;
   onDelete?: () => void;
   currentPlaylistId?: string;
@@ -65,13 +65,13 @@ interface ListItemOptionsSheetProps {
   onClose: () => void;
 }
 
-function ListItemOptionsModal({
+function ItemOptionsModal({
   song,
   onDelete,
   currentPlaylistId,
   modalVisible,
   handleCloseModal,
-}: ListItemOptionsModalProps) {
+}: ItemOptionsModalProps) {
   return (
     <Modal
       visible={modalVisible}
@@ -81,7 +81,7 @@ function ListItemOptionsModal({
       onRequestClose={handleCloseModal}
     >
       <SafeAreaProvider style={styles.flex}>
-        <ListItemOptionsModalContent
+        <ItemOptionsModalContent
           song={song}
           onDelete={onDelete}
           currentPlaylistId={currentPlaylistId}
@@ -92,19 +92,19 @@ function ListItemOptionsModal({
   );
 }
 
-interface ListItemOptionsModalContentProps {
+interface ItemOptionsModalContentProps {
   song: Song;
   onDelete?: () => void;
   currentPlaylistId?: string;
   handleCloseModal: () => void;
 }
 
-function ListItemOptionsModalContent({
+function ItemOptionsModalContent({
   song,
   onDelete,
   currentPlaylistId,
   handleCloseModal,
-}: ListItemOptionsModalContentProps) {
+}: ItemOptionsModalContentProps) {
   const { isOnline } = useNetworkStatus();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { session } = useAuth();
@@ -346,10 +346,10 @@ function ListItemOptionsModalContent({
   );
 }
 
-export const ListItemOptionsButton = memo(function ListItemOptionsButton({
+export const ItemOptionsButton = memo(function ItemOptionsButton({
   onPress,
   testID = "menu-button",
-}: ListItemOptionsButtonProps) {
+}: ItemOptionsButtonProps) {
   const colors = useThemeStore((state) => state.colors);
 
   return (
@@ -363,19 +363,19 @@ export const ListItemOptionsButton = memo(function ListItemOptionsButton({
   );
 });
 
-export const ListItemOptionsSheet = memo(function ListItemOptionsSheet({
+export const ItemOptionsSheet = memo(function ItemOptionsSheet({
   song,
   onDelete,
   currentPlaylistId,
   visible,
   onClose,
-}: ListItemOptionsSheetProps) {
+}: ItemOptionsSheetProps) {
   if (!song) {
     return null;
   }
 
   return (
-    <ListItemOptionsModal
+    <ItemOptionsModal
       song={song}
       onDelete={onDelete}
       currentPlaylistId={currentPlaylistId}
@@ -385,11 +385,11 @@ export const ListItemOptionsSheet = memo(function ListItemOptionsSheet({
   );
 });
 
-function ListItemOptionsMenu({
+function ItemOptionsMenu({
   song,
   onDelete,
   currentPlaylistId,
-}: ListItemOptionsMenuProps) {
+}: ItemOptionsMenuProps) {
   const {
     selectedSong,
     isSongOptionsVisible,
@@ -403,8 +403,8 @@ function ListItemOptionsMenu({
 
   return (
     <>
-      <ListItemOptionsButton onPress={handleOpenModal} />
-      <ListItemOptionsSheet
+      <ItemOptionsButton onPress={handleOpenModal} />
+      <ItemOptionsSheet
         song={selectedSong}
         onDelete={onDelete}
         currentPlaylistId={currentPlaylistId}
@@ -518,7 +518,9 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(ListItemOptionsMenu, (prevProps, nextProps) => {
+export { ItemOptionsMenu };
+
+export default memo(ItemOptionsMenu, (prevProps, nextProps) => {
   return (
     prevProps.song.id === nextProps.song.id &&
     prevProps.onDelete === nextProps.onDelete &&

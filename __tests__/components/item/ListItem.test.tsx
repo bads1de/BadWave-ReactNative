@@ -4,7 +4,7 @@ import ListItem from "@/components/item/ListItem";
 import Song from "@/types";
 
 // モック
-jest.mock("@/components/item/ListItemOptionsMenu", () => ({
+jest.mock("@/components/item/ItemOptionsMenu", () => ({
   __esModule: true,
   default: () => null,
 }));

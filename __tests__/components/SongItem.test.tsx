@@ -24,9 +24,9 @@ jest.mock("expo-linear-gradient", () => ({
   LinearGradient: "LinearGradient",
 }));
 
-jest.mock("@/components/item/ListItemOptionsMenu", () => {
+jest.mock("@/components/item/ItemOptionsMenu", () => {
   const { View } = require("react-native");
-  const MockMenu = (props: any) => <View testID="list-item-options-menu" />;
+  const MockMenu = (props: any) => <View testID="item-options-menu" />;
   const MockMenuButton = (props: any) => (
     <View testID={props.testID || "menu-button"} />
   );
@@ -34,8 +34,8 @@ jest.mock("@/components/item/ListItemOptionsMenu", () => {
   return {
     __esModule: true,
     default: MockMenu,
-    ListItemOptionsButton: MockMenuButton,
-    ListItemOptionsSheet: () => null,
+    ItemOptionsButton: MockMenuButton,
+    ItemOptionsSheet: () => null,
   };
 });
 

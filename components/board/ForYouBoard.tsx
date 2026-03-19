@@ -2,7 +2,7 @@ import React, { useCallback, memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import SongItem from "@/components/item/SongItem";
-import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
+import { ItemOptionsSheet } from "@/components/item/ItemOptionsMenu";
 import { useGetLocalRecommendations } from "@/hooks/data/useGetLocalRecommendations";
 import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAuth } from "@/providers/AuthProvider";
@@ -96,7 +96,7 @@ function ForYouBoard() {
           layout.size = 200; // SongItem + マージンの幅
         }}
       />
-      <ListItemOptionsSheet
+      <ItemOptionsSheet
         song={selectedSong}
         visible={isSongOptionsVisible}
         onClose={closeSongOptions}

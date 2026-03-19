@@ -19,9 +19,9 @@ import Song from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useRouter } from "expo-router";
 import MarqueeText from "@/components/common/MarqueeText";
-import ListItemOptionsMenu, {
-  ListItemOptionsButton,
-} from "@/components/item/ListItemOptionsMenu";
+import ItemOptionsMenu, {
+  ItemOptionsButton,
+} from "@/components/item/ItemOptionsMenu";
 import { FONTS } from "@/constants/theme";
 
 interface SongItemProps {
@@ -128,9 +128,9 @@ function SongItem({
           />
           <View style={styles.menuContainer}>
             {onOpenMenu ? (
-              <ListItemOptionsButton onPress={handleMenuPress} />
+              <ItemOptionsButton onPress={handleMenuPress} />
             ) : (
-              <ListItemOptionsMenu song={song} />
+              <ItemOptionsMenu song={song} />
             )}
           </View>
 

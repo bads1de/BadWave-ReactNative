@@ -8,7 +8,7 @@ import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import SongItem from "@/components/item/SongItem";
-import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
+import { ItemOptionsSheet } from "@/components/item/ItemOptionsMenu";
 import TrendBoard from "@/components/board/TrendBoard";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
@@ -187,7 +187,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.listWrapper}
         estimatedItemSize={420}
       />
-      <ListItemOptionsSheet
+      <ItemOptionsSheet
         song={selectedSong}
         visible={isSongOptionsVisible}
         onClose={closeSongOptions}

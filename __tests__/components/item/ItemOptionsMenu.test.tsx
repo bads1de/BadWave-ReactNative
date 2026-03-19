@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { render } from "@testing-library/react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
+import { ItemOptionsSheet } from "@/components/item/ItemOptionsMenu";
 import Song from "@/types";
 
 jest.mock("lucide-react-native", () => {
@@ -91,7 +91,7 @@ jest.mock("react-native-toast-message", () => ({
   },
 }));
 
-describe("ListItemOptionsSheet", () => {
+describe("ItemOptionsSheet", () => {
   const mockSong: Song = {
     id: "song-1",
     user_id: "user-1",
@@ -115,7 +115,7 @@ describe("ListItemOptionsSheet", () => {
 
   it("modal subtree の bottom inset を sheet padding に反映する", () => {
     const { getByTestId } = render(
-      <ListItemOptionsSheet song={mockSong} visible onClose={jest.fn()} />,
+      <ItemOptionsSheet song={mockSong} visible onClose={jest.fn()} />,
     );
 
     const sheetStyle = StyleSheet.flatten(
@@ -127,7 +127,7 @@ describe("ListItemOptionsSheet", () => {
 
   it("song が null の場合は何も描画しない", () => {
     const { queryByTestId } = render(
-      <ListItemOptionsSheet song={null} visible onClose={jest.fn()} />,
+      <ItemOptionsSheet song={null} visible onClose={jest.fn()} />,
     );
 
     expect(queryByTestId("song-options-sheet")).toBeNull();
