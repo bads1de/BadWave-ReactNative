@@ -24,6 +24,7 @@ import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { COLORS, FONTS } from "@/constants/theme";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import BackButton from "@/components/common/BackButton";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
@@ -52,11 +53,10 @@ export default function GenreSongsScreen() {
 
   const { togglePlayPause } = usePlayControls(genreSongs, "genre", genre);
 
-  const handleSongPress = useCallback(
+  const handleSongPress = useStableCallback(
     async (song: Song) => {
       await togglePlayPause(song);
     },
-    [togglePlayPause],
   );
 
   const renderItem = useCallback(

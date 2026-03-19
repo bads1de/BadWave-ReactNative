@@ -28,13 +28,6 @@ jest.mock("expo-image", () => ({
   ImageBackground: "ImageBackground",
 }));
 
-jest.mock("expo-av", () => ({
-  ResizeMode: {
-    COVER: "cover",
-  },
-  Video: "Video",
-}));
-
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
 }));
@@ -81,12 +74,14 @@ describe("Player", () => {
   // テスト用のモックデータ
   const mockSong = {
     id: "song1",
+    user_id: "user1",
     title: "テスト曲",
     author: "テストアーティスト",
     image_path: "https://example.com/image.jpg",
     song_path: "https://example.com/song.mp3",
     video_path: null,
     lyrics: null,
+    created_at: "2024-01-01",
   };
 
   // テスト用のモックプロップス

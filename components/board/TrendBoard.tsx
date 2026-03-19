@@ -19,6 +19,7 @@ import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
@@ -183,11 +184,10 @@ function TrendBoard() {
   const { togglePlayPause } = usePlayControls(trends);
 
   // メモ化されたコールバック
-  const onPlay = useCallback(
+  const onPlay = useStableCallback(
     async (song: Song) => {
       await togglePlayPause(song);
     },
-    [togglePlayPause],
   );
 
   // キー抽出関数をメモ化

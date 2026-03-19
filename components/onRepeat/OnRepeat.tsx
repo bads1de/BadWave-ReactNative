@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from "react";
+import React, { memo, useMemo } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { FONTS } from "@/constants/theme";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
 import { CACHED_QUERIES } from "@/constants";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 const { width } = Dimensions.get("window");
 // sectionTitleのmargin/padding等を加味し、NextSong等と合うように調整
@@ -110,7 +111,7 @@ function OnRepeat() {
     enabled: !!userId,
   });
 
-  const handleSongPress = useCallback(
+  const handleSongPress = useStableCallback(
     async (songIndex: number) => {
       try {
         if (isPlaying) {
@@ -122,7 +123,6 @@ function OnRepeat() {
         console.error("Error handling song press:", error);
       }
     },
-    [isPlaying, topSongs, openOnRepeatPlayer],
   );
 
     // 表示する上位3曲をメモ化

@@ -29,6 +29,7 @@ import { useGetLocalPlaylist } from "@/hooks/data/useGetLocalPlaylist";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { useOfflineGuard } from "@/hooks/common/useOfflineGuard";
 import { FONTS } from "@/constants/theme";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 const { width } = Dimensions.get("window");
 
@@ -98,11 +99,10 @@ export default function PlaylistDetailScreen() {
   );
 
   // 曲をクリックしたときのハンドラをメモ化
-  const handleSongPress = useCallback(
+  const handleSongPress = useStableCallback(
     async (song: Song) => {
       await togglePlayPause(song);
     },
-    [togglePlayPause],
   );
 
   const renderSongs = useCallback(

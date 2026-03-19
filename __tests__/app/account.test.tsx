@@ -95,8 +95,8 @@ describe("AccountScreen", () => {
   it("renders theme selector", () => {
     const { getByText } = render(<AccountScreen />);
     expect(getByText("Appearance")).toBeTruthy();
-    expect(getByText("Midnight")).toBeTruthy();
-    expect(getByText("Forest")).toBeTruthy();
+    expect(getByText(THEMES.violet.label)).toBeTruthy();
+    expect(getByText(THEMES.emerald.label)).toBeTruthy();
   });
 
   it("renders sync section and triggers sync", () => {

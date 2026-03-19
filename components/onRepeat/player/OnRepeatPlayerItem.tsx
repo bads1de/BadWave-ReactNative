@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { ImageBackground } from "expo-image";
 import { VideoView } from "expo-video";
@@ -9,6 +9,7 @@ import OnRepeatPlayerControls from "@/components/onRepeat/player/OnRepeatPlayerC
 import { useOnRepeatPlayer } from "@/hooks/audio/useOnRepeatPlayer";
 import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 const { width, height } = Dimensions.get("screen");
 
@@ -37,7 +38,7 @@ function OnRepeatPlayerItem({ song, isVisible, isPreloading = false }: OnRepeatP
   const { togglePlayPause } = usePlayControls(songs, "home"); // TODO: 適切なContextTypeを検討
 
   // フル再生ハンドラ
-  const handlePlayFull = useCallback(async () => {
+  const handlePlayFull = useStableCallback(async () => {
     try {
       // 1. 再生を開始（キューも更新される）
       await togglePlayPause(song, undefined, "home");
@@ -50,7 +51,7 @@ function OnRepeatPlayerItem({ song, isVisible, isPreloading = false }: OnRepeatP
         text1: "再生できませんでした",
       });
     }
-  }, [togglePlayPause, song, close]);
+  });
 
   return (
     <View style={styles.container}>

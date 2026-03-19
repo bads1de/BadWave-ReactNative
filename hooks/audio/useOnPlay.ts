@@ -1,7 +1,7 @@
-import { useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import usePlayHistory from "@/hooks/audio/usePlayHistory";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 /**
  * 曲の再生回数を更新するカスタムフック
@@ -13,7 +13,7 @@ const useOnPlay = () => {
   const playHistory = usePlayHistory();
 
   // 再生回数を更新する関数
-  const onPlay = useCallback(
+  const onPlay = useStableCallback(
     async (id: string) => {
       // オフライン時は実行しない
       if (!isOnline) {
@@ -46,7 +46,6 @@ const useOnPlay = () => {
         return false;
       }
     },
-    [playHistory, isOnline] // Added isOnline to dependencies
   );
 
   return onPlay;

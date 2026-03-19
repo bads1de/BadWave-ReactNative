@@ -2,6 +2,7 @@ import React, { useCallback, memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import SongItem from "@/components/item/SongItem";
+import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
 import { useGetLocalRecommendations } from "@/hooks/data/useGetLocalRecommendations";
 import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAuth } from "@/providers/AuthProvider";
@@ -9,6 +10,8 @@ import Error from "@/components/common/Error";
 import Loading from "@/components/common/Loading";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 function ForYouBoard() {
   const { session } = useAuth();
@@ -24,16 +27,21 @@ function ForYouBoard() {
   } = useGetLocalRecommendations(userId);
 
   const { togglePlayPause } = usePlayControls(recommendations, "forYou");
+  const {
+    selectedSong,
+    isSongOptionsVisible,
+    openSongOptions,
+    closeSongOptions,
+  } = useSongOptionsMenu();
 
   // 曲をクリックしたときのハンドラをメモ化
-  const handleSongClick = useCallback(
+  const handleSongClick = useStableCallback(
     async (songId: string) => {
       const song = recommendations.find((s) => s.id === songId);
       if (song) {
         await togglePlayPause(song);
       }
     },
-    [recommendations, togglePlayPause],
   );
 
   // レンダリング関数をメモ化
@@ -43,11 +51,12 @@ function ForYouBoard() {
         song={item}
         key={item.id}
         onClick={handleSongClick}
+        onOpenMenu={openSongOptions}
         dynamicSize={false}
         isOnline={isOnline}
       />
     ),
-    [handleSongClick, isOnline],
+    [handleSongClick, isOnline, openSongOptions],
   );
 
   // keyExtractor関数をメモ化
@@ -86,6 +95,11 @@ function ForYouBoard() {
         overrideItemLayout={(layout) => {
           layout.size = 200; // SongItem + マージンの幅
         }}
+      />
+      <ListItemOptionsSheet
+        song={selectedSong}
+        visible={isSongOptionsVisible}
+        onClose={closeSongOptions}
       />
     </View>
   );

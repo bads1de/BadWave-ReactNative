@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect, useCallback } from "react";
+import React, { memo, useCallback } from "react";
 import {
   Modal,
   View,
@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
   Alert,
-  Dimensions,
   Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,7 +17,6 @@ import {
   Trash2,
   CloudOff,
   MoreVertical,
-  Music,
 } from "lucide-react-native";
 import Song from "@/types";
 import {
@@ -34,6 +32,7 @@ import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 import Toast from "react-native-toast-message";
 import { FONTS } from "@/constants/theme";
+import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
 
 interface ListItemOptionsMenuProps {
   song: Song;
@@ -49,6 +48,19 @@ interface ListItemOptionsModalProps {
   handleCloseModal: () => void;
   /** Modal 外（親）で取得した SafeAreaInsets.bottom を渡す */
   bottomInset: number;
+}
+
+interface ListItemOptionsButtonProps {
+  onPress: () => void;
+  testID?: string;
+}
+
+interface ListItemOptionsSheetProps {
+  song: Song | null;
+  onDelete?: () => void;
+  currentPlaylistId?: string;
+  visible: boolean;
+  onClose: () => void;
 }
 
 function ListItemOptionsModal({
@@ -305,56 +317,74 @@ function ListItemOptionsModal({
   );
 }
 
+export const ListItemOptionsButton = memo(function ListItemOptionsButton({
+  onPress,
+  testID = "menu-button",
+}: ListItemOptionsButtonProps) {
+  const colors = useThemeStore((state) => state.colors);
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.menuButton, { borderColor: colors.border }]}
+      testID={testID}
+    >
+      <MoreVertical size={20} color={colors.text} strokeWidth={1.5} />
+    </TouchableOpacity>
+  );
+});
+
+export const ListItemOptionsSheet = memo(function ListItemOptionsSheet({
+  song,
+  onDelete,
+  currentPlaylistId,
+  visible,
+  onClose,
+}: ListItemOptionsSheetProps) {
+  const { bottom: bottomInset } = useSafeAreaInsets();
+
+  if (!song) {
+    return null;
+  }
+
+  return (
+    <ListItemOptionsModal
+      song={song}
+      onDelete={onDelete}
+      currentPlaylistId={currentPlaylistId}
+      modalVisible={visible}
+      handleCloseModal={onClose}
+      bottomInset={bottomInset}
+    />
+  );
+});
+
 function ListItemOptionsMenu({
   song,
   onDelete,
   currentPlaylistId,
 }: ListItemOptionsMenuProps) {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
-  const colors = useThemeStore((state) => state.colors);
-  /**
-   * Modal の外で取得することで Android での insets 取得漏れを防ぐ。
-   * useSafeAreaInsets を Modal 内で呼ぶと Android では 0 になる場合がある。
-   */
-  const { bottom: bottomInset } = useSafeAreaInsets();
+  const {
+    selectedSong,
+    isSongOptionsVisible,
+    openSongOptions,
+    closeSongOptions,
+  } = useSongOptionsMenu();
 
-  const handleOpenModal = () => {
-    setShouldRender(true);
-    // マウントされたのちにアニメーションさせるためごくわずかに遅延
-    setTimeout(() => {
-      setModalVisible(true);
-    }, 10);
-  };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
-    // スライドダウン完了（OS標準の約300ms）を待ってアンマウントする
-    setTimeout(() => {
-      setShouldRender(false);
-    }, 300);
-  };
+  const handleOpenModal = useCallback(() => {
+    openSongOptions(song);
+  }, [openSongOptions, song]);
 
   return (
     <>
-      <TouchableOpacity
-        onPress={handleOpenModal}
-        style={[styles.menuButton, { borderColor: colors.border }]}
-        testID="menu-button"
-      >
-        <MoreVertical size={20} color={colors.text} strokeWidth={1.5} />
-      </TouchableOpacity>
-
-      {shouldRender && (
-        <ListItemOptionsModal
-          song={song}
-          onDelete={onDelete}
-          currentPlaylistId={currentPlaylistId}
-          modalVisible={modalVisible}
-          handleCloseModal={handleCloseModal}
-          bottomInset={bottomInset}
-        />
-      )}
+      <ListItemOptionsButton onPress={handleOpenModal} />
+      <ListItemOptionsSheet
+        song={selectedSong}
+        onDelete={onDelete}
+        currentPlaylistId={currentPlaylistId}
+        visible={isSongOptionsVisible}
+        onClose={closeSongOptions}
+      />
     </>
   );
 }

@@ -9,6 +9,7 @@ import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 /**
  * プレーヤーコンテナコンポーネント
@@ -60,9 +61,9 @@ function PlayerContainer() {
   } = usePlayControls();
 
   // 再生/一時停止の切り替え
-  const handlePlayPause = React.useCallback(async () => {
+  const handlePlayPause = useStableCallback(async () => {
     await togglePlayPause();
-  }, [togglePlayPause]);
+  });
 
   // プレイヤーを閉じる
   const handleClosePlayer = React.useCallback(() => {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import getSongsByTitle from "@/actions/song/getSongsByTitle";
@@ -8,6 +8,7 @@ import { useSearchHistoryStore } from "@/hooks/stores/useSearchHistoryStore";
 import { CACHED_QUERIES } from "@/constants";
 import { Playlist } from "@/types";
 import Song from "@/types";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 export type SearchType = "songs" | "playlists";
 
@@ -66,31 +67,29 @@ export function useSearchScreen() {
 
   // キーボードの Search ボタンを押した時に履歴へ追加する
   // デバウンス後に自動追加しないことで「一文字毎に履歴が贰まる」問題を防ぐ
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useStableCallback(() => {
     if (debouncedQuery.length > 0) {
       addQuery(debouncedQuery);
     }
-  }, [debouncedQuery, addQuery]);
+  });
 
   // --- オーディオ ---
   const { togglePlayPause } = usePlayControls(songs, "search");
 
   // --- ハンドラ ---
-  const handleSongPress = useCallback(
-    (song: Song) => togglePlayPause(song),
-    [togglePlayPause],
-  );
+  const handleSongPress = useStableCallback((song: Song) => {
+    return togglePlayPause(song);
+  });
 
-  const handlePlaylistPress = useCallback(
-    (playlist: Playlist) => router.push(`/playlist/${playlist.id}`),
-    [router],
-  );
+  const handlePlaylistPress = useStableCallback((playlist: Playlist) => {
+    router.push(`/playlist/${playlist.id}`);
+  });
 
-  const handleHistorySelect = useCallback((query: string) => {
+  const handleHistorySelect = useStableCallback((query: string) => {
     setRawQuery(query);
     setDebouncedQuery(query);
     setControlledValue(query);
-  }, []);
+  });
 
   // --- 表示状態の計算 ---
   const isLoading =

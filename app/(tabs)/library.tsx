@@ -24,6 +24,9 @@ import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
+import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 import { FONTS, COLORS } from "@/constants/theme";
 import { Heart, ListMusic, Plus } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -51,6 +54,12 @@ export default function LibraryScreen() {
   const userId = session?.user?.id;
   const colors = useThemeStore((state) => state.colors);
   const { isOnline } = useNetworkStatus();
+  const {
+    selectedSong,
+    isSongOptionsVisible,
+    openSongOptions,
+    closeSongOptions,
+  } = useSongOptionsMenu();
 
   const {
     likedSongs = [],
@@ -78,14 +87,13 @@ export default function LibraryScreen() {
     type === "liked" ? "liked" : "playlist",
   );
 
-  const handleSongPress = useCallback(
+  const handleSongPress = useStableCallback(
     async (songId: string) => {
       const song = likedSongs.find((s) => s.id === songId);
       if (song) {
         await togglePlayPause(song);
       }
     },
-    [likedSongs, togglePlayPause],
   );
 
   const handlePlaylistPress = useCallback(
@@ -132,13 +140,14 @@ export default function LibraryScreen() {
         <SongItem
           song={item}
           onClick={handleSongPress}
+          onOpenMenu={openSongOptions}
           dynamicSize={true}
           isOnline={isOnline}
           pauseTitleAnimation={isLikedListScrolling}
         />
       );
     },
-    [handleSongPress, isLikedListScrolling, isOnline],
+    [handleSongPress, isLikedListScrolling, isOnline, openSongOptions],
   );
 
   const renderPlaylistItem = useCallback(
@@ -321,6 +330,11 @@ export default function LibraryScreen() {
           </>
         )}
       </SafeAreaView>
+      <ListItemOptionsSheet
+        song={selectedSong}
+        visible={isSongOptionsVisible}
+        onClose={closeSongOptions}
+      />
     </View>
   );
 }

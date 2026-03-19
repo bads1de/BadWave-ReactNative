@@ -8,6 +8,7 @@ import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import SongItem from "@/components/item/SongItem";
+import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
 import TrendBoard from "@/components/board/TrendBoard";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
@@ -17,6 +18,8 @@ import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
+import { useStableCallback } from "@/hooks/common/useStableCallback";
 import { FONTS } from "@/constants/theme";
 
 /**
@@ -35,18 +38,23 @@ export default function HomeScreen() {
 
   const currentSong = useAudioStore((state) => state.currentSong);
   const { togglePlayPause } = usePlayControls(songs, "home");
+  const {
+    selectedSong,
+    isSongOptionsVisible,
+    openSongOptions,
+    closeSongOptions,
+  } = useSongOptionsMenu();
 
   // ネットワーク状態はここで1回だけ取得し、各 SongItem に props として渡す
   const { isOnline } = useNetworkStatus();
 
-  const handleSongPress = useCallback(
+  const handleSongPress = useStableCallback(
     async (songId: string) => {
       const song = songs.find((s) => s.id === songId);
       if (song) {
         await togglePlayPause(song);
       }
     },
-    [songs, togglePlayPause],
   );
 
   const renderRecentSongItem = useCallback(
@@ -54,11 +62,12 @@ export default function HomeScreen() {
       <SongItem
         song={item}
         onClick={handleSongPress}
+        onOpenMenu={openSongOptions}
         dynamicSize={false}
         isOnline={isOnline}
       />
     ),
-    [handleSongPress, isOnline],
+    [handleSongPress, isOnline, openSongOptions],
   );
 
   const renderSectionTitle = useCallback(
@@ -177,6 +186,11 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listWrapper}
         estimatedItemSize={420}
+      />
+      <ListItemOptionsSheet
+        song={selectedSong}
+        visible={isSongOptionsVisible}
+        onClose={closeSongOptions}
       />
     </SafeAreaView>
   );

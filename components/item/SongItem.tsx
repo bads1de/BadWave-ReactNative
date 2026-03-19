@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,9 @@ import Song from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useRouter } from "expo-router";
 import MarqueeText from "@/components/common/MarqueeText";
-import ListItemOptionsMenu from "@/components/item/ListItemOptionsMenu";
+import ListItemOptionsMenu, {
+  ListItemOptionsButton,
+} from "@/components/item/ListItemOptionsMenu";
 import { FONTS } from "@/constants/theme";
 
 interface SongItemProps {
@@ -30,6 +32,7 @@ interface SongItemProps {
   isOnline: boolean;
   /** 一覧スクロール中など、タイトル marquee を一時停止したい場合に指定します */
   pauseTitleAnimation?: boolean;
+  onOpenMenu?: (song: Song) => void;
 }
 
 function SongItem({
@@ -38,6 +41,7 @@ function SongItem({
   dynamicSize = false,
   isOnline,
   pauseTitleAnimation = false,
+  onOpenMenu,
 }: SongItemProps) {
   const router = useRouter();
   const colors = useThemeStore((state) => state.colors);
@@ -57,20 +61,33 @@ function SongItem({
     return { width: 180, height: 300 };
   }, [dynamicSize, windowWidth]);
 
-  const handlePressIn = () => {
+  const handlePressIn = useCallback(() => {
     if (isDisabled) return;
     scaleAnim.value = withSpring(0.97, { damping: 15, stiffness: 100 });
-  };
+  }, [isDisabled, scaleAnim]);
 
-  const handlePressOut = () => {
+  const handlePressOut = useCallback(() => {
     if (isDisabled) return;
     scaleAnim.value = withSpring(1, { damping: 10, stiffness: 80 });
-  };
+  }, [isDisabled, scaleAnim]);
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     if (isDisabled) return;
     onClick(song.id);
-  };
+  }, [isDisabled, onClick, song.id]);
+
+  const handleTitlePress = useCallback(() => {
+    router.push({
+      pathname: "/song/[songId]",
+      params: { songId: song.id },
+    });
+  }, [router, song.id]);
+
+  const handleMenuPress = useCallback(() => {
+    if (!onOpenMenu) return;
+    onOpenMenu(song);
+  }, [onOpenMenu, song]);
+
   const animatedScaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scaleAnim.value }],
   }));
@@ -110,17 +127,16 @@ function SongItem({
             style={styles.gradientOverlay}
           />
           <View style={styles.menuContainer}>
-            <ListItemOptionsMenu song={song} />
+            {onOpenMenu ? (
+              <ListItemOptionsButton onPress={handleMenuPress} />
+            ) : (
+              <ListItemOptionsMenu song={song} />
+            )}
           </View>
 
           <TouchableOpacity
             style={styles.textOverlay}
-            onPress={() =>
-              router.push({
-                pathname: "/song/[songId]",
-                params: { songId: song.id },
-              })
-            }
+            onPress={handleTitlePress}
             activeOpacity={0.8}
             testID="song-title-button"
           >
@@ -183,7 +199,8 @@ export default memo(SongItem, (prevProps, nextProps) => {
     prevProps.dynamicSize === nextProps.dynamicSize &&
     prevProps.onClick === nextProps.onClick &&
     prevProps.isOnline === nextProps.isOnline &&
-    prevProps.pauseTitleAnimation === nextProps.pauseTitleAnimation
+    prevProps.pauseTitleAnimation === nextProps.pauseTitleAnimation &&
+    prevProps.onOpenMenu === nextProps.onOpenMenu
   );
 });
 

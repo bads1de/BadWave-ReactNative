@@ -11,7 +11,12 @@ jest.mock("expo-image", () => ({ Image: "Image" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("@/components/common/MarqueeText", () => "MarqueeText");
-jest.mock("@/components/item/ListItemOptionsMenu", () => "ListItemOptionsMenu");
+jest.mock("@/components/item/ListItemOptionsMenu", () => ({
+  __esModule: true,
+  default: "ListItemOptionsMenu",
+  ListItemOptionsButton: "ListItemOptionsButton",
+  ListItemOptionsSheet: "ListItemOptionsSheet",
+}));
 
 describe("SongItem Component", () => {
   const mockSong: Song = {

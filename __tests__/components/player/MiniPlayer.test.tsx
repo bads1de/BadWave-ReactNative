@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import { Ionicons } from "@expo/vector-icons";
 import { Play, Pause } from "lucide-react-native";
@@ -23,20 +23,6 @@ jest.mock("lucide-react-native", () => {
   return {
     Play: MockIcon,
     Pause: MockIcon,
-  };
-});
-
-// expo-blurのモック
-jest.mock("expo-blur", () => {
-  const React = require("react");
-  const { View } = require("react-native");
-  return {
-    BlurView: ({ children, testID, ...props }: any) =>
-      React.createElement(
-        View,
-        { testID: testID || "blur-view", ...props },
-        children,
-      ),
   };
 });
 
@@ -134,7 +120,7 @@ describe("MiniPlayer", () => {
 
   describe("レンダリングテスト", () => {
     it("初期状態で正しくレンダリングされる", () => {
-      const { getByTestId } = render(
+      const { getByText, getByTestId } = render(
         <MiniPlayer
           currentSong={mockSong}
           isPlaying={false}
@@ -143,7 +129,8 @@ describe("MiniPlayer", () => {
         />,
       );
 
-      expect(getByTestId("blur-view")).toBeTruthy();
+      expect(getByText("Test Song Title")).toBeTruthy();
+      expect(getByText("Test Artist")).toBeTruthy();
       expect(getByTestId("expo-image")).toBeTruthy();
     });
 
@@ -187,18 +174,6 @@ describe("MiniPlayer", () => {
       expect(image.props["data-source"]).toBe(mockSong.image_path);
     });
 
-    it("BlurViewが表示される", () => {
-      const { getByTestId } = render(
-        <MiniPlayer
-          currentSong={mockSong}
-          isPlaying={false}
-          onPlayPause={mockOnPlayPause}
-          onPress={mockOnPress}
-        />,
-      );
-
-      expect(getByTestId("blur-view")).toBeTruthy();
-    });
   });
 
   describe("再生制御", () => {
@@ -704,36 +679,6 @@ describe("MiniPlayer", () => {
           />,
         );
       }).not.toThrow();
-    });
-
-    it("useEffectでアニメーションが開始される", async () => {
-      const { getByTestId } = render(
-        <MiniPlayer
-          currentSong={mockSong}
-          isPlaying={false}
-          onPlayPause={mockOnPlayPause}
-          onPress={mockOnPress}
-        />,
-      );
-
-      // コンポーネントがマウントされることを確認
-      await waitFor(() => {
-        expect(getByTestId("blur-view")).toBeTruthy();
-      });
-    });
-
-    it("アニメーションスタイルが適用される", () => {
-      const { getByTestId } = render(
-        <MiniPlayer
-          currentSong={mockSong}
-          isPlaying={false}
-          onPlayPause={mockOnPlayPause}
-          onPress={mockOnPress}
-        />,
-      );
-
-      const blurView = getByTestId("blur-view");
-      expect(blurView).toBeTruthy();
     });
   });
 
