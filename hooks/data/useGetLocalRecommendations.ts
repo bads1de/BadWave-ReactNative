@@ -3,6 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { songs, sectionCache } from "@/lib/db/schema";
 import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
+import { mapSongRowToSong } from "@/lib/utils/songMapper";
 import Song from "@/types";
 
 /**
@@ -42,25 +43,9 @@ export function useGetLocalRecommendations(userId?: string) {
         .from(songs)
         .where(inArray(songs.id, songIds));
 
-      return result.map((row) => ({
-        id: row.id,
-        user_id: row.userId,
-        title: row.title,
-        author: row.author,
-        song_path: row.originalSongPath ?? row.songPath ?? "",
-        image_path: row.originalImagePath ?? row.imagePath ?? "",
-        duration: row.duration ?? undefined,
-        genre: row.genre ?? undefined,
-        lyrics: row.lyrics ?? undefined,
-        count: String(row.playCount ?? 0),
-        like_count: String(row.likeCount ?? 0),
-        created_at: row.createdAt ?? "",
-        // ローカルパス情報（オフライン再生用）
-        local_song_path: row.songPath ?? undefined,
-        local_image_path: row.imagePath ?? undefined,
-        local_video_path: row.videoPath ?? undefined,
-        video_path: row.originalVideoPath ?? row.videoPath ?? undefined,
-      }));
+      return result.map((row) =>
+        mapSongRowToSong(row, { preferOriginalPaths: true }),
+      );
     },
     staleTime: CACHE_CONFIG.staleTime,
     gcTime: CACHE_CONFIG.gcTime,

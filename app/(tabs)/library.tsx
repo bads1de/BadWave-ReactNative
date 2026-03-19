@@ -1,39 +1,26 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
-import { FlashList } from "@shopify/flash-list";
-import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import React, { useState, useCallback } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Heart, ListMusic, Plus } from "lucide-react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { TabSwitcher, TabOption } from "@/components/common/TabSwitcher";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import CustomButton from "@/components/common/CustomButton";
-import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
-import SongItem from "@/components/item/SongItem";
-import Song from "@/types";
-import PlaylistItem from "@/components/item/PlaylistItem";
-import { useRouter } from "expo-router";
-import { useAuth } from "@/providers/AuthProvider";
-import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import CreatePlaylist from "@/components/playlist/CreatePlaylist";
-import { Playlist } from "@/types";
+import { LibraryAuthPrompt } from "@/components/library/LibraryAuthPrompt";
+import { LibraryLikedSection } from "@/components/library/LibraryLikedSection";
+import { LibraryPlaylistsSection } from "@/components/library/LibraryPlaylistsSection";
+import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
-import { BulkDownloadButton } from "@/components/download/BulkDownloadButton";
-import { useThemeStore } from "@/hooks/stores/useThemeStore";
-import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
-import { ListItemOptionsSheet } from "@/components/item/ListItemOptionsMenu";
 import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
-import { useStableCallback } from "@/hooks/common/useStableCallback";
+import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { useAuth } from "@/providers/AuthProvider";
+import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { FONTS, COLORS } from "@/constants/theme";
-import { Heart, ListMusic, Plus } from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
-import { TabSwitcher, TabOption } from "@/components/common/TabSwitcher";
-
-const { width } = Dimensions.get("window");
+import { Playlist } from "@/types";
 
 type LibraryType = "liked" | "playlists";
 
@@ -44,10 +31,6 @@ const TAB_OPTIONS: TabOption<LibraryType>[] = [
 
 export default function LibraryScreen() {
   const [type, setType] = useState<LibraryType>("liked");
-  const [isLikedListScrolling, setIsLikedListScrolling] = useState(false);
-  const marqueeResumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const { session } = useAuth();
   const setShowAuthModal = useAuthStore((state) => state.setShowAuthModal);
   const router = useRouter();
@@ -73,28 +56,9 @@ export default function LibraryScreen() {
     error: playlistsError,
   } = useGetPlaylists(userId);
 
-  const currentSongs = useMemo(() => {
-    if (type === "liked") return likedSongs;
-    return [];
-  }, [type, likedSongs]);
-
   const handleTypeChange = useCallback((val: string) => {
     setType(val as LibraryType);
-  }, [setType]);
-
-  const { togglePlayPause } = usePlayControls(
-    currentSongs,
-    type === "liked" ? "liked" : "playlist",
-  );
-
-  const handleSongPress = useStableCallback(
-    async (songId: string) => {
-      const song = likedSongs.find((s) => s.id === songId);
-      if (song) {
-        await togglePlayPause(song);
-      }
-    },
-  );
+  }, []);
 
   const handlePlaylistPress = useCallback(
     (playlist: Playlist) => {
@@ -106,65 +70,16 @@ export default function LibraryScreen() {
     [router],
   );
 
-  const keyExtractor = useCallback((item: Song | Playlist) => item.id, []);
-
-  const clearMarqueeResumeTimeout = useCallback(() => {
-    if (marqueeResumeTimeoutRef.current) {
-      clearTimeout(marqueeResumeTimeoutRef.current);
-      marqueeResumeTimeoutRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      clearMarqueeResumeTimeout();
-    };
-  }, [clearMarqueeResumeTimeout]);
-
-  const handleLikedListScrollStart = useCallback(() => {
-    clearMarqueeResumeTimeout();
-    setIsLikedListScrolling(true);
-  }, [clearMarqueeResumeTimeout]);
-
-  const handleLikedListScrollStop = useCallback(() => {
-    clearMarqueeResumeTimeout();
-    marqueeResumeTimeoutRef.current = setTimeout(() => {
-      setIsLikedListScrolling(false);
-      marqueeResumeTimeoutRef.current = null;
-    }, 350);
-  }, [clearMarqueeResumeTimeout]);
-
-  const renderLikedSongs = useCallback(
-    ({ item }: { item: Song }) => {
-      return (
-        <SongItem
-          song={item}
-          onClick={handleSongPress}
-          onOpenMenu={openSongOptions}
-          dynamicSize={true}
-          isOnline={isOnline}
-          pauseTitleAnimation={isLikedListScrolling}
-        />
-      );
-    },
-    [handleSongPress, isLikedListScrolling, isOnline, openSongOptions],
-  );
-
-  const renderPlaylistItem = useCallback(
-    ({ item }: { item: Playlist }) => (
-      <PlaylistItem playlist={item} onPress={handlePlaylistPress} />
-    ),
-    [handlePlaylistPress],
-  );
-
-  if (isLikedLoading || isPlaylistsLoading)
+  if (isLikedLoading || isPlaylistsLoading) {
     return (
       <Loading
         variant="grid"
         gridProps={{ count: 6, showHeader: true, paddingHorizontal: 12 }}
       />
     );
-  if (likedError || playlistsError)
+  }
+
+  if (likedError || playlistsError) {
     return (
       <Error
         message={
@@ -172,11 +87,11 @@ export default function LibraryScreen() {
         }
       />
     );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        {/* Header Section */}
         <View style={styles.header}>
           <View>
             <Text style={[styles.subtitle, { color: colors.primary }]}>
@@ -216,27 +131,9 @@ export default function LibraryScreen() {
         </View>
 
         {!session ? (
-          <Animated.View
-            entering={FadeIn.duration(800)}
-            style={styles.loginContainer}
-          >
-            <View style={styles.loginGlass}>
-              <Text style={styles.loginMessage}>
-                Unlock your musical sanctuary. Sign in to access your personal
-                collection.
-              </Text>
-              <CustomButton
-                label="Sign In to Badwave"
-                isActive
-                onPress={() => setShowAuthModal(true)}
-                activeStyle={styles.loginButton}
-                activeTextStyle={styles.loginButtonText}
-              />
-            </View>
-          </Animated.View>
+          <LibraryAuthPrompt onSignIn={() => setShowAuthModal(true)} />
         ) : (
           <>
-            {/* Boutique Tab Switcher */}
             <View style={styles.tabWrapper}>
               <TabSwitcher
                 options={TAB_OPTIONS}
@@ -247,89 +144,22 @@ export default function LibraryScreen() {
 
             <View style={styles.contentArea}>
               {type === "liked" ? (
-                likedSongs && likedSongs.length > 0 ? (
-                  <>
-                    <Animated.View
-                      entering={FadeInDown}
-                      style={styles.utilityRow}
-                    >
-                      <View style={styles.countBadge}>
-                        <Text style={styles.countText}>
-                          {likedSongs.length} Tracks
-                        </Text>
-                      </View>
-                      <BulkDownloadButton songs={likedSongs} size="small" />
-                    </Animated.View>
-                    <FlashList
-                      key={"liked"}
-                      data={likedSongs}
-                      renderItem={renderLikedSongs}
-                      keyExtractor={keyExtractor}
-                      numColumns={2}
-                      contentContainerStyle={styles.listContainer}
-                      estimatedItemSize={280} // Actual mapped item height is ~276px
-                      showsVerticalScrollIndicator={false}
-                      onScrollBeginDrag={handleLikedListScrollStart}
-                      onMomentumScrollBegin={handleLikedListScrollStart}
-                      onScrollEndDrag={handleLikedListScrollStop}
-                      onMomentumScrollEnd={handleLikedListScrollStop}
-                    />
-                  </>
-                ) : (
-                  <Animated.View
-                    entering={FadeIn.delay(200)}
-                    style={styles.emptyContainer}
-                  >
-                    <View style={styles.emptyGlass}>
-                      <Heart
-                        size={48}
-                        color={COLORS.primary}
-                        strokeWidth={1}
-                        opacity={0.4}
-                      />
-                      <Text style={styles.emptyTitle}>Pure Silence</Text>
-                      <Text style={styles.emptySubText}>
-                        Your heart hasn't found its rhythm yet. Start liking
-                        songs to curate your sanctuary.
-                      </Text>
-                    </View>
-                  </Animated.View>
-                )
-              ) : playlists && playlists.length > 0 ? (
-                <FlashList
-                  key={"playlists"}
-                  data={playlists}
-                  renderItem={renderPlaylistItem}
-                  numColumns={2}
-                  keyExtractor={keyExtractor}
-                  contentContainerStyle={styles.listContainer}
-                  estimatedItemSize={220}
-                  showsVerticalScrollIndicator={false}
+                <LibraryLikedSection
+                  songs={likedSongs}
+                  isOnline={isOnline}
+                  onOpenSongOptions={openSongOptions}
                 />
               ) : (
-                <Animated.View
-                  entering={FadeIn.delay(200)}
-                  style={styles.emptyContainer}
-                >
-                  <View style={styles.emptyGlass}>
-                    <ListMusic
-                      size={48}
-                      color={COLORS.primary}
-                      strokeWidth={1}
-                      opacity={0.4}
-                    />
-                    <Text style={styles.emptyTitle}>Blank Canvas</Text>
-                    <Text style={styles.emptySubText}>
-                      Design your own musical journey. Create your first
-                      playlist to begin.
-                    </Text>
-                  </View>
-                </Animated.View>
+                <LibraryPlaylistsSection
+                  playlists={playlists}
+                  onPlaylistPress={handlePlaylistPress}
+                />
               )}
             </View>
           </>
         )}
       </SafeAreaView>
+
       <ListItemOptionsSheet
         song={selectedSong}
         visible={isSongOptionsVisible}
@@ -387,129 +217,12 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     lineHeight: 48,
   },
-  loginContainer: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: "center",
-  },
-  loginGlass: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 32,
-    padding: 32,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-    alignItems: "center",
-  },
-  loginMessage: {
-    fontSize: 18,
-    color: COLORS.subText,
-    textAlign: "center",
-    marginBottom: 32,
-    fontFamily: FONTS.body,
-    lineHeight: 26,
-  },
-  loginButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 30,
-    width: "100%",
-  },
-  loginButtonText: {
-    color: COLORS.background,
-    fontSize: 16,
-    fontFamily: FONTS.bold,
-  },
   tabWrapper: {
     paddingHorizontal: 24,
     marginBottom: 20,
   },
-  tabContainer: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 30,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  tabItem: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 25,
-    gap: 8,
-  },
-  tabItemActive: {
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  tabText: {
-    fontSize: 14,
-    fontFamily: FONTS.semibold,
-    letterSpacing: 0.5,
-  },
   contentArea: {
     flex: 1,
   },
-  playlistActionRow: {
-    paddingHorizontal: 24,
-    marginBottom: 16,
-  },
-  utilityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    marginBottom: 16,
-  },
-  countBadge: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  countText: {
-    color: COLORS.subText,
-    fontSize: 12,
-    fontFamily: FONTS.semibold,
-  },
-  listContainer: {
-    paddingHorizontal: 12,
-    paddingBottom: 120,
-  },
-  emptyContainer: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-  },
-  emptyGlass: {
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
-    borderRadius: 32,
-    padding: 40,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-    borderStyle: "dashed",
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontFamily: FONTS.title,
-    color: COLORS.text,
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: COLORS.subText,
-    textAlign: "center",
-    fontFamily: FONTS.body,
-    lineHeight: 22,
-    paddingHorizontal: 20,
-  },
 });
+

@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import { likedSongs, songs } from "@/lib/db/schema";
 import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
 import Song from "@/types";
+import { mapSongRowToSong } from "@/lib/utils/songMapper";
 
 /**
  * ユーザーがいいねした曲を取得するカスタムフック（ローカルファースト）
@@ -35,25 +36,9 @@ export function useGetLikedSongs(userId?: string) {
         .innerJoin(songs, eq(likedSongs.songId, songs.id))
         .where(eq(likedSongs.userId, userId));
 
-      // Song 型に変換
-      return result.map((row) => ({
-        id: row.song.id,
-        user_id: row.song.userId,
-        title: row.song.title,
-        author: row.song.author,
-        song_path: row.song.originalSongPath ?? row.song.songPath ?? "",
-        image_path: row.song.originalImagePath ?? row.song.imagePath ?? "",
-        genre: row.song.genre ?? undefined,
-        lyrics: row.song.lyrics ?? undefined,
-        count: String(row.song.playCount ?? 0),
-        like_count: String(row.song.likeCount ?? 0),
-        created_at: row.song.createdAt ?? "",
-        local_song_path: row.song.songPath ?? undefined,
-        local_image_path: row.song.imagePath ?? undefined,
-        local_video_path: row.song.videoPath ?? undefined,
-        video_path:
-          row.song.originalVideoPath ?? row.song.videoPath ?? undefined,
-      }));
+      return result.map((row) =>
+        mapSongRowToSong(row.song, { preferOriginalPaths: true }),
+      );
     },
     staleTime: CACHE_CONFIG.staleTime,
     gcTime: CACHE_CONFIG.gcTime,

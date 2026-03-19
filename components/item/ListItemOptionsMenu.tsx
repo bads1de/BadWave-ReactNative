@@ -1,6 +1,7 @@
 import React, { memo, useCallback } from "react";
 import {
   Modal,
+  Platform,
   View,
   TouchableOpacity,
   Text,
@@ -8,7 +9,10 @@ import {
   Alert,
   Pressable,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import {
   Heart,
@@ -46,8 +50,6 @@ interface ListItemOptionsModalProps {
   currentPlaylistId?: string;
   modalVisible: boolean;
   handleCloseModal: () => void;
-  /** Modal 外（親）で取得した SafeAreaInsets.bottom を渡す */
-  bottomInset: number;
 }
 
 interface ListItemOptionsButtonProps {
@@ -69,21 +71,54 @@ function ListItemOptionsModal({
   currentPlaylistId,
   modalVisible,
   handleCloseModal,
-  bottomInset,
 }: ListItemOptionsModalProps) {
+  return (
+    <Modal
+      visible={modalVisible}
+      transparent
+      animationType="slide"
+      statusBarTranslucent
+      onRequestClose={handleCloseModal}
+    >
+      <SafeAreaProvider style={styles.flex}>
+        <ListItemOptionsModalContent
+          song={song}
+          onDelete={onDelete}
+          currentPlaylistId={currentPlaylistId}
+          handleCloseModal={handleCloseModal}
+        />
+      </SafeAreaProvider>
+    </Modal>
+  );
+}
+
+interface ListItemOptionsModalContentProps {
+  song: Song;
+  onDelete?: () => void;
+  currentPlaylistId?: string;
+  handleCloseModal: () => void;
+}
+
+function ListItemOptionsModalContent({
+  song,
+  onDelete,
+  currentPlaylistId,
+  handleCloseModal,
+}: ListItemOptionsModalContentProps) {
   const { isOnline } = useNetworkStatus();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const { session } = useAuth();
   const colors = useThemeStore((state) => state.colors);
   const userId = session?.user?.id;
 
   /**
    * sheetPaddingBottom:
-   * - bottomInset: Android システムナビゲーションバー(◁○□)の高さ。
-   *   Modal 内では useSafeAreaInsets が 0 を返す場合があるため、
-   *   親コンポーネント(ListItemOptionsMenu)で取得して props で受け取る。
-   * - 最低保証余白 20px を加算。
+   * - Modal subtree 内で取得した bottomInset を使って、Android の
+   *   ナビゲーションバーと干渉しないようにする。
+   * - 一部端末で 0 が返るケースに備えて Android は最低 24px を確保する。
    */
-  const sheetPaddingBottom = Math.max(bottomInset, 20) + 20;
+  const minimumBottomInset = Platform.OS === "android" ? 24 : 20;
+  const sheetPaddingBottom = Math.max(bottomInset, minimumBottomInset) + 20;
 
   // ダウンロード状態
   const { data: isDownloaded = false } = useDownloadStatus(song.id);
@@ -177,143 +212,137 @@ function ListItemOptionsModal({
   );
 
   return (
-    <Modal
-      visible={modalVisible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleCloseModal}
-    >
-      <View style={styles.modalRoot}>
-        <View style={styles.overlay}>
-          <Pressable style={styles.flex} onPress={handleCloseModal} />
+    <View style={styles.modalRoot}>
+      <View style={styles.overlay}>
+        <Pressable style={styles.flex} onPress={handleCloseModal} />
+      </View>
+
+      <View
+        testID="song-options-sheet"
+        style={[
+          styles.sheet,
+          {
+            backgroundColor: colors.background,
+            borderColor: colors.border,
+            paddingBottom: sheetPaddingBottom,
+          },
+        ]}
+      >
+        <View style={styles.handle} />
+
+        {/* Song Header */}
+        <View style={styles.header}>
+          <Image
+            source={{ uri: song.image_path }}
+            style={styles.headerImage}
+            contentFit="cover"
+          />
+          <View style={styles.headerInfo}>
+            <Text
+              style={[styles.songTitle, { color: colors.text }]}
+              numberOfLines={1}
+            >
+              {song.title}
+            </Text>
+            <Text
+              style={[styles.songAuthor, { color: colors.subText }]}
+              numberOfLines={1}
+            >
+              {song.author}
+            </Text>
+          </View>
         </View>
 
-        <View
-          style={[
-            styles.sheet,
-            {
-              backgroundColor: colors.background,
-              borderColor: colors.border,
-              paddingBottom: sheetPaddingBottom,
-            },
-          ]}
-        >
-          <View style={styles.handle} />
+        <View style={styles.divider} />
 
-          {/* Song Header */}
-          <View style={styles.header}>
-            <Image
-              source={{ uri: song.image_path }}
-              style={styles.headerImage}
-              contentFit="cover"
-            />
-            <View style={styles.headerInfo}>
-              <Text
-                style={[styles.songTitle, { color: colors.text }]}
-                numberOfLines={1}
-              >
-                {song.title}
-              </Text>
-              <Text
-                style={[styles.songAuthor, { color: colors.subText }]}
-                numberOfLines={1}
-              >
-                {song.author}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.optionsList}>
-            {/* いいねオプション */}
-            {userId &&
-              renderOption(
-                isLiking ? "処理中..." : isLiked ? "いいねを解除" : "いいね",
-                Heart,
-                handleToggleLike,
-                isLiked ? "#ff4444" : colors.text,
-                isLiking || !isOnline,
-                "like-option",
-              )}
-
-            {/* プレイリストに追加 */}
-            {userId && (
-              <AddPlaylist
-                songId={song.id}
-                currentPlaylistId={currentPlaylistId}
-              >
-                <View
-                  style={[styles.option, !isOnline && styles.optionDisabled]}
-                  testID="add-to-playlist-option"
-                >
-                  <View style={styles.iconWrapper}>
-                    <PlusCircle
-                      size={20}
-                      color={isOnline ? colors.primary : colors.subText}
-                      strokeWidth={1.5}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: isOnline ? colors.text : colors.subText },
-                    ]}
-                  >
-                    プレイリストに追加
-                  </Text>
-                </View>
-              </AddPlaylist>
+        <View style={styles.optionsList}>
+          {/* いいねオプション */}
+          {userId &&
+            renderOption(
+              isLiking ? "処理中..." : isLiked ? "いいねを解除" : "いいね",
+              Heart,
+              handleToggleLike,
+              isLiked ? "#ff4444" : colors.text,
+              isLiking || !isOnline,
+              "like-option",
             )}
 
-            {/* ダウンロード/削除オプション */}
-            {!isDownloaded
-              ? renderOption(
-                  isDownloading ? "ダウンロード中..." : "ダウンロード",
-                  Download,
-                  handleDownload,
-                  isOnline ? colors.text : colors.subText,
-                  isDownloading || !isOnline,
-                  "download-option",
-                )
-              : renderOption(
-                  isDeleting ? "削除中..." : "オフライン保存を削除",
-                  CloudOff,
-                  handleDeleteDownload,
-                  colors.error,
-                  isDeleting,
-                  "delete-download-option",
-                )}
+          {/* プレイリストに追加 */}
+          {userId && (
+            <AddPlaylist
+              songId={song.id}
+              currentPlaylistId={currentPlaylistId}
+            >
+              <View
+                style={[styles.option, !isOnline && styles.optionDisabled]}
+                testID="add-to-playlist-option"
+              >
+                <View style={styles.iconWrapper}>
+                  <PlusCircle
+                    size={20}
+                    color={isOnline ? colors.primary : colors.subText}
+                    strokeWidth={1.5}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.optionText,
+                    { color: isOnline ? colors.text : colors.subText },
+                  ]}
+                >
+                  プレイリストに追加
+                </Text>
+              </View>
+            </AddPlaylist>
+          )}
 
-            {/* プレイリストから削除（オーナーのみ） */}
-            {onDelete &&
-              renderOption(
-                "プレイリストから削除",
-                Trash2,
-                () => {
-                  onDelete();
-                  handleCloseModal();
-                },
+          {/* ダウンロード/削除オプション */}
+          {!isDownloaded
+            ? renderOption(
+                isDownloading ? "ダウンロード中..." : "ダウンロード",
+                Download,
+                handleDownload,
+                isOnline ? colors.text : colors.subText,
+                isDownloading || !isOnline,
+                "download-option",
+              )
+            : renderOption(
+                isDeleting ? "削除中..." : "オフライン保存を削除",
+                CloudOff,
+                handleDeleteDownload,
                 colors.error,
-                false,
-                "delete-option",
+                isDeleting,
+                "delete-download-option",
               )}
-          </View>
 
-          <TouchableOpacity
-            style={[
-              styles.closeButton,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-            onPress={handleCloseModal}
-          >
-            <Text style={[styles.closeButtonText, { color: colors.text }]}>
-              閉じる
-            </Text>
-          </TouchableOpacity>
+          {/* プレイリストから削除（オーナーのみ） */}
+          {onDelete &&
+            renderOption(
+              "プレイリストから削除",
+              Trash2,
+              () => {
+                onDelete();
+                handleCloseModal();
+              },
+              colors.error,
+              false,
+              "delete-option",
+            )}
         </View>
+
+        <TouchableOpacity
+          style={[
+            styles.closeButton,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          onPress={handleCloseModal}
+        >
+          <Text style={[styles.closeButtonText, { color: colors.text }]}>
+            閉じる
+          </Text>
+        </TouchableOpacity>
       </View>
-    </Modal>
+    </View>
   );
 }
 
@@ -341,8 +370,6 @@ export const ListItemOptionsSheet = memo(function ListItemOptionsSheet({
   visible,
   onClose,
 }: ListItemOptionsSheetProps) {
-  const { bottom: bottomInset } = useSafeAreaInsets();
-
   if (!song) {
     return null;
   }
@@ -354,7 +381,6 @@ export const ListItemOptionsSheet = memo(function ListItemOptionsSheet({
       currentPlaylistId={currentPlaylistId}
       modalVisible={visible}
       handleCloseModal={onClose}
-      bottomInset={bottomInset}
     />
   );
 });
