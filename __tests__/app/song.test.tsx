@@ -19,7 +19,7 @@ jest.mock("@/components/common/BackButton", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/components/LikeButton", () => ({
+jest.mock("@/components/common/LikeButton", () => ({
   __esModule: true,
   default: () => null,
 }));

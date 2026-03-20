@@ -32,7 +32,6 @@ function usePlaybackActions({
   isPlaying,
   setTrackPlayerIsPlaying,
 }: PlaybackActionsParams) {
-  const onPlay = useOnPlay();
   const { updateCurrentSongAndState } = useAudioActions();
   const setStoreRepeatMode = useAudioStore((state) => state.setRepeatMode);
   const setStoreShuffle = useAudioStore((state) => state.setShuffle);
@@ -73,7 +72,6 @@ function usePlaybackActions({
 
           await updateQueueWithContext(songs, context, songIndex);
           updateCurrentSongAndState(song);
-          await onPlay(song.id);
           return true;
         }
 
@@ -84,7 +82,6 @@ function usePlaybackActions({
       currentSong,
       isPlaying,
       updateQueueWithContext,
-      onPlay,
       songs,
       updateCurrentSongAndState,
       contextType,
@@ -192,10 +189,12 @@ export function useAudioPlayer(
   const repeatMode = useAudioStore((state) => state.repeatMode);
   const shuffle = useAudioStore((state) => state.shuffle);
   const setCurrentSong = useAudioStore((state) => state.setCurrentSong);
+  const onPlay = useOnPlay();
 
   const isMounted = useRef(true);
   const activeTrack = useActiveTrack();
   const playbackState = usePlaybackState();
+  const initialActiveTrackIdRef = useRef<string | null>(activeTrack?.id ?? null);
 
   // isPlayingの値をメモ化して不要な再計算を防止
   const isPlaying = useMemo(
@@ -256,6 +255,10 @@ export function useAudioPlayer(
 
     if (!song) return;
 
+    const shouldSkipPlayCount =
+      lastProcessedTrackIdRef.current === null &&
+      initialActiveTrackIdRef.current === activeTrack.id;
+
     // 処理済みトラックIDを記録
     lastProcessedTrackIdRef.current = activeTrack.id;
 
@@ -267,7 +270,11 @@ export function useAudioPlayer(
       lastProcessedTrackId: song.id,
       currentSongId: song.id,
     }));
-  }, [activeTrack, songMap, setCurrentSong, updateQueueState]);
+
+    if (!shouldSkipPlayCount) {
+      void onPlay(song.id);
+    }
+  }, [activeTrack, songMap, setCurrentSong, updateQueueState, onPlay]);
 
   // 返却値をメモ化して不要な再計算を防止
   const returnValues = useMemo(

@@ -49,7 +49,7 @@ jest.mock("@react-native-community/slider", () => "Slider");
 
 jest.mock("@/components/player/NextSong", () => "NextSong");
 jest.mock("@/components/player/lyric", () => "Lyric");
-jest.mock("@/components/LikeButton", () => ({
+jest.mock("@/components/common/LikeButton", () => ({
   __esModule: true,
   default: "LikeButton",
 }));

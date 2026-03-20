@@ -1,7 +1,37 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { eq, sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import usePlayHistory from "@/hooks/audio/usePlayHistory";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
+import { db } from "@/lib/db/client";
+import { songs } from "@/lib/db/schema";
+import { CACHED_QUERIES } from "@/constants";
+import { withSupabaseRetry } from "@/lib/utils/retry";
+
+const PLAYBACK_QUERY_KEYS = [
+  [CACHED_QUERIES.songs],
+  [CACHED_QUERIES.song],
+  [CACHED_QUERIES.songsByGenre],
+  [CACHED_QUERIES.playlistSongs],
+  [CACHED_QUERIES.trendsSongs],
+  [CACHED_QUERIES.topPlayedSongs],
+  [CACHED_QUERIES.getRecommendations],
+] as const;
+
+async function updateLocalPlayStats(songId: string) {
+  try {
+    await db
+      .update(songs)
+      .set({
+        playCount: sql`${songs.playCount} + 1`,
+        lastPlayedAt: new Date(),
+      })
+      .where(eq(songs.id, songId));
+  } catch (error) {
+    console.error("[Play] local play_count update failed:", error);
+  }
+}
 
 /**
  * 曲の再生回数を更新するカスタムフック
@@ -11,6 +41,7 @@ import { useStableCallback } from "@/hooks/common/useStableCallback";
 const useOnPlay = () => {
   const { isOnline } = useNetworkStatus();
   const playHistory = usePlayHistory();
+  const queryClient = useQueryClient();
 
   // 再生回数を更新する関数
   const onPlay = useStableCallback(
@@ -26,10 +57,9 @@ const useOnPlay = () => {
       }
 
       try {
-        // 改善: 1回のRPC呼び出しでアトミックにカウントアップ
-        const { error: rpcError } = await supabase.rpc(
-          "increment_song_play_count",
-          { song_id: id }
+        // Supabase 側の再生回数をアトミックに更新
+        const { error: rpcError } = await withSupabaseRetry(() =>
+          supabase.rpc("increment_song_play_count", { song_id: id }),
         );
 
         if (rpcError) {
@@ -37,8 +67,18 @@ const useOnPlay = () => {
           return false;
         }
 
-        // 再生履歴に追加
-        await playHistory.recordPlay(id);
+        // ローカルSQLiteと再生履歴を更新
+        await Promise.allSettled([
+          updateLocalPlayStats(id),
+          playHistory.recordPlay(id),
+        ]);
+
+        // 反映中のローカル/リモート query を更新
+        await Promise.allSettled(
+          PLAYBACK_QUERY_KEYS.map((queryKey) =>
+            queryClient.invalidateQueries({ queryKey }),
+          ),
+        );
 
         return true;
       } catch (error) {

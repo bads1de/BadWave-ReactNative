@@ -4,7 +4,7 @@ import OnRepeatPlayerControls from "@/components/onRepeat/player/OnRepeatPlayerC
 import Song from "@/types";
 
 // LikeButton をモック
-jest.mock("@/components/LikeButton", () => {
+jest.mock("@/components/common/LikeButton", () => {
   const { View } = require("react-native");
   return () => <View testID="like-button-mock" />;
 });
