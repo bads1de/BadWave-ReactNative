@@ -1,4 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db/client";
+import { playlists } from "@/lib/db/schema";
 
 /**
  * @fileoverview プレイリスト作成モジュール
@@ -26,15 +28,28 @@ const createPlaylist = async (title: string): Promise<void> => {
     throw new Error("User not authenticated");
   }
 
-  const { error } = await supabase.from("playlists").insert({
-    user_id: session?.user.id,
-    title: title.trim(),
-  });
+  const { data, error } = await supabase
+    .from("playlists")
+    .insert({
+      user_id: session?.user.id,
+      title: title.trim(),
+    })
+    .select()
+    .single();
 
   if (error) {
     console.error(error.message);
     throw new Error(error.message);
   }
+
+  await db.insert(playlists).values({
+    id: data.id,
+    userId: session.user.id,
+    title: data.title,
+    imagePath: data.image_path,
+    isPublic: data.is_public ?? false,
+    createdAt: data.created_at,
+  });
 };
 
 export default createPlaylist;

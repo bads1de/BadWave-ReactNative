@@ -31,11 +31,6 @@ import {
 
 import { useAuth } from "@/providers/AuthProvider";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import deletePlaylist from "@/actions/playlist/deletePlaylist";
-import renamePlaylist from "@/actions/playlist/renamePlaylist";
-import togglePublicPlaylist from "@/actions/playlist/togglePublicPlaylist";
-import { CACHED_QUERIES } from "@/constants";
 import { FONTS } from "@/constants/theme";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import Toast from "react-native-toast-message";
@@ -43,6 +38,7 @@ import { useRouter } from "expo-router";
 import CustomAlertDialog from "@/components/common/CustomAlertDialog";
 import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "@/components/download/BulkDownloadModal";
+import { useMutatePlaylist } from "@/hooks/mutations/useMutatePlaylist";
 import Song from "@/types";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -67,10 +63,10 @@ export default function PlaylistOptionsMenu({
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [newTitle, setNewTitle] = useState(currentTitle || "");
   const { session } = useAuth();
-  const queryClient = useQueryClient();
   const router = useRouter();
   const { isOnline } = useNetworkStatus();
   const colors = useThemeStore((state) => state.colors);
+  const { togglePublic, remove, rename } = useMutatePlaylist(session?.user.id);
 
   const isOwner = session?.user.id === userId;
 
@@ -131,68 +127,24 @@ export default function PlaylistOptionsMenu({
     );
   };
 
-  const { mutate: togglePublicMutation } = useMutation({
-    mutationFn: (newPublicState: boolean) =>
-      togglePublicPlaylist(playlistId, session?.user.id!, newPublicState),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlistById, playlistId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.getPublicPlaylists],
-      });
-      Toast.show({
-        type: "success",
-        text1: isPublic ? "Playlist is now private" : "Playlist is now public",
-      });
-      handleCloseMenu();
-    },
-    onError: (err: Error) => {
-      Toast.show({ type: "error", text1: "Error", text2: err.message });
-    },
-  });
-
-  const { mutate: deleteMutation } = useMutation({
-    mutationFn: () => deletePlaylist(playlistId, session?.user.id!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
-      if (isPublic) {
-        queryClient.invalidateQueries({
-          queryKey: [CACHED_QUERIES.getPublicPlaylists],
-        });
-      }
-      Toast.show({ type: "success", text1: "Playlist deleted" });
-      router.push({ pathname: "/library" });
-    },
-    onError: (err: Error) => {
-      Toast.show({ type: "error", text1: "Error", text2: err.message });
-    },
-  });
-
-  const { mutate: renameMutation } = useMutation({
-    mutationFn: () => renamePlaylist(playlistId, newTitle, session?.user.id!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlistById, playlistId],
-      });
-      Toast.show({ type: "success", text1: "Playlist renamed" });
-      setShowRenameModal(false);
-      handleCloseMenu();
-    },
-    onError: (err: Error) => {
-      Toast.show({ type: "error", text1: "Error", text2: err.message });
-    },
-  });
-
   const handleDeleteConfirm = () => {
     if (!isOnline) {
       showOfflineAlert();
       return;
     }
     setShowDeleteDialog(false);
-    deleteMutation();
+    remove.mutate(
+      { playlistId },
+      {
+        onSuccess: () => {
+          Toast.show({ type: "success", text1: "Playlist deleted" });
+          router.push({ pathname: "/library" });
+        },
+        onError: (err: Error) => {
+          Toast.show({ type: "error", text1: "Error", text2: err.message });
+        },
+      },
+    );
   };
 
   const handleRename = () => {
@@ -202,7 +154,19 @@ export default function PlaylistOptionsMenu({
       return;
     }
     if (newTitle.trim()) {
-      renameMutation();
+      rename.mutate(
+        { playlistId, title: newTitle },
+        {
+          onSuccess: () => {
+            Toast.show({ type: "success", text1: "Playlist renamed" });
+            setShowRenameModal(false);
+            handleCloseMenu();
+          },
+          onError: (err: Error) => {
+            Toast.show({ type: "error", text1: "Error", text2: err.message });
+          },
+        },
+      );
     }
   };
 
@@ -211,7 +175,21 @@ export default function PlaylistOptionsMenu({
       showOfflineAlert();
       return;
     }
-    togglePublicMutation(!isPublic);
+    togglePublic.mutate(
+      { playlistId, isPublic: !isPublic },
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: isPublic ? "Playlist is now private" : "Playlist is now public",
+          });
+          handleCloseMenu();
+        },
+        onError: (err: Error) => {
+          Toast.show({ type: "error", text1: "Error", text2: err.message });
+        },
+      },
+    );
   };
 
   const handleBulkDownload = () => {

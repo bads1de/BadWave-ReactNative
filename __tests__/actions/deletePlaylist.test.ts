@@ -3,13 +3,33 @@ import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
 jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
+jest.mock("@/lib/db/client", () => ({
+  db: {
+    delete: jest.fn(),
+  },
+}));
+jest.mock("@/lib/db/schema", () => ({
+  playlists: {
+    id: "id",
+  },
+  playlistSongs: {
+    playlistId: "playlistId",
+  },
+}));
+jest.mock("drizzle-orm", () => ({
+  eq: jest.fn((field, value) => ({ field, value })),
+}));
 
 // モックのエイリアス
 const { mockFrom, mockDelete, mockEq } = mockFunctions;
+const { db } = require("@/lib/db/client");
+const mockWhere = jest.fn();
 
 // テスト前にモックを設定
 beforeEach(() => {
   jest.clearAllMocks();
+  db.delete.mockReturnValue({ where: mockWhere });
+  mockWhere.mockResolvedValue(undefined);
 });
 
 describe("deletePlaylist", () => {
@@ -34,6 +54,8 @@ describe("deletePlaylist", () => {
     expect(mockEq).toHaveBeenCalledWith("playlist_id", playlistId);
     expect(mockFrom).toHaveBeenCalledWith("playlists");
     expect(mockEq).toHaveBeenCalledWith("id", playlistId);
+    expect(db.delete).toHaveBeenCalledTimes(2);
+    expect(mockWhere).toHaveBeenCalledTimes(2);
   });
 
   it("playlist_songs削除でエラーが発生した場合", async () => {
@@ -52,6 +74,7 @@ describe("deletePlaylist", () => {
     await expect(deletePlaylist(playlistId, userId)).rejects.toThrow(
       "Delete song error"
     );
+    expect(db.delete).not.toHaveBeenCalled();
   });
 
   it("playlists削除でエラーが発生した場合", async () => {
@@ -80,6 +103,7 @@ describe("deletePlaylist", () => {
     await expect(deletePlaylist(playlistId, userId)).rejects.toThrow(
       "Delete playlist error"
     );
+    expect(db.delete).not.toHaveBeenCalled();
   });
 });
 

@@ -3,7 +3,8 @@ import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CreatePlaylist from "@/components/playlist/CreatePlaylist";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
-import createPlaylist from "@/actions/playlist/createPlaylist";
+import { useCreatePlaylist } from "@/hooks/mutations/useCreatePlaylist";
+import { useAuth } from "@/providers/AuthProvider";
 import Toast from "react-native-toast-message";
 import { Alert } from "react-native";
 
@@ -11,7 +12,12 @@ import { Alert } from "react-native";
 jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
-jest.mock("@/actions/playlist/createPlaylist", () => jest.fn());
+jest.mock("@/hooks/mutations/useCreatePlaylist", () => ({
+  useCreatePlaylist: jest.fn(),
+}));
+jest.mock("@/providers/AuthProvider", () => ({
+  useAuth: jest.fn(),
+}));
 jest.mock("react-native-toast-message", () => ({
   show: jest.fn(),
 }));
@@ -34,7 +40,9 @@ jest.mock("@/hooks/stores/useThemeStore", () => ({
 }));
 
 const mockUseNetworkStatus = useNetworkStatus as jest.Mock;
-const mockCreatePlaylist = createPlaylist as jest.Mock;
+const mockUseCreatePlaylist = useCreatePlaylist as jest.Mock;
+const mockUseAuth = useAuth as jest.Mock;
+const mockMutate = jest.fn();
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -52,11 +60,15 @@ describe("CreatePlaylist Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseNetworkStatus.mockReturnValue({ isOnline: true });
+    mockUseAuth.mockReturnValue({ session: { user: { id: "u1" } } });
+    mockUseCreatePlaylist.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+      error: null,
+    });
   });
 
   it("正常系: モーダルを開いて名前を入力し、プレイリストを作成できる", async () => {
-    mockCreatePlaylist.mockResolvedValue({ id: "p1" });
-
     const { getByTestId, getByPlaceholderText } = render(<CreatePlaylist />, {
       wrapper: createWrapper(),
     });
@@ -74,12 +86,21 @@ describe("CreatePlaylist Component", () => {
     fireEvent.press(getByTestId("create-button"));
 
     await waitFor(() => {
-      // react-query pass extra args to mutationFn
-      expect(mockCreatePlaylist.mock.calls[0][0]).toBe("New Cool Playlist");
-      expect(Toast.show).toHaveBeenCalledWith(
-        expect.objectContaining({ type: "success" }),
+      expect(mockMutate).toHaveBeenCalledWith(
+        { title: "New Cool Playlist" },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+          onError: expect.any(Function),
+        }),
       );
     });
+
+    const mutationOptions = mockMutate.mock.calls[0][1];
+    mutationOptions.onSuccess();
+
+    expect(Toast.show).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "success" }),
+    );
   });
 
   it("空の名前で作成しようとするとエラーのトーストが表示される", () => {
@@ -96,7 +117,7 @@ describe("CreatePlaylist Component", () => {
         text1: "プレイリスト名を入力してください",
       }),
     );
-    expect(mockCreatePlaylist).not.toHaveBeenCalled();
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it("オフライン時にボタンを押すとアラートが表示される", () => {

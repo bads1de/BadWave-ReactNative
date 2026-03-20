@@ -1,4 +1,7 @@
 import { supabase } from "@/lib/supabase";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import { playlists } from "@/lib/db/schema";
 
 /**
  * プレイリストの名前を変更する
@@ -32,6 +35,11 @@ const renamePlaylist = async (
     console.error("プレイリストの更新中にエラーが発生しました:", error);
     throw new Error(error.message);
   }
+
+  await db
+    .update(playlists)
+    .set({ title: newTitle.trim() })
+    .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
 };
 
 export default renamePlaylist;

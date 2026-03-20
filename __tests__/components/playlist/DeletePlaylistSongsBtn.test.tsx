@@ -2,6 +2,8 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DeletePlaylistSongsBtn from "@/components/playlist/DeletePlaylistSongsBtn";
+import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
+import { useAuth } from "@/providers/AuthProvider";
 
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
@@ -13,17 +15,20 @@ jest.mock("react-native-toast-message", () => ({
     show: jest.fn(),
   },
 }));
-
-jest.mock("@/actions/playlist/deletePlaylistSong", () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock("@/hooks/mutations/useMutatePlaylistSong", () => ({
+  useMutatePlaylistSong: jest.fn(),
+}));
+jest.mock("@/providers/AuthProvider", () => ({
+  useAuth: jest.fn(),
+}));
+jest.mock("@/hooks/common/useNetworkStatus", () => ({
+  useNetworkStatus: jest.fn(() => ({ isOnline: true })),
 }));
 
 const Toast = require("react-native-toast-message").default;
+const mockMutate = jest.fn();
 
 describe("DeletePlaylistSongsBtn", () => {
-  const deletePlaylistSong = require("@/actions/playlist/deletePlaylistSong").default;
-
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -34,7 +39,10 @@ describe("DeletePlaylistSongsBtn", () => {
       },
     });
     jest.clearAllMocks();
-    deletePlaylistSong.mockResolvedValue(undefined);
+    (useAuth as jest.Mock).mockReturnValue({ session: { user: { id: "u1" } } });
+    (useMutatePlaylistSong as jest.Mock).mockReturnValue({
+      removeSong: { mutate: mockMutate },
+    });
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -68,10 +76,12 @@ describe("DeletePlaylistSongsBtn", () => {
     fireEvent.press(button);
 
     await waitFor(() => {
-      expect(deletePlaylistSong).toHaveBeenCalledWith(
-        "playlist1",
-        "song1",
-        "regular"
+      expect(mockMutate).toHaveBeenCalledWith(
+        { playlistId: "playlist1", songId: "song1" },
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+          onError: expect.any(Function),
+        }),
       );
     });
   });
@@ -88,6 +98,9 @@ describe("DeletePlaylistSongsBtn", () => {
 
     fireEvent.press(getByTestId("delete-playlist-song-button"));
 
+    const mutationOptions = mockMutate.mock.calls[0][1];
+    mutationOptions.onSuccess();
+
     await waitFor(() => {
       expect(Toast.show).toHaveBeenCalledWith({
         type: "success",
@@ -97,11 +110,6 @@ describe("DeletePlaylistSongsBtn", () => {
   });
 
   it("disables button while deleting", async () => {
-    // 遅延をシミュレート
-    deletePlaylistSong.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 100))
-    );
-
     const { getByTestId } = render(
       <DeletePlaylistSongsBtn
         songId="song1"
@@ -123,8 +131,10 @@ describe("DeletePlaylistSongsBtn", () => {
       ).toBeTruthy();
     });
 
-    // 処理完了を待つ
-    await waitFor(() => expect(deletePlaylistSong).toHaveBeenCalled());
+    const mutationOptions = mockMutate.mock.calls[0][1];
+    mutationOptions.onSuccess();
+
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
   });
 });
 

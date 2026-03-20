@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PlaylistOptionsMenu from "@/components/playlist/PlaylistOptionsMenu";
 import { useAuth } from "@/providers/AuthProvider";
+import { useMutatePlaylist } from "@/hooks/mutations/useMutatePlaylist";
 
 // Mock dependencies
 jest.mock("expo-haptics", () => ({
@@ -70,17 +71,8 @@ jest.mock("@/hooks/downloads/useBulkDownload", () => ({
 }));
 
 // action関数のモック
-jest.mock("@/actions/playlist/deletePlaylist", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-jest.mock("@/actions/playlist/renamePlaylist", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-jest.mock("@/actions/playlist/togglePublicPlaylist", () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock("@/hooks/mutations/useMutatePlaylist", () => ({
+  useMutatePlaylist: jest.fn(),
 }));
 
 // CustomAlertDialogのモック
@@ -123,10 +115,9 @@ jest.mock("@/components/common/CustomAlertDialog", () => {
 });
 
 const Toast = require("react-native-toast-message").default;
-const deletePlaylist = require("@/actions/playlist/deletePlaylist").default;
-const renamePlaylist = require("@/actions/playlist/renamePlaylist").default;
-const togglePublicPlaylist =
-  require("@/actions/playlist/togglePublicPlaylist").default;
+const mockTogglePublicMutate = jest.fn();
+const mockDeleteMutate = jest.fn();
+const mockRenameMutate = jest.fn();
 
 describe("PlaylistOptionsMenu", () => {
   let queryClient: QueryClient;
@@ -139,10 +130,12 @@ describe("PlaylistOptionsMenu", () => {
       },
     });
     jest.clearAllMocks();
-    deletePlaylist.mockResolvedValue(undefined);
-    renamePlaylist.mockResolvedValue(undefined);
-    togglePublicPlaylist.mockResolvedValue(undefined);
     mockPush.mockClear();
+    (useMutatePlaylist as jest.Mock).mockReturnValue({
+      togglePublic: { mutate: mockTogglePublicMutate },
+      remove: { mutate: mockDeleteMutate },
+      rename: { mutate: mockRenameMutate },
+    });
 
     // デフォルトのセッション設定
     (useAuth as jest.Mock).mockReturnValue({
@@ -281,10 +274,12 @@ describe("PlaylistOptionsMenu", () => {
       fireEvent.press(getByText("Update Name"));
 
       await waitFor(() => {
-        expect(renamePlaylist).toHaveBeenCalledWith(
-          "playlist1",
-          "New Playlist Name",
-          "user1",
+        expect(mockRenameMutate).toHaveBeenCalledWith(
+          { playlistId: "playlist1", title: "New Playlist Name" },
+          expect.objectContaining({
+            onSuccess: expect.any(Function),
+            onError: expect.any(Function),
+          }),
         );
       });
     });
@@ -324,8 +319,19 @@ describe("PlaylistOptionsMenu", () => {
       fireEvent.press(getByTestId("confirm-button"));
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith({ pathname: "/library" });
+        expect(mockDeleteMutate).toHaveBeenCalledWith(
+          { playlistId: "playlist1" },
+          expect.objectContaining({
+            onSuccess: expect.any(Function),
+            onError: expect.any(Function),
+          }),
+        );
       });
+
+      const mutationOptions = mockDeleteMutate.mock.calls[0][1];
+      mutationOptions.onSuccess();
+
+      expect(mockPush).toHaveBeenCalledWith({ pathname: "/library" });
     });
   });
 });

@@ -1,4 +1,7 @@
 import { supabase } from "@/lib/supabase";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import { playlistSongs } from "@/lib/db/schema";
 
 /**
  * プレイリストから曲を削除する
@@ -39,6 +42,15 @@ const deletePlaylistSong = async (
     console.error(error.message);
     throw new Error(error.message);
   }
+
+  await db
+    .delete(playlistSongs)
+    .where(
+      and(
+        eq(playlistSongs.playlistId, playlistId),
+        eq(playlistSongs.songId, songId)
+      )
+    );
 };
 
 export default deletePlaylistSong;

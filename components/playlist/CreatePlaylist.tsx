@@ -10,10 +10,9 @@ import {
   Dimensions,
   Pressable,
 } from "react-native";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CACHED_QUERIES } from "@/constants";
-import createPlaylist from "@/actions/playlist/createPlaylist";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { useAuth } from "@/providers/AuthProvider";
+import { useCreatePlaylist } from "@/hooks/mutations/useCreatePlaylist";
 import Toast from "react-native-toast-message";
 import { Plus, X, ListPlus } from "lucide-react-native";
 import Animated, {
@@ -34,7 +33,7 @@ interface CreatePlaylistProps {
 function CreatePlaylist({ children }: CreatePlaylistProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
-  const queryClient = useQueryClient();
+  const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
   const colors = useThemeStore((state) => state.colors);
 
@@ -63,30 +62,7 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
     opacity: opacity.value,
   }));
 
-  const {
-    mutate: create,
-    error,
-    isPending,
-  } = useMutation({
-    mutationFn: createPlaylist,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
-      handleCloseModal();
-      setPlaylistName("");
-
-      Toast.show({
-        type: "success",
-        text1: "プレイリストを作成しました",
-      });
-    },
-    onError: () => {
-      Toast.show({
-        type: "error",
-        text1: "通信エラーが発生しました",
-        text2: "しばらくしてから再試行してください",
-      });
-    },
-  });
+  const createPlaylist = useCreatePlaylist(session?.user?.id);
 
   const handleCreatePlaylist = () => {
     if (!playlistName.trim()) {
@@ -97,7 +73,26 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
       return;
     }
 
-    create(playlistName);
+    createPlaylist.mutate(
+      { title: playlistName },
+      {
+        onSuccess: () => {
+          handleCloseModal();
+          setPlaylistName("");
+          Toast.show({
+            type: "success",
+            text1: "プレイリストを作成しました",
+          });
+        },
+        onError: () => {
+          Toast.show({
+            type: "error",
+            text1: "通信エラーが発生しました",
+            text2: "しばらくしてから再試行してください",
+          });
+        },
+      },
+    );
   };
 
   const handleCloseModal = () => {
@@ -211,21 +206,23 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
                 testID="playlist-name-input"
                 selectionColor={colors.primary}
               />
-              {error && <Text style={styles.errorText}>{error.message}</Text>}
+              {createPlaylist.error && (
+                <Text style={styles.errorText}>{createPlaylist.error.message}</Text>
+              )}
             </View>
 
             <TouchableOpacity
               style={[
                 styles.submitButton,
                 { backgroundColor: colors.primary },
-                isPending && styles.submitButtonDisabled,
+                createPlaylist.isPending && styles.submitButtonDisabled,
               ]}
               onPress={handleCreatePlaylist}
-              disabled={isPending}
+              disabled={createPlaylist.isPending}
               testID="create-button"
             >
               <Text style={[styles.submitButtonText, { color: "#fff" }]}>
-                {isPending ? "Creating..." : "Create Playlist"}
+                {createPlaylist.isPending ? "Creating..." : "Create Playlist"}
               </Text>
             </TouchableOpacity>
           </Animated.View>

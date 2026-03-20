@@ -1,4 +1,7 @@
 import { supabase } from "@/lib/supabase";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import { playlists } from "@/lib/db/schema";
 
 /**
  * プレイリストの画像パスを更新する関数。
@@ -51,6 +54,11 @@ const updatePlaylistImage = async (
         );
         throw new Error(updateError.message); // エラーを上位の呼び出し元に伝播
       }
+
+      await db
+        .update(playlists)
+        .set({ imagePath: songImagePath })
+        .where(eq(playlists.id, playlistId));
       // 注: 更新が成功した場合は特に何もしない
     }
     // 注: 既に画像パスが設定されている場合は何もしない（最初に追加された曲の画像を維持）

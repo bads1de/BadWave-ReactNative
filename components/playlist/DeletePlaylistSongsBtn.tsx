@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import deletePlaylistSong from "@/actions/playlist/deletePlaylistSong";
-import { CACHED_QUERIES } from "@/constants";
 import Toast from "react-native-toast-message";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { useAuth } from "@/providers/AuthProvider";
+import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 
 interface DeletePlaylistSongsBtnProps {
   songId: string;
@@ -18,32 +17,10 @@ const DeletePlaylistSongsBtn: React.FC<DeletePlaylistSongsBtnProps> = ({
   playlistId,
   songType = "regular",
 }) => {
-  const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
   const { isOnline } = useNetworkStatus();
-
-  const { mutate: deleteSong } = useMutation({
-    mutationFn: () => deletePlaylistSong(playlistId, songId, songType),
-    onSuccess: () => {
-      setIsDeleting(false);
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlistSongs, playlistId],
-      });
-
-      Toast.show({
-        type: "success",
-        text1: "曲を削除しました",
-      });
-    },
-    onError: (error: any) => {
-      setIsDeleting(false);
-      Toast.show({
-        type: "error",
-        text1: "エラーが発生しました",
-        text2: error.message,
-      });
-    },
-  });
+  const { session } = useAuth();
+  const { removeSong } = useMutatePlaylistSong(session?.user?.id);
 
   const handleDelete = () => {
     if (isDeleting) {
@@ -58,7 +35,26 @@ const DeletePlaylistSongsBtn: React.FC<DeletePlaylistSongsBtnProps> = ({
       return;
     }
     setIsDeleting(true);
-    deleteSong();
+    removeSong.mutate(
+      { playlistId, songId },
+      {
+        onSuccess: () => {
+          setIsDeleting(false);
+          Toast.show({
+            type: "success",
+            text1: "曲を削除しました",
+          });
+        },
+        onError: (error: Error) => {
+          setIsDeleting(false);
+          Toast.show({
+            type: "error",
+            text1: "エラーが発生しました",
+            text2: error.message,
+          });
+        },
+      },
+    );
   };
 
   const isDisabled = isDeleting || !isOnline;
