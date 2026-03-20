@@ -6,6 +6,7 @@ import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetPlaylistSongs } from "@/hooks/data/useGetPlaylistSongs";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { useCreatePlaylist } from "@/hooks/mutations/useCreatePlaylist";
+import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
 import { db } from "@/lib/db/client";
 import { supabase } from "@/lib/supabase";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
@@ -61,6 +62,7 @@ jest.mock("drizzle-orm", () => ({
 jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
+jest.mock("@/actions/playlist/addPlaylistSong", () => jest.fn());
 
 // テスト用ラッパー
 const createWrapper = () => {
@@ -158,12 +160,10 @@ describe("Playlist Hooks", () => {
 
   describe("useMutatePlaylistSong", () => {
     it("プレイリストに曲を追加できる", async () => {
-      const mockChain = {
-        insert: jest.fn().mockReturnValue(Promise.resolve({ error: null })),
-      };
-      (supabase.from as jest.Mock).mockReturnValue(mockChain);
-      (db.insert as jest.Mock).mockReturnThis();
-      (db.values as jest.Mock).mockReturnValue(Promise.resolve({}));
+      (addPlaylistSong as jest.Mock).mockResolvedValue({
+        playlistId: "p1",
+        songData: null,
+      });
 
       // useMutatePlaylistSong should be called with a userId for the mutations to work
       const { result } = renderHook(() => useMutatePlaylistSong("u1"), {
@@ -177,8 +177,11 @@ describe("Playlist Hooks", () => {
         });
       });
 
-      expect(db.insert).toHaveBeenCalled();
-      expect(mockChain.insert).toHaveBeenCalled();
+      expect(addPlaylistSong).toHaveBeenCalledWith({
+        playlistId: "p1",
+        songId: "s1",
+        userId: "u1",
+      });
     });
   });
 });

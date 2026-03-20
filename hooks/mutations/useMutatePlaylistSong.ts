@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
+import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
 import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
@@ -37,30 +38,8 @@ export function useMutatePlaylistSong(userId?: string) {
         throw new Error(PLAYLIST_ERRORS.EDIT_OFFLINE);
       }
 
-      // 1. Supabase に追加（先に実行、リトライ付き）
-      const result = await withSupabaseRetry(async () => {
-        return await supabase.from("playlist_songs").insert({
-          playlist_id: playlistId,
-          user_id: userId,
-          song_id: songId,
-          song_type: "regular",
-        });
-      });
-
-      if (result.error) {
-        throw new Error(
-          `${PLAYLIST_ERRORS.SUPABASE_INSERT_FAILED}: ${result.error.message}`
-        );
-      }
-
-      // 2. ローカルDBに追加（Supabase成功後）
-      const newId = `${playlistId}_${songId}_${Date.now()}`;
-      await db.insert(playlistSongs).values({
-        id: newId,
-        playlistId,
-        songId,
-        addedAt: new Date().toISOString(),
-      });
+      // 追加処理は action に一本化し、Supabase / SQLite / 画像更新を揃える
+      await addPlaylistSong({ playlistId, userId, songId });
 
       return { songId, playlistId };
     },
@@ -99,6 +78,9 @@ export function useMutatePlaylistSong(userId?: string) {
       });
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlists],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlistStatus, variables.songId],
       });
     },
     onError: (error, variables, context) => {
@@ -188,6 +170,9 @@ export function useMutatePlaylistSong(userId?: string) {
       });
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlists],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [CACHED_QUERIES.playlistStatus, variables.songId],
       });
     },
     onError: (error, variables, context) => {

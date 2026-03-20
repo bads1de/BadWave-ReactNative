@@ -1,4 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db/client";
+import { playlistSongs } from "@/lib/db/schema";
 import getSongById from "@/actions/song/getSongById";
 import updatePlaylistImage from "@/actions/playlist/updatePlaylistImage";
 
@@ -45,6 +47,14 @@ const addPlaylistSong = async ({
     console.error(error.message);
     throw new Error(error.message);
   }
+
+  // ローカルファーストの表示に使う SQLite にも即時反映する
+  await db.insert(playlistSongs).values({
+    id: `${playlistId}_${songId}_${Date.now()}`,
+    playlistId,
+    songId,
+    addedAt: new Date().toISOString(),
+  });
 
   // 追加した曲の詳細情報を取得
   const songData = await getSongById(songId);

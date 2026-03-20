@@ -3,8 +3,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { CACHED_QUERIES } from "@/constants";
+import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
 
 // モック
+jest.mock("@/actions/playlist/addPlaylistSong", () => jest.fn());
 jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: jest.fn(),
@@ -36,6 +38,7 @@ jest.mock("@/lib/utils/retry", () => ({
 const { db } = require("@/lib/db/client");
 const { useNetworkStatus } = require("@/hooks/common/useNetworkStatus");
 const { withSupabaseRetry } = require("@/lib/utils/retry");
+const mockAddPlaylistSong = addPlaylistSong as jest.Mock;
 
 describe("useMutatePlaylistSong - Optimistic Update", () => {
   let queryClient: QueryClient;
@@ -70,14 +73,9 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
       );
 
       // Supabaseモック
-      withSupabaseRetry.mockImplementation(async (_fn: () => Promise<any>) => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        return { data: null, error: null };
-      });
-
-      db.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue(undefined),
-      });
+      mockAddPlaylistSong.mockImplementation(
+        async () => await new Promise((resolve) => setTimeout(resolve, 100)),
+      );
 
       const { result } = renderHook(() => useMutatePlaylistSong("user-1"), {
         wrapper: createWrapper(),
@@ -110,9 +108,7 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
       );
 
       // Supabaseモック（エラー）
-      withSupabaseRetry.mockImplementation(async () => {
-        return { data: null, error: { message: "Error" } };
-      });
+      mockAddPlaylistSong.mockRejectedValue(new Error("Error"));
 
       const { result } = renderHook(() => useMutatePlaylistSong("user-1"), {
         wrapper: createWrapper(),

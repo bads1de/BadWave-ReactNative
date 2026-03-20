@@ -6,6 +6,14 @@ import { mockFunctions } from "@/__mocks__/supabase";
 
 // supabaseのモックを設定
 jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
+jest.mock("@/lib/db/client", () => ({
+  db: {
+    insert: jest.fn(),
+  },
+}));
+jest.mock("@/lib/db/schema", () => ({
+  playlistSongs: "playlist_songs",
+}));
 
 // モックの設定
 jest.mock("@/actions/song/getSongById");
@@ -13,6 +21,8 @@ jest.mock("@/actions/playlist/updatePlaylistImage");
 
 // モックのエイリアス
 const { mockFrom, mockInsert } = mockFunctions;
+const { db } = require("@/lib/db/client");
+const mockLocalInsert = jest.fn();
 
 // モックの設定
 mockInsert.mockResolvedValue({ data: null, error: null });
@@ -21,6 +31,8 @@ mockFrom.mockReturnValue({ insert: mockInsert });
 // テスト前にモックを設定
 beforeEach(() => {
   jest.clearAllMocks();
+  db.insert.mockReturnValue({ values: mockLocalInsert });
+  mockLocalInsert.mockResolvedValue(undefined);
   (getSongById as jest.Mock).mockImplementation(async () => ({
     id: "s1",
     title: "Song1",
@@ -46,6 +58,13 @@ describe("addPlaylistSong", () => {
       song_id: songId,
       song_type: "regular",
     });
+    expect(db.insert).toHaveBeenCalledWith("playlist_songs");
+    expect(mockLocalInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playlistId,
+        songId,
+      }),
+    );
     expect(getSongById).toHaveBeenCalledWith(songId);
     expect(updatePlaylistImage).toHaveBeenCalled();
   });

@@ -20,13 +20,11 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import Toast from "react-native-toast-message";
 import { Plus, Check, X, ListPlus } from "lucide-react-native";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { CACHED_QUERIES } from "@/constants";
-import { PlaylistSong, Playlist } from "@/types";
-import getPlaylists from "@/actions/playlist/getPlaylists";
-import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
+import { Playlist } from "@/types";
 import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
+import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "@/constants/theme";
 
@@ -45,7 +43,6 @@ function AddPlaylist({
   children,
   currentPlaylistId,
 }: AddPlaylistProps) {
-  const queryClient = useQueryClient();
   const colors = useThemeStore((state) => state.colors);
   const { session } = useAuth();
   const { isOnline } = useNetworkStatus();
@@ -149,14 +146,14 @@ function AddPlaylistModal({
   translateY,
   opacity,
 }: any) {
-  const queryClient = useQueryClient();
   const colors = useThemeStore((state) => state.colors);
   const { session } = useAuth();
+  const [optimisticPlaylistIds, setOptimisticPlaylistIds] = useState<string[]>(
+    [],
+  );
 
-  const { data: playlists = DEFAULT_PLAYLISTS } = useQuery({
-    queryKey: [CACHED_QUERIES.playlists],
-    queryFn: getPlaylists,
-  });
+  const { playlists = DEFAULT_PLAYLISTS } = useGetPlaylists(session?.user.id);
+  const { addSong } = useMutatePlaylistSong(session?.user.id);
 
   const { data: playlistStatus = {}, refetch: fetchAddedStatus } =
     usePlaylistStatus({
@@ -169,91 +166,17 @@ function AddPlaylistModal({
     fetchAddedStatus();
   }, [fetchAddedStatus]);
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (playlistId: string) => {
-      if (!session?.user.id) throw new Error("未認証ユーザー");
-
-      return addPlaylistSong({ playlistId, userId: session.user.id, songId });
-    },
-    onMutate: async (playlistId) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: [CACHED_QUERIES.playlistSongs],
-      });
-      await queryClient.cancelQueries({
-        queryKey: [CACHED_QUERIES.playlistStatus, songId],
-      });
-
-      // Snapshot the previous values
-      const previousPlaylistSongs = queryClient.getQueryData<PlaylistSong[]>([
-        CACHED_QUERIES.playlistSongs,
-      ]);
-      const previousStatus = queryClient.getQueryData<string[]>([
-        CACHED_QUERIES.playlistStatus,
-        songId,
-      ]);
-
-      // Optimistically update playlistSongs
-      queryClient.setQueryData(
-        [CACHED_QUERIES.playlistSongs],
-        (old: PlaylistSong[] = []) => [
-          ...old,
-          {
-            playlist_id: playlistId,
-            song_id: songId,
-            user_id: session?.user.id,
-            created_at: new Date().toISOString(),
-            song_type: "regular",
-          },
-        ],
-      );
-
-      // Optimistically update playlistStatus (Cache is string[])
-      queryClient.setQueryData(
-        [CACHED_QUERIES.playlistStatus, songId],
-        (old: string[] = []) => [...old, playlistId],
-      );
-
-      return { previousPlaylistSongs, previousStatus };
-    },
-    onError: (error, playlistId, context) => {
-      // Rollback
-      queryClient.setQueryData(
-        [CACHED_QUERIES.playlistSongs],
-        context?.previousPlaylistSongs,
-      );
-      queryClient.setQueryData(
-        [CACHED_QUERIES.playlistStatus, songId],
-        context?.previousStatus,
-      );
-
-      Toast.show({
-        type: "error",
-        text1: "エラーが発生しました",
-        text2: error.message,
-      });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlistSongs],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlists],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.playlistStatus, songId],
-      });
-    },
-  });
-
   // UI表示用に現在のプレイリストの状態を合成したものを取得
   const displayStatus = useMemo(() => {
     const status = { ...playlistStatus };
     if (currentPlaylistId) {
       status[currentPlaylistId] = true;
     }
+    optimisticPlaylistIds.forEach((playlistId: string) => {
+      status[playlistId] = true;
+    });
     return status;
-  }, [playlistStatus, currentPlaylistId]);
+  }, [playlistStatus, currentPlaylistId, optimisticPlaylistIds]);
 
   const handleAddToPlaylist = useCallback(
     (playlistId: string) => {
@@ -276,9 +199,33 @@ function AddPlaylistModal({
         return;
       }
 
-      mutate(playlistId);
+      setOptimisticPlaylistIds((prev) =>
+        prev.includes(playlistId) ? prev : [...prev, playlistId],
+      );
+
+      addSong.mutate(
+        { songId, playlistId },
+        {
+          onError: (error) => {
+            setOptimisticPlaylistIds((prev) =>
+              prev.filter((id) => id !== playlistId),
+            );
+            Toast.show({
+              type: "error",
+              text1: "エラーが発生しました",
+              text2:
+                error instanceof Error
+                  ? error.message
+                  : "曲の追加に失敗しました",
+            });
+          },
+          onSettled: () => {
+            fetchAddedStatus();
+          },
+        },
+      );
     },
-    [session, mutate, displayStatus],
+    [session, addSong, displayStatus, songId, fetchAddedStatus],
   );
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -358,7 +305,7 @@ function AddPlaylistModal({
                     },
                   ]}
                   onPress={() => handleAddToPlaylist(playlist.id)}
-                  disabled={isPending || displayStatus[playlist.id]}
+                  disabled={addSong.isPending || displayStatus[playlist.id]}
                   activeOpacity={0.7}
                   testID="playlist-item"
                 >

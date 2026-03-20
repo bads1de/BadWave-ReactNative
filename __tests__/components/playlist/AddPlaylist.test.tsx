@@ -5,8 +5,8 @@ import AddPlaylist from "@/components/playlist/AddPlaylist";
 import { useAuth } from "@/providers/AuthProvider";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
-import getPlaylists from "@/actions/playlist/getPlaylists";
-import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
+import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
+import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { Alert } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -19,8 +19,12 @@ jest.mock("@/hooks/data/usePlaylistStatus", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-jest.mock("@/actions/playlist/getPlaylists", () => jest.fn());
-jest.mock("@/actions/playlist/addPlaylistSong", () => jest.fn());
+jest.mock("@/hooks/data/useGetPlaylists", () => ({
+  useGetPlaylists: jest.fn(),
+}));
+jest.mock("@/hooks/mutations/useMutatePlaylistSong", () => ({
+  useMutatePlaylistSong: jest.fn(),
+}));
 jest.mock("react-native-toast-message", () => ({ show: jest.fn() }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("expo-linear-gradient", () => ({ LinearGradient: "LinearGradient" }));
@@ -52,8 +56,9 @@ jest.mock("@/hooks/stores/useThemeStore", () => ({
 const mockUseAuth = useAuth as jest.Mock;
 const mockUseNetworkStatus = useNetworkStatus as jest.Mock;
 const mockUsePlaylistStatus = usePlaylistStatus as jest.Mock;
-const mockGetPlaylists = getPlaylists as jest.Mock;
-const mockAddPlaylistSong = addPlaylistSong as jest.Mock;
+const mockUseGetPlaylists = useGetPlaylists as jest.Mock;
+const mockUseMutatePlaylistSong = useMutatePlaylistSong as jest.Mock;
+const mockMutate = jest.fn();
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -75,7 +80,10 @@ describe("AddPlaylist Component", () => {
     mockUseAuth.mockReturnValue({ session: { user: { id: "u1" } } });
     mockUseNetworkStatus.mockReturnValue({ isOnline: true });
     mockUsePlaylistStatus.mockReturnValue({ data: {}, refetch: jest.fn() });
-    mockGetPlaylists.mockResolvedValue(mockPlaylists);
+    mockUseGetPlaylists.mockReturnValue({ playlists: mockPlaylists });
+    mockUseMutatePlaylistSong.mockReturnValue({
+      addSong: { mutate: mockMutate, isPending: false },
+    });
   });
 
   it("ボタンを押すとモーダルが開き、プレイリスト一覧が表示される", async () => {
@@ -89,9 +97,7 @@ describe("AddPlaylist Component", () => {
     expect(await findByText("My Playlist")).toBeTruthy();
   });
 
-  it("プレイリストを選択すると addPlaylistSong が実行される", async () => {
-    mockAddPlaylistSong.mockResolvedValue({ success: true });
-
+  it("プレイリストを選択すると addSong が実行される", async () => {
     const { getByTestId, findByText } = render(<AddPlaylist songId="s1" />, {
       wrapper: createWrapper(),
     });
@@ -101,11 +107,14 @@ describe("AddPlaylist Component", () => {
     fireEvent.press(item);
 
     await waitFor(() => {
-      expect(mockAddPlaylistSong).toHaveBeenCalledWith(
-        expect.objectContaining({
+      expect(mockMutate).toHaveBeenCalledWith(
+        {
           playlistId: "p1",
           songId: "s1",
-          userId: "u1",
+        },
+        expect.objectContaining({
+          onError: expect.any(Function),
+          onSettled: expect.any(Function),
         }),
       );
     });
