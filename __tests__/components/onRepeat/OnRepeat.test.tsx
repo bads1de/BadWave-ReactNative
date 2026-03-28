@@ -116,6 +116,7 @@ describe("OnRepeat", () => {
         songs: [],
         currentIndex: 0,
         previewDuration: 15,
+        startPercentages: {},
         open: mockOpenOnRepeatPlayer,
         close: jest.fn(),
         setCurrentIndex: jest.fn(),

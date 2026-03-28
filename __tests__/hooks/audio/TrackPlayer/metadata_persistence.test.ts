@@ -7,7 +7,7 @@ import {
 
 // 既存のモック設定
 jest.mock("@/hooks/audio/TrackPlayer/utils", () => {
-  const originalModule = jest.requireActual("@/hooks/audio/TrackPlayer/utils");
+  const originalModule = jest.requireActual("@/hooks/audio/TrackPlayer/utils") as Record<string, unknown>;
   return {
     ...originalModule,
     getOfflineStorageService: jest.fn(),
@@ -26,7 +26,8 @@ describe("Metadata Persistence", () => {
   };
 
   beforeEach(() => {
-    (getOfflineStorageService as jest.Mock).mockReturnValue({
+    (getOfflineStorageService as unknown as jest.Mock).mockReturnValue({
+      // @ts-expect-error jest mock type limitation
       getSongLocalPath: jest.fn().mockResolvedValue(null),
     });
   });

@@ -1,12 +1,12 @@
 // lib/supabase.ts のモック
 
 // モックデータ
-const mockData = [];
+const mockData: unknown[] = [];
 const mockError = null;
 
 // モックチェーンを作成する関数
 const createQueryBuilder = () => {
-  const builder = {};
+  const builder = {} as Record<string, jest.Mock>;
 
   // 各メソッドをモック化
   builder.select = jest.fn().mockReturnValue(builder);

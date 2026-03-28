@@ -1,6 +1,6 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { renderHook, act } from "@testing-library/react";
-import TrackPlayer from "react-native-track-player";
+import TrackPlayer, { Track } from "react-native-track-player";
 import {
   usePlayerState,
   useQueueOperations,
@@ -12,6 +12,7 @@ import * as utils from "@/hooks/audio/TrackPlayer/utils";
 
 // TrackPlayerのモック
 jest.mock("react-native-track-player");
+const mockedTrackPlayer = TrackPlayer as jest.Mocked<typeof TrackPlayer>;
 
 // utilsのモック
 jest.mock("@/hooks/audio/TrackPlayer/utils", () => {
@@ -24,6 +25,7 @@ jest.mock("@/hooks/audio/TrackPlayer/utils", () => {
     getOfflineStorageService: jest.fn(),
   };
 });
+const mockedUtils = utils as jest.Mocked<typeof utils>;
 
 describe("TrackPlayer hooks", () => {
   // テスト用のモックデータ
@@ -77,25 +79,23 @@ describe("TrackPlayer hooks", () => {
     useQueueStore.getState().resetQueueState();
 
     // TrackPlayerのモックをリセット
-    (TrackPlayer.getQueue as jest.Mock).mockResolvedValue([]);
-    (TrackPlayer.getActiveTrack as jest.Mock).mockResolvedValue(null);
-    (TrackPlayer.reset as jest.Mock).mockResolvedValue(undefined);
-    (TrackPlayer.add as jest.Mock).mockResolvedValue(undefined);
-    (TrackPlayer.removeUpcomingTracks as jest.Mock).mockResolvedValue(
-      undefined
-    );
-    (TrackPlayer.skip as jest.Mock).mockResolvedValue(undefined);
-    (TrackPlayer.play as jest.Mock).mockResolvedValue(undefined);
+    mockedTrackPlayer.getQueue.mockResolvedValue([]);
+    mockedTrackPlayer.getActiveTrack.mockResolvedValue(undefined);
+    mockedTrackPlayer.reset.mockResolvedValue(undefined);
+    mockedTrackPlayer.add.mockResolvedValue(undefined);
+    mockedTrackPlayer.removeUpcomingTracks.mockResolvedValue(undefined);
+    mockedTrackPlayer.skip.mockResolvedValue(undefined);
+    mockedTrackPlayer.play.mockResolvedValue(undefined);
 
     // convertToTracksのモックをリセット
-    (utils.convertToTracks as jest.Mock).mockResolvedValue(mockTracks);
+    mockedUtils.convertToTracks.mockResolvedValue(mockTracks);
 
     // safeAsyncOperationのモックをリセット
-    (utils.safeAsyncOperation as jest.Mock).mockImplementation(
-      async (operation) => {
+    mockedUtils.safeAsyncOperation.mockImplementation(
+      async <T>(operation: () => Promise<T>): Promise<T | undefined> => {
         try {
           return await operation();
-        } catch (error) {
+        } catch {
           return undefined;
         }
       }
@@ -250,10 +250,10 @@ describe("TrackPlayer hooks", () => {
 
     describe("shuffleQueue", () => {
       beforeEach(() => {
-        (TrackPlayer.getActiveTrack as jest.Mock).mockResolvedValue(
+        mockedTrackPlayer.getActiveTrack.mockResolvedValue(
           mockTracks[0]
         );
-        (TrackPlayer.getQueue as jest.Mock).mockResolvedValue(mockTracks);
+        mockedTrackPlayer.getQueue.mockResolvedValue(mockTracks);
       });
 
       it("現在の曲を除いてキューをシャッフルする", async () => {
@@ -273,7 +273,7 @@ describe("TrackPlayer hooks", () => {
       });
 
       it("アクティブなトラックがない場合は失敗する", async () => {
-        (TrackPlayer.getActiveTrack as jest.Mock).mockResolvedValue(null);
+        mockedTrackPlayer.getActiveTrack.mockResolvedValue(undefined);
 
         const { result } = renderHook(() => useQueueOperations(setIsPlaying));
 
@@ -296,11 +296,11 @@ describe("TrackPlayer hooks", () => {
       });
 
       it("エラー時にisPlayingをfalseに設定する", async () => {
-        (TrackPlayer.getActiveTrack as jest.Mock).mockRejectedValue(
+        mockedTrackPlayer.getActiveTrack.mockRejectedValue(
           new Error("Test error")
         );
 
-        (utils.safeAsyncOperation as jest.Mock).mockImplementation(
+        mockedUtils.safeAsyncOperation.mockImplementation(
           async (operation: any, errorMessage: any, errorHandler: any) => {
             try {
               return await operation();
@@ -323,7 +323,7 @@ describe("TrackPlayer hooks", () => {
 
     describe("unshuffleQueue", () => {
       beforeEach(() => {
-        (TrackPlayer.getActiveTrack as jest.Mock).mockResolvedValue(
+        mockedTrackPlayer.getActiveTrack.mockResolvedValue(
           mockTracks[1]
         );
       });
@@ -361,7 +361,7 @@ describe("TrackPlayer hooks", () => {
       });
 
       it("現在の曲がoriginalQueueにない場合は失敗する", async () => {
-        (TrackPlayer.getActiveTrack as jest.Mock).mockResolvedValue({
+        mockedTrackPlayer.getActiveTrack.mockResolvedValue({
           id: "unknown-song",
           url: "test.mp3",
           title: "Unknown",
@@ -397,9 +397,9 @@ describe("TrackPlayer hooks", () => {
         });
 
         // TrackPlayer.addが呼ばれた引数を確認
-        const addCalls = (TrackPlayer.add as jest.Mock).mock.calls;
+        const addCalls = mockedTrackPlayer.add.mock.calls;
         if (addCalls.length > 0) {
-          const addedTracks = addCalls[addCalls.length - 1][0] as Track[];
+          const addedTracks = addCalls[addCalls.length - 1][0] as unknown as Track[];
           // song-1（インデックス1）より後の曲のみが追加される
           expect(addedTracks).toHaveLength(mockTracks.length - 2);
           expect(addedTracks[0].id).toBe(mockTracks[2].id);
@@ -409,10 +409,10 @@ describe("TrackPlayer hooks", () => {
 
     describe("toggleShuffle", () => {
       beforeEach(() => {
-        (TrackPlayer.getActiveTrack as jest.Mock).mockResolvedValue(
+        mockedTrackPlayer.getActiveTrack.mockResolvedValue(
           mockTracks[0]
         );
-        (TrackPlayer.getQueue as jest.Mock).mockResolvedValue(mockTracks);
+        mockedTrackPlayer.getQueue.mockResolvedValue(mockTracks);
       });
 
       it("シャッフルが無効な場合は有効にする", async () => {
@@ -502,7 +502,7 @@ describe("TrackPlayer hooks", () => {
 
     describe("addToQueue", () => {
       it("キューに曲を追加する", async () => {
-        (TrackPlayer.getQueue as jest.Mock).mockResolvedValue([
+        mockedTrackPlayer.getQueue.mockResolvedValue([
           ...mockTracks,
           mockTracks[0],
         ]);

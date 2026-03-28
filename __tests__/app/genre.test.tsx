@@ -56,7 +56,7 @@ describe("GenreSongsScreen", () => {
       currentSong: null,
     });
     const mockSetShowHeader = jest.fn();
-    useHeaderStore.mockImplementation((selector) => {
+    useHeaderStore.mockImplementation((selector: (state: { showHeader: boolean; setShowHeader: jest.Mock }) => unknown) => {
       const state = {
         showHeader: true,
         setShowHeader: mockSetShowHeader,

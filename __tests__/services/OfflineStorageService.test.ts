@@ -3,6 +3,9 @@ import * as FileSystem from "expo-file-system";
 import Song from "@/types";
 import { db } from "@/lib/db/client";
 
+// db mock を any として扱う
+const mockDb = db as any;
+
 // モックの設定
 jest.mock("expo-file-system", () => ({
   documentDirectory: "/mock/document/directory/",
@@ -63,7 +66,7 @@ describe("OfflineStorageService", () => {
     // 注意: mockReturnThis() はリセットされると消えるので、再度設定が必要かもしれないが、
     // jest.clearAllMocks() は mock.calls と mock.instances をクリアするだけで実装は保持されるはず。
     //念のため実装を確認
-    (db.then as jest.Mock).mockImplementation((callback) => {
+    ((db as any).then as jest.Mock).mockImplementation((callback: (value: unknown[]) => unknown) => {
       return Promise.resolve([]).then(callback);
     });
   });
@@ -111,8 +114,8 @@ describe("OfflineStorageService", () => {
       );
 
       // DB更新確認
-      expect(db.update).toHaveBeenCalled();
-      expect(db.set).toHaveBeenCalledWith(
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb.set).toHaveBeenCalledWith(
         expect.objectContaining({
           songPath: "/mock/document/directory/downloads/Test_Song.mp3",
           imagePath:
@@ -132,7 +135,7 @@ describe("OfflineStorageService", () => {
       expect(FileSystem.downloadAsync).not.toHaveBeenCalled();
 
       // DB更新は走る
-      expect(db.update).toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalled();
     });
 
     it("should handle download failure", async () => {
@@ -164,7 +167,7 @@ describe("OfflineStorageService", () => {
       // 1. getSongLocalPath -> [{ songPath: ... }]
       // 2. getImageLocalPath -> [{ imagePath: ... }]
       // 3. update -> []
-      (db.then as jest.Mock)
+      ((db as any).then as jest.Mock)
         .mockImplementationOnce((cb) =>
           Promise.resolve([
             { songPath: "/path/to/song.mp3", imagePath: "/path/to/image.jpg" },
@@ -185,8 +188,8 @@ describe("OfflineStorageService", () => {
       expect(FileSystem.deleteAsync).toHaveBeenCalledWith("/path/to/song.mp3");
 
       // DB更新確認 (songPath: null)
-      expect(db.update).toHaveBeenCalled();
-      expect(db.set).toHaveBeenCalledWith(
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb.set).toHaveBeenCalledWith(
         expect.objectContaining({
           songPath: null,
           imagePath: null,
@@ -196,7 +199,7 @@ describe("OfflineStorageService", () => {
 
     it("should handle case when song path not found in DB", async () => {
       // getSongLocalPath -> []
-      (db.then as jest.Mock).mockImplementation((cb) =>
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
         Promise.resolve([]).then(cb),
       );
 
@@ -206,7 +209,7 @@ describe("OfflineStorageService", () => {
       expect(FileSystem.deleteAsync).not.toHaveBeenCalled();
 
       // updateは走る
-      expect(db.update).toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalled();
     });
   });
 
@@ -222,7 +225,7 @@ describe("OfflineStorageService", () => {
         },
       ];
 
-      (db.then as jest.Mock).mockImplementation((cb) =>
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
         Promise.resolve(mockRows).then(cb),
       );
       (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
@@ -233,13 +236,13 @@ describe("OfflineStorageService", () => {
 
       expect(songs).toHaveLength(1);
       expect(songs[0].id).toBe("1");
-      expect(db.select).toHaveBeenCalled();
+      expect(mockDb.select).toHaveBeenCalled();
     });
   });
 
   describe("getSongLocalPath", () => {
     it("should return path from SQLite", async () => {
-      (db.then as jest.Mock).mockImplementation((cb) =>
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
         Promise.resolve([{ songPath: "/path/song.mp3" }]).then(cb),
       );
       (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
@@ -251,7 +254,7 @@ describe("OfflineStorageService", () => {
     });
 
     it("should return null if not in SQLite", async () => {
-      (db.then as jest.Mock).mockImplementation((cb) =>
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
         Promise.resolve([]).then(cb),
       );
 
@@ -279,7 +282,7 @@ describe("OfflineStorageService", () => {
         },
       ];
 
-      (db.then as jest.Mock).mockImplementation((cb) =>
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
         Promise.resolve(mockRows).then(cb),
       );
 
@@ -295,7 +298,7 @@ describe("OfflineStorageService", () => {
     });
 
     it("should return 0 when no songs are downloaded", async () => {
-      (db.then as jest.Mock).mockImplementation((cb) =>
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
         Promise.resolve([]).then(cb),
       );
 
@@ -314,7 +317,7 @@ describe("OfflineStorageService", () => {
         },
       ];
 
-      (db.then as jest.Mock).mockImplementation((cb) =>
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
         Promise.resolve(mockRows).then(cb),
       );
 

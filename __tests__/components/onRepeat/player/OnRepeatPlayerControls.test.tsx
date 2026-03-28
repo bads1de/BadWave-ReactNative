@@ -20,10 +20,12 @@ jest.mock("@/components/playlist/AddPlaylist", () => {
 describe("OnRepeatPlayerControls", () => {
   const mockSong: Song = {
     id: "1",
+    user_id: "user1",
     title: "Test Song",
     author: "Test Artist",
     image_path: "https://example.com/image.jpg",
     song_path: "https://example.com/song.mp3",
+    created_at: "2024-01-01",
   };
 
   describe("ボタンのレンダリング", () => {

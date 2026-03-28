@@ -58,7 +58,7 @@ const useOnPlay = () => {
 
       try {
         // Supabase 側の再生回数をアトミックに更新
-        const { error: rpcError } = await withSupabaseRetry(() =>
+        const { error: rpcError } = await withSupabaseRetry(async () =>
           supabase.rpc("increment_song_play_count", { song_id: id }),
         );
 

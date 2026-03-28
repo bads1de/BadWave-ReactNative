@@ -79,8 +79,8 @@ describe("Player", () => {
     author: "テストアーティスト",
     image_path: "https://example.com/image.jpg",
     song_path: "https://example.com/song.mp3",
-    video_path: null,
-    lyrics: null,
+    video_path: undefined,
+    lyrics: undefined,
     created_at: "2024-01-01",
   };
 

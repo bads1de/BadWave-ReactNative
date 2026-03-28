@@ -62,7 +62,7 @@ jest.mock("drizzle-orm", () => ({
 jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(),
 }));
-jest.mock("@/actions/playlist/addPlaylistSong", () => jest.fn());
+jest.mock("@/actions/playlist/addPlaylistSong", () => (jest.fn() as unknown as jest.Mock));
 
 // テスト用ラッパー
 const createWrapper = () => {
@@ -160,6 +160,7 @@ describe("Playlist Hooks", () => {
 
   describe("useMutatePlaylistSong", () => {
     it("プレイリストに曲を追加できる", async () => {
+      // @ts-expect-error jest mock type limitation
       (addPlaylistSong as jest.Mock).mockResolvedValue({
         playlistId: "p1",
         songData: null,

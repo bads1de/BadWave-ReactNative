@@ -116,7 +116,6 @@ export default function SongDetailScreen() {
         <View style={styles.topNav}>
           <BackButton
             onPress={() => router.back()}
-            blurIntensity={20}
             iconColor={COLORS.text}
           />
         </View>

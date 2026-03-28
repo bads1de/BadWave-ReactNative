@@ -18,7 +18,7 @@ describe("useDebounce", () => {
 
   it("遅延後に新しい値を返す", () => {
     const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
+      ({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
       { initialProps: { value: "initial", delay: 500 } }
     );
 
@@ -36,7 +36,7 @@ describe("useDebounce", () => {
 
   it("遅延時間内に複数回更新された場合、最後の値のみを反映する", () => {
     const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
+      ({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
       { initialProps: { value: "initial", delay: 500 } }
     );
 
@@ -62,7 +62,7 @@ describe("useDebounce", () => {
 
   it("遅延時間が変更された場合、新しい遅延時間が適用される", () => {
     const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
+      ({ value, delay }: { value: string; delay: number }) => useDebounce(value, delay),
       { initialProps: { value: "initial", delay: 500 } }
     );
 
@@ -86,7 +86,7 @@ describe("useDebounce", () => {
     const cancelAnimationFrameSpy = jest.spyOn(global, "cancelAnimationFrame");
 
     const { rerender, unmount } = renderHook(
-      ({ value }) => useDebounce(value, 500),
+      ({ value }: { value: string }) => useDebounce(value, 500),
       { initialProps: { value: "initial" } }
     );
 

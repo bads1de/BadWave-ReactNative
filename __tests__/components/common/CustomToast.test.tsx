@@ -34,15 +34,15 @@ describe("CustomToast", () => {
   it("renders Toast component", () => {
     const { UNSAFE_getByType } = render(<ToastComponent />);
 
-    expect(UNSAFE_getByType("Toast")).toBeTruthy();
+    expect(UNSAFE_getByType("Toast" as any)).toBeTruthy();
   });
 
   it("component is memoized", () => {
     const { rerender, UNSAFE_getByType } = render(<ToastComponent />);
-    const firstRender = UNSAFE_getByType("Toast");
+    const firstRender = UNSAFE_getByType("Toast" as any);
 
     rerender(<ToastComponent />);
-    const secondRender = UNSAFE_getByType("Toast");
+    const secondRender = UNSAFE_getByType("Toast" as any);
 
     // メモ化されているため、同じインスタンスが使用される
     expect(firstRender).toBe(secondRender);

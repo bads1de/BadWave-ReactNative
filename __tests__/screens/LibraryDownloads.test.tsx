@@ -36,8 +36,8 @@ jest.mock("@/app/(tabs)/library", () => {
       return React.createElement(FlashList, {
         testID: "downloads-flatlist",
         data: songs,
-        keyExtractor: (item) => item.id,
-        renderItem: ({ item }) => {
+        keyExtractor: (item: any) => item.id,
+        renderItem: ({ item }: { item: any }) => {
           return React.createElement(SongItem, {
             song: item,
             onPress: () => {},
@@ -189,7 +189,7 @@ jest.mock("@/components/item/SongItem", () => {
 
   return {
     __esModule: true,
-    default: function MockSongItem({ song, onPress }) {
+    default: function MockSongItem({ song, onPress }: { song: any; onPress: any }) {
       return React.createElement(
         TouchableOpacity,
         { testID: `song-item-${song.id}`, onPress: onPress },
@@ -204,7 +204,7 @@ jest.mock("@/components/item/PlaylistItem", () => {
 
   return {
     __esModule: true,
-    default: function MockPlaylistItem({ playlist, onPress }) {
+    default: function MockPlaylistItem({ playlist, onPress }: { playlist: any; onPress: any }) {
       return React.createElement(
         TouchableOpacity,
         { testID: `playlist-item-${playlist.id}`, onPress: onPress },
@@ -245,7 +245,7 @@ jest.mock("@/components/common/Error", () => {
 
   return {
     __esModule: true,
-    default: function MockError({ message }) {
+    default: function MockError({ message }: { message: any }) {
       return React.createElement(View, { testID: "error" }, message);
     },
   };
@@ -256,7 +256,7 @@ jest.mock("@/components/common/CustomButton", () => {
 
   return {
     __esModule: true,
-    default: function MockCustomButton({ label, onPress, testID }) {
+    default: function MockCustomButton({ label, onPress, testID }: { label: any; onPress: any; testID: any }) {
       return React.createElement(
         TouchableOpacity,
         { testID: testID || `button-${label}`, onPress: onPress },

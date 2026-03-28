@@ -85,6 +85,7 @@ describe("useAudioPlayer", () => {
   it("activeTrack が切り替わったら再生回数を更新する", async () => {
     const song = {
       id: "song-1",
+      user_id: "user1",
       title: "Song 1",
       author: "Artist 1",
       count: "0",
@@ -102,11 +103,14 @@ describe("useAudioPlayer", () => {
       songMap: { [song.id]: song },
     });
 
-    const { rerender } = renderHook(() => useAudioPlayer([song]));
+    const { rerender } = renderHook(
+      ({ songs }: { songs: typeof song[] }) => useAudioPlayer(songs),
+      { initialProps: { songs: [song] } }
+    );
 
     await act(async () => {
       activeTrack = { id: song.id, originalSong: song };
-      rerender();
+      rerender({ songs: [song] });
     });
 
     await waitFor(() => {
@@ -117,6 +121,7 @@ describe("useAudioPlayer", () => {
   it("初期 activeTrack は再生回数に加算しない", () => {
     const song = {
       id: "song-1",
+      user_id: "user1",
       title: "Song 1",
       author: "Artist 1",
       count: "0",

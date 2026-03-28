@@ -44,7 +44,7 @@ jest.mock("@/hooks/audio/usePlayHistory", () => ({
 }));
 
 jest.mock("@/lib/utils/retry", () => ({
-  withSupabaseRetry: jest.fn((fn) => fn()),
+  withSupabaseRetry: jest.fn((fn: () => Promise<unknown>) => fn()),
 }));
 
 const mockSupabaseRpc = supabase.rpc as jest.Mock;
@@ -54,9 +54,9 @@ const mockUsePlayHistory = usePlayHistory as jest.Mock;
 
 describe("useOnPlay", () => {
   let queryClient: QueryClient;
-  let mockRecordPlay: jest.Mock;
-  let mockSet: jest.Mock;
-  let mockWhere: jest.Mock;
+  let mockRecordPlay: jest.Mock<any>;
+  let mockSet: jest.Mock<any>;
+  let mockWhere: jest.Mock<any>;
 
   const createWrapper = () => {
     return ({ children }: { children: React.ReactNode }) => (
@@ -73,11 +73,13 @@ describe("useOnPlay", () => {
       },
     });
 
+    // @ts-expect-error jest mock type limitation
     mockRecordPlay = jest.fn().mockResolvedValue(undefined);
+    // @ts-expect-error jest mock type limitation
     mockWhere = jest.fn().mockResolvedValue(undefined);
     mockSet = jest.fn().mockReturnValue({ where: mockWhere });
 
-    mockSupabaseRpc.mockResolvedValue({ error: null });
+    (supabase.rpc as jest.Mock<any>).mockResolvedValue({ error: null });
     mockDbUpdate.mockReturnValue({ set: mockSet });
     mockUseNetworkStatus.mockReturnValue({ isOnline: true });
     mockUsePlayHistory.mockReturnValue({ recordPlay: mockRecordPlay });

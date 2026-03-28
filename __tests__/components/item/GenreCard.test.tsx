@@ -110,14 +110,14 @@ describe("GenreCard", () => {
     it("背景画像が設定される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Retro Wave" />);
       
-      const backgrounds = UNSAFE_getAllByType("ImageBackground");
+      const backgrounds = UNSAFE_getAllByType("ImageBackground" as any);
       expect(backgrounds.length).toBeGreaterThan(0);
     });
 
     it("グラデーションが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Retro Wave" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients.length).toBeGreaterThan(0);
     });
   });
@@ -283,63 +283,63 @@ describe("GenreCard", () => {
     it("Retro Waveの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Retro Wave" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#FF0080", "#7928CA", "#4A00E0"]);
     });
 
     it("Electro Houseの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Electro House" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#00F5A0", "#00D9F5"]);
     });
 
     it("Nu Discoの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Nu Disco" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#FFD700", "#FF6B6B", "#FF1493"]);
     });
 
     it("City Popの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="City Pop" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#6366F1", "#A855F7", "#EC4899"]);
     });
 
     it("Tropical Houseの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Tropical House" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#00B4DB", "#0083B0"]);
     });
 
     it("Vapor Waveの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Vapor Wave" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#FF61D2", "#FE9090", "#FF9C7D"]);
     });
 
     it("r&bの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="r&b" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#6A0DAD", "#9370DB", "#D4AF37"]);
     });
 
     it("Chill Houseの正しいグラデーションカラーが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Chill House" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#43cea2", "#185a9d", "#6DD5FA"]);
     });
 
     it("未定義のジャンルの場合、デフォルトグラデーションが適用される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Unknown" />);
       
-      const gradients = UNSAFE_getAllByType("LinearGradient");
+      const gradients = UNSAFE_getAllByType("LinearGradient" as any);
       expect(gradients[0].props.colors).toEqual(["#374151", "#1F2937", "#111827"]);
     });
   });
@@ -396,21 +396,21 @@ describe("GenreCard", () => {
     it("Retro Waveの背景画像が設定される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Retro Wave" />);
       
-      const backgrounds = UNSAFE_getAllByType("ImageBackground");
+      const backgrounds = UNSAFE_getAllByType("ImageBackground" as any);
       expect(backgrounds.length).toBeGreaterThan(0);
     });
 
     it("City Popの背景画像が設定される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="City Pop" />);
       
-      const backgrounds = UNSAFE_getAllByType("ImageBackground");
+      const backgrounds = UNSAFE_getAllByType("ImageBackground" as any);
       expect(backgrounds.length).toBeGreaterThan(0);
     });
 
     it("未定義のジャンルでも背景画像が設定される", () => {
       const { UNSAFE_getAllByType } = render(<GenreCard genre="Unknown" />);
       
-      const backgrounds = UNSAFE_getAllByType("ImageBackground");
+      const backgrounds = UNSAFE_getAllByType("ImageBackground" as any);
       expect(backgrounds.length).toBeGreaterThan(0);
     });
   });

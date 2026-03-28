@@ -46,9 +46,11 @@ jest.mock("@/lib/db/client", () => {
     values: jest.fn().mockReturnThis(),
     query: {
       songs: {
+        // @ts-expect-error jest mock type limitation
         findFirst: jest.fn().mockResolvedValue({ likeCount: 0 }),
       },
       likedSongs: {
+        // @ts-expect-error jest mock type limitation
         findFirst: jest.fn().mockResolvedValue(null),
       },
     },
@@ -173,8 +175,8 @@ describe("useLikeMutation", () => {
     (db.insert as jest.Mock).mockReturnThis();
     (db.values as jest.Mock).mockReturnValue(Promise.resolve({}));
     (db.update as jest.Mock).mockReturnThis();
-    (db.set as jest.Mock).mockReturnThis();
-    (db.where as jest.Mock).mockReturnValue(Promise.resolve({}));
+    ((db as any).set as jest.Mock).mockReturnThis();
+    ((db as any).where as jest.Mock).mockReturnValue(Promise.resolve({}));
 
     const { result } = renderHook(() => useLikeMutation("song-1", "user-1"), {
       wrapper: createWrapper(),

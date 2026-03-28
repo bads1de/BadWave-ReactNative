@@ -37,10 +37,12 @@ describe("useAudioStore", () => {
 
     const mockSong = {
       id: "song1",
+      user_id: "user1",
       title: "テスト曲",
       author: "テストアーティスト",
       image_path: "https://example.com/image.jpg",
       song_path: "https://example.com/song.mp3",
+      created_at: "2024-01-01",
     };
 
     act(() => {
@@ -76,10 +78,12 @@ describe("useAudioStore", () => {
 
     const mockSong = {
       id: "song1",
+      user_id: "user1",
       title: "テスト曲",
       author: "テストアーティスト",
       image_path: "https://example.com/image.jpg",
       song_path: "https://example.com/song.mp3",
+      created_at: "2024-01-01",
     };
 
     act(() => {
@@ -109,10 +113,12 @@ describe("useAudioActions", () => {
 
     const mockSong = {
       id: "song1",
+      user_id: "user1",
       title: "テスト曲",
       author: "テストアーティスト",
       image_path: "https://example.com/image.jpg",
       song_path: "https://example.com/song.mp3",
+      created_at: "2024-01-01",
     };
 
     act(() => {

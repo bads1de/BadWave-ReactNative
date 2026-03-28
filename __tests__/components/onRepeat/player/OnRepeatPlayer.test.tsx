@@ -40,17 +40,21 @@ describe("OnRepeatPlayer", () => {
   const mockSongs: Song[] = [
     {
       id: "1",
+      user_id: "user1",
       title: "Song 1",
       author: "Artist 1",
       image_path: "https://example.com/image1.jpg",
       song_path: "https://example.com/song1.mp3",
+      created_at: "2024-01-01",
     },
     {
       id: "2",
+      user_id: "user1",
       title: "Song 2",
       author: "Artist 2",
       image_path: "https://example.com/image2.jpg",
       song_path: "https://example.com/song2.mp3",
+      created_at: "2024-01-01",
     },
   ];
 
