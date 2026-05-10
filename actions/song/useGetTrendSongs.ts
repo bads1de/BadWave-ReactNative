@@ -21,31 +21,19 @@ const getTrendSongs = async (period: TrendPeriod = "all"): Promise<Song[]> => {
   let query = supabase.from("songs").select("*");
 
   // 指定された期間に基づいてデータをフィルタリング
-  switch (period) {
-    case "month":
-      query = query.filter(
-        "created_at",
-        "gte",
-        subMonths(new Date(), 1).toISOString()
-      );
-      break;
-    case "week":
-      query = query.filter(
-        "created_at",
-        "gte",
-        subWeeks(new Date(), 1).toISOString()
-      );
-      break;
-    case "day":
-      query = query.filter(
-        "created_at",
-        "gte",
-        subDays(new Date(), 1).toISOString()
-      );
-      break;
-    default:
-      break;
-  }
+    switch (period) {
+      case "month":
+        query = query.gte("created_at", subMonths(new Date(), 1).toISOString());
+        break;
+      case "week":
+        query = query.gte("created_at", subWeeks(new Date(), 1).toISOString());
+        break;
+      case "day":
+        query = query.gte("created_at", subDays(new Date(), 1).toISOString());
+        break;
+      default:
+        break;
+    }
 
   // データを取得し、カウントの降順でソートし、最大10曲まで取得
   const { data, error } = await query
