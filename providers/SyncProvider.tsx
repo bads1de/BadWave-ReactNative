@@ -111,6 +111,8 @@ function SyncProviderInner({ children }: { children: React.ReactNode }) {
       spotsError;
     if (error) {
       setSyncError(error as Error);
+    } else {
+      setSyncError(null);
     }
   }, [
     songsError,
@@ -134,8 +136,8 @@ function SyncProviderInner({ children }: { children: React.ReactNode }) {
 
     const startTime = Date.now();
 
-    // 全ての同期を開始
-    await Promise.all([
+    // 全ての同期を開始（1つの失敗が他に影響しないようPromise.allSettledを使用）
+    await Promise.allSettled([
       syncSongs(),
       syncLiked(),
       syncPlaylists(),
