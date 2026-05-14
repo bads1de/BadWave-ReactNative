@@ -21,9 +21,14 @@ export const useNetworkStore = create<NetworkStore>((set, get) => ({
     set({ _initialized: true });
 
     // 初期状態を取得
-    NetInfo.fetch().then((state: NetInfoState) => {
-      set({ isOnline: state.isConnected ?? true });
-    });
+    NetInfo.fetch()
+      .then((state: NetInfoState) => {
+        set({ isOnline: state.isConnected ?? true });
+      })
+      .catch(() => {
+        // fetch失敗時はデフォルトでオンライン状態を維持
+        set({ isOnline: true });
+      });
 
     // 変更を監視 (全アプリで1つだけ)
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
