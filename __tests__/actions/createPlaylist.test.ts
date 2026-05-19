@@ -13,7 +13,7 @@ jest.mock("@/lib/db/schema", () => ({
 }));
 
 // モックのエイリアス
-const { mockFrom, mockInsert, mockGetSession } = mockFunctions;
+const { mockFrom, mockInsert } = mockFunctions;
 const { db } = require("@/lib/db/client");
 const mockValues = jest.fn();
 
@@ -25,20 +25,15 @@ beforeEach(() => {
 });
 
 describe("createPlaylist", () => {
+  const userId = "user123";
   const playlistName = "My Playlist";
 
   it("正常にプレイリストを作成できる", async () => {
     // モックの設定
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user123" } } },
-      error: null,
-    });
     const mockSingle = jest.fn().mockResolvedValue({
       data: {
         id: "playlist1",
-        title: playlistName,
         image_path: null,
-        is_public: false,
         created_at: "2024-01-01",
       },
       error: null,
@@ -48,19 +43,19 @@ describe("createPlaylist", () => {
     mockFrom.mockReturnValue({ insert: mockInsert });
 
     // テスト実行
-    await createPlaylist(playlistName);
+    await createPlaylist({ userId, title: playlistName });
 
     // 期待値を確認
-    expect(mockGetSession).toHaveBeenCalled();
     expect(mockFrom).toHaveBeenCalledWith("playlists");
     expect(mockInsert).toHaveBeenCalledWith({
-      user_id: "user123",
+      user_id: userId,
       title: playlistName,
+      is_public: false,
     });
     expect(db.insert).toHaveBeenCalledWith("playlists");
     expect(mockValues).toHaveBeenCalledWith({
       id: "playlist1",
-      userId: "user123",
+      userId,
       title: playlistName,
       imagePath: null,
       isPublic: false,
@@ -68,25 +63,33 @@ describe("createPlaylist", () => {
     });
   });
 
-  it("未認証の場合", async () => {
-    // モックを設定
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: null },
+  it("isPublic を指定して作成できる", async () => {
+    // モックの設定
+    const mockSingle = jest.fn().mockResolvedValue({
+      data: {
+        id: "playlist2",
+        image_path: null,
+        created_at: "2024-01-01",
+      },
       error: null,
     });
+    const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+    mockInsert.mockReturnValue({ select: mockSelect });
+    mockFrom.mockReturnValue({ insert: mockInsert });
 
-    // テスト実行と期待値を確認
-    await expect(createPlaylist(playlistName)).rejects.toThrow(
-      "User not authenticated"
-    );
+    // テスト実行
+    await createPlaylist({ userId, title: playlistName, isPublic: true });
+
+    // 期待値を確認
+    expect(mockInsert).toHaveBeenCalledWith({
+      user_id: userId,
+      title: playlistName,
+      is_public: true,
+    });
   });
 
   it("DBエラーが発生した場合", async () => {
-    // モックを設定
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user123" } } },
-      error: null,
-    });
+    // モックの設定
     const mockSingle = jest.fn().mockResolvedValue({
       data: null,
       error: { message: "DB error" },
@@ -96,8 +99,9 @@ describe("createPlaylist", () => {
     mockFrom.mockReturnValue({ insert: mockInsert });
 
     // テスト実行と期待値を確認
-    await expect(createPlaylist(playlistName)).rejects.toThrow("DB error");
+    await expect(
+      createPlaylist({ userId, title: playlistName })
+    ).rejects.toThrow("DB error");
     expect(db.insert).not.toHaveBeenCalled();
   });
 });
-
