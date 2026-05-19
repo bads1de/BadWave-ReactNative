@@ -18,16 +18,12 @@ jest.mock("drizzle-orm", () => ({
   eq: jest.fn((field, value) => ({ field, value })),
 }));
 
-const { mockFrom, mockDelete, mockEq, mockGetSession } = mockFunctions;
+const { mockFrom, mockDelete, mockEq } = mockFunctions;
 const { db } = require("@/lib/db/client");
 const mockWhere = jest.fn();
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockGetSession.mockResolvedValue({
-    data: { session: { user: { id: "user123" } } },
-    error: null,
-  });
   mockDelete.mockReturnValue({ eq: mockEq });
   mockEq.mockReturnValue({ eq: mockEq });
   mockFrom.mockReturnValue({ delete: mockDelete });
@@ -38,26 +34,16 @@ beforeEach(() => {
 describe("deletePlaylistSong", () => {
   const playlistId = "playlist123";
   const songId = "song456";
+  const userId = "user123";
 
   it("正常に曲を削除できる", async () => {
-    await deletePlaylistSong(playlistId, songId);
+    await deletePlaylistSong(playlistId, songId, userId);
 
     expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
     expect(mockDelete).toHaveBeenCalled();
+    expect(mockEq).toHaveBeenCalledWith("user_id", userId);
     expect(db.delete).toHaveBeenCalled();
     expect(mockWhere).toHaveBeenCalled();
-  });
-
-  it("エラーが発生した場合", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: null },
-      error: null,
-    });
-
-    await expect(deletePlaylistSong(playlistId, songId)).rejects.toThrow(
-      "User not authenticated"
-    );
-    expect(db.delete).not.toHaveBeenCalled();
   });
 
   it("削除時にエラーが発生した場合", async () => {
@@ -68,10 +54,9 @@ describe("deletePlaylistSong", () => {
     mockEq.mockReturnValueOnce({ eq: mockEq });
     mockEq.mockReturnValueOnce({ eq: mockEqSongType });
 
-    await expect(deletePlaylistSong(playlistId, songId)).rejects.toThrow(
+    await expect(deletePlaylistSong(playlistId, songId, userId)).rejects.toThrow(
       "Delete error"
     );
     expect(db.delete).not.toHaveBeenCalled();
   });
 });
-

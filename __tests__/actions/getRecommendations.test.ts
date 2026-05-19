@@ -1,19 +1,16 @@
 import getRecommendations from "@/actions/song/getRecommendations";
 import { supabase } from "@/lib/supabase";
 
-// supabaseのモック関数を取得
 const mockRpc = supabase.rpc as jest.Mock;
-const mockGetSession = supabase.auth.getSession as jest.Mock;
 
 describe("getRecommendations", () => {
+  const userId = "user123";
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("認証済みで正常に推薦曲を取得できる", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user123" } } },
-    });
+  it("正常に推薦曲を取得できる", async () => {
     const rpcData = [
       {
         id: "s1",
@@ -27,7 +24,7 @@ describe("getRecommendations", () => {
     ];
     mockRpc.mockResolvedValueOnce({ data: rpcData, error: null });
 
-    const result = await getRecommendations(5);
+    const result = await getRecommendations(userId, 5);
 
     expect(result).toEqual([
       {
@@ -40,53 +37,33 @@ describe("getRecommendations", () => {
         count: 0,
         like_count: 0,
         created_at: undefined,
-        user_id: "user123",
+        user_id: userId,
         recommendation_score: 0.9,
       },
     ]);
   });
 
-  it("認証なしなら空配列", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: null },
-    });
-
-    const result = await getRecommendations(5);
-
-    expect(result).toEqual([]);
-  });
-
   it("rpcでエラーなら空配列", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user123" } } },
-    });
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: "error" } });
 
-    const result = await getRecommendations(5);
+    const result = await getRecommendations(userId, 5);
 
     expect(result).toEqual([]);
   });
 
   it("rpcで空配列なら空配列", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user123" } } },
-    });
     mockRpc.mockResolvedValueOnce({ data: [], error: null });
 
-    const result = await getRecommendations(5);
+    const result = await getRecommendations(userId, 5);
 
     expect(result).toEqual([]);
   });
 
   it("例外発生時も空配列", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: "user123" } } },
-    });
     mockRpc.mockRejectedValueOnce(new Error("unexpected"));
 
-    const result = await getRecommendations(5);
+    const result = await getRecommendations(userId, 5);
 
     expect(result).toEqual([]);
   });
 });
-

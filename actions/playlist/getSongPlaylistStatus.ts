@@ -4,22 +4,18 @@ import { supabase } from "@/lib/supabase";
  * 指定された曲がどのプレイリストに含まれているかを取得する
  *
  * @param {string} songId 曲のID
+ * @param {string} userId ユーザーID
  * @returns {Promise<string[]>} 曲が含まれるプレイリストIDの配列
  */
-const getSongPlaylistStatus = async (songId: string): Promise<string[]> => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session?.user.id) {
-    return [];
-  }
-
+const getSongPlaylistStatus = async (
+  songId: string,
+  userId: string
+): Promise<string[]> => {
   const { data, error } = await supabase
     .from("playlist_songs")
     .select("playlist_id")
     .eq("song_id", songId)
-    .eq("user_id", session.user.id)
+    .eq("user_id", userId)
     .eq("song_type", "regular");
 
   if (error) {

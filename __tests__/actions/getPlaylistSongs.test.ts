@@ -1,55 +1,63 @@
-// 実際のコードをモックする
-// モックを実装する
 import getPlaylistSongs from "@/actions/playlist/getPlaylistSongs";
+import { mockFunctions } from "@/__mocks__/supabase";
 
-jest.mock("@/actions/playlist/getPlaylistSongs", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
-// テスト前にモックを設定
-beforeEach(() => {
-  jest.clearAllMocks();
-  (getPlaylistSongs as jest.Mock).mockImplementation(async () => []);
-});
+const { mockFrom, mockSelect, mockEq, mockSingle, mockOrder } = mockFunctions;
 
 describe("getPlaylistSongs", () => {
+  const playlistId = "playlist1";
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("非公開プレイリストでuserIdがない場合は空配列", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: { is_public: false },
+      error: null,
+    });
+
+    const result = await getPlaylistSongs(playlistId);
+
+    expect(result).toEqual([]);
+    expect(mockFrom).toHaveBeenCalledWith("playlists");
+    expect(mockSelect).toHaveBeenCalledWith("is_public");
+    expect(mockEq).toHaveBeenCalledWith("id", playlistId);
+  });
+
+  it("プレイリスト取得エラーの場合", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: "Playlist not found" },
+    });
+
+    await expect(getPlaylistSongs(playlistId)).rejects.toThrow(
+      "Playlist not found"
+    );
+  });
+
   it("公開プレイリストで曲一覧を取得できる", async () => {
-    // モックを設定
-    (getPlaylistSongs as jest.Mock).mockResolvedValueOnce([
-      { id: "s1", title: "Song1", songType: "regular" },
-      { id: "s2", title: "Song2", songType: "regular" },
-    ]);
+    // プレイリストの公開設定をモック (公開)
+    mockSingle.mockResolvedValueOnce({
+      data: { is_public: true },
+      error: null,
+    });
 
-    // テスト実行
-    const result = await getPlaylistSongs("playlist1");
+    // 曲一覧をモック (order がプロミスを返すように設定)
+    const mockSongs = [
+      { songs: { id: "s1", title: "Song1" }, created_at: "2024-01-01" },
+      { songs: { id: "s2", title: "Song2" }, created_at: "2024-01-02" },
+    ];
+    mockOrder.mockResolvedValueOnce({ data: mockSongs, error: null });
 
-    // 期待値を確認
+    const result = await getPlaylistSongs(playlistId);
+
     expect(result).toEqual([
       { id: "s1", title: "Song1", songType: "regular" },
       { id: "s2", title: "Song2", songType: "regular" },
     ]);
-    expect(getPlaylistSongs).toHaveBeenCalledWith("playlist1");
-  });
-
-  it("空配列を返す場合", async () => {
-    // モックを設定
-    (getPlaylistSongs as jest.Mock).mockResolvedValueOnce([]);
-
-    // テスト実行
-    const result = await getPlaylistSongs("playlist1");
-
-    // 期待値を確認
-    expect(result).toEqual([]);
-    expect(getPlaylistSongs).toHaveBeenCalledWith("playlist1");
-  });
-
-  it("エラーが発生した場合", async () => {
-    // モックを設定
-    (getPlaylistSongs as jest.Mock).mockRejectedValueOnce(new Error("error"));
-
-    // テスト実行と期待値を確認
-    await expect(getPlaylistSongs("playlist1")).rejects.toThrow("error");
+    expect(mockFrom).toHaveBeenCalledWith("playlists");
+    expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
   });
 });
-

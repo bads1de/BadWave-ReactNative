@@ -5,23 +5,16 @@ type PlaylistSong = Song & { songType: "regular" };
 
 /**
  * 指定されたプレイリストIDに含まれる「regular」な曲を取得する
+ *
  * @param {string} playlistId プレイリストID
+ * @param {string} userId ユーザーID（非公開プレイリストの場合に必要）
  * @returns {Promise<PlaylistSong[]>} プレイリストに含まれる曲の配列
  * @throws {Error} データベースクエリに失敗した場合
- *
- * @example
- * ```typescript
- * const songs = await getPlaylistSongs('playlist-id-123');
- * console.log(songs);
- * ```
  */
 const getPlaylistSongs = async (
-  playlistId: string
+  playlistId: string,
+  userId?: string
 ): Promise<PlaylistSong[]> => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   // プレイリストの公開設定を確認
   const { data: playlistData, error: playlistError } = await supabase
     .from("playlists")
@@ -35,7 +28,7 @@ const getPlaylistSongs = async (
   }
 
   // 非公開プレイリストで未認証の場合のみ早期リターン
-  if (!playlistData.is_public && !session?.user.id) {
+  if (!playlistData.is_public && !userId) {
     console.error("User not authenticated for private playlist");
     return [];
   }
@@ -48,8 +41,8 @@ const getPlaylistSongs = async (
     .order("created_at", { ascending: false });
 
   // 非公開プレイリストの場合のみユーザーIDでフィルタリング
-  if (!playlistData.is_public && session?.user.id) {
-    query = query.eq("user_id", session.user.id);
+  if (!playlistData.is_public && userId) {
+    query = query.eq("user_id", userId);
   }
 
   const { data, error } = await query;
@@ -59,12 +52,10 @@ const getPlaylistSongs = async (
     throw new Error(error.message);
   }
 
-  const playlistSongs: PlaylistSong[] = (data || []).map((item: any) => ({
+  return (data || []).map((item: any) => ({
     ...item.songs,
     songType: "regular",
   }));
-
-  return playlistSongs;
 };
 
 export default getPlaylistSongs;
