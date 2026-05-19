@@ -1,28 +1,11 @@
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { storage } from "@/lib/storage/mmkv-storage";
-
-/**
- * MMKVをTanStack Queryの永続化に使用するためのアダプター
- * Storage互換のインターフェースを提供
- */
-const clientStorage = {
-  setItem: (key: string, value: string) => {
-    storage.set(key, value);
-  },
-  getItem: (key: string) => {
-    const value = storage.getString(key);
-    return value === undefined ? null : value;
-  },
-  removeItem: (key: string) => {
-    storage.delete(key);
-  },
-};
+import { mmkvSyncAdapter } from "@/lib/storage/mmkv-sync-adapter";
 
 /**
  * TanStack Queryの永続化に使用するためのパーシスター
  */
 export const mmkvPersister = createSyncStoragePersister({
-  storage: clientStorage,
+  storage: mmkvSyncAdapter,
   key: "TANSTACK_QUERY_CACHE",
   // 1秒間のスロットリング（頻繁な書き込みを防止）
   throttleTime: 1000,

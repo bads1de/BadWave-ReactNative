@@ -1,19 +1,16 @@
-import { useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
+import { useSyncBase } from "./useSyncBase";
 
 /**
  * Supabase の楽曲データを SQLite に同期するフック
  * バックグラウンドで動作し、完了後にローカルクエリを更新
  */
 export function useSyncSongs() {
-  const queryClient = useQueryClient();
-
-  const { data, isFetching, error, refetch } = useQuery({
+  return useSyncBase({
     queryKey: [CACHED_QUERIES.songs, "sync"],
     queryFn: async () => {
       // Supabase から全楽曲を取得
@@ -70,25 +67,6 @@ export function useSyncSongs() {
 
       return { synced: remoteSongs.length };
     },
-    staleTime: 1000 * 60 * 5, // 5分
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    enabled: false,
+    invalidateQueryKey: [CACHED_QUERIES.songs, "local"],
   });
-
-  // 同期完了後、ローカルクエリを無効化
-  useEffect(() => {
-    if (data && data.synced > 0) {
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.songs, "local"],
-      });
-    }
-  }, [data, queryClient]);
-
-  return {
-    syncedCount: data?.synced ?? 0,
-    isSyncing: isFetching,
-    syncError: error,
-    triggerSync: refetch,
-  };
 }

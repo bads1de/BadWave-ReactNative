@@ -1,15 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { MMKV } from "react-native-mmkv";
 import { ThemeType, THEMES, ThemeDefinition } from "@/constants/ThemeColors";
-
-const storage = new MMKV();
-
-const mmkvStorage = {
-  getItem: (name: string) => storage.getString(name) ?? null,
-  setItem: (name: string, value: string) => storage.set(name, value),
-  removeItem: (name: string) => storage.delete(name),
-};
+import { mmkvSyncAdapter } from "@/lib/storage/mmkv-sync-adapter";
 
 interface ThemeState {
   currentTheme: ThemeType;
@@ -30,7 +22,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: "theme-storage",
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => mmkvSyncAdapter),
       partialize: (state) => ({ currentTheme: state.currentTheme }),
       onRehydrateStorage: () => (state) => {
         if (state) {
@@ -44,4 +36,3 @@ export const useThemeStore = create<ThemeState>()(
     }
   )
 );
-
