@@ -4,8 +4,7 @@ import getSongPlaylistStatus from "@/actions/playlist/getSongPlaylistStatus";
 // supabaseのモックを設定
 jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
 
-const { mockFrom, mockSelect, mockEq, mockGetSession, mockThen } =
-  mockFunctions;
+const { mockFrom, mockSelect, mockEq, mockThen } = mockFunctions;
 
 describe("getSongPlaylistStatus", () => {
   const songId = "song-123";
@@ -13,9 +12,6 @@ describe("getSongPlaylistStatus", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetSession.mockResolvedValue({
-      data: { session: { user: { id: userId } } },
-    });
   });
 
   it("曲が含まれるプレイリストIDの配列を正常に取得できる", async () => {
@@ -25,7 +21,7 @@ describe("getSongPlaylistStatus", () => {
       return Promise.resolve({ data: mockData, error: null }).then(onFulfilled);
     });
 
-    const result = await getSongPlaylistStatus(songId);
+    const result = await getSongPlaylistStatus(songId, userId);
 
     expect(result).toEqual(["p1", "p2"]);
     expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
@@ -33,17 +29,6 @@ describe("getSongPlaylistStatus", () => {
     expect(mockEq).toHaveBeenCalledWith("song_id", songId);
     expect(mockEq).toHaveBeenCalledWith("user_id", userId);
     expect(mockEq).toHaveBeenCalledWith("song_type", "regular");
-  });
-
-  it("未認証の場合は空配列を返す", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: null },
-    });
-
-    const result = await getSongPlaylistStatus(songId);
-
-    expect(result).toEqual([]);
-    expect(mockFrom).not.toHaveBeenCalled();
   });
 
   it("エラーが発生した場合は空配列を返す", async () => {
@@ -54,9 +39,8 @@ describe("getSongPlaylistStatus", () => {
       }).then(onFulfilled);
     });
 
-    const result = await getSongPlaylistStatus(songId);
+    const result = await getSongPlaylistStatus(songId, userId);
 
     expect(result).toEqual([]);
   });
 });
-

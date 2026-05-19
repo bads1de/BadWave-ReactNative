@@ -65,7 +65,7 @@ describe("usePlaylistStatus", () => {
       p1: true,
       p2: false,
     });
-    expect(getSongPlaylistStatus).toHaveBeenCalledWith(songId);
+    expect(getSongPlaylistStatus).toHaveBeenCalledWith(songId, "user-123");
   });
 
   it("未認証の場合は query が enabled にならない、または空を返す", async () => {

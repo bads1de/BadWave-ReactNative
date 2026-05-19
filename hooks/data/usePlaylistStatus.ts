@@ -36,7 +36,7 @@ const usePlaylistStatus = ({ songId, playlists }: UsePlaylistStatusProps) => {
 
   return useQuery({
     queryKey: [CACHED_QUERIES.playlistStatus, songId],
-    queryFn: () => getSongPlaylistStatus(songId),
+    queryFn: () => getSongPlaylistStatus(songId, session!.user.id),
     select: selectFn,
     enabled: !!songId && !!session?.user.id,
   });
