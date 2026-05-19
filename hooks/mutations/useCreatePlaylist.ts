@@ -1,11 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { db } from "@/lib/db/client";
-import { playlists } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
+import createPlaylist from "@/actions/playlist/createPlaylist";
 
 /**
  * プレイリスト作成のミューテーションフック
@@ -33,36 +31,10 @@ export function useCreatePlaylist(userId?: string) {
         throw new Error(PLAYLIST_ERRORS.OFFLINE);
       }
 
-      // 1. Supabase に作成（IDはSupabaseで生成、リトライ付き）
-      const result = await withSupabaseRetry(async () => {
-        return await supabase
-          .from("playlists")
-          .insert({
-            user_id: userId,
-            title,
-            is_public: isPublic,
-          })
-          .select()
-          .single();
-      });
-
-      if (result.error) {
-        throw new Error(
-          `${PLAYLIST_ERRORS.SUPABASE_INSERT_FAILED}: ${result.error.message}`
-        );
-      }
-
-      // 2. SQLite にも保存
-      await db.insert(playlists).values({
-        id: result.data.id,
-        userId,
-        title,
-        isPublic,
-        createdAt: result.data.created_at,
-        imagePath: result.data.image_path,
-      });
-
-      return result.data;
+      // リトライ付きでアクションを呼び出す
+      return withSupabaseRetry(() =>
+        createPlaylist({ userId, title, isPublic })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -76,4 +48,3 @@ export function useCreatePlaylist(userId?: string) {
 }
 
 export default useCreatePlaylist;
-

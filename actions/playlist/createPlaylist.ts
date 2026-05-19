@@ -2,37 +2,33 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
 
-/**
- * @fileoverview プレイリスト作成モジュール
- * このモジュールは、新しいプレイリストを作成する機能を提供します。
- */
+interface CreatePlaylistParams {
+  userId: string;
+  title: string;
+  isPublic?: boolean;
+}
 
 /**
  * 新しいプレイリストを作成する
+ * Supabase に作成し、SQLite にも同期する
  *
- * @param {string} title プレイリストタイトル
- * @returns {Promise<void>}
- * @throws {Error} ユーザーが認証されていない場合、またはデータベースクエリに失敗した場合
- *
- * @example
- * ```typescript
- * await createPlaylist('My New Playlist');
- * ```
+ * @param params.userId ユーザーID
+ * @param params.title プレイリストタイトル
+ * @param params.isPublic 公開設定 (デフォルト: false)
+ * @returns 作成されたプレイリストデータ
+ * @throws {Error} データベースクエリに失敗した場合
  */
-const createPlaylist = async (title: string): Promise<void> => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    throw new Error("User not authenticated");
-  }
-
+const createPlaylist = async ({
+  userId,
+  title,
+  isPublic = false,
+}: CreatePlaylistParams) => {
   const { data, error } = await supabase
     .from("playlists")
     .insert({
-      user_id: session?.user.id,
+      user_id: userId,
       title: title.trim(),
+      is_public: isPublic,
     })
     .select()
     .single();
@@ -44,12 +40,14 @@ const createPlaylist = async (title: string): Promise<void> => {
 
   await db.insert(playlists).values({
     id: data.id,
-    userId: session.user.id,
-    title: data.title,
+    userId,
+    title: title.trim(),
     imagePath: data.image_path,
-    isPublic: data.is_public ?? false,
+    isPublic,
     createdAt: data.created_at,
   });
+
+  return data;
 };
 
 export default createPlaylist;

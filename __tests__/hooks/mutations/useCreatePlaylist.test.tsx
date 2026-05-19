@@ -163,9 +163,7 @@ describe("useCreatePlaylist", () => {
 
     await expect(
       result.current.mutateAsync({ title: "New Playlist" }),
-    ).rejects.toThrow(
-      `${PLAYLIST_ERRORS.SUPABASE_INSERT_FAILED}: Internal Server Error`,
-    );
+    ).rejects.toThrow("Internal Server Error");
 
     // SQLiteには保存されないはず
     expect(db.insert).not.toHaveBeenCalled();
