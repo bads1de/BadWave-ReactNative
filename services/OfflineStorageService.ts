@@ -3,6 +3,7 @@ import { eq, isNotNull } from "drizzle-orm";
 import Song from "@/types";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
+import { mapSongRowToSong } from "@/lib/utils/songMapper";
 
 /**
  * オフライン再生のためのストレージサービス
@@ -283,26 +284,12 @@ export class OfflineStorageService {
         .from(songs)
         .where(isNotNull(songs.songPath));
 
-      const downloadedSongs: Song[] = [];
-
-      for (const row of sqliteResults) {
-        if (row.songPath) {
-          // パフォーマンス改善（N+1問題の解消）のため、
-          // FileSystem.getInfoAsyncによる実ファイルチェックは省略し、
-          // SQLiteの情報を「真」として扱う（再生時等の呼び出し元でファイルが無ければ対処する方針）
-          downloadedSongs.push({
-            id: row.id,
-            title: row.title,
-            author: row.author,
-            image_path: row.imagePath ?? row.originalImagePath ?? "",
-            song_path: row.songPath,
-            user_id: row.userId,
-            created_at: row.createdAt ?? "",
-          });
-        }
-      }
-
-      return downloadedSongs;
+      // パフォーマンス改善（N+1問題の解消）のため、
+      // FileSystem.getInfoAsyncによる実ファイルチェックは省略し、
+      // SQLiteの情報を「真」として扱う（再生時等の呼び出し元でファイルが無ければ対処する方針）
+      return sqliteResults
+        .filter((row) => row.songPath)
+        .map((row) => mapSongRowToSong(row));
     } catch (error) {
       console.error("Error getting downloaded songs:", error);
       return [];

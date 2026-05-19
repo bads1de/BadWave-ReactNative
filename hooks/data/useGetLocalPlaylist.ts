@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
 import { CACHE_CONFIG, CACHED_QUERIES } from "@/constants";
 import { Playlist } from "@/types";
+import { mapPlaylistRowToPlaylist } from "@/lib/db/playlistMapper";
 
 /**
  * 特定のプレイリスト情報を取得するカスタムフック（ローカルファースト）
@@ -35,17 +36,7 @@ export function useGetLocalPlaylist(playlistId?: string) {
         return null;
       }
 
-      const row = result[0];
-
-      // Playlist 型に変換
-      return {
-        id: row.id,
-        user_id: row.userId,
-        title: row.title,
-        image_path: row.imagePath ?? undefined,
-        is_public: row.isPublic ?? false,
-        created_at: row.createdAt ?? "",
-      };
+      return mapPlaylistRowToPlaylist(result[0]);
     },
     staleTime: CACHE_CONFIG.staleTime,
     gcTime: CACHE_CONFIG.gcTime,

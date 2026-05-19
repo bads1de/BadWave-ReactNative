@@ -1,18 +1,15 @@
-import { useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { spotlights } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
+import { useSyncBase } from "./useSyncBase";
 
 /**
  * スポットライトをSupabaseから取得し、SQLiteに同期するフック
  */
 export function useSyncSpotlights() {
-  const queryClient = useQueryClient();
-
-  const { data, isFetching, error, refetch } = useQuery({
+  return useSyncBase({
     queryKey: [CACHED_QUERIES.spotlights, "sync"],
     queryFn: async () => {
       const { data: remoteSpotlights, error } = await supabase
@@ -28,7 +25,6 @@ export function useSyncSpotlights() {
         return { synced: 0 };
       }
 
-      // SQLite に Upsert (Batch)
       const valuesToInsert = remoteSpotlights.map((spot) => ({
         id: spot.id,
         title: spot.title,
@@ -59,25 +55,8 @@ export function useSyncSpotlights() {
 
       return { synced: remoteSpotlights.length };
     },
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
-    enabled: false,
+    invalidateQueryKey: [CACHED_QUERIES.spotlights, "local"],
   });
-
-  useEffect(() => {
-    if (data && data.synced > 0) {
-      queryClient.invalidateQueries({
-        queryKey: [CACHED_QUERIES.spotlights, "local"],
-      });
-    }
-  }, [data, queryClient]);
-
-  return {
-    syncedCount: data?.synced ?? 0,
-    isSyncing: isFetching,
-    syncError: error,
-    triggerSync: refetch,
-  };
 }
 
 export default useSyncSpotlights;
