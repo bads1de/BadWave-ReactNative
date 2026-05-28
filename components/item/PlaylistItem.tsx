@@ -53,10 +53,12 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
   }));
 
   const handlePressIn = () => {
+    "worklet";
     scale.value = withSpring(0.97, { damping: 15, stiffness: 100 });
   };
 
   const handlePressOut = () => {
+    "worklet";
     scale.value = withSpring(1, { damping: 10, stiffness: 80 });
   };
 

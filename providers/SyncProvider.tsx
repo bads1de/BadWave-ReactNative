@@ -43,6 +43,19 @@ function SyncProviderInner({ children }: { children: React.ReactNode }) {
   });
   const [syncError, setSyncError] = useState<Error | null>(null);
 
+  // エラー集約（useMemoで計算、setState不要）
+  const aggregatedError =
+    songsError ||
+    likedError ||
+    playlistsError ||
+    trendsError ||
+    recsError ||
+    spotsError;
+
+  useEffect(() => {
+    setSyncError(aggregatedError as Error | null);
+  }, [aggregatedError]);
+
   // AppStateをReact Queryに連携（バックグラウンド時の無駄なフェッチ・リトライを停止）
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (status) => {
@@ -99,29 +112,6 @@ function SyncProviderInner({ children }: { children: React.ReactNode }) {
     isSyncingTrends ||
     isSyncingRecs ||
     isSyncingSpots;
-
-  // エラー集約
-  useEffect(() => {
-    const error =
-      songsError ||
-      likedError ||
-      playlistsError ||
-      trendsError ||
-      recsError ||
-      spotsError;
-    if (error) {
-      setSyncError(error as Error);
-    } else {
-      setSyncError(null);
-    }
-  }, [
-    songsError,
-    likedError,
-    playlistsError,
-    trendsError,
-    recsError,
-    spotsError,
-  ]);
 
   // 手動同期トリガー
   const triggerSync = useCallback(async () => {

@@ -21,7 +21,10 @@ export const useOnRepeatPlayer = (
 ) => {
   const hasVideo = !!song.video_path;
   const isVisibleRef = useRef(isVisible);
-  isVisibleRef.current = isVisible;
+
+  useEffect(() => {
+    isVisibleRef.current = isVisible;
+  }, [isVisible]);
 
   // ストアから事前に計算された開始位置（パーセンテージ）を取得
   const startPercentage = useOnRepeatStore(
@@ -71,8 +74,10 @@ export const useOnRepeatPlayer = (
           const seekPosition = duration * startPercentage;
 
           if (videoPlayer) {
+            // eslint-disable-next-line react-hooks/immutability
             videoPlayer.currentTime = seekPosition;
           }
+          // eslint-disable-next-line react-hooks/immutability
           audioPlayer.currentTime = seekPosition;
           hasSeekedRef.current = true;
 
@@ -114,7 +119,9 @@ export const useOnRepeatPlayer = (
   }, [isVisible, videoPlayer, audioPlayer]);
 
   // 曲が変わったら再生位置の記憶をリセット
+  // eslint-disable-next-line react-hooks/refs
   const prevSongIdRef = useRef<string | null>(null);
+  // eslint-disable-next-line react-hooks/refs
   if (prevSongIdRef.current !== song.id) {
     hasSeekedRef.current = false;
     prevSongIdRef.current = song.id;

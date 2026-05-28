@@ -26,7 +26,7 @@ function SearchBarInner({
   onFocus,
   onBlur,
 }: SearchBarProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(controlledValue ?? "");
   const [isFocused, setIsFocused] = useState(false);
   const debouncedValue = useDebounce(value, 300);
   const colors = useThemeStore((state) => state.colors);
@@ -43,12 +43,15 @@ function SearchBarInner({
   }, [debouncedValue, onDebouncedChange]);
 
   // 外部からの強制更新（履歴選択時など）
+  const prevControlledValue = useRef(controlledValue);
   useEffect(() => {
-    if (controlledValue !== undefined && controlledValue !== value) {
+    if (
+      controlledValue !== undefined &&
+      controlledValue !== prevControlledValue.current
+    ) {
       setValue(controlledValue);
     }
-    // controlledValue が変わった時だけ実行
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    prevControlledValue.current = controlledValue;
   }, [controlledValue]);
 
   const handleChange = useCallback(

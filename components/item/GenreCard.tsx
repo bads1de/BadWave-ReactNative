@@ -95,12 +95,14 @@ const GenreCardInner: React.FC<GenreCardProps> = ({ genre }) => {
   });
 
   const handlePressIn = () => {
+    "worklet";
     scale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
     glowOpacity.value = withTiming(0.6, { duration: 200 });
     translateY.value = withSpring(5, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
+    "worklet";
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
     glowOpacity.value = withTiming(0.3, { duration: 300 });
     translateY.value = withSpring(0, { damping: 15, stiffness: 150 });

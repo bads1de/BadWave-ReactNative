@@ -12,7 +12,10 @@ import { useEffect, useRef } from "react";
 export const useSpotlightPlayer = (source: VideoSource, isVisible: boolean) => {
   // isVisibleの現在値をrefで保持（setup関数内からアクセスするため）
   const isVisibleRef = useRef(isVisible);
-  isVisibleRef.current = isVisible;
+
+  useEffect(() => {
+    isVisibleRef.current = isVisible;
+  }, [isVisible]);
 
   // setup関数でプレイヤーの初期設定を行う
   const player = useVideoPlayer(source, (p) => {

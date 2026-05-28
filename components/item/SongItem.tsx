@@ -62,11 +62,13 @@ function SongItem({
   }, [dynamicSize, windowWidth]);
 
   const handlePressIn = useCallback(() => {
+    "worklet";
     if (isDisabled) return;
     scaleAnim.value = withSpring(0.97, { damping: 15, stiffness: 100 });
   }, [isDisabled, scaleAnim]);
 
   const handlePressOut = useCallback(() => {
+    "worklet";
     if (isDisabled) return;
     scaleAnim.value = withSpring(1, { damping: 10, stiffness: 80 });
   }, [isDisabled, scaleAnim]);

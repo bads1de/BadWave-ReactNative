@@ -56,6 +56,16 @@ function AddPlaylist({
   useEffect(() => {
     if (modalOpen) {
       setShouldRender(true);
+    } else {
+      const timeout = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [modalOpen]);
+
+  useEffect(() => {
+    if (modalOpen) {
       opacity.value = withTiming(1, { duration: 300 });
       translateY.value = withSpring(0, {
         damping: 25,
@@ -64,10 +74,6 @@ function AddPlaylist({
     } else {
       opacity.value = withTiming(0, { duration: 200 });
       translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
-      const timeout = setTimeout(() => {
-        setShouldRender(false);
-      }, 300);
-      return () => clearTimeout(timeout);
     }
   }, [modalOpen, opacity, translateY]);
 

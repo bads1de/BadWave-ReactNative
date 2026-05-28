@@ -31,7 +31,10 @@ export default function OnRepeatPlayerList({
   const hasScrolledRef = useRef(false);
   // 現在のインデックスをrefで保持（onViewableItemsChanged内からアクセスするため）
   const currentIndexRef = useRef(currentIndex);
-  currentIndexRef.current = currentIndex;
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {

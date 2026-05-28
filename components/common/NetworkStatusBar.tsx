@@ -12,18 +12,22 @@ import { useEffect, useRef } from "react";
 export function NetworkStatusBar() {
   const { isOnline } = useNetworkStatus();
   const { isSyncing } = useSync();
-  const slideAnim = useRef(new Animated.Value(-50)).current;
+  const slideAnimRef = useRef(new Animated.Value(-50));
+
+  useEffect(() => {
+    slideAnimRef.current = new Animated.Value(-50);
+  }, []);
 
   // オフラインまたは同期中の場合にバーを表示
   const shouldShow = !isOnline || isSyncing;
 
   useEffect(() => {
-    Animated.timing(slideAnim, {
+    Animated.timing(slideAnimRef.current, {
       toValue: shouldShow ? 0 : -50,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [shouldShow, slideAnim]);
+  }, [shouldShow]);
 
   if (!shouldShow) return null;
 
@@ -35,7 +39,7 @@ export function NetworkStatusBar() {
     <Animated.View
       style={[
         styles.container,
-        { backgroundColor, transform: [{ translateY: slideAnim }] },
+        { backgroundColor, transform: [{ translateY: slideAnimRef.current }] },
       ]}
     >
       <Ionicons name={icon as any} size={16} color="#fff" />

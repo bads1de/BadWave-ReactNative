@@ -28,6 +28,9 @@ module.exports = {
     // TypeScriptが解決をチェックするため、ESLint側での重複チェックを無効にして高速化・安定化
     "import/no-unresolved": "off",
     "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/refs": "off", // FlashList の onViewableItemsChanged 等で ref.current を使用するため
+    "react-hooks/immutability": "off", // react-native-reanimated の sharedValue.value は意図的に可変
+    "react-hooks/set-state-in-effect": "off", // モーダルの開閉アニメーション等で setState を使用するため
     "react/display-name": "off", // テストなどで無名コンポーネントを使う場合にうるさいため
   },
   settings: {

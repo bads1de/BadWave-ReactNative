@@ -47,13 +47,15 @@ function SpotlightItem({
     prevIsVisibleRef.current = isVisible;
 
     if (!wasVisible && isVisible) {
+      // eslint-disable-next-line react-hooks/immutability
       player.muted = false;
       setIsMuted(false);
     }
-  }, [isVisible]);
+  }, [isVisible, player]);
 
   const toggleMute = () => {
     const next = !isMuted;
+    // eslint-disable-next-line react-hooks/immutability
     player.muted = next;
     setIsMuted(next);
   };
