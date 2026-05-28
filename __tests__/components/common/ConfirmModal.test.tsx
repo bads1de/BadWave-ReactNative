@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 
 jest.mock("expo-linear-gradient", () => ({

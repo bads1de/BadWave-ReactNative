@@ -2,7 +2,6 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useSyncSongs } from "@/hooks/sync/useSyncSongs";
-import { CACHED_QUERIES } from "@/constants";
 
 
 // モック

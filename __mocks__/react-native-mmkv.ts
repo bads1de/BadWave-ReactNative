@@ -1,7 +1,5 @@
 // react-native-mmkv のモック
 export class MMKV {
-  constructor() {}
-  
   set = jest.fn();
   getString = jest.fn();
   getBoolean = jest.fn();

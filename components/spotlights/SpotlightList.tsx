@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useRef, useCallback } from "react";
 import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Spotlight } from "@/types";

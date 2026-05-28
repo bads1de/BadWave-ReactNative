@@ -1,5 +1,7 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { renderHook } from "@testing-library/react-native";
 import { useSyncBase } from "@/hooks/sync/useSyncBase";
+
+import { useQuery } from "@tanstack/react-query";
 
 const mockInvalidateQueries = jest.fn();
 const mockRefetch = jest.fn();
@@ -10,8 +12,6 @@ jest.mock("@tanstack/react-query", () => ({
     invalidateQueries: mockInvalidateQueries,
   })),
 }));
-
-import { useQuery } from "@tanstack/react-query";
 
 describe("useSyncBase", () => {
   beforeEach(() => {

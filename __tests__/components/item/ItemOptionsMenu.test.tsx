@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { render } from "@testing-library/react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ItemOptionsSheet } from "@/components/item/ItemOptionsMenu";

@@ -1,3 +1,6 @@
+import { mmkvSyncAdapter } from "@/lib/storage/mmkv-sync-adapter";
+import { storage } from "@/lib/storage/mmkv-storage";
+
 jest.mock("react-native-mmkv", () => ({
   MMKV: jest.fn().mockImplementation(() => ({
     set: jest.fn(),
@@ -9,9 +12,6 @@ jest.mock("react-native-mmkv", () => ({
     getAllKeys: jest.fn(() => []),
   })),
 }));
-
-import { mmkvSyncAdapter } from "@/lib/storage/mmkv-sync-adapter";
-import { storage } from "@/lib/storage/mmkv-storage";
 
 describe("mmkvSyncAdapter", () => {
   beforeEach(() => {

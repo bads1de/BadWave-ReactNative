@@ -3,7 +3,7 @@ const path = require("path");
 // https://docs.expo.dev/guides/using-eslint/
 module.exports = {
   extends: "expo",
-  ignorePatterns: ["/dist/*"],
+  ignorePatterns: ["/dist/*", "__tests__/**/*", "__mocks__/**/*"],
   env: {
     jest: true,
     node: true,

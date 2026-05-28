@@ -17,17 +17,11 @@ import MarqueeText from "@/components/common/MarqueeText";
 
 import { useAudioStore } from "@/hooks/stores/useAudioStore";
 
-interface NextSongProps {
-  // Props removed to use Zustand selectors directly for better performance
-}
-
 /**
  * 次の曲を表示するコンポーネント
- * @param {RepeatMode} repeatMode - リピートモード
- * @param {boolean} shuffle - シャッフルモード
  * @returns {React.ReactElement} 次の曲の表示
  */
-function NextSong({}: NextSongProps) {
+function NextSong() {
   const activeTrack = useActiveTrack();
   const [nextSong, setNextSong] = useState<Track | null>(null);
   const colors = useThemeStore((state) => state.colors);

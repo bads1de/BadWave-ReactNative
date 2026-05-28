@@ -156,7 +156,7 @@ jest.mock("@react-native-community/netinfo", () => ({
     isConnected: true,
     isInternetReachable: true,
   }),
-  addEventListener: jest.fn((handler) => {
+  addEventListener: jest.fn((_handler) => {
     return jest.fn(); // return unsubscribe function
   }),
   NetInfoStateType: {

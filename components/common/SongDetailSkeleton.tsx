@@ -3,7 +3,7 @@ import { View, StyleSheet, Dimensions } from "react-native";
 import SkeletonBox from "@/components/common/SkeletonBox";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface SongDetailSkeletonProps {
   /** ヒーロー画像の高さ比率 (デフォルト: 0.6 = 画面高さの60%) */

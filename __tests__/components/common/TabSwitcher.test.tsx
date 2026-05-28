@@ -2,6 +2,9 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { TabSwitcher } from "@/components/common/TabSwitcher";
 
+// Need to import fireEvent
+import { fireEvent } from "@testing-library/react-native";
+
 jest.mock("@/hooks/stores/useThemeStore", () => ({
   useThemeStore: jest.fn((selector) =>
     selector({
@@ -72,6 +75,3 @@ describe("TabSwitcher", () => {
     expect(getByText("Songs")).toBeTruthy();
   });
 });
-
-// Need to import fireEvent
-import { fireEvent } from "@testing-library/react-native";

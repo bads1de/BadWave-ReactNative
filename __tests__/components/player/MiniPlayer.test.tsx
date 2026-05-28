@@ -1,7 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import MiniPlayer from "@/components/player/MiniPlayer";
-import { Ionicons } from "@expo/vector-icons";
 import { Play, Pause } from "lucide-react-native";
 
 // @expo/vector-iconsのモック

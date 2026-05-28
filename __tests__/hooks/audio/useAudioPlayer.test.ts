@@ -1,5 +1,4 @@
 import { renderHook, waitFor, act } from "@testing-library/react-native";
-import React from "react";
 import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 
 jest.mock("react-native-track-player", () => ({

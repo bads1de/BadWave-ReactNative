@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -17,7 +16,6 @@ import { memo, useCallback } from "react";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import Loading from "@/components/common/Loading";
 
-const { width } = Dimensions.get("window");
 const ITEM_WIDTH = 160;
 
 interface PlaylistCardProps {

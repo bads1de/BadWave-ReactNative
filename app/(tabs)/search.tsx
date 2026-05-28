@@ -37,7 +37,6 @@ function SearchScreen() {
   const colors = useThemeStore((state) => state.colors);
 
   const {
-    rawQuery,
     controlledValue,
     searchType,
     songs,

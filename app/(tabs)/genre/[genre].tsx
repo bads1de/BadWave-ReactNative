@@ -3,8 +3,6 @@ import {
   View,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  Dimensions,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";

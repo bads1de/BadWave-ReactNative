@@ -305,7 +305,7 @@ const PlayerControls: FC<PlayerProps & { colors: ThemeDefinition["colors"] }> =
 PlayerControls.displayName = "PlayerControls";
 
 function Player(props: PlayerProps) {
-  const { currentSong, onClose, shuffle, repeatMode } = props;
+  const { currentSong, onClose } = props;
   const colors = useThemeStore((state) => state.colors);
 
   return (

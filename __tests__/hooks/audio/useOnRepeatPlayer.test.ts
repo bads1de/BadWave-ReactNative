@@ -2,6 +2,9 @@ import { renderHook, act } from "@testing-library/react";
 import { useOnRepeatPlayer } from "@/hooks/audio/useOnRepeatPlayer";
 import Song from "@/types";
 
+import { useVideoPlayer } from "expo-video";
+import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
+
 // expo-video をモック
 jest.mock("expo-video", () => ({
   useVideoPlayer: jest.fn(),
@@ -11,9 +14,6 @@ jest.mock("expo-video", () => ({
 jest.mock("@/hooks/stores/useOnRepeatStore", () => ({
   useOnRepeatStore: jest.fn(),
 }));
-
-import { useVideoPlayer } from "expo-video";
-import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 
 describe("useOnRepeatPlayer", () => {
   let mockVideoPlayer: any;

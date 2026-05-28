@@ -2,7 +2,6 @@ import React, { memo } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import SkeletonBox from "@/components/common/SkeletonBox";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
-import ListSkeleton from "@/components/common/ListSkeleton";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

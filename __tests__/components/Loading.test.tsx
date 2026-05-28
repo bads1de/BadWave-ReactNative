@@ -1,6 +1,5 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { View } from "react-native";
 import Loading from "@/components/common/Loading";
 
 jest.mock("@/hooks/stores/useThemeStore", () => ({

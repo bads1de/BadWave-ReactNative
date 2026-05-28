@@ -118,7 +118,7 @@ export class QueryPersistenceManager {
                 storage.delete(key);
                 deletedCount++;
               }
-            } catch (e) {
+            } catch {
               // パースエラーなどの不正なキャッシュは問答無用で削除
               storage.delete(key);
               deletedCount++;

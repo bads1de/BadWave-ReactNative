@@ -16,7 +16,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  interpolate,
 } from "react-native-reanimated";
 import {
   Settings2,

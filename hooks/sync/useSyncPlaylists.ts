@@ -1,4 +1,4 @@
-import { eq, and, notInArray, inArray, sql } from "drizzle-orm";
+import { and, notInArray, inArray, sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";

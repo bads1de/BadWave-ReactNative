@@ -9,13 +9,11 @@ import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 interface DeletePlaylistSongsBtnProps {
   songId: string;
   playlistId: string;
-  songType: string;
 }
 
 const DeletePlaylistSongsBtn: React.FC<DeletePlaylistSongsBtnProps> = ({
   songId,
   playlistId,
-  songType = "regular",
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { isOnline } = useNetworkStatus();

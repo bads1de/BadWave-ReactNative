@@ -42,7 +42,7 @@ import Animated, {
   Extrapolate,
 } from "react-native-reanimated";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 const HERO_IMAGE_HEIGHT = height * 0.6;
 
 export default function SongDetailScreen() {
