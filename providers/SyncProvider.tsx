@@ -43,31 +43,6 @@ function SyncProviderInner({ children }: { children: React.ReactNode }) {
   });
   const [syncError, setSyncError] = useState<Error | null>(null);
 
-  // エラー集約（useMemoで計算、setState不要）
-  const aggregatedError =
-    songsError ||
-    likedError ||
-    playlistsError ||
-    trendsError ||
-    recsError ||
-    spotsError;
-
-  useEffect(() => {
-    setSyncError(aggregatedError as Error | null);
-  }, [aggregatedError]);
-
-  // AppStateをReact Queryに連携（バックグラウンド時の無駄なフェッチ・リトライを停止）
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (status) => {
-      if (Platform.OS !== "web") {
-        focusManager.setFocused(status === "active");
-      }
-    });
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
   // 各同期フック
   const {
     isSyncing: isSyncingSongs,
@@ -103,6 +78,31 @@ function SyncProviderInner({ children }: { children: React.ReactNode }) {
     triggerSync: syncSpots,
     syncError: spotsError,
   } = useSyncSpotlights();
+
+  // エラー集約
+  const aggregatedError =
+    songsError ||
+    likedError ||
+    playlistsError ||
+    trendsError ||
+    recsError ||
+    spotsError;
+
+  useEffect(() => {
+    setSyncError(aggregatedError as Error | null);
+  }, [aggregatedError]);
+
+  // AppStateをReact Queryに連携（バックグラウンド時の無駄なフェッチ・リトライを停止）
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (status) => {
+      if (Platform.OS !== "web") {
+        focusManager.setFocused(status === "active");
+      }
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // 全体の同期状態
   const isSyncing =

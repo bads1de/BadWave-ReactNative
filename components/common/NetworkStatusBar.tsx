@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSync } from "@/providers/SyncProvider";
 import { useEffect, useRef } from "react";
@@ -33,7 +34,9 @@ export function NetworkStatusBar() {
 
   const backgroundColor = !isOnline ? "#EF4444" : "#3B82F6";
   const message = !isOnline ? "オフラインです" : "同期中...";
-  const icon = !isOnline ? "cloud-offline" : "sync";
+  const icon: ComponentProps<typeof Ionicons>["name"] = !isOnline
+    ? "cloud-offline-outline"
+    : "sync-outline";
 
   return (
     <Animated.View
@@ -42,7 +45,7 @@ export function NetworkStatusBar() {
         { backgroundColor, transform: [{ translateY: slideAnimRef.current }] },
       ]}
     >
-      <Ionicons name={icon as any} size={16} color="#fff" />
+      <Ionicons name={icon} size={16} color="#fff" />
       <Text style={styles.text}>{message}</Text>
       {isSyncing && <View style={styles.loadingDot} />}
     </Animated.View>

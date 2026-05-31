@@ -1,3 +1,7 @@
+// テスト用の環境変数
+process.env.EXPO_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
+process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
+
 // React Native のモック
 // jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 // jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');

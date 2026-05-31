@@ -152,7 +152,7 @@ describe("TrackPlayer utils - Edge Cases", () => {
       const mixedSongs = [
         mockSong,
         {} as Song, // 無効な曲
-        { ...mockSong, id: "song-3", song_path: undefined } as Song, // song_pathがない
+        { ...mockSong, id: "song-3", song_path: "" } as Song, // song_pathが空
       ];
 
       const tracks = await convertToTracks(mixedSongs);
@@ -160,7 +160,7 @@ describe("TrackPlayer utils - Edge Cases", () => {
       expect(tracks.length).toBe(3);
       expect(tracks[0].url).toBeDefined();
       expect(tracks[1].url).toBeUndefined();
-      expect(tracks[2].url).toBeUndefined();
+      expect(tracks[2].url).toBe("");
     });
 
     it("should handle errors during conversion of individual songs", async () => {

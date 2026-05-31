@@ -1,4 +1,5 @@
 import { getTrendDateFilter } from "@/lib/utils/trendFilter";
+import { subMonths, subWeeks, subDays } from "date-fns";
 
 describe("getTrendDateFilter", () => {
   beforeEach(() => {
@@ -15,13 +16,10 @@ describe("getTrendDateFilter", () => {
     expect(result).not.toBeNull();
 
     const date = new Date(result!);
-    const now = new Date();
-    const oneMonthAgo = new Date(now);
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const expected = subMonths(new Date(), 1);
 
-    // 1日前の範囲内であればOK（時間差を考慮）
-    const diffMs = Math.abs(date.getTime() - oneMonthAgo.getTime());
-    expect(diffMs).toBeLessThan(24 * 60 * 60 * 1000); // 1日以内
+    const diffMs = Math.abs(date.getTime() - expected.getTime());
+    expect(diffMs).toBeLessThan(1000); // 1秒以内
   });
 
   it("should return date approximately 1 week ago for 'week' period", () => {
@@ -29,12 +27,10 @@ describe("getTrendDateFilter", () => {
     expect(result).not.toBeNull();
 
     const date = new Date(result!);
-    const now = new Date();
-    const oneWeekAgo = new Date(now);
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const expected = subWeeks(new Date(), 1);
 
-    const diffMs = Math.abs(date.getTime() - oneWeekAgo.getTime());
-    expect(diffMs).toBeLessThan(24 * 60 * 60 * 1000); // 1日以内
+    const diffMs = Math.abs(date.getTime() - expected.getTime());
+    expect(diffMs).toBeLessThan(1000); // 1秒以内
   });
 
   it("should return date approximately 1 day ago for 'day' period", () => {
@@ -42,12 +38,10 @@ describe("getTrendDateFilter", () => {
     expect(result).not.toBeNull();
 
     const date = new Date(result!);
-    const now = new Date();
-    const oneDayAgo = new Date(now);
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const expected = subDays(new Date(), 1);
 
-    const diffMs = Math.abs(date.getTime() - oneDayAgo.getTime());
-    expect(diffMs).toBeLessThan(24 * 60 * 60 * 1000); // 1日以内
+    const diffMs = Math.abs(date.getTime() - expected.getTime());
+    expect(diffMs).toBeLessThan(1000); // 1秒以内
   });
 
   it("should return ISO string format", () => {

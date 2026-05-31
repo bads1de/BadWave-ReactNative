@@ -41,7 +41,7 @@ function Header() {
           testID="user-icon-button"
         >
           <Image
-            source={{ uri: user?.avatar_url! }}
+            source={{ uri: user?.avatar_url }}
             style={styles.userIcon}
             contentFit="cover"
           />

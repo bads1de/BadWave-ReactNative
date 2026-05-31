@@ -94,16 +94,20 @@ function NextSong() {
 
   // 曲変更イベントの監視
   useTrackPlayerEvents([Event.PlaybackTrackChanged], async (event) => {
-    if (event.nextTrack !== null) {
-      const track = await TrackPlayer.getTrack(event.nextTrack);
-      if (track) {
-        setNextSong(track);
+    try {
+      if (event.nextTrack !== null) {
+        const track = await TrackPlayer.getTrack(event.nextTrack);
+        if (track) {
+          setNextSong(track);
 
-        // 次の曲のアートワークをプリフェッチする
-        if (track.artwork && typeof track.artwork === "string") {
-          Image.prefetch([track.artwork]).catch(() => {});
+          // 次の曲のアートワークをプリフェッチする
+          if (track.artwork && typeof track.artwork === "string") {
+            Image.prefetch([track.artwork]).catch(() => {});
+          }
         }
       }
+    } catch (error) {
+      console.error("Error handling track change:", error);
     }
   });
 

@@ -303,11 +303,12 @@ const Lyric: React.FC<LyricProps> = ({
   artistName,
   initialVisibleLines = 3,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const colors = useThemeStore((state) => state.colors);
+
   if (lyrics === null || lyrics === undefined) {
     throw new Error("Lyrics must be provided");
   }
-  const [isExpanded, setIsExpanded] = useState(false);
-  const colors = useThemeStore((state) => state.colors);
 
   const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

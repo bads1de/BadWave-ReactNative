@@ -5,7 +5,7 @@ export default interface Song {
   user_id: string;
   author: string;
   title: string;
-  song_path: any;
+  song_path: string;
   image_path: string;
   video_path?: string;
   genre?: string;
