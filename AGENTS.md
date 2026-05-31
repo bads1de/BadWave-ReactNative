@@ -28,40 +28,61 @@ badwave-mobile/
 ├── app/              # Expo Routerによる画面とルート
 │   ├── (tabs)/       # タブナビゲーション用のレイアウトと画面
 │   │   ├── _layout.tsx
-│   │   ├── index.tsx   # ホーム画面
-│   │   ├── library.tsx
-│   │   ├── search.tsx
-│   │   └── spotlights.tsx     # Spotlightsタブのメイン画面
-│   ├── playlist/     # プレイリスト詳細画面など
-│   └── _layout.tsx     # ルートレイアウト
+│   │   ├── index.tsx           # ホーム画面
+│   │   ├── search.tsx          # 検索画面
+│   │   ├── spotlights.tsx      # Spotlightsタブ
+│   │   ├── library.tsx         # ライブラリ画面
+│   │   ├── account.tsx         # アカウント設定画面
+│   │   ├── genre/[genre].tsx   # ジャンル詳細 (動的ルート)
+│   │   ├── playlist/[playlistId].tsx # プレイリスト詳細 (動的ルート)
+│   │   └── song/[songId].tsx   # 楽曲詳細 (動的ルート)
+│   └── _layout.tsx             # ルートレイアウト
 ├── actions/          # Supabaseとのデータ通信処理
-│   ├── getSongs.ts
-│   ├── createPlaylist.ts
-│   └── ...
+│   ├── playlist/
+│   ├── song/
+│   ├── spotlight/
+│   └── user/
 ├── components/       # 再利用可能なUIコンポーネント
-│   ├── common/
-│   ├── player/
+│   ├── board/        # ホーム画面セクション (HeroBoard, TrendBoard等)
+│   ├── common/       # 共通UI (Header, Loading, Skeleton等)
+│   ├── download/     # ダウンロード関連
 │   ├── item/         # SongItem, ListItem, PlaylistItem など
-│   └── spotlights/        # Spotlights関連コンポーネント
+│   ├── library/      # ライブラリ画面用
+│   ├── modal/        # モーダル (AuthModal)
+│   ├── onRepeat/     # OnRepeat機能
+│   ├── player/       # プレイヤー (Player, MiniPlayer, Lyric等)
+│   ├── playlist/     # プレイリスト管理
+│   ├── search/       # 検索 (SearchBar, SearchHistory)
+│   └── spotlights/   # Spotlights関連
 ├── constants/        # 定数
 │   ├── index.ts      # キャッシュキー、設定など
-│   └── errorMessages.ts  # エラーメッセージ定数
+│   ├── theme.ts      # テーマ定数
+│   ├── ThemeColors.ts # テーマカラーパレット
+│   └── errorMessages.ts # エラーメッセージ定数
 ├── hooks/            # ビジネスロジックと状態管理
-│   ├── data/         # ローカルDB読み込み用フック (useGetLocalSongs など)
-│   ├── sync/         # Supabase → ローカルDB同期フック
-│   ├── mutations/    # データ変更用フック (useLikeMutation など)
+│   ├── audio/        # オーディオ再生 (useAudioPlayer等)
+│   ├── common/       # 共通フック (useDebounce, useNetworkStatus等)
+│   ├── data/         # ローカルDB読み込み用フック
+│   ├── downloads/    # ダウンロード管理
+│   ├── mutations/    # データ変更用フック (useLikeMutation等)
 │   ├── stores/       # Zustand ストア
-│   └── ...
+│   └── sync/         # Supabase → ローカルDB同期フック
 ├── lib/              # ユーティリティ
 │   ├── supabase.ts   # Supabaseクライアント
-│   ├── db/           # ローカルSQLite設定・スキーマ
-│   └── utils/        # ユーティリティ関数
-│       └── retry.ts  # リトライ機能
-├── services/         # バックグラウンドサービス
-│   └── PlayerService.ts
+│   ├── db/           # ローカルSQLite設定・スキーマ (Drizzle ORM)
+│   ├── storage/      # MMKVストレージ・アダプター
+│   └── utils/        # ユーティリティ関数 (retry, formatTime等)
 ├── providers/        # React Context プロバイダー
-│   ├── AuthProvider.tsx
-│   └── SyncProvider.tsx  # バックグラウンド同期
+│   ├── AuthProvider.tsx      # 認証管理
+│   ├── SyncProvider.tsx      # バックグラウンド同期
+│   ├── QueryProvider.tsx     # TanStack Query永続化
+│   └── AppInitializerProvider.tsx # DBマイグレーション・Player初期化
+├── services/         # バックグラウンドサービス
+│   ├── PlayerService.ts
+│   └── OfflineStorageService.ts
+├── types/            # TypeScript型定義
+│   └── index.ts
+├── drizzle/          # Drizzle ORMマイグレーション
 └── __tests__/        # Jestによるテスト (ソース構造をミラーリング)
     └── ...
 ```
@@ -78,6 +99,8 @@ badwave-mobile/
 - **`lib/`**: サードパーティサービスの初期化と共有ユーティリティ関数。
 - **`providers/`**: React コンテキストプロバイダー。
 - **`services/`**: バックグラウンドサービス。
+- **`types/`**: TypeScript型定義。
+- **`drizzle/`**: Drizzle ORMマイグレーションファイル。
 
 ## 2. データフロー（ローカルファースト）
 

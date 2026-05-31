@@ -47,6 +47,10 @@ function ListItem({
     }
   }, [onDelete, song]);
 
+  const handlePress = useCallback(() => {
+    onPress(song);
+  }, [onPress, song]);
+
   const handleTitlePress = useCallback(() => {
     router.push(`/song/${song.id}`);
   }, [router, song.id]);
@@ -60,7 +64,7 @@ function ListItem({
           borderColor: "rgba(255, 255, 255, 0.05)",
         },
       ]}
-      onPress={() => onPress(song)}
+      onPress={handlePress}
       activeOpacity={0.7}
       testID={testID}
     >

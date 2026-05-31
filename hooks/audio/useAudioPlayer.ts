@@ -310,17 +310,19 @@ export function usePlayControls(
   const currentSong = useAudioStore((state) => state.currentSong);
   const playbackState = usePlaybackState();
   const isPlaying = playbackState.state === State.Playing;
+  const playbackStateRef = useRef(playbackState.state);
 
-  const setTrackPlayerIsPlaying = useCallback(
-    (playing: boolean) => {
-      if (playing && playbackState.state !== State.Playing) {
-        TrackPlayer.play();
-      } else if (!playing && playbackState.state === State.Playing) {
-        TrackPlayer.pause();
-      }
-    },
-    [playbackState.state],
-  );
+  useEffect(() => {
+    playbackStateRef.current = playbackState.state;
+  }, [playbackState.state]);
+
+  const setTrackPlayerIsPlaying = useCallback((playing: boolean) => {
+    if (playing && playbackStateRef.current !== State.Playing) {
+      TrackPlayer.play();
+    } else if (!playing && playbackStateRef.current === State.Playing) {
+      TrackPlayer.pause();
+    }
+  }, []);
 
   const { updateQueueState: _updateQueueState, ...playbackControls } =
     usePlaybackActions({

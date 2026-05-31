@@ -1,4 +1,4 @@
-import React, { memo, useRef, useEffect, useState, useMemo } from "react";
+import React, { memo, useRef, useEffect, useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -52,6 +52,10 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
     opacity: opacity.value,
   }));
 
+  const handlePress = useCallback(() => {
+    onPress(playlist);
+  }, [onPress, playlist]);
+
   const handlePressIn = () => {
     "worklet";
     scale.value = withSpring(0.97, { damping: 15, stiffness: 100 });
@@ -75,7 +79,7 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
             borderColor: colors.border,
           },
         ]}
-        onPress={() => onPress(playlist)}
+        onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={1}
