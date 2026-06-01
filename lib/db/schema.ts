@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   sqliteTable,
   text,
@@ -129,7 +130,7 @@ export const spotlights = sqliteTable("spotlights", {
 export const sectionCache = sqliteTable("section_cache", {
   key: text("key").primaryKey(),
   itemIds: text("item_ids", { mode: "json" }), // string[]
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$onUpdate(
-    () => new Date()
-  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .$onUpdate(() => new Date()),
 });
