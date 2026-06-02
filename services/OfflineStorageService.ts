@@ -191,7 +191,11 @@ export class OfflineStorageService {
     imagePath: string | null,
   ) {
     try {
-      const updateData: any = {
+      const updateData: {
+        songPath: string | null;
+        downloadedAt: Date | null;
+        imagePath?: string | null;
+      } = {
         songPath: songPath,
         downloadedAt: songPath ? new Date() : null,
       };

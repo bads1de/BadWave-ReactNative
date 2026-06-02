@@ -45,4 +45,29 @@ export interface Spotlight {
   author: string;
   genre?: string;
   description?: string;
+  thumbnail_path?: string;
+  created_at?: string;
+}
+
+// ============================================================================
+// 共通型定義
+// ============================================================================
+
+/**
+ * アイコンコンポーネントの型
+ * lucide-reactやreact-iconsなどのアイコンライブラリと互換性のある型
+ */
+export type IconComponent = React.ComponentType<Record<string, unknown>>;
+
+/**
+ * テーマカラーの型
+ */
+export interface ThemeColors {
+  primary: string;
+  text: string;
+  subText: string;
+  background: string;
+  card: string;
+  border: string;
+  glow?: string;
 }

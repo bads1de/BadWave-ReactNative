@@ -7,7 +7,7 @@ import {
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
-import { Playlist } from "@/types";
+import { Playlist, ThemeColors } from "@/types";
 import { CACHED_QUERIES } from "@/constants";
 import getPublicPlaylists from "@/actions/playlist/getPublicPlaylists";
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ const ITEM_WIDTH = 160;
 interface PlaylistCardProps {
   playlist: Playlist;
   onPress: (playlist: Playlist) => void;
-  colors: any;
+  colors: ThemeColors;
 }
 
 const PlaylistCard = memo(({ playlist, onPress, colors }: PlaylistCardProps) => {

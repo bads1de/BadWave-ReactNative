@@ -20,7 +20,7 @@ import {
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { VideoView, useVideoPlayer } from "expo-video";
-import Song from "@/types";
+import Song, { IconComponent } from "@/types";
 import { RepeatMode } from "react-native-track-player";
 import MarqueeText from "@/components/common/MarqueeText";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
@@ -72,7 +72,7 @@ interface ControlsProps {
 }
 
 interface ControlButtonProps {
-  icon: any;
+  icon: IconComponent;
   isActive?: boolean;
   onPress: () => void;
   repeatMode?: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;

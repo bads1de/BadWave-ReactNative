@@ -28,18 +28,18 @@ const getRecommendations = async (
       return [];
     }
 
-    return data.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      author: item.author,
-      song_path: item.song_path,
-      image_path: item.image_path,
-      genre: item.genre,
-      count: item.count || 0,
-      like_count: item.like_count || 0,
-      created_at: item.created_at,
+    return data.map((item: Record<string, unknown>) => ({
+      id: item.id as string,
+      title: item.title as string,
+      author: item.author as string,
+      song_path: item.song_path as string,
+      image_path: item.image_path as string,
+      genre: item.genre as string,
+      count: String(item.count || 0),
+      like_count: String(item.like_count || 0),
+      created_at: item.created_at as string,
       user_id: userId,
-      recommendation_score: item.score,
+      recommendation_score: item.score as number,
     }));
   } catch (e) {
     console.error("Exception in getRecommendations:", e);

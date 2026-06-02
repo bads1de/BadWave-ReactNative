@@ -36,7 +36,7 @@ function Header() {
       </View>
       {session ? (
         <TouchableOpacity
-          onPress={() => router.push("/account" as any)}
+          onPress={() => router.push("/account")}
           style={[styles.userIconContainer, { borderColor: colors.primary }]}
           testID="user-icon-button"
         >

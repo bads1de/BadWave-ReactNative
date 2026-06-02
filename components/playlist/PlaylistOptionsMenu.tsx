@@ -38,7 +38,7 @@ import CustomAlertDialog from "@/components/common/CustomAlertDialog";
 import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "@/components/download/BulkDownloadModal";
 import { useMutatePlaylist } from "@/hooks/mutations/useMutatePlaylist";
-import Song from "@/types";
+import Song, { IconComponent } from "@/types";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -211,7 +211,7 @@ export default function PlaylistOptionsMenu({
 
   const renderOptionItem = (
     label: string,
-    Icon: any,
+    Icon: IconComponent,
     onPress: () => void,
     color: string = colors.text,
     subLabel?: string,

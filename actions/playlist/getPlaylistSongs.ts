@@ -52,9 +52,9 @@ const getPlaylistSongs = async (
     throw new Error(error.message);
   }
 
-  return (data || []).map((item: any) => ({
+  return (data || []).map((item: { songs: Song }) => ({
     ...item.songs,
-    songType: "regular",
+    songType: "regular" as const,
   }));
 };
 

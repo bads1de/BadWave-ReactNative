@@ -151,7 +151,14 @@ function AddPlaylistModal({
   handleCloseModal,
   translateY,
   opacity,
-}: any) {
+}: {
+  songId: string;
+  currentPlaylistId?: string;
+  modalOpen: boolean;
+  handleCloseModal: () => void;
+  translateY: any;
+  opacity: any;
+}) {
   const colors = useThemeStore((state) => state.colors);
   const { session } = useAuth();
   const [optimisticPlaylistIds, setOptimisticPlaylistIds] = useState<string[]>(
