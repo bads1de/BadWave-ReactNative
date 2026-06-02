@@ -36,13 +36,40 @@ export function useCreatePlaylist(userId?: string) {
         createPlaylist({ userId, title, isPublic })
       );
     },
+    onMutate: async ({ title }) => {
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlists],
+      });
+
+      const previousPlaylists = queryClient.getQueryData<any[]>([
+        CACHED_QUERIES.playlists,
+      ]);
+
+      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) => [
+        ...(old || []),
+        {
+          id: `temp_${Date.now()}`,
+          title,
+          isPublic: false,
+          userId,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+
+      return { previousPlaylists };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.playlists],
       });
     },
-    onError: (error) => {
-      console.error("Error creating playlist:", error);
+    onError: (_error, _variables, context) => {
+      if (context?.previousPlaylists) {
+        queryClient.setQueryData(
+          [CACHED_QUERIES.playlists],
+          context.previousPlaylists,
+        );
+      }
     },
   });
 }

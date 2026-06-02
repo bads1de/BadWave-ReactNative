@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react-native";
+import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useMutatePlaylist } from "@/hooks/mutations/useMutatePlaylist";
@@ -127,5 +127,192 @@ describe("useMutatePlaylist", () => {
         isPublic: true,
       }),
     ).rejects.toThrow(PLAYLIST_ERRORS.EDIT_OFFLINE);
+  });
+
+  describe("楽観的更新", () => {
+    describe("togglePublic", () => {
+      it("mutate呼び出し時に即座にキャッシュが更新される（playlists）", async () => {
+        // 初期状態: プレイリスト一覧にisPublic: falseのプレイリストがある
+        queryClient.setQueryData([CACHED_QUERIES.playlists], [
+          { id: "p1", title: "Playlist 1", isPublic: false, userId: "u1" },
+        ]);
+        queryClient.setQueryData([CACHED_QUERIES.playlistById, "p1"], {
+          id: "p1",
+          title: "Playlist 1",
+          isPublic: false,
+          userId: "u1",
+        });
+
+        // actionモック（遅延）
+        togglePublicPlaylist.mockImplementation(
+          () => new Promise((resolve) => setTimeout(resolve, 100)),
+        );
+
+        const { result } = renderHook(() => useMutatePlaylist("u1"), {
+          wrapper: createWrapper(),
+        });
+
+        // mutate を呼び出し
+        act(() => {
+          result.current.togglePublic.mutate({
+            playlistId: "p1",
+            isPublic: false,
+          });
+        });
+
+        // 楽観的更新: 即座にplaylistsキャッシュのisPublicが反転される
+        await waitFor(() => {
+          const playlists = queryClient.getQueryData<any[]>([
+            CACHED_QUERIES.playlists,
+          ]);
+          expect(playlists?.[0].isPublic).toBe(true);
+        });
+      });
+
+      it("エラー時にキャッシュがロールバックされる", async () => {
+        queryClient.setQueryData([CACHED_QUERIES.playlists], [
+          { id: "p1", title: "Playlist 1", isPublic: false, userId: "u1" },
+        ]);
+
+        togglePublicPlaylist.mockRejectedValue(new Error("Network error"));
+
+        const { result } = renderHook(() => useMutatePlaylist("u1"), {
+          wrapper: createWrapper(),
+        });
+
+        await act(async () => {
+          result.current.togglePublic.mutate({
+            playlistId: "p1",
+            isPublic: false,
+          });
+        });
+
+        // ロールバック: 元のisPublic: falseに戻る
+        await waitFor(() => {
+          const playlists = queryClient.getQueryData<any[]>([
+            CACHED_QUERIES.playlists,
+          ]);
+          expect(playlists?.[0].isPublic).toBe(false);
+        });
+      });
+    });
+
+    describe("rename", () => {
+      it("mutate呼び出し時に即座にキャッシュが更新される（playlists）", async () => {
+        queryClient.setQueryData([CACHED_QUERIES.playlists], [
+          { id: "p1", title: "Old Title", isPublic: false, userId: "u1" },
+        ]);
+        queryClient.setQueryData([CACHED_QUERIES.playlistById, "p1"], {
+          id: "p1",
+          title: "Old Title",
+          isPublic: false,
+          userId: "u1",
+        });
+
+        renamePlaylist.mockImplementation(
+          () => new Promise((resolve) => setTimeout(resolve, 100)),
+        );
+
+        const { result } = renderHook(() => useMutatePlaylist("u1"), {
+          wrapper: createWrapper(),
+        });
+
+        act(() => {
+          result.current.rename.mutate({
+            playlistId: "p1",
+            title: "New Title",
+          });
+        });
+
+        // 楽観的更新: 即座にplaylistsキャッシュのtitleが更新される
+        await waitFor(() => {
+          const playlists = queryClient.getQueryData<any[]>([
+            CACHED_QUERIES.playlists,
+          ]);
+          expect(playlists?.[0].title).toBe("New Title");
+        });
+      });
+
+      it("エラー時にキャッシュがロールバックされる", async () => {
+        queryClient.setQueryData([CACHED_QUERIES.playlists], [
+          { id: "p1", title: "Old Title", isPublic: false, userId: "u1" },
+        ]);
+
+        renamePlaylist.mockRejectedValue(new Error("Network error"));
+
+        const { result } = renderHook(() => useMutatePlaylist("u1"), {
+          wrapper: createWrapper(),
+        });
+
+        await act(async () => {
+          result.current.rename.mutate({
+            playlistId: "p1",
+            title: "New Title",
+          });
+        });
+
+        await waitFor(() => {
+          const playlists = queryClient.getQueryData<any[]>([
+            CACHED_QUERIES.playlists,
+          ]);
+          expect(playlists?.[0].title).toBe("Old Title");
+        });
+      });
+    });
+
+    describe("remove", () => {
+      it("mutate呼び出し時に即座にキャッシュからプレイリストが削除される", async () => {
+        queryClient.setQueryData([CACHED_QUERIES.playlists], [
+          { id: "p1", title: "Playlist 1", isPublic: false, userId: "u1" },
+          { id: "p2", title: "Playlist 2", isPublic: true, userId: "u1" },
+        ]);
+
+        deletePlaylist.mockImplementation(
+          () => new Promise((resolve) => setTimeout(resolve, 100)),
+        );
+
+        const { result } = renderHook(() => useMutatePlaylist("u1"), {
+          wrapper: createWrapper(),
+        });
+
+        act(() => {
+          result.current.remove.mutate({ playlistId: "p1" });
+        });
+
+        // 楽観的更新: 即座にplaylistsキャッシュからp1が削除される
+        await waitFor(() => {
+          const playlists = queryClient.getQueryData<any[]>([
+            CACHED_QUERIES.playlists,
+          ]);
+          expect(playlists?.length).toBe(1);
+          expect(playlists?.[0].id).toBe("p2");
+        });
+      });
+
+      it("エラー時にキャッシュがロールバックされる", async () => {
+        const initialPlaylists = [
+          { id: "p1", title: "Playlist 1", isPublic: false, userId: "u1" },
+          { id: "p2", title: "Playlist 2", isPublic: true, userId: "u1" },
+        ];
+        queryClient.setQueryData([CACHED_QUERIES.playlists], initialPlaylists);
+
+        deletePlaylist.mockRejectedValue(new Error("Network error"));
+
+        const { result } = renderHook(() => useMutatePlaylist("u1"), {
+          wrapper: createWrapper(),
+        });
+
+        await act(async () => {
+          result.current.remove.mutate({ playlistId: "p1" });
+        });
+
+        await waitFor(() => {
+          const playlists = queryClient.getQueryData<any[]>([
+            CACHED_QUERIES.playlists,
+          ]);
+          expect(playlists?.length).toBe(2);
+        });
+      });
+    });
   });
 });

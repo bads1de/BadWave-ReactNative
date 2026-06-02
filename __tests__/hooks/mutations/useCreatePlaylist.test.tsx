@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react-native";
+import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useCreatePlaylist } from "@/hooks/mutations/useCreatePlaylist";
@@ -167,5 +167,98 @@ describe("useCreatePlaylist", () => {
 
     // SQLiteには保存されないはず
     expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  describe("楽観的更新", () => {
+    it("mutate呼び出し時に即座にキャッシュにプレイリストが追加される", async () => {
+      const userId = "user-123";
+
+      // 初期状態: プレイリストが1つある
+      queryClient.setQueryData([CACHED_QUERIES.playlists], [
+        { id: "existing-1", title: "Existing", isPublic: false, userId },
+      ]);
+
+      // Supabase モック（遅延）
+      const mockSingle = jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  data: {
+                    id: "new-playlist-1",
+                    created_at: "2024-01-01",
+                    image_path: "path/to/img",
+                  },
+                  error: null,
+                }),
+              100,
+            ),
+          ),
+      );
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockInsertSupabase = jest
+        .fn()
+        .mockReturnValue({ select: mockSelect });
+      _supabase.from.mockReturnValue({ insert: mockInsertSupabase });
+
+      const mockValues = jest.fn().mockResolvedValue(undefined);
+      db.insert.mockReturnValue({ values: mockValues });
+
+      const { result } = renderHook(() => useCreatePlaylist(userId), {
+        wrapper: createWrapper(),
+      });
+
+      // mutate を呼び出し
+      act(() => {
+        result.current.mutate({ title: "New Playlist" });
+      });
+
+      // 楽観的更新: 即座にキャッシュに一時的なプレイリストが追加される
+      await waitFor(() => {
+        const playlists = queryClient.getQueryData<any[]>([
+          CACHED_QUERIES.playlists,
+        ]);
+        expect(playlists?.length).toBe(2);
+        expect(playlists?.[1].title).toBe("New Playlist");
+        expect(playlists?.[1].id).toMatch(/^temp_/);
+      });
+    });
+
+    it("エラー時にキャッシュがロールバックされる", async () => {
+      const userId = "user-123";
+
+      queryClient.setQueryData([CACHED_QUERIES.playlists], [
+        { id: "existing-1", title: "Existing", isPublic: false, userId },
+      ]);
+
+      // Supabase モック (エラー)
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: "Internal Server Error" },
+      });
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockInsertSupabase = jest
+        .fn()
+        .mockReturnValue({ select: mockSelect });
+      _supabase.from.mockReturnValue({ insert: mockInsertSupabase });
+
+      const { result } = renderHook(() => useCreatePlaylist(userId), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate({ title: "New Playlist" });
+      });
+
+      // ロールバック: 元の1つのプレイリストに戻る
+      await waitFor(() => {
+        const playlists = queryClient.getQueryData<any[]>([
+          CACHED_QUERIES.playlists,
+        ]);
+        expect(playlists?.length).toBe(1);
+        expect(playlists?.[0].id).toBe("existing-1");
+      });
+    });
   });
 });

@@ -37,6 +37,23 @@ export function useMutatePlaylist(userId?: string) {
       await togglePublicPlaylist(playlistId, userId, isPublic);
       return { playlistId };
     },
+    onMutate: async ({ playlistId, isPublic }) => {
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlists],
+      });
+
+      const previousPlaylists = queryClient.getQueryData<any[]>([
+        CACHED_QUERIES.playlists,
+      ]);
+
+      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) =>
+        (old || []).map((p) =>
+          p.id === playlistId ? { ...p, isPublic: !isPublic } : p,
+        ),
+      );
+
+      return { previousPlaylists };
+    },
     onSuccess: ({ playlistId }) => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
       queryClient.invalidateQueries({
@@ -45,6 +62,14 @@ export function useMutatePlaylist(userId?: string) {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.getPublicPlaylists],
       });
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousPlaylists) {
+        queryClient.setQueryData(
+          [CACHED_QUERIES.playlists],
+          context.previousPlaylists,
+        );
+      }
     },
   });
 
@@ -61,6 +86,21 @@ export function useMutatePlaylist(userId?: string) {
       await renamePlaylist(playlistId, title, userId);
       return { playlistId };
     },
+    onMutate: async ({ playlistId, title }) => {
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlists],
+      });
+
+      const previousPlaylists = queryClient.getQueryData<any[]>([
+        CACHED_QUERIES.playlists,
+      ]);
+
+      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) =>
+        (old || []).map((p) => (p.id === playlistId ? { ...p, title } : p)),
+      );
+
+      return { previousPlaylists };
+    },
     onSuccess: ({ playlistId }) => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
       queryClient.invalidateQueries({
@@ -69,6 +109,14 @@ export function useMutatePlaylist(userId?: string) {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.getPublicPlaylists],
       });
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousPlaylists) {
+        queryClient.setQueryData(
+          [CACHED_QUERIES.playlists],
+          context.previousPlaylists,
+        );
+      }
     },
   });
 
@@ -85,6 +133,21 @@ export function useMutatePlaylist(userId?: string) {
       await deletePlaylist(playlistId, userId);
       return { playlistId };
     },
+    onMutate: async ({ playlistId }) => {
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlists],
+      });
+
+      const previousPlaylists = queryClient.getQueryData<any[]>([
+        CACHED_QUERIES.playlists,
+      ]);
+
+      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) =>
+        (old || []).filter((p) => p.id !== playlistId),
+      );
+
+      return { previousPlaylists };
+    },
     onSuccess: ({ playlistId }) => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
       queryClient.invalidateQueries({
@@ -96,6 +159,14 @@ export function useMutatePlaylist(userId?: string) {
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.getPublicPlaylists],
       });
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousPlaylists) {
+        queryClient.setQueryData(
+          [CACHED_QUERIES.playlists],
+          context.previousPlaylists,
+        );
+      }
     },
   });
 
