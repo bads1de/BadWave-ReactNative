@@ -22,6 +22,7 @@ import { Chrome, Mail, Lock, LogOut, X } from "lucide-react-native";
 import { CACHED_QUERIES } from "@/constants";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
+import { getErrorMessage } from "@/lib/utils/error";
 
 GoogleSignin.configure({
   webClientId:
@@ -62,8 +63,8 @@ function AuthModalInner() {
         queryKey: [CACHED_QUERIES.getRecommendations],
       });
       setShowAuthModal(false);
-    } catch (error: any) {
-      Alert.alert("エラー", error.message);
+    } catch (error: unknown) {
+      Alert.alert("エラー", getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -94,8 +95,8 @@ function AuthModalInner() {
       setIsSignUp(false); // 成功したらログイン画面に戻す
       setPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
-      Alert.alert("エラー", error.message);
+    } catch (error: unknown) {
+      Alert.alert("エラー", getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -125,15 +126,20 @@ function AuthModalInner() {
       });
 
       setShowAuthModal(false);
-    } catch (error: any) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log("Sign in cancelled");
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        Alert.alert("エラー", "ログイン処理が既に実行中です");
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert("エラー", "Google Play Servicesが利用できません");
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error) {
+        const authError = error as { code: string | number };
+        if (authError.code === statusCodes.SIGN_IN_CANCELLED) {
+          console.log("Sign in cancelled");
+        } else if (authError.code === statusCodes.IN_PROGRESS) {
+          Alert.alert("エラー", "ログイン処理が既に実行中です");
+        } else if (authError.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          Alert.alert("エラー", "Google Play Servicesが利用できません");
+        } else {
+          Alert.alert("エラー", getErrorMessage(error));
+        }
       } else {
-        Alert.alert("エラー", error.message);
+        Alert.alert("エラー", getErrorMessage(error));
       }
     } finally {
       setLoading(false);
@@ -148,8 +154,8 @@ function AuthModalInner() {
 
       queryClient.resetQueries();
       setShowAuthModal(false);
-    } catch (error: any) {
-      Alert.alert("エラー", error.message);
+    } catch (error: unknown) {
+      Alert.alert("エラー", getErrorMessage(error));
     }
   }, [queryClient, setShowAuthModal]);
 

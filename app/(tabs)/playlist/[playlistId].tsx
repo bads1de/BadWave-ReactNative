@@ -30,6 +30,7 @@ import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { useOfflineGuard } from "@/hooks/common/useOfflineGuard";
 import { FONTS } from "@/constants/theme";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
+import { getErrorMessage } from "@/lib/utils/error";
 
 const { width } = Dimensions.get("window");
 
@@ -76,11 +77,11 @@ export default function PlaylistDetailScreen() {
             type: "success",
             text1: "曲を削除しました",
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           Toast.show({
             type: "error",
             text1: "エラーが発生しました",
-            text2: error.message,
+            text2: getErrorMessage(error),
           });
         }
       };
