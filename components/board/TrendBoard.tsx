@@ -206,10 +206,10 @@ function TrendBoard() {
     }: {
       item: Song;
       index: number;
-      extraData?: any;
+      extraData?: { downloadedSongIds: Set<string>; isOnline: boolean };
     }) => {
-      const isDownloaded = extraData.downloadedSongIds.has(item.id);
-      const isDisabled = !extraData.isOnline && !isDownloaded;
+      const isDownloaded = extraData?.downloadedSongIds.has(item.id) ?? false;
+      const isDisabled = !(extraData?.isOnline ?? true) && !isDownloaded;
       return (
         <TrendItem
           song={item}

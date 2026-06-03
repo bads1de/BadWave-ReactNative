@@ -15,6 +15,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSpring,
+  SharedValue,
 } from "react-native-reanimated";
 import { useAuth } from "@/providers/AuthProvider";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -156,8 +157,8 @@ function AddPlaylistModal({
   currentPlaylistId?: string;
   modalOpen: boolean;
   handleCloseModal: () => void;
-  translateY: any;
-  opacity: any;
+  translateY: SharedValue<number>;
+  opacity: SharedValue<number>;
 }) {
   const colors = useThemeStore((state) => state.colors);
   const { session } = useAuth();

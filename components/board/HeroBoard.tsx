@@ -185,19 +185,22 @@ function HeroBoard() {
   });
 
   const renderItem = useCallback(
-    ({ item, index }: { item: any; index: number }) => (
-      <GenreCard
-        genre={(item as GenreItem).name}
-        index={index}
-        scrollX={scrollX}
-        onNavigate={navigateToGenre}
-      />
-    ),
+    ({ item, index }: { item: unknown; index: number }) => {
+      const genreItem = item as GenreItem;
+      return (
+        <GenreCard
+          genre={genreItem.name}
+          index={index}
+          scrollX={scrollX}
+          onNavigate={navigateToGenre}
+        />
+      );
+    },
     [navigateToGenre, scrollX],
   );
 
   const keyExtractor = useCallback(
-    (item: any) => (item as GenreItem).id.toString(),
+    (item: unknown) => (item as GenreItem).id.toString(),
     [],
   );
 

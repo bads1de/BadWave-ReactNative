@@ -3,6 +3,7 @@ import { Track } from "react-native-track-player";
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
 import * as FileSystem from "expo-file-system";
+import { getErrorMessage } from "@/lib/utils/error";
 
 // グローバルインスタンス
 let offlineStorageService: OfflineStorageService;
@@ -86,9 +87,9 @@ export function logError(error: unknown, context: string): void {
   console.error(`${context}:`, error);
 
   if (error && typeof error === "object" && "message" in error) {
-    console.error("エラー詳細:", error.message);
+    console.error("エラー詳細:", getErrorMessage(error));
   } else if (error instanceof Error) {
-    console.error("エラー:", error.message);
+    console.error("エラー:", getErrorMessage(error));
   }
 }
 

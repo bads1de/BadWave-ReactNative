@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * プレイリストの画像パスを更新する関数。
@@ -33,7 +34,7 @@ const updatePlaylistImage = async (
         "プレイリストの取得中にエラーが発生しました:",
         playlistError
       );
-      throw new Error(playlistError.message); // エラーを上位の呼び出し元に伝播
+      throw new Error(getErrorMessage(playlistError)); // エラーを上位の呼び出し元に伝播
     }
 
     // ステップ3: プレイリストの画像パスが空の場合のみ更新処理を実行
@@ -52,7 +53,7 @@ const updatePlaylistImage = async (
           "プレイリスト画像の更新中にエラーが発生しました:",
           updateError
         );
-        throw new Error(updateError.message); // エラーを上位の呼び出し元に伝播
+        throw new Error(getErrorMessage(updateError)); // エラーを上位の呼び出し元に伝播
       }
 
       await db

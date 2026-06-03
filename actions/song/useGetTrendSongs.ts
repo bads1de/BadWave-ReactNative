@@ -1,6 +1,7 @@
 import Song from "@/types";
 import { subMonths, subWeeks, subDays } from "date-fns";
 import { supabase } from "@/lib/supabase";
+import { getErrorMessage } from "@/lib/utils/error";
 
 export type TrendPeriod = "all" | "month" | "week" | "day";
 
@@ -41,8 +42,8 @@ const getTrendSongs = async (period: TrendPeriod = "all"): Promise<Song[]> => {
     .limit(10);
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return (data as Song[]) || [];

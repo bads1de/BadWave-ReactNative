@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { CACHED_QUERIES } from "@/constants";
 import { useSyncBase } from "./useSyncBase";
 import { upsertSectionCache } from "@/lib/db/sectionCacheUtils";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * おすすめ曲のIDリストをSupabaseから取得し、sectionCacheに保存する同期フック
@@ -27,7 +28,7 @@ export function useSyncRecommendations(userId?: string) {
       );
 
       if (error) {
-        throw new Error(error.message);
+        throw new Error(getErrorMessage(error));
       }
 
       if (!recData || recData.length === 0) {

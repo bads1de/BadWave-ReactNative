@@ -1,5 +1,6 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { getErrorMessage } from "@/lib/utils/error";
 
 type PlaylistSong = Song & { songType: "regular" };
 
@@ -24,7 +25,7 @@ const getPlaylistSongs = async (
 
   if (playlistError) {
     console.error("Failed to fetch playlist:", playlistError);
-    throw new Error(playlistError.message);
+    throw new Error(getErrorMessage(playlistError));
   }
 
   // 非公開プレイリストで未認証の場合のみ早期リターン
@@ -49,7 +50,7 @@ const getPlaylistSongs = async (
 
   if (error) {
     console.error("Failed to fetch playlist songs:", error);
-    throw new Error(error.message);
+    throw new Error(getErrorMessage(error));
   }
 
   return (data || []).map((item: { songs: Song }) => ({

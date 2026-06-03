@@ -55,7 +55,7 @@ export function useSyncPlaylists(userId?: string) {
             });
         }
 
-        const allSongsToInsert: any[] = [];
+        const allSongsToInsert: { id: string; playlistId: string; songId: string; addedAt: string }[] = [];
         const validPlaylistSongIds: string[] = [];
         const remotePlaylistIds = remotePlaylists.map((p) => p.id);
 

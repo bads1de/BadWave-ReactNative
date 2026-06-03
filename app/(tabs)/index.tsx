@@ -12,7 +12,7 @@ import { ItemOptionsSheet } from "@/components/item/ItemOptionsMenu";
 import TrendBoard from "@/components/board/TrendBoard";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
-import Song from "@/types";
+import Song, { IconComponent } from "@/types";
 import PlaylistBoard from "@/components/board/PlaylistBoard";
 import ForYouBoard from "@/components/board/ForYouBoard";
 import HeroBoard from "@/components/board/HeroBoard";
@@ -71,7 +71,7 @@ export default function HomeScreen() {
   );
 
   const renderSectionTitle = useCallback(
-    (title: string, IconComponent: any) => (
+    (title: string, IconComponent: IconComponent) => (
       <View style={styles.sectionTitleContainer}>
         <View style={styles.titleRow}>
           <IconComponent size={18} color={colors.primary} strokeWidth={1.5} />

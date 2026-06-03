@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Spotlight } from "@/types";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * スポットライト曲を取得する
@@ -21,8 +22,8 @@ const getSpotlights = async (): Promise<Spotlight[]> => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return (data as Spotlight[]) || [];

@@ -8,6 +8,8 @@ import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
+import { getErrorMessage } from "@/lib/utils/error";
+import Song from "@/types";
 
 /**
  * プレイリスト曲の操作（追加・削除）を行うカスタムフック
@@ -51,7 +53,7 @@ export function useMutatePlaylistSong(userId?: string) {
       });
 
       // 2. 現在のキャッシュをスナップショット
-      const previousSongs = queryClient.getQueryData<any[]>([
+      const previousSongs = queryClient.getQueryData<Song[]>([
         CACHED_QUERIES.playlistSongs,
         playlistId,
       ]);
@@ -59,7 +61,7 @@ export function useMutatePlaylistSong(userId?: string) {
       // 3. 楽観的にキャッシュを更新（曲を追加）
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs, playlistId],
-        (old: any[] | undefined) => [
+        (old: Song[] | undefined) => [
           ...(old || []),
           {
             id: `temp_${Date.now()}`,
@@ -126,7 +128,7 @@ export function useMutatePlaylistSong(userId?: string) {
 
       if (result.error) {
         throw new Error(
-          `${PLAYLIST_ERRORS.SUPABASE_DELETE_FAILED}: ${result.error.message}`
+          `${PLAYLIST_ERRORS.SUPABASE_DELETE_FAILED}: ${getErrorMessage(result.error)}`
         );
       }
 
@@ -150,7 +152,7 @@ export function useMutatePlaylistSong(userId?: string) {
       });
 
       // 2. 現在のキャッシュをスナップショット
-      const previousSongs = queryClient.getQueryData<any[]>([
+      const previousSongs = queryClient.getQueryData<Song[]>([
         CACHED_QUERIES.playlistSongs,
         playlistId,
       ]);
@@ -158,8 +160,8 @@ export function useMutatePlaylistSong(userId?: string) {
       // 3. 楽観的にキャッシュを更新（曲を削除）
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs, playlistId],
-        (old: any[] | undefined) =>
-          (old || []).filter((song: any) => song.songId !== songId)
+        (old: Song[] | undefined) =>
+          (old || []).filter((song) => song.id !== songId)
       );
 
       return { previousSongs };

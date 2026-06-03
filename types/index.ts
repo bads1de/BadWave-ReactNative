@@ -49,6 +49,12 @@ export interface Spotlight {
   created_at?: string;
 }
 
+export interface User {
+  id: string;
+  full_name?: string;
+  avatar_url?: string;
+}
+
 // ============================================================================
 // 共通型定義
 // ============================================================================

@@ -4,15 +4,18 @@ import {
   TouchableOpacity,
   StyleSheet,
   TouchableOpacityProps,
+  ViewStyle,
+  TextStyle,
+  StyleProp,
 } from "react-native";
 
 interface CustomButtonProps extends TouchableOpacityProps {
   label: string;
   isActive: boolean;
-  activeStyle?: any;
-  inactiveStyle?: any;
-  activeTextStyle?: any;
-  inactiveTextStyle?: any;
+  activeStyle?: StyleProp<ViewStyle>;
+  inactiveStyle?: StyleProp<ViewStyle>;
+  activeTextStyle?: StyleProp<TextStyle>;
+  inactiveTextStyle?: StyleProp<TextStyle>;
   testID?: string;
 }
 

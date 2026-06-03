@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * プレイリストの名前を変更する
@@ -33,7 +34,7 @@ const renamePlaylist = async (
 
   if (error) {
     console.error("プレイリストの更新中にエラーが発生しました:", error);
-    throw new Error(error.message);
+    throw new Error(getErrorMessage(error));
   }
 
   await db

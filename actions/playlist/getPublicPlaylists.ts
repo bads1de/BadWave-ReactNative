@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Playlist } from "@/types";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * 公開されているプレイリストを取得する
@@ -23,7 +24,7 @@ const getPublicPlaylists = async (limit: number = 20): Promise<Playlist[]> => {
     .limit(limit);
 
   if (error) {
-    console.error(error.message);
+    console.error(getErrorMessage(error));
     return [];
   }
 

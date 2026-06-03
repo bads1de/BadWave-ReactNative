@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
 import { withSupabaseRetry } from "@/lib/utils/retry";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * プレイリストの公開設定を切り替える
@@ -33,7 +34,7 @@ const togglePublicPlaylist = async (
 
   if (error) {
     console.error("プレイリストの更新中にエラーが発生しました:", error);
-    throw new Error(error.message);
+    throw new Error(getErrorMessage(error));
   }
 
   // ローカルファースト表示の整合を保つため SQLite も即時更新する

@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
 import getSongById from "@/actions/song/getSongById";
 import updatePlaylistImage from "@/actions/playlist/updatePlaylistImage";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * プレイリストに曲を追加する関数
@@ -44,8 +45,8 @@ const addPlaylistSong = async ({
 
   // エラーハンドリング
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   // ローカルファーストの表示に使う SQLite にも即時反映する

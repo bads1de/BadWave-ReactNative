@@ -5,6 +5,7 @@ import deletePlaylist from "@/actions/playlist/deletePlaylist";
 import renamePlaylist from "@/actions/playlist/renamePlaylist";
 import togglePublicPlaylist from "@/actions/playlist/togglePublicPlaylist";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
+import { Playlist } from "@/types";
 
 interface TogglePublicVariables {
   playlistId: string;
@@ -42,11 +43,11 @@ export function useMutatePlaylist(userId?: string) {
         queryKey: [CACHED_QUERIES.playlists],
       });
 
-      const previousPlaylists = queryClient.getQueryData<any[]>([
+      const previousPlaylists = queryClient.getQueryData<Playlist[]>([
         CACHED_QUERIES.playlists,
       ]);
 
-      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) =>
+      queryClient.setQueryData<Playlist[]>([CACHED_QUERIES.playlists], (old) =>
         (old || []).map((p) =>
           p.id === playlistId ? { ...p, isPublic: !isPublic } : p,
         ),
@@ -91,11 +92,11 @@ export function useMutatePlaylist(userId?: string) {
         queryKey: [CACHED_QUERIES.playlists],
       });
 
-      const previousPlaylists = queryClient.getQueryData<any[]>([
+      const previousPlaylists = queryClient.getQueryData<Playlist[]>([
         CACHED_QUERIES.playlists,
       ]);
 
-      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) =>
+      queryClient.setQueryData<Playlist[]>([CACHED_QUERIES.playlists], (old) =>
         (old || []).map((p) => (p.id === playlistId ? { ...p, title } : p)),
       );
 
@@ -138,11 +139,11 @@ export function useMutatePlaylist(userId?: string) {
         queryKey: [CACHED_QUERIES.playlists],
       });
 
-      const previousPlaylists = queryClient.getQueryData<any[]>([
+      const previousPlaylists = queryClient.getQueryData<Playlist[]>([
         CACHED_QUERIES.playlists,
       ]);
 
-      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) =>
+      queryClient.setQueryData<Playlist[]>([CACHED_QUERIES.playlists], (old) =>
         (old || []).filter((p) => p.id !== playlistId),
       );
 

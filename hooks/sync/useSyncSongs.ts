@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
+import { getErrorMessage } from "@/lib/utils/error";
 import { useSyncBase } from "./useSyncBase";
 
 /**
@@ -20,7 +21,7 @@ export function useSyncSongs() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        throw new Error(error.message);
+        throw new Error(getErrorMessage(error));
       }
 
       if (!remoteSongs || remoteSongs.length === 0) {

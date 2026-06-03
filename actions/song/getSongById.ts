@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import Song from "@/types";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * 指定したIDの曲を取得する
@@ -22,8 +23,8 @@ const getSongById = async (songId: string): Promise<Song | null> => {
     .single();
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return (data as Song) || null;

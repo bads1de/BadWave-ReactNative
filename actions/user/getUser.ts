@@ -1,12 +1,15 @@
 import { CACHED_QUERIES } from "@/constants";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
+import { User } from "@/types";
+import { getErrorMessage } from "@/lib/utils/error";
+
 /**
  * ユーザー情報を取得する関数
- * @returns {Promise<any>} ユーザー情報
+ * @returns {Promise<User | null>} ユーザー情報
  * @throws {Error} セッションが存在しない場合、またはデータ取得時にエラーが発生した場合
  */
-export const getUser = async (): Promise<any> => {
+export const getUser = async (): Promise<User | null> => {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -22,8 +25,8 @@ export const getUser = async (): Promise<any> => {
     .single();
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return data || null;
@@ -31,7 +34,7 @@ export const getUser = async (): Promise<any> => {
 
 /**
  * ユーザー情報を取得するためのカスタムフック
- * @returns {UseQueryResult<any, Error>} ユーザー情報のクエリ結果
+ * @returns {UseQueryResult<User | null, Error>} ユーザー情報のクエリ結果
  */
 export const useUser = () => {
   return useQuery({

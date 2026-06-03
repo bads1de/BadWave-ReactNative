@@ -5,6 +5,7 @@
 
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * ジャンルに基づいて曲を検索する
@@ -40,8 +41,8 @@ const getSongsByGenre = async (genre: string | string[]): Promise<Song[]> => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return (data as Song[]) || [];

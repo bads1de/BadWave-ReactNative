@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Image } from "expo-image";
 import { Play, Pause } from "lucide-react-native";
-import Song from "@/types";
+import Song, { ThemeColors } from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useProgress } from "react-native-track-player";
 import { FONTS } from "@/constants/theme";
@@ -116,7 +116,7 @@ function ModernMiniPlayer({
   );
 }
 
-const MiniPlayerProgressBar = memo(({ colors }: { colors: any }) => {
+const MiniPlayerProgressBar = memo(({ colors }: { colors: ThemeColors }) => {
   const { position, duration } = useProgress(500);
   const progressWidth = duration > 0 ? (position / duration) * (width - 16) : 0;
 

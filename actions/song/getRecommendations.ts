@@ -1,5 +1,6 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * ユーザーにおすすめの曲を取得する
@@ -21,7 +22,7 @@ const getRecommendations = async (
 
     if (error) {
       console.error("Error fetching recommendations:", error);
-      throw new Error(error.message);
+      throw new Error(getErrorMessage(error));
     }
 
     if (!data || !Array.isArray(data) || data.length === 0) {

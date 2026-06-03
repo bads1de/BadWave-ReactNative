@@ -6,6 +6,7 @@ import { likedSongs, songs } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
+import { getErrorMessage } from "@/lib/utils/error";
 import { AUTH_ERRORS, LIKE_ERRORS } from "@/constants/errorMessages";
 
 /**
@@ -74,7 +75,7 @@ export function useLikeMutation(songId: string, userId?: string) {
 
         if (result.error) {
           throw new Error(
-            `${LIKE_ERRORS.SUPABASE_DELETE_FAILED}: ${result.error.message}`
+            `${LIKE_ERRORS.SUPABASE_DELETE_FAILED}: ${getErrorMessage(result.error)}`
           );
         }
 
@@ -99,7 +100,7 @@ export function useLikeMutation(songId: string, userId?: string) {
 
         if (result.error) {
           throw new Error(
-            `${LIKE_ERRORS.SUPABASE_INSERT_FAILED}: ${result.error.message}`
+            `${LIKE_ERRORS.SUPABASE_INSERT_FAILED}: ${getErrorMessage(result.error)}`
           );
         }
 

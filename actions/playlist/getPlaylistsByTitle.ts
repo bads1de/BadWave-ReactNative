@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Playlist } from "@/types";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * タイトルでパブリックプレイリストを検索する
@@ -22,8 +23,8 @@ const getPlaylistsByTitle = async (title: string): Promise<Playlist[]> => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return (data as Playlist[]) || [];

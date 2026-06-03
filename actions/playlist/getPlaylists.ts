@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Playlist } from "@/types";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * 指定したユーザーのプレイリスト一覧を取得する
@@ -15,7 +16,7 @@ const getPlaylists = async (userId: string): Promise<Playlist[]> => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error.message);
+    console.error(getErrorMessage(error));
     return [];
   }
 

@@ -3,6 +3,7 @@ import { CACHED_QUERIES } from "@/constants";
 import { useSyncBase } from "./useSyncBase";
 import { upsertSectionCache } from "@/lib/db/sectionCacheUtils";
 import { getTrendDateFilter } from "@/lib/utils/trendFilter";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * トレンド曲のIDリストをSupabaseから取得し、sectionCacheに保存する同期フック
@@ -27,7 +28,7 @@ export function useSyncTrendSongs(
         .limit(10);
 
       if (error) {
-        throw new Error(error.message);
+        throw new Error(getErrorMessage(error));
       }
 
       if (!trendData || trendData.length === 0) {

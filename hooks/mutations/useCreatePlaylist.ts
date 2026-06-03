@@ -4,6 +4,7 @@ import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
 import createPlaylist from "@/actions/playlist/createPlaylist";
+import { Playlist } from "@/types";
 
 /**
  * プレイリスト作成のミューテーションフック
@@ -41,18 +42,18 @@ export function useCreatePlaylist(userId?: string) {
         queryKey: [CACHED_QUERIES.playlists],
       });
 
-      const previousPlaylists = queryClient.getQueryData<any[]>([
+      const previousPlaylists = queryClient.getQueryData<Playlist[]>([
         CACHED_QUERIES.playlists,
       ]);
 
-      queryClient.setQueryData<any[]>([CACHED_QUERIES.playlists], (old) => [
+      queryClient.setQueryData<Playlist[]>([CACHED_QUERIES.playlists], (old) => [
         ...(old || []),
         {
           id: `temp_${Date.now()}`,
           title,
-          isPublic: false,
-          userId,
-          createdAt: new Date().toISOString(),
+          is_public: false,
+          user_id: userId ?? "",
+          created_at: new Date().toISOString(),
         },
       ]);
 

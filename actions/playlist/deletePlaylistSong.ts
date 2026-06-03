@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * プレイリストから曲を削除する
@@ -28,8 +29,8 @@ const deletePlaylistSong = async (
     .eq("song_type", songType);
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   await db

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * 指定された曲がどのプレイリストに含まれているかを取得する
@@ -19,7 +20,7 @@ const getSongPlaylistStatus = async (
     .eq("song_type", "regular");
 
   if (error) {
-    console.error("Error fetching song playlist status:", error.message);
+    console.error("Error fetching song playlist status:", getErrorMessage(error));
     return [];
   }
 

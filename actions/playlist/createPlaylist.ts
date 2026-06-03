@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
+import { getErrorMessage } from "@/lib/utils/error";
 
 interface CreatePlaylistParams {
   userId: string;
@@ -34,8 +35,8 @@ const createPlaylist = async ({
     .single();
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   await db.insert(playlists).values({

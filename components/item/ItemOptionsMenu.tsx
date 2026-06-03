@@ -22,7 +22,7 @@ import {
   CloudOff,
   MoreVertical,
 } from "lucide-react-native";
-import Song from "@/types";
+import Song, { IconComponent } from "@/types";
 import {
   useDownloadStatus,
   useDownloadSong,
@@ -182,7 +182,7 @@ function ItemOptionsModalContent({
 
   const renderOption = (
     label: string,
-    Icon: any,
+    Icon: IconComponent,
     onPress: () => void,
     color: string = colors.text,
     isDisabled: boolean = false,

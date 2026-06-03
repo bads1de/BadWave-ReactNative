@@ -4,6 +4,7 @@ import Song from "@/types";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
 import { mapSongRowToSong } from "@/lib/utils/songMapper";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * オフライン再生のためのストレージサービス
@@ -177,7 +178,7 @@ export class OfflineStorageService {
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: getErrorMessage(error),
       };
     }
   }
@@ -271,7 +272,7 @@ export class OfflineStorageService {
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: getErrorMessage(error),
       };
     }
   }
@@ -419,7 +420,7 @@ export class OfflineStorageService {
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: getErrorMessage(error),
       };
     }
   }

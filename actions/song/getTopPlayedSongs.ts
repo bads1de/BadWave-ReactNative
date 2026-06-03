@@ -1,5 +1,6 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * ユーザーの最もよく再生された曲を取得する
@@ -33,8 +34,8 @@ const getTopPlayedSongs = async (userId?: string): Promise<TopPlayedSong[]> => {
   });
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return (data || []) as TopPlayedSong[];

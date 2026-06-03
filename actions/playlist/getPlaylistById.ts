@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Playlist } from "@/types";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * @fileoverview プレイリスト詳細取得モジュール
@@ -27,8 +28,8 @@ const getPlaylistById = async (playlistId: string): Promise<Playlist | null> => 
     .single();
 
   if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
+    console.error(getErrorMessage(error));
+    throw new Error(getErrorMessage(error));
   }
 
   return (data as Playlist) || null;

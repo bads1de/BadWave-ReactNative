@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getOfflineStorageService } from "@/hooks/audio/TrackPlayer/utils";
 import { CACHED_QUERIES } from "@/constants";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * エラーオブジェクトを文字列メッセージに変換する
@@ -9,7 +10,7 @@ import { CACHED_QUERIES } from "@/constants";
  */
 function formatErrorMessage(error: unknown): string | null {
   if (!error) return null;
-  return error instanceof Error ? error.message : String(error);
+  return getErrorMessage(error);
 }
 
 /**
