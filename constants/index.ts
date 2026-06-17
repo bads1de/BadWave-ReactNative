@@ -38,3 +38,38 @@ export const CACHE_CONFIG = {
   staleTime: 1000 * 60 * 10, // 10分間
   gcTime: 1000 * 60 * 60 * 24 * 7, // 7日間
 } as const;
+
+export const SUPABASE_TABLES = {
+  songs: "songs",
+  playlists: "playlists",
+  playlistSongs: "playlist_songs",
+  users: "users",
+  likedSongsRegular: "liked_songs_regular",
+  spotlights: "spotlights",
+} as const;
+
+export const ANIMATION_DURATION = {
+  fast: 200,
+  normal: 300,
+  medium: 400,
+  slow: 600,
+  skeleton: 1200,
+} as const;
+
+export const SPRING_CONFIG = {
+  gentle: { damping: 20, stiffness: 90 },
+  snappy: { damping: 15, stiffness: 150 },
+  smooth: { damping: 25, stiffness: 80 },
+  default: { damping: 15, stiffness: 100 },
+  bouncy: { damping: 10, stiffness: 80 },
+} as const;
+
+export const ROUTES = {
+  home: "/",
+  library: "/library",
+  account: "/account",
+  genre: "/genre/[genre]",
+  song: "/song/[songId]",
+  playlist: "/playlist/[playlistId]",
+  tabsPlaylist: "/(tabs)/playlist/[playlistId]",
+} as const;

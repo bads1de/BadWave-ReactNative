@@ -8,6 +8,7 @@ import { memo } from "react";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
+import { ROUTES } from "@/constants";
 
 function Header() {
   const router = useRouter();
@@ -36,7 +37,7 @@ function Header() {
       </View>
       {session ? (
         <TouchableOpacity
-          onPress={() => router.push("/account")}
+          onPress={() => router.push(ROUTES.account)}
           style={[styles.userIconContainer, { borderColor: colors.primary }]}
           testID="user-icon-button"
         >

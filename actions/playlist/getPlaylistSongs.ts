@@ -1,5 +1,6 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { getErrorMessage } from "@/lib/utils/error";
 
 type PlaylistSong = Song & { songType: "regular" };
@@ -18,7 +19,7 @@ const getPlaylistSongs = async (
 ): Promise<PlaylistSong[]> => {
   // プレイリストの公開設定を確認
   const { data: playlistData, error: playlistError } = await supabase
-    .from("playlists")
+    .from(SUPABASE_TABLES.playlists)
     .select("is_public")
     .eq("id", playlistId)
     .single();
@@ -35,7 +36,7 @@ const getPlaylistSongs = async (
   }
 
   let query = supabase
-    .from("playlist_songs")
+    .from(SUPABASE_TABLES.playlistSongs)
     .select("*, songs(*)")
     .eq("playlist_id", playlistId)
     .eq("song_type", "regular")

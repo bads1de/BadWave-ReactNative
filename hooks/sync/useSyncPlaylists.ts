@@ -2,7 +2,7 @@ import { and, notInArray, inArray, sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { useSyncBase } from "./useSyncBase";
 
 /**
@@ -19,7 +19,7 @@ export function useSyncPlaylists(userId?: string) {
       }
 
       const { data: remotePlaylists, error: playlistError } = await supabase
-        .from("playlists")
+        .from(SUPABASE_TABLES.playlists)
         .select("*, playlist_songs(*)")
         .eq("user_id", userId);
 

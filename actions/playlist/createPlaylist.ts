@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
 import { getErrorMessage } from "@/lib/utils/error";
@@ -25,7 +26,7 @@ const createPlaylist = async ({
   isPublic = false,
 }: CreatePlaylistParams) => {
   const { data, error } = await supabase
-    .from("playlists")
+    .from(SUPABASE_TABLES.playlists)
     .insert({
       user_id: userId,
       title: title.trim(),

@@ -5,6 +5,7 @@
 
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { getErrorMessage } from "@/lib/utils/error";
 
 /**
@@ -35,7 +36,7 @@ const getSongsByGenre = async (genre: string | string[]): Promise<Song[]> => {
 
   // データベースから曲を検索
   const { data, error } = await supabase
-    .from("songs")
+    .from(SUPABASE_TABLES.songs)
     .select("*")
     .or(genreArray.map((genre) => `genre.ilike.%${genre}%`).join(","))
     .order("created_at", { ascending: false });

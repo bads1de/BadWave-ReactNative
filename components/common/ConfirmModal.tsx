@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { ANIMATION_DURATION } from "@/constants";
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -44,7 +45,7 @@ export function ConfirmModal({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 300,
+          duration: ANIMATION_DURATION.normal,
           useNativeDriver: true,
         }),
         Animated.spring(scaleAnim, {

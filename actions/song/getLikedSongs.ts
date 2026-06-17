@@ -1,5 +1,6 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 
 /**
  * ユーザーが「いいね」した曲の一覧を取得する
@@ -11,7 +12,7 @@ import { supabase } from "@/lib/supabase";
 const getLikedSongs = async (userId: string): Promise<Song[]> => {
   try {
     const { data, error } = await supabase
-      .from("liked_songs_regular")
+      .from(SUPABASE_TABLES.likedSongsRegular)
       .select("*, songs(*)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });

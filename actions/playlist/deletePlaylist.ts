@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
@@ -22,7 +23,7 @@ const deletePlaylist = async (
 ): Promise<void> => {
   // playlist_songs からデータを削除
   const { error: playlistSongsError } = await supabase
-    .from("playlist_songs")
+    .from(SUPABASE_TABLES.playlistSongs)
     .delete()
     .eq("playlist_id", playlistId)
     .eq("user_id", userId);
@@ -33,7 +34,7 @@ const deletePlaylist = async (
 
   // playlists からデータを削除
   const { error: playlistsError } = await supabase
-    .from("playlists")
+    .from(SUPABASE_TABLES.playlists)
     .delete()
     .eq("id", playlistId)
     .eq("user_id", userId);

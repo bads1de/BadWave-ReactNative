@@ -21,6 +21,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { FONTS, COLORS } from "@/constants/theme";
 import { Playlist } from "@/types";
+import { ROUTES } from "@/constants";
 
 type LibraryType = "liked" | "playlists";
 
@@ -63,7 +64,7 @@ export default function LibraryScreen() {
   const handlePlaylistPress = useCallback(
     (playlist: Playlist) => {
       router.push({
-        pathname: "/playlist/[playlistId]",
+        pathname: ROUTES.playlist,
         params: { playlistId: playlist.id },
       });
     },

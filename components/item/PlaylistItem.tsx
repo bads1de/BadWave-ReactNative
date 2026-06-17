@@ -15,6 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Playlist } from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { ANIMATION_DURATION, SPRING_CONFIG } from "@/constants";
 import { FONTS } from "@/constants/theme";
 
 interface PlaylistItemProps {
@@ -42,7 +43,7 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
 
   useEffect(() => {
     if (isImageLoaded && isFirstRender.current) {
-      opacity.value = withTiming(1, { duration: 600 });
+      opacity.value = withTiming(1, { duration: ANIMATION_DURATION.slow });
       isFirstRender.current = false;
     }
   }, [isImageLoaded, opacity]);
@@ -58,12 +59,12 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
 
   const handlePressIn = () => {
     "worklet";
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 100 });
+    scale.value = withSpring(0.97, SPRING_CONFIG.default);
   };
 
   const handlePressOut = () => {
     "worklet";
-    scale.value = withSpring(1, { damping: 10, stiffness: 80 });
+    scale.value = withSpring(1, SPRING_CONFIG.bouncy);
   };
 
   return (

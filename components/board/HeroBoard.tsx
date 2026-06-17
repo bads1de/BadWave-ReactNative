@@ -11,7 +11,7 @@ import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ArrowRight } from "lucide-react-native";
-import { genreCards } from "@/constants";
+import { genreCards, ROUTES } from "@/constants";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -171,7 +171,7 @@ function HeroBoard() {
   const navigateToGenre = useCallback(
     (genre: string) => {
       router.push({
-        pathname: "/genre/[genre]",
+        pathname: ROUTES.genre,
         params: { genre: encodeURIComponent(genre) },
       });
     },

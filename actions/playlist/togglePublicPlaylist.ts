@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
@@ -26,7 +27,7 @@ const togglePublicPlaylist = async (
 ): Promise<void> => {
   const { error } = await withSupabaseRetry(async () => {
     return await supabase
-      .from("playlists")
+      .from(SUPABASE_TABLES.playlists)
       .update({ is_public: isPublic })
       .eq("id", playlistId)
       .eq("user_id", userId);

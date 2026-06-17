@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
@@ -28,7 +29,7 @@ const renamePlaylist = async (
   }
 
   const { error } = await supabase
-    .from("playlists")
+    .from(SUPABASE_TABLES.playlists)
     .update({ title: newTitle.trim() })
     .match({ id: playlistId, user_id: userId });
 

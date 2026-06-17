@@ -3,7 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { likedSongs, songs } from "@/lib/db/schema";
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
 import { getErrorMessage } from "@/lib/utils/error";
@@ -67,7 +67,7 @@ export function useLikeMutation(songId: string, userId?: string) {
         // 1. Supabase から削除（先に実行、リトライ付き）
         const result = await withSupabaseRetry(async () => {
           return await supabase
-            .from("liked_songs_regular")
+            .from(SUPABASE_TABLES.likedSongsRegular)
             .delete()
             .eq("user_id", userId)
             .eq("song_id", songId);
@@ -92,7 +92,7 @@ export function useLikeMutation(songId: string, userId?: string) {
         // いいねを追加
         // 1. Supabase に追加（先に実行、リトライ付き）
         const result = await withSupabaseRetry(async () => {
-          return await supabase.from("liked_songs_regular").insert({
+          return await supabase.from(SUPABASE_TABLES.likedSongsRegular).insert({
             user_id: userId,
             song_id: songId,
           });

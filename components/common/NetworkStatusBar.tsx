@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { ANIMATION_DURATION } from "@/constants";
 import { useSync } from "@/providers/SyncProvider";
 import { useEffect, useRef } from "react";
 
@@ -25,7 +26,7 @@ export function NetworkStatusBar() {
   useEffect(() => {
     Animated.timing(slideAnimRef.current, {
       toValue: shouldShow ? 0 : -50,
-      duration: 300,
+      duration: ANIMATION_DURATION.normal,
       useNativeDriver: true,
     }).start();
   }, [shouldShow]);

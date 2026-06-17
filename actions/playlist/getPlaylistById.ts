@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { Playlist } from "@/types";
 import { getErrorMessage } from "@/lib/utils/error";
 
@@ -22,7 +23,7 @@ import { getErrorMessage } from "@/lib/utils/error";
  */
 const getPlaylistById = async (playlistId: string): Promise<Playlist | null> => {
   const { data, error } = await supabase
-    .from("playlists")
+    .from(SUPABASE_TABLES.playlists)
     .select("*")
     .eq("id", playlistId)
     .single();

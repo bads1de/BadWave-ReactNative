@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import Song from "@/types";
 import { getErrorMessage } from "@/lib/utils/error";
 
@@ -17,7 +18,7 @@ import { getErrorMessage } from "@/lib/utils/error";
  */
 const getSongsByTitle = async (title: string): Promise<Song[]> => {
   const { data, error } = await supabase
-    .from("songs")
+    .from(SUPABASE_TABLES.songs)
     .select("*")
     .ilike("title", `%${title}%`)
     .order("created_at", { ascending: false });

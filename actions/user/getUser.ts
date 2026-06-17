@@ -1,4 +1,4 @@
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@/types";
@@ -19,7 +19,7 @@ export const getUser = async (): Promise<User | null> => {
   }
 
   const { data, error } = await supabase
-    .from("users")
+    .from(SUPABASE_TABLES.users)
     .select("*")
     .eq("id", session.user.id)
     .single();

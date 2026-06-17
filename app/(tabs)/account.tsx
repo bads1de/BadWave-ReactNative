@@ -25,6 +25,7 @@ import { SettingSection } from "@/components/common/SettingSection";
 import { SettingItem } from "@/components/common/SettingItem";
 import { FONTS } from "@/constants/theme";
 import BackButton from "@/components/common/BackButton";
+import { ROUTES } from "@/constants";
 
 /**
  * @file (tabs)/account.tsx
@@ -57,7 +58,7 @@ export default function AccountScreen() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.replace("/");
+    router.replace(ROUTES.home);
   };
 
   return (

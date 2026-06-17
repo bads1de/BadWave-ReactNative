@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { spotlights } from "@/lib/db/schema";
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { getErrorMessage } from "@/lib/utils/error";
 import { useSyncBase } from "./useSyncBase";
 
@@ -14,7 +14,7 @@ export function useSyncSpotlights() {
     queryKey: [CACHED_QUERIES.spotlights, "sync"],
     queryFn: async () => {
       const { data: remoteSpotlights, error } = await supabase
-        .from("spotlights")
+        .from(SUPABASE_TABLES.spotlights)
         .select("*")
         .order("created_at", { ascending: false });
 

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
@@ -22,7 +23,7 @@ const updatePlaylistImage = async (
     // ステップ1: プレイリストの現在の画像パス情報を取得する
     // Supabaseから指定されたIDのプレイリストのimage_path列のみを取得
     const { data: playlistData, error: playlistError } = await supabase
-      .from("playlists")
+      .from(SUPABASE_TABLES.playlists)
       .select("image_path") // 必要な情報のみを取得してパフォーマンスを最適化
       .eq("id", playlistId) // プレイリストIDで絞り込み
       .single(); // 単一レコードを取得
@@ -43,7 +44,7 @@ const updatePlaylistImage = async (
       // ステップ4: プレイリストの画像パスを更新
       // 指定された曲の画像パスでプレイリストの画像パスを更新
       const { error: updateError } = await supabase
-        .from("playlists")
+        .from(SUPABASE_TABLES.playlists)
         .update({ image_path: songImagePath })
         .eq("id", playlistId);
 

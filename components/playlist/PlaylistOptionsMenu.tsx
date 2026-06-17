@@ -30,6 +30,7 @@ import {
 
 import { useAuth } from "@/providers/AuthProvider";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
+import { ANIMATION_DURATION, SPRING_CONFIG } from "@/constants";
 import { FONTS } from "@/constants/theme";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import Toast from "react-native-toast-message";
@@ -39,6 +40,7 @@ import { useBulkDownload } from "@/hooks/downloads/useBulkDownload";
 import { BulkDownloadModal } from "@/components/download/BulkDownloadModal";
 import { useMutatePlaylist } from "@/hooks/mutations/useMutatePlaylist";
 import Song, { IconComponent } from "@/types";
+import { ROUTES } from "@/constants";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -75,14 +77,11 @@ export default function PlaylistOptionsMenu({
 
   useEffect(() => {
     if (showOptionsModal) {
-      opacity.value = withTiming(1, { duration: 400 });
-      translateY.value = withSpring(0, {
-        damping: 25,
-        stiffness: 80,
-      });
+      opacity.value = withTiming(1, { duration: ANIMATION_DURATION.medium });
+      translateY.value = withSpring(0, SPRING_CONFIG.smooth);
     } else {
       opacity.value = withTiming(0, { duration: 250 });
-      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 400 });
+      translateY.value = withTiming(SCREEN_HEIGHT, { duration: ANIMATION_DURATION.medium });
     }
   }, [showOptionsModal]);
 
@@ -137,7 +136,7 @@ export default function PlaylistOptionsMenu({
       {
         onSuccess: () => {
           Toast.show({ type: "success", text1: "Playlist deleted" });
-          router.push({ pathname: "/library" });
+            router.push({ pathname: ROUTES.library });
         },
         onError: (err: Error) => {
           Toast.show({ type: "error", text1: "Error", text2: err.message });

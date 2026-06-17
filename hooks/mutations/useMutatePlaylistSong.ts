@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
 import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
@@ -119,7 +119,7 @@ export function useMutatePlaylistSong(userId?: string) {
       // 1. Supabase から削除（先に実行、リトライ付き）
       const result = await withSupabaseRetry(async () => {
         return await supabase
-          .from("playlist_songs")
+          .from(SUPABASE_TABLES.playlistSongs)
           .delete()
           .eq("playlist_id", playlistId)
           .eq("user_id", userId)

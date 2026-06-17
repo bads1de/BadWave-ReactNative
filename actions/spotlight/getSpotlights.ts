@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { Spotlight } from "@/types";
 import { getErrorMessage } from "@/lib/utils/error";
 
@@ -17,7 +18,7 @@ import { getErrorMessage } from "@/lib/utils/error";
  */
 const getSpotlights = async (): Promise<Spotlight[]> => {
   const { data, error } = await supabase
-    .from("spotlights")
+    .from(SUPABASE_TABLES.spotlights)
     .select("*")
     .order("created_at", { ascending: false });
 

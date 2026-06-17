@@ -8,7 +8,7 @@ import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
 import { Playlist, ThemeColors } from "@/types";
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, ROUTES } from "@/constants";
 import getPublicPlaylists from "@/actions/playlist/getPublicPlaylists";
 import { useQuery } from "@tanstack/react-query";
 import { memo, useCallback } from "react";
@@ -90,7 +90,7 @@ function PlaylistBoard() {
   const handlePlaylistPress = useCallback(
     (playlist: Playlist) => {
       router.push({
-        pathname: "/(tabs)/playlist/[playlistId]" as const,
+        pathname: ROUTES.tabsPlaylist,
         params: {
           playlistId: playlist.id,
           title: playlist.title,

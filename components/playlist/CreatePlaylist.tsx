@@ -23,6 +23,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
+import { ANIMATION_DURATION, SPRING_CONFIG } from "@/constants";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -43,14 +44,11 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
 
   useEffect(() => {
     if (modalOpen) {
-      opacity.value = withTiming(1, { duration: 300 });
-      translateY.value = withSpring(0, {
-        damping: 25,
-        stiffness: 80,
-      });
+      opacity.value = withTiming(1, { duration: ANIMATION_DURATION.normal });
+      translateY.value = withSpring(0, SPRING_CONFIG.smooth);
     } else {
-      opacity.value = withTiming(0, { duration: 200 });
-      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
+      opacity.value = withTiming(0, { duration: ANIMATION_DURATION.fast });
+      translateY.value = withTiming(SCREEN_HEIGHT, { duration: ANIMATION_DURATION.normal });
     }
   }, [modalOpen]);
 

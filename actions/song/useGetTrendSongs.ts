@@ -1,6 +1,7 @@
 import Song from "@/types";
 import { subMonths, subWeeks, subDays } from "date-fns";
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { getErrorMessage } from "@/lib/utils/error";
 
 export type TrendPeriod = "all" | "month" | "week" | "day";
@@ -19,7 +20,7 @@ export type TrendPeriod = "all" | "month" | "week" | "day";
  * ```
  */
 const getTrendSongs = async (period: TrendPeriod = "all"): Promise<Song[]> => {
-  let query = supabase.from("songs").select("*");
+  let query = supabase.from(SUPABASE_TABLES.songs).select("*");
 
   // 指定された期間に基づいてデータをフィルタリング
     switch (period) {

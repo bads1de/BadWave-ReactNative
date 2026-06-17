@@ -8,6 +8,7 @@ import Animated, {
   Easing,
   interpolate,
 } from "react-native-reanimated";
+import { ANIMATION_DURATION } from "@/constants";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 interface SkeletonBoxProps {
@@ -34,7 +35,7 @@ function SkeletonBox({
 
   useEffect(() => {
     shimmer.value = withRepeat(
-      withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1, { duration: ANIMATION_DURATION.skeleton, easing: Easing.inOut(Easing.ease) }),
       -1,
       true, // reverse: true → 行きと帰りでアニメーション
     );

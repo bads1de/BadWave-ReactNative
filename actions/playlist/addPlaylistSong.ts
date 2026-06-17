@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
 import getSongById from "@/actions/song/getSongById";
@@ -36,7 +37,7 @@ const addPlaylistSong = async ({
   songId,
 }: AddPlaylistSongProps) => {
   // データベースにプレイリスト曲情報を挿入
-  const { error } = await supabase.from("playlist_songs").insert({
+  const { error } = await supabase.from(SUPABASE_TABLES.playlistSongs).insert({
     playlist_id: playlistId,
     user_id: userId,
     song_id: songId,

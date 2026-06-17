@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
@@ -21,7 +22,7 @@ const deletePlaylistSong = async (
   songType: string = "regular"
 ): Promise<void> => {
   const { error } = await supabase
-    .from("playlist_songs")
+    .from(SUPABASE_TABLES.playlistSongs)
     .delete()
     .eq("playlist_id", playlistId)
     .eq("user_id", userId)

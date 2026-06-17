@@ -22,7 +22,9 @@ import MarqueeText from "@/components/common/MarqueeText";
 import ItemOptionsMenu, {
   ItemOptionsButton,
 } from "@/components/item/ItemOptionsMenu";
+import { SPRING_CONFIG } from "@/constants";
 import { FONTS } from "@/constants/theme";
+import { ROUTES } from "@/constants";
 
 interface SongItemProps {
   song: Song;
@@ -64,13 +66,13 @@ function SongItem({
   const handlePressIn = useCallback(() => {
     "worklet";
     if (isDisabled) return;
-    scaleAnim.value = withSpring(0.97, { damping: 15, stiffness: 100 });
+    scaleAnim.value = withSpring(0.97, SPRING_CONFIG.default);
   }, [isDisabled, scaleAnim]);
 
   const handlePressOut = useCallback(() => {
     "worklet";
     if (isDisabled) return;
-    scaleAnim.value = withSpring(1, { damping: 10, stiffness: 80 });
+    scaleAnim.value = withSpring(1, SPRING_CONFIG.bouncy);
   }, [isDisabled, scaleAnim]);
 
   const handlePress = useCallback(() => {
@@ -80,7 +82,7 @@ function SongItem({
 
   const handleTitlePress = useCallback(() => {
     router.push({
-      pathname: "/song/[songId]",
+      pathname: ROUTES.song,
       params: { songId: song.id },
     });
   }, [router, song.id]);

@@ -31,6 +31,7 @@ import { useOfflineGuard } from "@/hooks/common/useOfflineGuard";
 import { FONTS } from "@/constants/theme";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
 import { getErrorMessage } from "@/lib/utils/error";
+import { ROUTES } from "@/constants";
 
 const { width } = Dimensions.get("window");
 
@@ -149,7 +150,7 @@ export default function PlaylistDetailScreen() {
 
           {/* 戻るボタン */}
           <BackButton
-            onPress={() => router.push("/library")}
+            onPress={() => router.push(ROUTES.library)}
             style={styles.backButton}
           />
         </View>

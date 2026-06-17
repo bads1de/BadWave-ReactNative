@@ -18,6 +18,7 @@ import { Play, Pause } from "lucide-react-native";
 import Song, { ThemeColors } from "@/types";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useProgress } from "react-native-track-player";
+import { ANIMATION_DURATION, SPRING_CONFIG } from "@/constants";
 import { FONTS } from "@/constants/theme";
 
 interface MiniPlayerProps {
@@ -41,8 +42,8 @@ function ModernMiniPlayer({
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
-    opacity.value = withTiming(1, { duration: 400 });
+    translateY.value = withSpring(0, SPRING_CONFIG.gentle);
+    opacity.value = withTiming(1, { duration: ANIMATION_DURATION.medium });
   }, []);
 
   return (

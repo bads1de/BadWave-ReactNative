@@ -9,6 +9,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { ROUTES } from "@/constants";
+import { ANIMATION_DURATION, SPRING_CONFIG } from "@/constants";
 
 interface GenreCardProps {
   genre: string;
@@ -96,21 +98,21 @@ const GenreCardInner: React.FC<GenreCardProps> = ({ genre }) => {
 
   const handlePressIn = () => {
     "worklet";
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
-    glowOpacity.value = withTiming(0.6, { duration: 200 });
-    translateY.value = withSpring(5, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(0.95, SPRING_CONFIG.snappy);
+    glowOpacity.value = withTiming(0.6, { duration: ANIMATION_DURATION.fast });
+    translateY.value = withSpring(5, SPRING_CONFIG.snappy);
   };
 
   const handlePressOut = () => {
     "worklet";
-    scale.value = withSpring(1, { damping: 15, stiffness: 150 });
-    glowOpacity.value = withTiming(0.3, { duration: 300 });
-    translateY.value = withSpring(0, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(1, SPRING_CONFIG.snappy);
+    glowOpacity.value = withTiming(0.3, { duration: ANIMATION_DURATION.normal });
+    translateY.value = withSpring(0, SPRING_CONFIG.snappy);
   };
 
   const handlePress = () => {
     router.push({
-      pathname: "/genre/[genre]",
+      pathname: ROUTES.genre,
       params: { genre: encodeURIComponent(genre) },
     });
   };

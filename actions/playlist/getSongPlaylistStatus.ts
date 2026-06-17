@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { getErrorMessage } from "@/lib/utils/error";
 
 /**
@@ -13,7 +14,7 @@ const getSongPlaylistStatus = async (
   userId: string
 ): Promise<string[]> => {
   const { data, error } = await supabase
-    .from("playlist_songs")
+    .from(SUPABASE_TABLES.playlistSongs)
     .select("playlist_id")
     .eq("song_id", songId)
     .eq("user_id", userId)

@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { getErrorMessage } from "@/lib/utils/error";
 import { useSyncBase } from "./useSyncBase";
 
@@ -16,7 +16,7 @@ export function useSyncSongs() {
     queryFn: async () => {
       // Supabase から全楽曲を取得
       const { data: remoteSongs, error } = await supabase
-        .from("songs")
+        .from(SUPABASE_TABLES.songs)
         .select("*")
         .order("created_at", { ascending: false });
 

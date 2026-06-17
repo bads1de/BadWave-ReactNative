@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_TABLES } from "@/constants";
 import { Playlist } from "@/types";
 import { getErrorMessage } from "@/lib/utils/error";
 
@@ -10,7 +11,7 @@ import { getErrorMessage } from "@/lib/utils/error";
  */
 const getPlaylists = async (userId: string): Promise<Playlist[]> => {
   const { data, error } = await supabase
-    .from("playlists")
+    .from(SUPABASE_TABLES.playlists)
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });

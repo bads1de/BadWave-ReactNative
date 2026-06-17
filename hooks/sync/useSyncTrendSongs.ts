@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { CACHED_QUERIES } from "@/constants";
+import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { useSyncBase } from "./useSyncBase";
 import { upsertSectionCache } from "@/lib/db/sectionCacheUtils";
 import { getTrendDateFilter } from "@/lib/utils/trendFilter";
@@ -16,7 +16,7 @@ export function useSyncTrendSongs(
   return useSyncBase({
     queryKey: [CACHED_QUERIES.trendsSongs, period, "sync"],
     queryFn: async () => {
-      let query = supabase.from("songs").select("id");
+      let query = supabase.from(SUPABASE_TABLES.songs).select("id");
 
       const dateFilter = getTrendDateFilter(period);
       if (dateFilter) {
