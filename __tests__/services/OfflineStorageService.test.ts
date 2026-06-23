@@ -35,6 +35,7 @@ jest.mock("@/lib/db/client", () => {
 jest.mock("drizzle-orm", () => ({
   eq: jest.fn(),
   isNotNull: jest.fn(),
+  sql: jest.fn(() => "mock-sql"),
 }));
 
 describe("OfflineStorageService", () => {

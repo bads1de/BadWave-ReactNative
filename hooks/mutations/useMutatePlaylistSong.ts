@@ -161,7 +161,9 @@ export function useMutatePlaylistSong(userId?: string) {
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs, playlistId],
         (old: Song[] | undefined) =>
-          (old || []).filter((song) => song.id !== songId)
+          (old || []).filter(
+            (song) => ((song as any).songId ?? song.id) !== songId
+          )
       );
 
       return { previousSongs };
