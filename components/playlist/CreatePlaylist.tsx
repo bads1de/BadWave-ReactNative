@@ -50,7 +50,7 @@ function CreatePlaylist({ children }: CreatePlaylistProps) {
       opacity.value = withTiming(0, { duration: ANIMATION_DURATION.fast });
       translateY.value = withTiming(SCREEN_HEIGHT, { duration: ANIMATION_DURATION.normal });
     }
-  }, [modalOpen]);
+  }, [modalOpen, opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

@@ -210,7 +210,7 @@ const LyricContent = memo(
           animated: true,
         });
       }
-    }, [activeIndex, containerHeight, hasLrc]);
+    }, [activeIndex, containerHeight, hasLrc, lineCoords]);
 
     const handleScrollBegin = useCallback(() => {
       isUserScrolling.current = true;

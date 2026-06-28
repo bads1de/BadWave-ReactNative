@@ -11,11 +11,11 @@ const mockUseSync = jest.fn(() => ({
 }));
 
 jest.mock("@/hooks/common/useNetworkStatus", () => ({
-  useNetworkStatus: (...args: any[]) => mockUseNetworkStatus(...args),
+  useNetworkStatus: () => mockUseNetworkStatus(),
 }));
 
 jest.mock("@/providers/SyncProvider", () => ({
-  useSync: (...args: any[]) => mockUseSync(...args),
+  useSync: () => mockUseSync(),
 }));
 
 jest.mock("@expo/vector-icons", () => ({

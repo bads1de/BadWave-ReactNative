@@ -87,7 +87,7 @@ describe("LibraryLikedSection", () => {
   const mockSongs = [
     { id: "1", title: "Song 1", author: "Artist 1" },
     { id: "2", title: "Song 2", author: "Artist 2" },
-  ];
+  ] as any;
 
   it("should render empty state when no songs", () => {
     const { getByTestId, getByText } = render(

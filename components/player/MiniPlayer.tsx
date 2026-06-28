@@ -44,7 +44,7 @@ function ModernMiniPlayer({
   useEffect(() => {
     translateY.value = withSpring(0, SPRING_CONFIG.gentle);
     opacity.value = withTiming(1, { duration: ANIMATION_DURATION.medium });
-  }, []);
+  }, [opacity, translateY]);
 
   return (
     <Animated.View

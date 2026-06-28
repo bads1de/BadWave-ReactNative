@@ -54,7 +54,6 @@ describe("DeletePlaylistSongsBtn", () => {
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
-        songType="regular"
       />,
       { wrapper }
     );
@@ -67,7 +66,6 @@ describe("DeletePlaylistSongsBtn", () => {
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
-        songType="regular"
       />,
       { wrapper }
     );
@@ -91,7 +89,6 @@ describe("DeletePlaylistSongsBtn", () => {
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
-        songType="regular"
       />,
       { wrapper }
     );
@@ -114,7 +111,6 @@ describe("DeletePlaylistSongsBtn", () => {
       <DeletePlaylistSongsBtn
         songId="song1"
         playlistId="playlist1"
-        songType="regular"
       />,
       { wrapper }
     );

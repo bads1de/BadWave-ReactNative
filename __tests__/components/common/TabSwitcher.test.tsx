@@ -47,8 +47,8 @@ describe("TabSwitcher", () => {
   it("should render with icon", () => {
     const MockIcon = () => null;
     const optionsWithIcon = [
-      { label: "Songs", value: "songs", icon: MockIcon },
-      { label: "Playlists", value: "playlists", icon: MockIcon },
+      { label: "Songs", value: "songs", icon: MockIcon as any },
+      { label: "Playlists", value: "playlists", icon: MockIcon as any },
     ];
 
     const { getByText } = render(

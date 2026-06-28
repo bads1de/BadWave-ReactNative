@@ -83,7 +83,7 @@ export default function PlaylistOptionsMenu({
       opacity.value = withTiming(0, { duration: 250 });
       translateY.value = withTiming(SCREEN_HEIGHT, { duration: ANIMATION_DURATION.medium });
     }
-  }, [showOptionsModal]);
+  }, [showOptionsModal, opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

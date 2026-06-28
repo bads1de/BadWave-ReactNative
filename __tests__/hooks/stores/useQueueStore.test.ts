@@ -44,8 +44,8 @@ describe("useQueueStore", () => {
       result.current.setQueueState(() => ({
         isShuffleEnabled: true,
         currentSongId: "song-1",
-        originalQueue: [{ id: "1" }],
-        currentQueue: [{ id: "1" }],
+        originalQueue: [{ id: "1" } as any],
+        currentQueue: [{ id: "1" } as any],
       }));
     });
 

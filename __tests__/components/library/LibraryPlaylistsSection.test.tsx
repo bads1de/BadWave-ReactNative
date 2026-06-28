@@ -55,7 +55,7 @@ describe("LibraryPlaylistsSection", () => {
   const mockPlaylists = [
     { id: "1", title: "Playlist 1", user_id: "user1" },
     { id: "2", title: "Playlist 2", user_id: "user1" },
-  ];
+  ] as any;
 
   it("should render empty state when no playlists", () => {
     const { getByTestId, getByText } = render(

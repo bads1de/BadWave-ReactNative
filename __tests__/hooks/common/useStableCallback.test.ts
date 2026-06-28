@@ -24,7 +24,10 @@ describe("useStableCallback", () => {
     const callback1 = jest.fn();
     const callback2 = jest.fn();
 
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      (...args: any[]) => any,
+      { cb: (...args: any[]) => any }
+    >(
       ({ cb }) => useStableCallback(cb),
       { initialProps: { cb: callback1 } }
     );
@@ -40,7 +43,10 @@ describe("useStableCallback", () => {
     const callback1 = jest.fn();
     const callback2 = jest.fn();
 
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      (...args: any[]) => any,
+      { cb: (...args: any[]) => any }
+    >(
       ({ cb }) => useStableCallback(cb),
       { initialProps: { cb: callback1 } }
     );
