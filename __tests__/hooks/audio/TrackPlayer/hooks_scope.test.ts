@@ -4,7 +4,7 @@ import { useQueueOperations } from "@/hooks/audio/TrackPlayer/hooks";
 import Song from "@/types";
 
 // TrackPlayerのモック
-jest.mock("react-native-track-player");
+jest.mock("@rntp/player");
 
 // utilsのモック
 jest.mock("@/hooks/audio/TrackPlayer/utils", () => ({

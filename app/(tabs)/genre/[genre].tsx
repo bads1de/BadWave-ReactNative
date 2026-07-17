@@ -112,7 +112,6 @@ export default function GenreSongsScreen() {
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContainer}
-            estimatedItemSize={80}
             ListHeaderComponent={
               <Animated.View
                 entering={FadeInDown.delay(200)}

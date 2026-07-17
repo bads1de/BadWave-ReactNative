@@ -1,8 +1,8 @@
 // hooks/TrackPlayer/utils.ts
-import { Track } from "react-native-track-player";
+import type { MediaItem } from "@rntp/player";
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { getErrorMessage } from "@/lib/utils/error";
 
 // グローバルインスタンス
@@ -20,10 +20,10 @@ export function getOfflineStorageService(): OfflineStorageService {
 }
 
 /**
- * 曲データをTrackPlayerのトラック形式に変換
+ * 曲データをTrackPlayerのメディアアイテム形式に変換
  * ローカルにダウンロードされている場合はローカルパスを使用
  */
-export async function convertSongToTrack(song: Song): Promise<Track> {
+export async function convertSongToTrack(song: Song): Promise<MediaItem> {
   try {
     const storage = getOfflineStorageService();
     let localPath = await storage.getSongLocalPath(song.id);
@@ -42,25 +42,25 @@ export async function convertSongToTrack(song: Song): Promise<Track> {
       }
     }
 
-    const track = {
-      id: song.id,
+    const track: MediaItem = {
+      mediaId: song.id,
       url: localPath || song.song_path, // ローカルパスがあればそれを使用、なければリモートURL
       title: song.title,
       artist: song.author,
-      artwork: song.image_path,
-      originalSong: song, // 元のSongオブジェクトを保持
+      artworkUrl: song.image_path,
+      extras: { originalSong: song }, // 元のSongオブジェクトを保持
     };
     return track;
   } catch (error) {
     console.error(`Error converting song to track: ${error}`);
     // エラー時はリモートURLを使用
     return {
-      id: song.id,
+      mediaId: song.id,
       url: song.song_path,
       title: song.title,
       artist: song.author,
-      artwork: song.image_path,
-      originalSong: song, // 元のSongオブジェクトを保持
+      artworkUrl: song.image_path,
+      extras: { originalSong: song }, // 元のSongオブジェクトを保持
     };
   }
 }
@@ -68,7 +68,7 @@ export async function convertSongToTrack(song: Song): Promise<Track> {
 /**
  * 複数の曲をトラック形式に変換
  */
-export async function convertToTracks(songs: Song[]): Promise<Track[]> {
+export async function convertToTracks(songs: Song[]): Promise<MediaItem[]> {
   if (!songs || songs.length === 0) {
     return [];
   }

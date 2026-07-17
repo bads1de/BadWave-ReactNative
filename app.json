@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true
@@ -24,11 +24,9 @@
       "package": "com.s3xmaxman.badwave"
     },
     "androidStatusBar": {
-      "backgroundColor": "#000000",
       "barStyle": "light-content"
     },
     "androidNavigationBar": {
-      "backgroundColor": "#000000",
       "barStyle": "light-content"
     },
     "web": {

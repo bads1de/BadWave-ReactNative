@@ -20,8 +20,7 @@ import {
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Mic2 } from "lucide-react-native";
-import { useProgress } from "react-native-track-player";
-import TrackPlayer from "react-native-track-player";
+import TrackPlayer, { useProgress } from "@rntp/player";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
 
@@ -161,12 +160,12 @@ const LyricContent = memo(
     toggleExpand: () => void;
     initialVisibleLines: number;
   }) => {
-    const { position } = useProgress(100);
+    const { position } = useProgress(0.1);
     const scrollViewRef = useRef<ScrollView>(null);
     const [lineCoords, setLineCoords] = useState<{ [key: number]: number }>({});
     const [containerHeight, setContainerHeight] = useState(0);
     const isUserScrolling = useRef(false);
-    const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+    const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const colors = useThemeStore((state) => state.colors);
 
     const parsedLyrics = useMemo(() => {

@@ -25,6 +25,10 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# debug screenshots (temporary, from device debugging)
+/_diag_screen.png
+/badwave_runtime.png
+
 # macOS
 .DS_Store
 *.pem

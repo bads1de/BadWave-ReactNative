@@ -1,6 +1,6 @@
 import React, { memo, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { useActiveTrack } from "react-native-track-player";
+import { useActiveMediaItem } from "@rntp/player";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
 import OnRepeatPlayer from "@/components/onRepeat/player/OnRepeatPlayer";
@@ -34,12 +34,12 @@ function PlayerContainer() {
   const shuffle = useAudioStore((state) => state.shuffle);
 
   // アクティブなトラックの同期処理（曲の切り替わり時にUIを更新するため）
-  const activeTrack = useActiveTrack();
+  const activeTrack = useActiveMediaItem();
   useEffect(() => {
     if (!activeTrack) return;
     
-    if (activeTrack.originalSong) {
-      const song = activeTrack.originalSong as Song;
+    if (activeTrack.extras?.originalSong) {
+      const song = activeTrack.extras.originalSong as Song;
       if (currentSong?.id !== song.id) {
         setCurrentSong(song);
       }

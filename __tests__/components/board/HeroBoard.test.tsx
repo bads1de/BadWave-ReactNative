@@ -72,9 +72,9 @@ jest.mock("react-native-reanimated", () => {
 jest.mock("@expo/vector-icons", () => ({ Ionicons: "Ionicons" }));
 jest.mock("@/constants", () => ({
   genreCards: [
-    { name: "Retro Wave", emoji: "🌆" },
-    { name: "Electro House", emoji: "⚡" },
-    { name: "Nu Disco", emoji: "💿" },
+    { id: 1, name: "Retro Wave", emoji: "🌆" },
+    { id: 2, name: "Electro House", emoji: "⚡" },
+    { id: 3, name: "Nu Disco", emoji: "💿" },
   ],
 }));
 
@@ -87,8 +87,8 @@ describe("HeroBoard", () => {
   });
 
   it("renders without crashing", () => {
-    const { getByText } = render(<HeroBoard />);
+    const { getByText, getAllByText } = render(<HeroBoard />);
     expect(getByText("Electro House")).toBeTruthy();
-    expect(getByText("DISCOVER")).toBeTruthy();
+    expect(getAllByText("DISCOVER").length).toBeGreaterThan(0);
   });
 });

@@ -3,12 +3,13 @@ export * from "@/hooks/audio/TrackPlayer/utils";
 export * from "@/hooks/audio/TrackPlayer/hooks";
 
 // TrackPlayerの直接エクスポート
-export { default as TrackPlayer } from "react-native-track-player";
+export { default as TrackPlayer } from "@rntp/player";
 export {
-  State,
   RepeatMode,
+  PlaybackState,
   usePlaybackState,
-  useActiveTrack,
+  useActiveMediaItem,
+  useIsPlaying,
   useProgress,
-} from "react-native-track-player";
+} from "@rntp/player";
 

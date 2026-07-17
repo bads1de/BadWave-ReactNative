@@ -67,7 +67,6 @@ export default function SpotlightList({
       decelerationRate="fast"
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
-      estimatedItemSize={height}
       drawDistance={height}
     />
   );

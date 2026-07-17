@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { eq, isNotNull } from "drizzle-orm";
 import Song from "@/types";
 import { db } from "@/lib/db/client";

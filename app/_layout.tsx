@@ -1,7 +1,6 @@
 import AuthModal from "@/components/modal/AuthModal";
 import { ToastComponent } from "@/components/common/CustomToast";
 import NetworkStatusBar from "@/components/common/NetworkStatusBar";
-import TrackPlayer from "react-native-track-player";
 import { playbackService } from "@/services/PlayerService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppInitializerProvider } from "@/providers/AppInitializerProvider";
@@ -37,7 +36,7 @@ declare global {
 
 // TrackPlayerのサービス登録
 if (!global.__TRACK_PLAYER_SERVICE_REGISTERED__) {
-  TrackPlayer.registerPlaybackService(playbackService);
+  void playbackService()();
   global.__TRACK_PLAYER_SERVICE_REGISTERED__ = true;
 }
 

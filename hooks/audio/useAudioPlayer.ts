@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useMemo } from "react";
 import TrackPlayer, {
-  State,
-  usePlaybackState,
   RepeatMode,
-  useActiveTrack,
-} from "react-native-track-player";
+  useActiveMediaItem,
+  useIsPlaying as useNativeIsPlaying,
+} from "@rntp/player";
 import Song from "@/types";
 import useOnPlay from "@/hooks/audio/useOnPlay";
 import { useAudioStore, useAudioActions } from "@/hooks/stores/useAudioStore";
@@ -57,7 +56,11 @@ function usePlaybackActions({
 
       return safeAsyncOperation(async () => {
         if (song?.id === currentSong?.id || (!song && currentSong)) {
-          await (isPlaying ? TrackPlayer.pause() : TrackPlayer.play());
+          if (isPlaying) {
+            TrackPlayer.pause();
+          } else {
+            TrackPlayer.play();
+          }
           return true;
         }
 
@@ -91,23 +94,24 @@ function usePlaybackActions({
 
   const seekTo = useCallback(async (millis: number) => {
     return safeAsyncOperation(async () => {
-      await TrackPlayer.seekTo(millis / 1000);
+      // v5 の seekTo は秒指定。ラッパーはミリ秒で受け取るため 1000 で除算
+      TrackPlayer.seekTo(millis / 1000);
       return true;
     }, "シーク中にエラーが発生しました");
   }, []);
 
   const playNextSong = useCallback(async () => {
     return safeAsyncOperation(async () => {
-      await TrackPlayer.skipToNext();
-      await TrackPlayer.play();
+      TrackPlayer.skipToNext();
+      TrackPlayer.play();
       return true;
     }, "次の曲の再生中にエラーが発生しました");
   }, []);
 
   const playPrevSong = useCallback(async () => {
     return safeAsyncOperation(async () => {
-      await TrackPlayer.skipToPrevious();
-      await TrackPlayer.play();
+      TrackPlayer.skipToPrevious();
+      TrackPlayer.play();
       return true;
     }, "前の曲の再生中にエラーが発生しました");
   }, []);
@@ -115,7 +119,7 @@ function usePlaybackActions({
   const setRepeat = useCallback(
     async (mode: RepeatMode) => {
       return safeAsyncOperation(async () => {
-        await TrackPlayer.setRepeatMode(mode);
+        TrackPlayer.setRepeatMode(mode);
         setStoreRepeatMode(mode);
         return true;
       }, "リピートモードの設定中にエラーが発生しました");
@@ -147,7 +151,7 @@ function usePlaybackActions({
 
 /**
  * オーディオプレイヤーの状態管理と操作を行うカスタムフックです。
- * `react-native-track-player` と Zustand ストアをラップし、再生、一時停止、
+ * `@rntp/player` と Zustand ストアをラップし、再生、一時停止、
  * 曲の切り替え、シーク、リピート、シャッフルなどの機能を提供します。
  *
  * @param {Song[]} songs - 再生キューの元となる曲のリスト。
@@ -168,7 +172,7 @@ function usePlaybackActions({
  * }} オーディオプレイヤーの状態と操作関数を含むオブジェクト。
  *   - `currentSong`: 現在再生中の曲オブジェクト。
  *   - `isPlaying`: 現在再生中かどうかを示す真偽値。
- *   - `repeatMode`: 現在のリピートモード (`Off`, `Track`, `Queue`)。
+ *   - `repeatMode`: 現在のリピートモード (`Off`, `One`, `All`)。
  *   - `shuffle`: 現在シャッフルモードが有効かどうかを示す真偽値。
  *   - `togglePlayPause`: 曲の再生・一時停止を切り替えます。
  *   - `seekTo`: 指定した再生位置に移動します。
@@ -192,26 +196,22 @@ export function useAudioPlayer(
   const onPlay = useOnPlay();
 
   const isMounted = useRef(true);
-  const activeTrack = useActiveTrack();
-  const playbackState = usePlaybackState();
-  const initialActiveTrackIdRef = useRef<string | null>(activeTrack?.id ?? null);
-
-  // isPlayingの値をメモ化して不要な再計算を防止
-  const isPlaying = useMemo(
-    () => playbackState.state === State.Playing,
-    [playbackState.state],
+  const activeTrack = useActiveMediaItem();
+  const initialActiveTrackIdRef = useRef<string | null>(
+    activeTrack?.mediaId ?? null,
   );
 
-  const setTrackPlayerIsPlaying = useCallback(
-    (playing: boolean) => {
-      if (playing && playbackState.state !== State.Playing) {
-        TrackPlayer.play();
-      } else if (!playing && playbackState.state === State.Playing) {
-        TrackPlayer.pause();
-      }
-    },
-    [playbackState.state],
-  );
+  // v5 では useIsPlaying() が再生中かどうかを直接返す
+  const isPlaying = useNativeIsPlaying();
+
+  const setTrackPlayerIsPlaying = useCallback((playing: boolean) => {
+    const currentlyPlaying = TrackPlayer.isPlaying();
+    if (playing && !currentlyPlaying) {
+      TrackPlayer.play();
+    } else if (!playing && currentlyPlaying) {
+      TrackPlayer.pause();
+    }
+  }, []);
 
   const { updateQueueState, ...playbackControls } = usePlaybackActions({
     songs,
@@ -239,28 +239,28 @@ export function useAudioPlayer(
    * 依存配列の関数が変わっても同じトラックに対して複数回実行されることはない
    */
   useEffect(() => {
-    if (!isMounted.current || !activeTrack?.id) return;
+    if (!isMounted.current || !activeTrack?.mediaId) return;
 
     // 前回処理済みのトラックなら何もしない（無限ループ防止）
-    if (lastProcessedTrackIdRef.current === activeTrack.id) return;
+    if (lastProcessedTrackIdRef.current === activeTrack.mediaId) return;
 
     // トラックIDに対応する曲情報を取得
     // 優先順位1: propsとして渡されたsongs (最新の情報である可能性が高い)
     // 優先順位2: トラックに埋め込まれた元の曲情報 (バックアップ)
-    let song = songMap[activeTrack.id];
+    let song = songMap[activeTrack.mediaId];
 
-    if (!song && activeTrack.originalSong) {
-      song = activeTrack.originalSong as Song;
+    if (!song && activeTrack.extras?.originalSong) {
+      song = activeTrack.extras.originalSong as Song;
     }
 
     if (!song) return;
 
     const shouldSkipPlayCount =
       lastProcessedTrackIdRef.current === null &&
-      initialActiveTrackIdRef.current === activeTrack.id;
+      initialActiveTrackIdRef.current === activeTrack.mediaId;
 
     // 処理済みトラックIDを記録
-    lastProcessedTrackIdRef.current = activeTrack.id;
+    lastProcessedTrackIdRef.current = activeTrack.mediaId;
 
     // 現在の曲を更新
     setCurrentSong(song);
@@ -298,8 +298,7 @@ export function useAudioPlayer(
 }
 
 export function useIsPlaying() {
-  const playbackState = usePlaybackState();
-  return playbackState.state === State.Playing;
+  return useNativeIsPlaying();
 }
 
 export function usePlayControls(
@@ -308,18 +307,13 @@ export function usePlayControls(
   contextId?: string,
 ) {
   const currentSong = useAudioStore((state) => state.currentSong);
-  const playbackState = usePlaybackState();
-  const isPlaying = playbackState.state === State.Playing;
-  const playbackStateRef = useRef(playbackState.state);
-
-  useEffect(() => {
-    playbackStateRef.current = playbackState.state;
-  }, [playbackState.state]);
+  const isPlaying = useNativeIsPlaying();
 
   const setTrackPlayerIsPlaying = useCallback((playing: boolean) => {
-    if (playing && playbackStateRef.current !== State.Playing) {
+    const currentlyPlaying = TrackPlayer.isPlaying();
+    if (playing && !currentlyPlaying) {
       TrackPlayer.play();
-    } else if (!playing && playbackStateRef.current === State.Playing) {
+    } else if (!playing && currentlyPlaying) {
       TrackPlayer.pause();
     }
   }, []);
@@ -339,4 +333,4 @@ export function usePlayControls(
   return playbackControls;
 }
 
-export { RepeatMode, State };
+export { RepeatMode };

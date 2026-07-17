@@ -1,21 +1,22 @@
 import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { useAudioPlayer } from "@/hooks/audio/useAudioPlayer";
 
-jest.mock("react-native-track-player", () => ({
-  State: {
-    Playing: "playing",
-    Paused: "paused",
-  },
-  usePlaybackState: jest.fn(),
+jest.mock("@rntp/player", () => ({
   RepeatMode: {
-    Off: 0,
-    Track: 1,
-    Queue: 2,
+    Off: "off",
+    One: "one",
+    All: "all",
   },
-  useActiveTrack: jest.fn(),
+  useActiveMediaItem: jest.fn(),
+  useIsPlaying: jest.fn(),
   useProgress: jest.fn(),
+  isPlaying: jest.fn(),
   play: jest.fn(),
   pause: jest.fn(),
+  seekTo: jest.fn(),
+  skipToNext: jest.fn(),
+  skipToPrevious: jest.fn(),
+  setRepeatMode: jest.fn(),
 }));
 
 jest.mock("@/hooks/audio/useOnPlay", () => ({
@@ -35,7 +36,7 @@ jest.mock("@/hooks/audio/TrackPlayer", () => ({
   safeAsyncOperation: jest.fn((fn) => fn()),
 }));
 
-const TrackPlayer = require("react-native-track-player");
+const TrackPlayer = require("@rntp/player");
 const useOnPlay = require("@/hooks/audio/useOnPlay").default;
 const {
   useAudioStore,
@@ -49,8 +50,8 @@ const {
 describe("useAudioPlayer", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    TrackPlayer.usePlaybackState.mockReturnValue({ state: "paused" });
-    TrackPlayer.useActiveTrack.mockReturnValue(null);
+    TrackPlayer.useIsPlaying.mockReturnValue(false);
+    TrackPlayer.useActiveMediaItem.mockReturnValue(null);
     TrackPlayer.useProgress.mockReturnValue({ position: 0, duration: 180 });
     useAudioStore.mockImplementation((selector: (state: any) => unknown) =>
       selector({
@@ -97,7 +98,7 @@ describe("useAudioPlayer", () => {
     useOnPlay.mockReturnValue(mockOnPlay);
 
     let activeTrack: any = null;
-    TrackPlayer.useActiveTrack.mockImplementation(() => activeTrack);
+    TrackPlayer.useActiveMediaItem.mockImplementation(() => activeTrack);
     usePlayerState.mockReturnValue({
       songMap: { [song.id]: song },
     });
@@ -108,7 +109,7 @@ describe("useAudioPlayer", () => {
     );
 
     await act(async () => {
-      activeTrack = { id: song.id, originalSong: song };
+      activeTrack = { mediaId: song.id, extras: { originalSong: song } };
       rerender({ songs: [song] });
     });
 
@@ -132,9 +133,9 @@ describe("useAudioPlayer", () => {
     const mockOnPlay = jest.fn().mockResolvedValue(true);
     useOnPlay.mockReturnValue(mockOnPlay);
 
-    TrackPlayer.useActiveTrack.mockReturnValue({
-      id: song.id,
-      originalSong: song,
+    TrackPlayer.useActiveMediaItem.mockReturnValue({
+      mediaId: song.id,
+      extras: { originalSong: song },
     });
     usePlayerState.mockReturnValue({
       songMap: { [song.id]: song },

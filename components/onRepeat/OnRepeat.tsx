@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import getTopPlayedSongs from "@/actions/song/getTopPlayedSongs";
 import { useUser } from "@/actions/user/getUser";
 import { useIsPlaying } from "@/hooks/audio/useAudioPlayer";
-import TrackPlayer from "react-native-track-player";
+import TrackPlayer from "@rntp/player";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
 
@@ -115,7 +115,7 @@ function OnRepeat() {
     async (songIndex: number) => {
       try {
         if (isPlaying) {
-          await TrackPlayer.pause();
+          TrackPlayer.pause();
         }
         // アトミックな更新で OnRepeat Player を開く
         openOnRepeatPlayer(topSongs, songIndex);

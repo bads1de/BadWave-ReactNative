@@ -119,7 +119,6 @@ function LibraryLikedSectionInner({
         keyExtractor={keyExtractor}
         numColumns={2}
         contentContainerStyle={styles.listContainer}
-        estimatedItemSize={280}
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={handleLikedListScrollStart}
         onMomentumScrollBegin={handleLikedListScrollStart}

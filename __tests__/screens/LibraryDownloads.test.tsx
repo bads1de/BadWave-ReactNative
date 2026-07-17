@@ -85,56 +85,8 @@ jest.mock("react-native", () => {
   return reactNative;
 });
 
-// react-native-track-playerのモック
-jest.mock("react-native-track-player", () => ({
-  addEventListener: jest.fn(),
-  registerPlaybackService: jest.fn(),
-  setupPlayer: jest.fn(),
-  updateOptions: jest.fn(),
-  add: jest.fn(),
-  play: jest.fn(),
-  pause: jest.fn(),
-  stop: jest.fn(),
-  skip: jest.fn(),
-  skipToNext: jest.fn(),
-  skipToPrevious: jest.fn(),
-  seekTo: jest.fn(),
-  setRepeatMode: jest.fn(),
-  getRepeatMode: jest.fn(),
-  setVolume: jest.fn(),
-  getVolume: jest.fn(),
-  getQueue: jest.fn(),
-  getCurrentTrack: jest.fn(),
-  getTrack: jest.fn(),
-  remove: jest.fn(),
-  clear: jest.fn(),
-  getProgress: jest.fn(),
-  getState: jest.fn(),
-  getPlaybackState: jest.fn(),
-  usePlaybackState: jest.fn().mockReturnValue({ state: "paused" }),
-  useActiveTrack: jest.fn().mockReturnValue(null),
-  useProgress: jest.fn().mockReturnValue({ position: 0, duration: 0 }),
-  State: {
-    None: "none",
-    Ready: "ready",
-    Playing: "playing",
-    Paused: "paused",
-    Stopped: "stopped",
-    Buffering: "buffering",
-    Connecting: "connecting",
-  },
-  RepeatMode: {
-    Off: 0,
-    Track: 1,
-    Queue: 2,
-  },
-  Event: {
-    PlaybackState: "playback-state",
-    PlaybackError: "playback-error",
-    PlaybackQueueEnded: "playback-queue-ended",
-    PlaybackTrackChanged: "playback-track-changed",
-  },
-}));
+// @rntp/player (v5) のモック
+jest.mock("@rntp/player");
 
 // モック
 jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({

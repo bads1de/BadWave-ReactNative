@@ -2,15 +2,18 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import Lyric from "@/components/player/lyric";
 
-// LayoutAnimationのみモック
+// LayoutAnimationのみモック（RN 0.81 は react-native バレルが .default を参照するため __esModule/default でラップ）
 jest.mock("react-native/Libraries/LayoutAnimation/LayoutAnimation", () => ({
-  configureNext: jest.fn(),
-  create: jest.fn(),
-  Presets: {
-    easeInEaseOut: {},
+  __esModule: true,
+  default: {
+    configureNext: jest.fn(),
+    create: jest.fn(),
+    Presets: {
+      easeInEaseOut: {},
+    },
+    Types: {},
+    Properties: {},
   },
-  Types: {},
-  Properties: {},
 }));
 
 describe("Lyric", () => {

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { create } from "zustand";
 import Song from "@/types";
-import { RepeatMode } from "react-native-track-player";
+import { RepeatMode } from "@rntp/player";
 
 interface AudioState {
   currentSong: Song | null;
