@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/actions/user/getUser";
 import { useIsPlaying } from "@/hooks/audio/useAudioPlayer";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
-import TrackPlayer from "react-native-track-player";
+import TrackPlayer from "@rntp/player";
 
 // モックの設定
 jest.mock("@tanstack/react-query");
@@ -15,7 +15,7 @@ jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useIsPlaying: jest.fn(),
 }));
 jest.mock("@/hooks/stores/useOnRepeatStore");
-jest.mock("react-native-track-player");
+jest.mock("@rntp/player");
 jest.mock("@/hooks/downloads/useDownloadedSongs", () => ({
   useDownloadedSongs: jest.fn(() => ({
     songs: [],
@@ -125,7 +125,7 @@ describe("OnRepeat", () => {
       return selector(state);
     });
 
-    (TrackPlayer.pause as jest.Mock).mockResolvedValue(undefined);
+    (TrackPlayer.pause as jest.Mock).mockReturnValue(undefined);
   });
 
   describe("レンダリングテスト", () => {
@@ -247,9 +247,9 @@ describe("OnRepeat", () => {
       const consoleErrorSpy = jest
         .spyOn(console, "error")
         .mockImplementation(() => {});
-      (TrackPlayer.pause as jest.Mock).mockRejectedValue(
-        new Error("Pause failed"),
-      );
+      (TrackPlayer.pause as jest.Mock).mockImplementation(() => {
+        throw new Error("Pause failed");
+      });
 
       mockUseIsPlaying.mockReturnValue(true);
 

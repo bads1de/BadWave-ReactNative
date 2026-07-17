@@ -35,10 +35,10 @@ describe("Metadata Persistence", () => {
   it("should preserve the original Song object within the Track object", async () => {
     const track = await convertSongToTrack(mockSong);
 
-    // Track型には通常 originalSong はないが、カスタムプロパティとして保持させたい
+    // MediaItem型では extras に任意のカスタムデータを保持できる
     // これにより、songMapがない環境でもSong情報を復元できる
-    expect(track).toHaveProperty("originalSong");
-    expect((track as any).originalSong).toEqual(mockSong);
+    expect(track).toHaveProperty("extras.originalSong");
+    expect((track as any).extras.originalSong).toEqual(mockSong);
   });
 });
 

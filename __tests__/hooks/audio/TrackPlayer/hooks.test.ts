@@ -1,6 +1,6 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { renderHook, act } from "@testing-library/react";
-import TrackPlayer, { Track } from "react-native-track-player";
+import TrackPlayer, { type MediaItem } from "@rntp/player";
 import {
   usePlayerState,
   useQueueOperations,
@@ -11,7 +11,7 @@ import { PlayContext } from "@/hooks/audio/TrackPlayer/types";
 import * as utils from "@/hooks/audio/TrackPlayer/utils";
 
 // TrackPlayerのモック
-jest.mock("react-native-track-player");
+jest.mock("@rntp/player");
 const mockedTrackPlayer = TrackPlayer as jest.Mocked<typeof TrackPlayer>;
 
 // utilsのモック
@@ -59,12 +59,12 @@ describe("TrackPlayer hooks", () => {
     },
   ];
 
-  const mockTracks: Track[] = mockSongs.map((song) => ({
-    id: song.id,
+  const mockTracks: MediaItem[] = mockSongs.map((song) => ({
+    mediaId: song.id,
     url: song.song_path,
     title: song.title,
     artist: song.author,
-    artwork: song.image_path,
+    artworkUrl: song.image_path,
   }));
 
   const mockContext: PlayContext = {
@@ -79,13 +79,15 @@ describe("TrackPlayer hooks", () => {
     useQueueStore.getState().resetQueueState();
 
     // TrackPlayerのモックをリセット
-    mockedTrackPlayer.getQueue.mockResolvedValue([]);
-    mockedTrackPlayer.getActiveTrack.mockResolvedValue(undefined);
-    mockedTrackPlayer.reset.mockResolvedValue(undefined);
-    mockedTrackPlayer.add.mockResolvedValue(undefined);
-    mockedTrackPlayer.removeUpcomingTracks.mockResolvedValue(undefined);
-    mockedTrackPlayer.skip.mockResolvedValue(undefined);
-    mockedTrackPlayer.play.mockResolvedValue(undefined);
+    mockedTrackPlayer.getQueue.mockReturnValue([]);
+    mockedTrackPlayer.getActiveMediaItem.mockReturnValue(null);
+    mockedTrackPlayer.getActiveMediaItemIndex.mockReturnValue(null);
+    mockedTrackPlayer.clear.mockReturnValue(undefined);
+    mockedTrackPlayer.addMediaItems.mockReturnValue(undefined);
+    mockedTrackPlayer.insertMediaItems.mockReturnValue(undefined);
+    mockedTrackPlayer.removeMediaItems.mockReturnValue(undefined);
+    mockedTrackPlayer.skipToIndex.mockReturnValue(undefined);
+    mockedTrackPlayer.play.mockReturnValue(undefined);
 
     // convertToTracksのモックをリセット
     mockedUtils.convertToTracks.mockResolvedValue(mockTracks);
@@ -250,10 +252,9 @@ describe("TrackPlayer hooks", () => {
 
     describe("shuffleQueue", () => {
       beforeEach(() => {
-        mockedTrackPlayer.getActiveTrack.mockResolvedValue(
-          mockTracks[0]
-        );
-        mockedTrackPlayer.getQueue.mockResolvedValue(mockTracks);
+        mockedTrackPlayer.getActiveMediaItem.mockReturnValue(mockTracks[0]);
+        mockedTrackPlayer.getQueue.mockReturnValue(mockTracks);
+        mockedTrackPlayer.getActiveMediaItemIndex.mockReturnValue(0);
       });
 
       it("現在の曲を除いてキューをシャッフルする", async () => {
@@ -263,9 +264,9 @@ describe("TrackPlayer hooks", () => {
           await result.current.shuffleQueue();
         });
 
-        expect(TrackPlayer.getActiveTrack).toHaveBeenCalled();
-        expect(TrackPlayer.removeUpcomingTracks).toHaveBeenCalled();
-        expect(TrackPlayer.add).toHaveBeenCalled();
+        expect(TrackPlayer.getActiveMediaItem).toHaveBeenCalled();
+        expect(TrackPlayer.removeMediaItems).toHaveBeenCalled();
+        expect(TrackPlayer.addMediaItems).toHaveBeenCalled();
 
         const state = result.current.getQueueState();
         expect(state.isShuffleEnabled).toBe(true);
@@ -273,7 +274,7 @@ describe("TrackPlayer hooks", () => {
       });
 
       it("アクティブなトラックがない場合は失敗する", async () => {
-        mockedTrackPlayer.getActiveTrack.mockResolvedValue(undefined);
+        mockedTrackPlayer.getActiveMediaItem.mockReturnValue(null);
 
         const { result } = renderHook(() => useQueueOperations(setIsPlaying));
 
@@ -281,7 +282,7 @@ describe("TrackPlayer hooks", () => {
           await result.current.shuffleQueue();
         });
 
-        expect(TrackPlayer.removeUpcomingTracks).not.toHaveBeenCalled();
+        expect(TrackPlayer.removeMediaItems).not.toHaveBeenCalled();
       });
 
       it("シャッフル後のキューに現在の曲が先頭にある", async () => {
@@ -292,13 +293,13 @@ describe("TrackPlayer hooks", () => {
         });
 
         const state = result.current.getQueueState();
-        expect(state.currentQueue[0].id).toBe(mockTracks[0].id);
+        expect(state.currentQueue[0].id).toBe(mockTracks[0].mediaId);
       });
 
       it("エラー時にisPlayingをfalseに設定する", async () => {
-        mockedTrackPlayer.getActiveTrack.mockRejectedValue(
-          new Error("Test error")
-        );
+        mockedTrackPlayer.getActiveMediaItem.mockImplementation(() => {
+          throw new Error("Test error");
+        });
 
         mockedUtils.safeAsyncOperation.mockImplementation(
           async (operation: any, errorMessage: any, errorHandler: any) => {
@@ -323,9 +324,9 @@ describe("TrackPlayer hooks", () => {
 
     describe("unshuffleQueue", () => {
       beforeEach(() => {
-        mockedTrackPlayer.getActiveTrack.mockResolvedValue(
-          mockTracks[1]
-        );
+        mockedTrackPlayer.getActiveMediaItem.mockReturnValue(mockTracks[1]);
+        mockedTrackPlayer.getActiveMediaItemIndex.mockReturnValue(0);
+        mockedTrackPlayer.getQueue.mockReturnValue(mockTracks);
       });
 
       it("元のキュー順序に戻す", async () => {
@@ -343,8 +344,8 @@ describe("TrackPlayer hooks", () => {
           await result.current.unshuffleQueue();
         });
 
-        expect(TrackPlayer.removeUpcomingTracks).toHaveBeenCalled();
-        expect(TrackPlayer.add).toHaveBeenCalled();
+        expect(TrackPlayer.removeMediaItems).toHaveBeenCalled();
+        expect(TrackPlayer.addMediaItems).toHaveBeenCalled();
 
         const state = result.current.getQueueState();
         expect(state.isShuffleEnabled).toBe(false);
@@ -357,12 +358,12 @@ describe("TrackPlayer hooks", () => {
           await result.current.unshuffleQueue();
         });
 
-        expect(TrackPlayer.removeUpcomingTracks).not.toHaveBeenCalled();
+        expect(TrackPlayer.removeMediaItems).not.toHaveBeenCalled();
       });
 
       it("現在の曲がoriginalQueueにない場合は失敗する", async () => {
-        mockedTrackPlayer.getActiveTrack.mockResolvedValue({
-          id: "unknown-song",
+        mockedTrackPlayer.getActiveMediaItem.mockReturnValue({
+          mediaId: "unknown-song",
           url: "test.mp3",
           title: "Unknown",
           artist: "Unknown",
@@ -380,7 +381,7 @@ describe("TrackPlayer hooks", () => {
           await result.current.unshuffleQueue();
         });
 
-        expect(TrackPlayer.removeUpcomingTracks).not.toHaveBeenCalled();
+        expect(TrackPlayer.removeMediaItems).not.toHaveBeenCalled();
       });
 
       it("現在の曲より後の曲のみをキューに追加する", async () => {
@@ -396,23 +397,22 @@ describe("TrackPlayer hooks", () => {
           await result.current.unshuffleQueue();
         });
 
-        // TrackPlayer.addが呼ばれた引数を確認
-        const addCalls = mockedTrackPlayer.add.mock.calls;
+        // TrackPlayer.addMediaItemsが呼ばれた引数を確認
+        const addCalls = mockedTrackPlayer.addMediaItems.mock.calls;
         if (addCalls.length > 0) {
-          const addedTracks = addCalls[addCalls.length - 1][0] as unknown as Track[];
+          const addedTracks = addCalls[addCalls.length - 1][0] as unknown as MediaItem[];
           // song-1（インデックス1）より後の曲のみが追加される
           expect(addedTracks).toHaveLength(mockTracks.length - 2);
-          expect(addedTracks[0].id).toBe(mockTracks[2].id);
+          expect(addedTracks[0].mediaId).toBe(mockTracks[2].mediaId);
         }
       });
     });
 
     describe("toggleShuffle", () => {
       beforeEach(() => {
-        mockedTrackPlayer.getActiveTrack.mockResolvedValue(
-          mockTracks[0]
-        );
-        mockedTrackPlayer.getQueue.mockResolvedValue(mockTracks);
+        mockedTrackPlayer.getActiveMediaItem.mockReturnValue(mockTracks[0]);
+        mockedTrackPlayer.getQueue.mockReturnValue(mockTracks);
+        mockedTrackPlayer.getActiveMediaItemIndex.mockReturnValue(0);
       });
 
       it("シャッフルが無効な場合は有効にする", async () => {
@@ -461,15 +461,15 @@ describe("TrackPlayer hooks", () => {
           );
         });
 
-        expect(TrackPlayer.reset).toHaveBeenCalled();
+        expect(TrackPlayer.clear).toHaveBeenCalled();
         expect(utils.convertToTracks).toHaveBeenCalledWith(mockSongs);
-        expect(TrackPlayer.add).toHaveBeenCalledWith(mockTracks);
+        expect(TrackPlayer.addMediaItems).toHaveBeenCalledWith(mockTracks);
         expect(TrackPlayer.play).toHaveBeenCalled();
         expect(setIsPlaying).toHaveBeenCalledWith(true);
 
         const state = result.current.getQueueState();
         expect(state.context).toEqual(mockContext);
-        expect(state.currentSongId).toBe(mockTracks[0].id);
+        expect(state.currentSongId).toBe(mockTracks[0].mediaId);
       });
 
       it("指定されたインデックスから再生を開始する", async () => {
@@ -483,10 +483,10 @@ describe("TrackPlayer hooks", () => {
           );
         });
 
-        expect(TrackPlayer.skip).toHaveBeenCalledWith(1);
+        expect(TrackPlayer.skipToIndex).toHaveBeenCalledWith(1);
 
         const state = result.current.getQueueState();
-        expect(state.currentSongId).toBe(mockTracks[1].id);
+        expect(state.currentSongId).toBe(mockTracks[1].mediaId);
       });
 
       it("空の曲配列の場合は失敗する", async () => {
@@ -496,13 +496,13 @@ describe("TrackPlayer hooks", () => {
           await result.current.updateQueueWithContext([], mockContext, 0);
         });
 
-        expect(TrackPlayer.reset).not.toHaveBeenCalled();
+        expect(TrackPlayer.clear).not.toHaveBeenCalled();
       });
     });
 
     describe("addToQueue", () => {
       it("キューに曲を追加する", async () => {
-        mockedTrackPlayer.getQueue.mockResolvedValue([
+        mockedTrackPlayer.getQueue.mockReturnValue([
           ...mockTracks,
           mockTracks[0],
         ]);
@@ -514,7 +514,7 @@ describe("TrackPlayer hooks", () => {
         });
 
         expect(utils.convertToTracks).toHaveBeenCalledWith(mockSongs);
-        expect(TrackPlayer.add).toHaveBeenCalledWith(mockTracks);
+        expect(TrackPlayer.addMediaItems).toHaveBeenCalledWith(mockTracks);
         expect(TrackPlayer.getQueue).toHaveBeenCalled();
       });
 
@@ -525,7 +525,7 @@ describe("TrackPlayer hooks", () => {
           await result.current.addToQueue(mockSongs, 1);
         });
 
-        expect(TrackPlayer.add).toHaveBeenCalledWith(mockTracks, 1);
+        expect(TrackPlayer.insertMediaItems).toHaveBeenCalledWith(1, mockTracks);
       });
     });
 
@@ -553,7 +553,7 @@ describe("TrackPlayer hooks", () => {
           result.current.updateQueueState(() => ({
             isShuffleEnabled: true,
             originalQueue: mockTracks,
-            currentQueue: mockTracks.map((t) => ({ id: t.id as string })),
+            currentQueue: mockTracks.map((t) => ({ id: t.mediaId as string })),
             currentSongId: "song-1",
             context: mockContext,
           }));
@@ -563,7 +563,7 @@ describe("TrackPlayer hooks", () => {
           await result.current.resetQueue();
         });
 
-        expect(TrackPlayer.reset).toHaveBeenCalled();
+        expect(TrackPlayer.clear).toHaveBeenCalled();
 
         const state = result.current.getQueueState();
         expect(state.isShuffleEnabled).toBe(false);

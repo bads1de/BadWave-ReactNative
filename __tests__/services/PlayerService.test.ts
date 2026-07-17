@@ -1,18 +1,13 @@
-import TrackPlayer, {
-  State,
-  Event,
-  Capability,
-  AppKilledPlaybackBehavior,
-} from "react-native-track-player";
+import TrackPlayer, { Event, PlayerCommand } from "@rntp/player";
 import {
   setupPlayer,
   playbackService,
   __resetPlaybackService,
 } from "@/services/PlayerService";
 
-jest.mock("react-native-track-player", () => ({
+jest.mock("@rntp/player", () => ({
   setupPlayer: jest.fn(),
-  updateOptions: jest.fn(),
+  setCommands: jest.fn(),
   getPlaybackState: jest.fn(),
   play: jest.fn(),
   pause: jest.fn(),
@@ -21,31 +16,19 @@ jest.mock("react-native-track-player", () => ({
   skipToPrevious: jest.fn(),
   seekTo: jest.fn(),
   addEventListener: jest.fn(),
-  State: {
-    None: "none",
-    Stopped: "stopped",
-    Playing: "playing",
-    Paused: "paused",
-  },
   Event: {
-    RemotePlay: "remote-play",
-    RemotePause: "remote-pause",
-    RemoteStop: "remote-stop",
-    RemoteNext: "remote-next",
-    RemotePrevious: "remote-previous",
-    RemoteSeek: "remote-seek",
+    PlaybackState: "playback-state",
     PlaybackError: "playback-error",
+    MediaItemTransition: "media-item-transition",
   },
-  Capability: {
+  PlayerCommand: {
     Play: "play",
     Pause: "pause",
+    PlayPause: "playPause",
+    Next: "next",
+    Previous: "previous",
+    Seek: "seek",
     Stop: "stop",
-    SeekTo: "seek-to",
-    SkipToNext: "skip-to-next",
-    SkipToPrevious: "skip-to-previous",
-  },
-  AppKilledPlaybackBehavior: {
-    PausePlayback: "pause-playback",
   },
 }));
 
@@ -56,74 +39,65 @@ describe("PlayerService", () => {
   });
 
   describe("setupPlayer", () => {
-    it("プレーヤーがすでにセットアップ済みの場合、再セットアップしない", async () => {
-      (TrackPlayer.getPlaybackState as jest.Mock).mockResolvedValue({
-        state: State.Playing,
+    it("未セットアップの場合、新規セットアップとコマンド設定を実行する", async () => {
+      const result = await setupPlayer();
+
+      expect(result).toBe(true);
+      expect(TrackPlayer.setupPlayer).toHaveBeenCalledWith({
+        contentType: "music",
+        handleAudioBecomingNoisy: true,
+        android: {
+          wakeMode: "network",
+          taskRemovedBehavior: "stop",
+        },
       });
+      expect(TrackPlayer.setCommands).toHaveBeenCalledWith({
+        capabilities: [
+          PlayerCommand.PlayPause,
+          PlayerCommand.Next,
+          PlayerCommand.Previous,
+          PlayerCommand.Seek,
+          PlayerCommand.Stop,
+        ],
+        handling: "native",
+      });
+    });
+
+    it("2回目以降の呼び出しでは再セットアップしない", async () => {
+      await setupPlayer();
+      (TrackPlayer.setupPlayer as jest.Mock).mockClear();
+      (TrackPlayer.setCommands as jest.Mock).mockClear();
 
       const result = await setupPlayer();
 
       expect(result).toBe(true);
       expect(TrackPlayer.setupPlayer).not.toHaveBeenCalled();
-      expect(TrackPlayer.updateOptions).not.toHaveBeenCalled();
+      expect(TrackPlayer.setCommands).not.toHaveBeenCalled();
     });
 
-    it("プレーヤーが未セットアップの場合、新規セットアップを実行", async () => {
-      (TrackPlayer.getPlaybackState as jest.Mock).mockResolvedValue({
-        state: State.None,
+    it("セットアップ中に例外が発生し、かつ未初期化の場合はエラーをスローする", async () => {
+      (TrackPlayer.setupPlayer as jest.Mock).mockImplementation(() => {
+        throw new Error("Setup failed");
       });
-      (TrackPlayer.setupPlayer as jest.Mock).mockResolvedValue(undefined);
-      (TrackPlayer.updateOptions as jest.Mock).mockResolvedValue(undefined);
-
-      const result = await setupPlayer();
-
-      expect(result).toBe(true);
-      expect(TrackPlayer.setupPlayer).toHaveBeenCalledWith({
-        autoHandleInterruptions: true,
+      (TrackPlayer.getPlaybackState as jest.Mock).mockImplementation(() => {
+        throw new Error("Not initialized");
       });
-      expect(TrackPlayer.updateOptions).toHaveBeenCalledWith({
-        android: {
-          appKilledPlaybackBehavior: AppKilledPlaybackBehavior.PausePlayback,
-        },
-        capabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.Stop,
-          Capability.SeekTo,
-          Capability.SkipToNext,
-          Capability.SkipToPrevious,
-        ],
-        compactCapabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.SkipToNext,
-          Capability.SeekTo,
-          Capability.SkipToPrevious,
-        ],
-      });
-    });
-
-    it("セットアップ中にエラーが発生した場合、エラーをスロー", async () => {
-      const error = new Error("Setup failed");
-      (TrackPlayer.getPlaybackState as jest.Mock).mockRejectedValue(error);
-      (TrackPlayer.setupPlayer as jest.Mock).mockRejectedValue(error);
 
       await expect(setupPlayer()).rejects.toThrow(
         "プレイヤーのセットアップに失敗しました",
       );
     });
 
-    it("getPlaybackStateでエラーが発生した場合、新規セットアップを試みる", async () => {
-      (TrackPlayer.getPlaybackState as jest.Mock).mockRejectedValue(
-        new Error("Not initialized"),
-      );
-      (TrackPlayer.setupPlayer as jest.Mock).mockResolvedValue(undefined);
-      (TrackPlayer.updateOptions as jest.Mock).mockResolvedValue(undefined);
+    it("セットアップ中に例外が発生しても、既に起動済みなら成功扱いにする", async () => {
+      (TrackPlayer.setupPlayer as jest.Mock).mockImplementation(() => {
+        throw new Error("Already initialized");
+      });
+      // getPlaybackState が例外を投げない = 既に起動済み
+      (TrackPlayer.getPlaybackState as jest.Mock).mockReturnValue("ready");
 
       const result = await setupPlayer();
 
       expect(result).toBe(true);
-      expect(TrackPlayer.setupPlayer).toHaveBeenCalled();
     });
   });
 
@@ -133,110 +107,43 @@ describe("PlayerService", () => {
       expect(typeof service).toBe("function");
     });
 
-    it("全てのイベントリスナーが正しく登録されること", async () => {
+    it("PlaybackErrorイベントリスナーが登録されること", async () => {
       const service = playbackService();
-      const serviceFunction = await service();
+      await service();
 
-      expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
-        Event.RemotePlay,
-        expect.any(Function),
-      );
-      expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
-        Event.RemotePause,
-        expect.any(Function),
-      );
-      expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
-        Event.RemoteStop,
-        expect.any(Function),
-      );
-      expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
-        Event.RemoteNext,
-        expect.any(Function),
-      );
-      expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
-        Event.RemotePrevious,
-        expect.any(Function),
-      );
-      expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
-        Event.RemoteSeek,
-        expect.any(Function),
-      );
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.PlaybackError,
         expect.any(Function),
       );
     });
 
-    it("RemotePlayイベントで再生が開始されること", async () => {
-      let playHandler: (() => void) | undefined;
-      (TrackPlayer.addEventListener as jest.Mock).mockImplementation(
-        (event, handler) => {
-          if (event === Event.RemotePlay) {
-            playHandler = handler;
-          }
-        },
-      );
+    it("イベントリスナーが二重登録されないこと", async () => {
+      await playbackService()();
+      await playbackService()();
 
-      const service = playbackService();
-      await service();
-
-      expect(playHandler).toBeDefined();
-      playHandler!();
-      expect(TrackPlayer.play).toHaveBeenCalled();
+      expect(TrackPlayer.addEventListener).toHaveBeenCalledTimes(1);
     });
 
-    it("RemotePauseイベントで一時停止されること", async () => {
-      let pauseHandler: (() => void) | undefined;
+    it("PlaybackErrorハンドラがエラーをログ出力すること", async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      let errorHandler: ((error: unknown) => void) | undefined;
       (TrackPlayer.addEventListener as jest.Mock).mockImplementation(
         (event, handler) => {
-          if (event === Event.RemotePause) {
-            pauseHandler = handler;
+          if (event === Event.PlaybackError) {
+            errorHandler = handler;
           }
         },
       );
 
-      const service = playbackService();
-      await service();
+      await playbackService()();
 
-      expect(pauseHandler).toBeDefined();
-      pauseHandler!();
-      expect(TrackPlayer.pause).toHaveBeenCalled();
-    });
+      expect(errorHandler).toBeDefined();
+      errorHandler!(new Error("playback error"));
+      expect(consoleErrorSpy).toHaveBeenCalled();
 
-    it("RemoteNextイベントで次の曲にスキップされること", async () => {
-      let nextHandler: (() => void) | undefined;
-      (TrackPlayer.addEventListener as jest.Mock).mockImplementation(
-        (event, handler) => {
-          if (event === Event.RemoteNext) {
-            nextHandler = handler;
-          }
-        },
-      );
-
-      const service = playbackService();
-      await service();
-
-      expect(nextHandler).toBeDefined();
-      nextHandler!();
-      expect(TrackPlayer.skipToNext).toHaveBeenCalled();
-    });
-
-    it("RemoteSeekイベントでシークされること", async () => {
-      let seekHandler: ((event: { position: number }) => void) | undefined;
-      (TrackPlayer.addEventListener as jest.Mock).mockImplementation(
-        (event, handler) => {
-          if (event === Event.RemoteSeek) {
-            seekHandler = handler;
-          }
-        },
-      );
-
-      const service = playbackService();
-      await service();
-
-      expect(seekHandler).toBeDefined();
-      seekHandler!({ position: 30 });
-      expect(TrackPlayer.seekTo).toHaveBeenCalledWith(30);
+      consoleErrorSpy.mockRestore();
     });
   });
 });

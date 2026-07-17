@@ -2,26 +2,11 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import Player from "@/components/player/Player";
 
-// react-native-track-playerのモック
-jest.mock("react-native-track-player", () => ({
-  RepeatMode: {
-    Off: 0,
-    Track: 1,
-    Queue: 2,
-  },
-  useProgress: jest.fn(() => ({ position: 0, duration: 0 })),
-  usePlaybackState: jest.fn(() => ({ state: "paused" })),
-  useActiveTrack: jest.fn(() => null),
-  play: jest.fn(),
-  pause: jest.fn(),
-  skipToNext: jest.fn(),
-  skipToPrevious: jest.fn(),
-  seekTo: jest.fn(),
-  setRepeatMode: jest.fn(),
-}));
+// @rntp/player (v5) のモック
+jest.mock("@rntp/player");
 
 // RepeatModeをインポート
-const { RepeatMode } = require("react-native-track-player");
+const { RepeatMode } = require("@rntp/player");
 
 // モックの設定
 jest.mock("expo-image", () => ({
@@ -157,8 +142,8 @@ describe("Player", () => {
 
     fireEvent.press(getByTestId("repeat-button"));
 
-    // RepeatMode.Off から RepeatMode.Track に切り替わる
-    expect(mockProps.setRepeatMode).toHaveBeenCalledWith(RepeatMode.Track);
+    // RepeatMode.Off から RepeatMode.One に切り替わる
+    expect(mockProps.setRepeatMode).toHaveBeenCalledWith(RepeatMode.One);
   });
 
   it("スライダーを操作すると適切な関数が呼ばれる", () => {

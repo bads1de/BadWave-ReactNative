@@ -16,7 +16,7 @@
       "reactNativeDirectoryCheck": {
         "listUnknownPackages": false,
         "exclude": [
-          "react-native-track-player"
+          "@rntp/player"
         ]
       }
     }
@@ -32,6 +32,7 @@
     "@react-native-google-signin/google-signin": "^13.2.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
+    "@rntp/player": "^5.7.0",
     "@shopify/flash-list": "1.7.3",
     "@supabase/supabase-js": "^2.48.1",
     "@tanstack/query-async-storage-persister": "^5.90.18",
@@ -62,13 +63,12 @@
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
     "react-native-gesture-handler": "~2.20.2",
-    "react-native-mmkv": "^2.12.2",
+    "react-native-mmkv": "^3.3.3",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
     "react-native-svg": "^15.8.0",
     "react-native-toast-message": "^2.2.1",
-    "react-native-track-player": "^4.1.2",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "use-debounce": "^10.0.6",

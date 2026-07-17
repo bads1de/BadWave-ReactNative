@@ -1,7 +1,7 @@
 /**
  * @fileoverview 音楽プレーヤーのコアサービス
  * このモジュールは、アプリケーション全体の音楽再生機能を管理します。
- * react-native-track-playerを使用して、以下の機能を提供します：
+ * @rntp/playerを使用して、以下の機能を提供します：
  * - プレーヤーの初期化と設定
  * - 再生制御
  * - キュー管理
@@ -9,12 +9,7 @@
  * - メディアコントロール
  */
 
-import TrackPlayer, {
-  Event,
-  Capability,
-  AppKilledPlaybackBehavior,
-  State,
-} from "react-native-track-player";
+import TrackPlayer, { Event, PlayerCommand } from "@rntp/player";
 
 /**
  * プレーヤーの初期設定を行う
@@ -40,43 +35,45 @@ import TrackPlayer, {
  * }
  * ```
  */
+// モジュールレベルのセットアップ状態フラグ（v5 の setupPlayer は二重呼び出しで例外を投げる）
+let isPlayerSetup = false;
+
 export async function setupPlayer(): Promise<boolean> {
+  if (isPlayerSetup) {
+    return true;
+  }
+
   try {
-    // サービスがすでに実行されているかチェック
-    const isSetup = await isPlayerServiceRunning();
-
-    if (isSetup) {
-      return true;
-    }
-
     // 新規セットアップ
-    await TrackPlayer.setupPlayer({
-      autoHandleInterruptions: true,
-    });
-
-    await TrackPlayer.updateOptions({
+    TrackPlayer.setupPlayer({
+      contentType: "music",
+      handleAudioBecomingNoisy: true,
       android: {
-        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.PausePlayback,
+        wakeMode: "network",
+        taskRemovedBehavior: "stop",
       },
-      capabilities: [
-        Capability.Play,
-        Capability.Pause,
-        Capability.Stop,
-        Capability.SeekTo,
-        Capability.SkipToNext,
-        Capability.SkipToPrevious,
-      ],
-      compactCapabilities: [
-        Capability.Play,
-        Capability.Pause,
-        Capability.SkipToNext,
-        Capability.SeekTo,
-        Capability.SkipToPrevious,
-      ],
     });
 
+    // リモートコントロール（ロック画面・通知・カーオーディオ等）はネイティブ処理
+    TrackPlayer.setCommands({
+      capabilities: [
+        PlayerCommand.PlayPause,
+        PlayerCommand.Next,
+        PlayerCommand.Previous,
+        PlayerCommand.Seek,
+        PlayerCommand.Stop,
+      ],
+      handling: "native",
+    });
+
+    isPlayerSetup = true;
     return true;
   } catch (error) {
+    // すでにセットアップ済み（getPlaybackState が例外を投げない）なら成功扱い
+    if (isPlayerServiceRunning()) {
+      isPlayerSetup = true;
+      return true;
+    }
     console.error("プレイヤーのセットアップに失敗しました:", error);
     throw new Error("プレイヤーのセットアップに失敗しました");
   }
@@ -84,12 +81,13 @@ export async function setupPlayer(): Promise<boolean> {
 
 /**
  * プレイヤーのサービスが実行中かどうかをチェックする
- * @returns {Promise<boolean>} サービスが実行中かどうか
+ * @returns {boolean} サービスが実行中かどうか
  */
-async function isPlayerServiceRunning(): Promise<boolean> {
+function isPlayerServiceRunning(): boolean {
   try {
-    const playbackState = await TrackPlayer.getPlaybackState();
-    return playbackState.state !== State.None;
+    // 未初期化の場合は例外が投げられる
+    TrackPlayer.getPlaybackState();
+    return true;
   } catch {
     // プレイヤーが初期化されていない場合、エラーが発生するのは正常な動作
     // エラーログを出力せず、falseを返す
@@ -100,15 +98,14 @@ async function isPlayerServiceRunning(): Promise<boolean> {
 /**
  * プレーヤーサービスのイベントハンドラー
  * @description
- * バックグラウンド実行時も含めた以下のイベントを処理します：
- * - リモート再生制御（再生、一時停止、次へ、前へ）
- * - 再生状態の変更
- * - エラー発生時の処理
+ * リモートコントロール（再生・一時停止・次へ・前へ・シーク）は
+ * setCommands の `handling: "native"` によりネイティブ側で処理されるため、
+ * ここでは再生エラーの監視のみを行います。
  *
  * @example
  * ```typescript
- * // アプリケーションのエントリーポイントで登録
- * TrackPlayer.registerPlaybackService(() => playbackService);
+ * // アプリケーションのエントリーポイントで一度だけ呼び出す
+ * void playbackService()();
  * ```
  */
 // グローバルフラグ：イベントリスナーの二重登録を防ぐ
@@ -122,25 +119,7 @@ export function playbackService() {
     isServiceRegistered = true;
 
     try {
-      await TrackPlayer.addEventListener(Event.RemotePlay, () =>
-        TrackPlayer.play(),
-      );
-      await TrackPlayer.addEventListener(Event.RemotePause, () =>
-        TrackPlayer.pause(),
-      );
-      await TrackPlayer.addEventListener(Event.RemoteStop, () =>
-        TrackPlayer.stop(),
-      );
-      await TrackPlayer.addEventListener(Event.RemoteNext, () =>
-        TrackPlayer.skipToNext(),
-      );
-      await TrackPlayer.addEventListener(Event.RemotePrevious, () =>
-        TrackPlayer.skipToPrevious(),
-      );
-      await TrackPlayer.addEventListener(Event.RemoteSeek, (event) => {
-        TrackPlayer.seekTo(event.position);
-      });
-      await TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
+      TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
         console.error("再生エラーが発生しました:", error);
       });
     } catch (error) {
@@ -149,7 +128,6 @@ export function playbackService() {
         error,
       );
       isServiceRegistered = false; // エラー時はリセット
-      throw error;
     }
   };
 }
@@ -157,7 +135,8 @@ export function playbackService() {
 // テスト用のリセット関数 (内部状態クリア)
 export function __resetPlaybackService() {
   isServiceRegistered = false;
+  isPlayerSetup = false;
 }
 
-// 型定義のエクスポート
-export type { Capability };
+// 列挙型のエクスポート
+export { PlayerCommand };

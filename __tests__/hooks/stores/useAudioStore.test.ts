@@ -1,14 +1,14 @@
 import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
 import { useAudioStore, useAudioActions } from "@/hooks/stores/useAudioStore";
-import { RepeatMode } from "react-native-track-player";
+import { RepeatMode } from "@rntp/player";
 
-// react-native-track-playerのモック
-jest.mock("react-native-track-player", () => ({
+// @rntp/player のモック
+jest.mock("@rntp/player", () => ({
   RepeatMode: {
-    Off: 0,
-    Track: 1,
-    Queue: 2,
+    Off: "off",
+    One: "one",
+    All: "all",
   },
 }));
 
@@ -56,10 +56,10 @@ describe("useAudioStore", () => {
     const { result } = renderHook(() => useAudioStore());
 
     act(() => {
-      result.current.setRepeatMode(RepeatMode.Track);
+      result.current.setRepeatMode(RepeatMode.One);
     });
 
-    expect(result.current.repeatMode).toBe(RepeatMode.Track);
+    expect(result.current.repeatMode).toBe(RepeatMode.One);
   });
 
   it("setShuffleでシャッフルモードを設定できる", () => {

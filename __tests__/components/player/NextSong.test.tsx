@@ -3,21 +3,16 @@ import { render } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NextSong from "@/components/player/NextSong";
 
-jest.mock("react-native-track-player", () => {
+jest.mock("@rntp/player", () => {
   return {
     RepeatMode: {
-      Off: 0,
-      Track: 1,
-      Queue: 2,
+      Off: "off",
+      One: "one",
+      All: "all",
     },
-    Event: {
-      PlaybackTrackChanged: "playback-track-changed",
-    },
-    useActiveTrack: jest.fn(),
-    useTrackPlayerEvents: jest.fn(),
-    TrackPlayer: {
-      getTrack: jest.fn(),
-    },
+    useActiveMediaItem: jest.fn(),
+    getQueue: jest.fn(() => []),
+    getActiveMediaItemIndex: jest.fn(() => null),
   };
 });
 
@@ -33,7 +28,7 @@ jest.mock("@/hooks/audio/useAudioPlayer", () => ({
 jest.mock("@/hooks/stores/useAudioStore", () => ({
   useAudioStore: jest.fn((selector) =>
     selector({
-      repeatMode: 0,
+      repeatMode: "off",
       shuffle: false,
       currentSong: null,
     }),
@@ -48,10 +43,7 @@ jest.mock("@/components/item/SongItem", () => ({
 const { usePlayerStore } = require("@/hooks/stores/usePlayerStore");
 const { useAudioPlayer } = require("@/hooks/audio/useAudioPlayer");
 const { useAudioStore } = require("@/hooks/stores/useAudioStore");
-const {
-  useActiveTrack,
-  useTrackPlayerEvents,
-} = require("react-native-track-player");
+const { useActiveMediaItem } = require("@rntp/player");
 
 describe("NextSong", () => {
   let queryClient: QueryClient;
@@ -67,12 +59,9 @@ describe("NextSong", () => {
     useAudioPlayer.mockReturnValue({
       onPlaySong: jest.fn(),
     });
-    useActiveTrack.mockReturnValue({
-      id: "song1",
+    useActiveMediaItem.mockReturnValue({
+      mediaId: "song1",
       title: "Current Song",
-    });
-    useTrackPlayerEvents.mockImplementation((events: any[], callback: any) => {
-      // No-op for basic render test
     });
   });
 

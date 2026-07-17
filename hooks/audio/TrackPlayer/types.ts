@@ -1,5 +1,5 @@
 // hooks/TrackPlayer/types.ts
-import { Track } from "react-native-track-player";
+import type { MediaItem } from "@rntp/player";
 
 /**
  * 再生コンテキストタイプ
@@ -28,7 +28,7 @@ export interface PlayContext {
  */
 export interface QueueState {
   isShuffleEnabled: boolean;
-  originalQueue: Track[];
+  originalQueue: MediaItem[];
   currentQueue: { id: string }[];
   lastProcessedTrackId: string | null;
   currentSongId: string | null;

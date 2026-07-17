@@ -2,10 +2,10 @@ import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { AppState, AppStateStatus } from "react-native";
 import PlayerProgress from "@/components/player/PlayerProgress";
-import { useProgress } from "react-native-track-player";
+import { useProgress } from "@rntp/player";
 
 // Mock dependencies
-jest.mock("react-native-track-player", () => ({
+jest.mock("@rntp/player", () => ({
   useProgress: jest.fn(),
 }));
 
@@ -93,8 +93,8 @@ describe("PlayerProgress", () => {
   it("changes update interval based on AppState", () => {
     const { rerender } = render(<PlayerProgress onSeek={jest.fn()} />);
 
-    // Initially active, interval should be 200
-    expect(useProgress).toHaveBeenCalledWith(200);
+    // Initially active, interval should be 0.2 (秒)
+    expect(useProgress).toHaveBeenCalledWith(0.2);
 
     // Change to background
     act(() => {
@@ -104,7 +104,7 @@ describe("PlayerProgress", () => {
     // Component should re-render with new interval
     rerender(<PlayerProgress onSeek={jest.fn()} />);
 
-    expect(useProgress).toHaveBeenCalledWith(5000);
+    expect(useProgress).toHaveBeenCalledWith(5);
 
     // Change back to active
     act(() => {
@@ -113,6 +113,6 @@ describe("PlayerProgress", () => {
 
     rerender(<PlayerProgress onSeek={jest.fn()} />);
 
-    expect(useProgress).toHaveBeenLastCalledWith(200);
+    expect(useProgress).toHaveBeenLastCalledWith(0.2);
   });
 });

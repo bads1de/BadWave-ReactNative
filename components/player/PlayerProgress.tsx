@@ -2,7 +2,7 @@ import React, { memo, useState, useEffect } from "react";
 import { View, Text, StyleSheet, AppState, AppStateStatus } from "react-native";
 import Slider from "@react-native-community/slider";
 import { formatTime } from "@/lib/utils/formatTime";
-import { useProgress } from "react-native-track-player";
+import { useProgress } from "@rntp/player";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 
 interface PlayerProgressProps {
@@ -27,8 +27,8 @@ const PlayerProgress = memo(({ onSeek }: PlayerProgressProps) => {
     };
   }, []);
 
-  // アプリがバックグラウンドの時は更新頻度を落としリソース消費を抑える
-  const updateInterval = appState === "active" ? 200 : 5000;
+  // アプリがバックグラウンドの時は更新頻度を落としリソース消費を抑える（v5 の useProgress は秒単位）
+  const updateInterval = appState === "active" ? 0.2 : 5;
   const { position, duration } = useProgress(updateInterval);
 
   const colors = useThemeStore((state) => state.colors);

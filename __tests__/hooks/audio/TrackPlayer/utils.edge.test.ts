@@ -81,12 +81,12 @@ describe("TrackPlayer utils - Edge Cases", () => {
       const track = await convertSongToTrack(incompleteSong);
 
       expect(track).toEqual({
-        id: incompleteSong.id,
+        mediaId: incompleteSong.id,
         url: incompleteSong.song_path,
         title: incompleteSong.title,
         artist: undefined, // authorがないのでundefined
-        artwork: incompleteSong.image_path,
-        originalSong: incompleteSong,
+        artworkUrl: incompleteSong.image_path,
+        extras: { originalSong: incompleteSong },
       });
     });
 
@@ -99,12 +99,12 @@ describe("TrackPlayer utils - Edge Cases", () => {
 
       // エラーが発生してもリモートURLにフォールバックする
       expect(track).toEqual({
-        id: mockSong.id,
+        mediaId: mockSong.id,
         url: mockSong.song_path,
         title: mockSong.title,
         artist: mockSong.author,
-        artwork: mockSong.image_path,
-        originalSong: mockSong,
+        artworkUrl: mockSong.image_path,
+        extras: { originalSong: mockSong },
       });
     });
 
@@ -117,12 +117,12 @@ describe("TrackPlayer utils - Edge Cases", () => {
       const track = await convertSongToTrack(songWithoutImage);
 
       expect(track).toEqual({
-        id: songWithoutImage.id,
+        mediaId: songWithoutImage.id,
         url: songWithoutImage.song_path,
         title: songWithoutImage.title,
         artist: songWithoutImage.author,
-        artwork: "", // 空の文字列
-        originalSong: songWithoutImage,
+        artworkUrl: "", // 空の文字列
+        extras: { originalSong: songWithoutImage },
       });
     });
   });
@@ -144,8 +144,8 @@ describe("TrackPlayer utils - Edge Cases", () => {
       const tracks = await convertToTracks(songsWithInvalidIds);
 
       expect(tracks.length).toBe(2);
-      expect(tracks[0].id).toBe("");
-      expect(tracks[1].id).toBe(null as unknown as string);
+      expect(tracks[0].mediaId).toBe("");
+      expect(tracks[1].mediaId).toBe(null as unknown as string);
     });
 
     it("should handle mixed valid and invalid songs", async () => {
@@ -172,12 +172,12 @@ describe("TrackPlayer utils - Edge Cases", () => {
         )
         .mockImplementationOnce((song) =>
           Promise.resolve({
-            id: song.id,
+            mediaId: song.id,
             url: song.song_path,
             title: song.title,
             artist: song.author,
-            artwork: song.image_path,
-            originalSong: song,
+            artworkUrl: song.image_path,
+            extras: { originalSong: song },
           })
         );
 

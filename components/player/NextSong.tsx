@@ -2,12 +2,10 @@ import React, { useState, useEffect, memo } from "react";
 import { Text, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import TrackPlayer, {
-  useTrackPlayerEvents,
-  Event,
-  Track,
-  useActiveTrack,
+  useActiveMediaItem,
   RepeatMode,
-} from "react-native-track-player";
+  type MediaItem,
+} from "@rntp/player";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SkipForward, Shuffle } from "lucide-react-native";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -22,8 +20,8 @@ import { useAudioStore } from "@/hooks/stores/useAudioStore";
  * @returns {React.ReactElement} 次の曲の表示
  */
 function NextSong() {
-  const activeTrack = useActiveTrack();
-  const [nextSong, setNextSong] = useState<Track | null>(null);
+  const activeTrack = useActiveMediaItem();
+  const [nextSong, setNextSong] = useState<MediaItem | null>(null);
   const colors = useThemeStore((state) => state.colors);
 
   // Zustandから直接最小限の状態を購読
@@ -34,30 +32,25 @@ function NextSong() {
     const fetchNextTrack = async () => {
       try {
         // シャッフルモード時は次の曲を表示しない
-        if (shuffle && repeatMode !== RepeatMode.Track) {
+        if (shuffle && repeatMode !== RepeatMode.One) {
           return setNextSong(null);
         }
 
-        const queue = await TrackPlayer.getQueue();
-        const currentIndex = await TrackPlayer.getActiveTrackIndex();
+        const queue = TrackPlayer.getQueue();
+        const currentIndex = TrackPlayer.getActiveMediaItemIndex();
 
-        if (
-          currentIndex === -1 ||
-          queue.length === 0 ||
-          currentIndex === undefined
-        )
-          return;
+        if (currentIndex === null || queue.length === 0) return;
 
         let nextTrackIndex: number;
 
         // リピートモードに応じた次の曲の決定
         switch (repeatMode) {
-          case RepeatMode.Track:
+          case RepeatMode.One:
             // 単曲リピートの場合は現在の曲
             nextTrackIndex = currentIndex;
             break;
 
-          case RepeatMode.Queue:
+          case RepeatMode.All:
             // キューリピートの場合
             nextTrackIndex = currentIndex + 1;
             if (nextTrackIndex >= queue.length) {
@@ -78,7 +71,7 @@ function NextSong() {
         setNextSong(queue[nextTrackIndex]);
 
         // 次の曲のアートワークをプリフェッチして表示をスムーズにする
-        const nextArtwork = queue[nextTrackIndex]?.artwork;
+        const nextArtwork = queue[nextTrackIndex]?.artworkUrl;
         if (nextArtwork && typeof nextArtwork === "string") {
           Image.prefetch([nextArtwork]).catch(() => {
             // プリフェッチ失敗はサイレントに無視
@@ -92,30 +85,13 @@ function NextSong() {
     fetchNextTrack();
   }, [activeTrack, repeatMode, shuffle]);
 
-  // 曲変更イベントの監視
-  useTrackPlayerEvents([Event.PlaybackTrackChanged], async (event) => {
-    try {
-      if (event.nextTrack !== null) {
-        const track = await TrackPlayer.getTrack(event.nextTrack);
-        if (track) {
-          setNextSong(track);
-
-          // 次の曲のアートワークをプリフェッチする
-          if (track.artwork && typeof track.artwork === "string") {
-            Image.prefetch([track.artwork]).catch(() => {});
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error handling track change:", error);
-    }
-  });
-
   if (!nextSong && !shuffle) {
     return null;
   }
 
-  const isShuffleMode = shuffle && repeatMode !== RepeatMode.Track;
+  const isShuffleMode = shuffle && repeatMode !== RepeatMode.One;
+  const nextArtworkUri =
+    typeof nextSong?.artworkUrl === "string" ? nextSong.artworkUrl : undefined;
 
   return (
     <View style={styles.container}>
@@ -127,7 +103,7 @@ function NextSong() {
             <SkipForward size={22} color={colors.primary} strokeWidth={1.5} />
           )}
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {repeatMode === RepeatMode.Track
+            {repeatMode === RepeatMode.One
               ? "Repeating"
               : isShuffleMode
                 ? "Shuffle Mode"
@@ -163,7 +139,7 @@ function NextSong() {
         ) : (
           <View style={styles.songContent}>
             <Image
-              source={{ uri: nextSong?.artwork }}
+              source={{ uri: nextArtworkUri }}
               style={styles.artwork}
               cachePolicy="memory-disk"
               contentFit="cover"

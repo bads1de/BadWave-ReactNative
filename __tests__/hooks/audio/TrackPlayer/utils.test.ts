@@ -49,22 +49,22 @@ describe("TrackPlayer utils", () => {
         .spyOn(utils, "convertSongToTrack")
         .mockImplementation(async (song) => {
           return {
-            id: song.id,
+            mediaId: song.id,
             url: song.song_path,
             title: song.title,
             artist: song.author,
-            artwork: song.image_path,
+            artworkUrl: song.image_path,
           };
         });
 
       const track = await utils.convertSongToTrack(mockSong);
 
       expect(track).toEqual({
-        id: mockSong.id,
+        mediaId: mockSong.id,
         url: mockSong.song_path,
         title: mockSong.title,
         artist: mockSong.author,
-        artwork: mockSong.image_path,
+        artworkUrl: mockSong.image_path,
       });
     });
 
@@ -75,22 +75,22 @@ describe("TrackPlayer utils", () => {
         .spyOn(utils, "convertSongToTrack")
         .mockImplementation(async (song) => {
           return {
-            id: song.id,
+            mediaId: song.id,
             url: localPath,
             title: song.title,
             artist: song.author,
-            artwork: song.image_path,
+            artworkUrl: song.image_path,
           };
         });
 
       const track = await utils.convertSongToTrack(mockSong);
 
       expect(track).toEqual({
-        id: mockSong.id,
+        mediaId: mockSong.id,
         url: localPath,
         title: mockSong.title,
         artist: mockSong.author,
-        artwork: mockSong.image_path,
+        artworkUrl: mockSong.image_path,
       });
     });
   });
@@ -112,18 +112,18 @@ describe("TrackPlayer utils", () => {
 
       jest.spyOn(utils, "convertToTracks").mockResolvedValue([
         {
-          id: mockSongs[0].id,
+          mediaId: mockSongs[0].id,
           url: localPath,
           title: mockSongs[0].title,
           artist: mockSongs[0].author,
-          artwork: mockSongs[0].image_path,
+          artworkUrl: mockSongs[0].image_path,
         },
         {
-          id: mockSongs[1].id,
+          mediaId: mockSongs[1].id,
           url: mockSongs[1].song_path,
           title: mockSongs[1].title,
           artist: mockSongs[1].author,
-          artwork: mockSongs[1].image_path,
+          artworkUrl: mockSongs[1].image_path,
         },
       ]);
 
@@ -148,22 +148,22 @@ describe("TrackPlayer utils", () => {
         .spyOn(utils, "convertSongToTrack")
         .mockImplementation(async (song) => {
           return {
-            id: song.id,
+            mediaId: song.id,
             url: song.song_path,
             title: song.title,
             artist: song.author || "Unknown Artist",
-            artwork: song.image_path || undefined,
+            artworkUrl: song.image_path || undefined,
           };
         });
 
       const track = await utils.convertSongToTrack(incompleteSong);
 
       expect(track).toEqual({
-        id: incompleteSong.id,
+        mediaId: incompleteSong.id,
         url: incompleteSong.song_path,
         title: incompleteSong.title,
         artist: "Unknown Artist",
-        artwork: undefined,
+        artworkUrl: undefined,
       });
     });
 
@@ -180,22 +180,22 @@ describe("TrackPlayer utils", () => {
         .spyOn(utils, "convertSongToTrack")
         .mockImplementation(async (song) => {
           return {
-            id: song.id,
+            mediaId: song.id,
             url: song.song_path,
             title: song.title,
             artist: song.author,
-            artwork: song.image_path,
+            artworkUrl: song.image_path,
           };
         });
 
       const track = await utils.convertSongToTrack(longTitleSong);
 
       expect(track).toEqual({
-        id: longTitleSong.id,
+        mediaId: longTitleSong.id,
         url: longTitleSong.song_path,
         title: longTitleSong.title,
         artist: longTitleSong.author,
-        artwork: longTitleSong.image_path,
+        artworkUrl: longTitleSong.image_path,
       });
 
       expect(track.title?.length).toBe(longTitleSong.title.length);
@@ -234,11 +234,11 @@ describe("TrackPlayer utils", () => {
             throw new Error("Conversion error");
           } else {
             return {
-              id: song.id,
+              mediaId: song.id,
               url: song.song_path,
               title: song.title,
               artist: song.author,
-              artwork: song.image_path,
+              artworkUrl: song.image_path,
             };
           }
         });
@@ -269,11 +269,11 @@ describe("TrackPlayer utils", () => {
             throw new Error("Conversion error");
           } else {
             return {
-              id: song.id,
+              mediaId: song.id,
               url: "/local/path/to/song2.mp3",
               title: song.title,
               artist: song.author,
-              artwork: song.image_path,
+              artworkUrl: song.image_path,
             };
           }
         });
@@ -288,11 +288,11 @@ describe("TrackPlayer utils", () => {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch {
               return {
-                id: song.id,
+                mediaId: song.id,
                 url: song.song_path,
                 title: song.title,
                 artist: song.author,
-                artwork: song.image_path,
+                artworkUrl: song.image_path,
               };
             }
           })

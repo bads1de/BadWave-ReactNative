@@ -21,7 +21,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { VideoView, useVideoPlayer } from "expo-video";
 import Song, { IconComponent } from "@/types";
-import { RepeatMode } from "react-native-track-player";
+import { RepeatMode } from "@rntp/player";
 import MarqueeText from "@/components/common/MarqueeText";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 import LikeButton from "@/components/common/LikeButton";
@@ -45,9 +45,9 @@ interface PlayerProps {
   onPrev: () => void;
   onSeek: (millis: number) => void;
   onClose: () => void;
-  repeatMode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
+  repeatMode: RepeatMode;
   setRepeatMode: (
-    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue,
+    mode: RepeatMode,
   ) => void;
   shuffle: boolean;
   setShuffle: (value: boolean) => void;
@@ -64,9 +64,9 @@ interface ControlsProps {
   onPrev: () => void;
   shuffle: boolean;
   setShuffle: (value: boolean) => void;
-  repeatMode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
+  repeatMode: RepeatMode;
   setRepeatMode: (
-    mode: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue,
+    mode: RepeatMode,
   ) => void;
   colors: ThemeDefinition["colors"];
 }
@@ -75,7 +75,7 @@ interface ControlButtonProps {
   icon: IconComponent;
   isActive?: boolean;
   onPress: () => void;
-  repeatMode?: RepeatMode.Off | RepeatMode.Track | RepeatMode.Queue;
+  repeatMode?: RepeatMode;
   testID?: string;
   activeColor?: string;
 }
@@ -165,12 +165,12 @@ const Controls: FC<ControlsProps> = memo(
         onPress={() => {
           switch (repeatMode) {
             case RepeatMode.Off:
-              setRepeatMode(RepeatMode.Track);
+              setRepeatMode(RepeatMode.One);
               break;
-            case RepeatMode.Track:
-              setRepeatMode(RepeatMode.Queue);
+            case RepeatMode.One:
+              setRepeatMode(RepeatMode.All);
               break;
-            case RepeatMode.Queue:
+            case RepeatMode.All:
               setRepeatMode(RepeatMode.Off);
               break;
           }
@@ -199,7 +199,7 @@ const ControlButton: FC<ControlButtonProps> = memo(
         />
         {Icon === Repeat && isActive && (
           <Text style={[styles.repeatModeIndicator, { color: activeColor }]}>
-            {repeatMode === RepeatMode.Track ? "1" : ""}
+            {repeatMode === RepeatMode.One ? "1" : ""}
           </Text>
         )}
       </TouchableOpacity>

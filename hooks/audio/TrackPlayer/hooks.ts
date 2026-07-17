@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import TrackPlayer from "react-native-track-player";
+import TrackPlayer from "@rntp/player";
 import Song from "@/types";
 import { PlayContext, QueueState } from "@/hooks/audio/TrackPlayer/types";
 import {
@@ -8,6 +8,18 @@ import {
   shuffleArray,
 } from "@/hooks/audio/TrackPlayer/utils";
 import { useQueueStore } from "@/hooks/audio/TrackPlayer/useQueueStore";
+
+/**
+ * 現在の曲より後ろのトラックをすべてキューから削除する
+ * (v4 の TrackPlayer.removeUpcomingTracks 相当のヘルパー)
+ */
+function removeUpcomingTracks(): void {
+  const activeIndex = TrackPlayer.getActiveMediaItemIndex();
+  const queueLength = TrackPlayer.getQueue().length;
+  if (activeIndex !== null && activeIndex + 1 < queueLength) {
+    TrackPlayer.removeMediaItems(activeIndex + 1, queueLength);
+  }
+}
 
 /**
  * プレイヤーの状態管理を行うカスタムフック
@@ -64,27 +76,27 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
 
     return safeAsyncOperation(
       async () => {
-        const currentTrack = await TrackPlayer.getActiveTrack();
+        const currentTrack = TrackPlayer.getActiveMediaItem();
 
         if (!currentTrack) {
           return false;
         }
 
         // 現在のキューを保存
-        const queue = await TrackPlayer.getQueue();
+        const queue = TrackPlayer.getQueue();
         updateQueueState(() => ({ originalQueue: [...queue] }));
 
         // 現在の曲を除外してシャッフル
         const remainingTracks = queue.filter(
-          (track) => track.id !== currentTrack.id,
+          (track) => track.mediaId !== currentTrack.mediaId,
         );
 
         // シャッフルする
         const shuffledTracks = shuffleArray(remainingTracks);
 
         // キューをクリアして再構築
-        await TrackPlayer.removeUpcomingTracks();
-        await TrackPlayer.add(shuffledTracks);
+        removeUpcomingTracks();
+        TrackPlayer.addMediaItems(shuffledTracks);
 
         // シャッフルされたキューを保存
         const newQueue = [currentTrack, ...shuffledTracks];
@@ -92,7 +104,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
         // キューの状態を更新
         updateQueueState(() => ({
           currentQueue: newQueue.map((track) => ({
-            id: track.id as string,
+            id: track.mediaId as string,
           })),
           isShuffleEnabled: true,
         }));
@@ -112,7 +124,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
 
     return safeAsyncOperation(
       async () => {
-        const currentTrack = await TrackPlayer.getActiveTrack();
+        const currentTrack = TrackPlayer.getActiveMediaItem();
         const currentQueueState = getQueueState();
 
         if (!currentTrack || currentQueueState.originalQueue.length === 0) {
@@ -121,7 +133,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
 
         // 現在の曲のインデックスを取得
         const currentIndex = currentQueueState.originalQueue.findIndex(
-          (track) => track.id === currentTrack.id,
+          (track) => track.mediaId === currentTrack.mediaId,
         );
 
         // 現在の曲が見つからなかった場合は何もしない
@@ -135,14 +147,14 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
         );
 
         // キューをクリアして再構築
-        await TrackPlayer.removeUpcomingTracks();
-        await TrackPlayer.add(remainingTracks);
+        removeUpcomingTracks();
+        TrackPlayer.addMediaItems(remainingTracks);
 
         // シャッフルされたキューを保存
         updateQueueState(() => ({
           currentQueue: [
-            { id: currentTrack.id as string },
-            ...remainingTracks.map((track) => ({ id: track.id as string })),
+            { id: currentTrack.mediaId as string },
+            ...remainingTracks.map((track) => ({ id: track.mediaId as string })),
           ],
           isShuffleEnabled: false,
         }));
@@ -183,17 +195,17 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
           }
 
           // キューをクリア
-          await TrackPlayer.reset();
+          TrackPlayer.clear();
 
           // トラックに変換
           const tracks = await convertToTracks(songs);
 
           // トラックを追加
-          await TrackPlayer.add(tracks);
+          TrackPlayer.addMediaItems(tracks);
 
           // 指定された曲から再生を開始するよう設定
           if (startIndex > 0 && startIndex < tracks.length) {
-            await TrackPlayer.skip(startIndex);
+            TrackPlayer.skipToIndex(startIndex);
           }
 
           // コンテキスト情報を更新
@@ -201,14 +213,14 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
             context,
             originalQueue: tracks,
             currentQueue: tracks.map((track) => ({
-              id: track.id as string,
+              id: track.mediaId as string,
             })),
-            currentSongId: tracks[startIndex]?.id || null,
+            currentSongId: tracks[startIndex]?.mediaId || null,
             isShuffleEnabled: false,
           }));
 
           // 再生開始
-          await TrackPlayer.play();
+          TrackPlayer.play();
           setIsPlaying(true);
 
           return true;
@@ -233,16 +245,16 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
         const tracks = await convertToTracks(songs);
 
         if (insertBeforeIndex !== undefined) {
-          await TrackPlayer.add(tracks, insertBeforeIndex);
+          TrackPlayer.insertMediaItems(insertBeforeIndex, tracks);
         } else {
-          await TrackPlayer.add(tracks);
+          TrackPlayer.addMediaItems(tracks);
         }
 
         // キューの状態を更新
-        const queue = await TrackPlayer.getQueue();
+        const queue = TrackPlayer.getQueue();
         updateQueueState(() => ({
           currentQueue: queue.map((track) => ({
-            id: track.id as string,
+            id: track.mediaId as string,
           })),
           originalQueue: [...queue],
         }));
@@ -265,7 +277,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
    */
   const resetQueue = useCallback(async () => {
     return safeAsyncOperation(async () => {
-      await TrackPlayer.reset();
+      TrackPlayer.clear();
       resetQueueState();
 
       return true;
