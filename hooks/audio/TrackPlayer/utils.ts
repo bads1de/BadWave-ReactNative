@@ -20,13 +20,34 @@ export function getOfflineStorageService(): OfflineStorageService {
 }
 
 /**
+ * バッチ取得したパス情報
+ */
+type SongPathInfo = { localPath: string | null; originalPath: string | null };
+
+/**
  * 曲データをTrackPlayerのメディアアイテム形式に変換
  * ローカルにダウンロードされている場合はローカルパスを使用
+ *
+ * @param song 変換する曲
+ * @param prefetchedPaths convertToTracks から渡される事前取得済みパス情報。
+ *   指定された場合は個別のDBクエリ(getSongLocalPath)を行わない（N+1回避）。
  */
-export async function convertSongToTrack(song: Song): Promise<MediaItem> {
+export async function convertSongToTrack(
+  song: Song,
+  prefetchedPaths?: SongPathInfo,
+): Promise<MediaItem> {
   try {
     const storage = getOfflineStorageService();
-    let localPath = await storage.getSongLocalPath(song.id);
+
+    // 事前取得済みならそれを使い、無ければ従来どおり個別クエリを行う
+    let localPath =
+      prefetchedPaths !== undefined
+        ? prefetchedPaths.localPath
+        : await storage.getSongLocalPath(song.id);
+
+    // フォールバック先のリモートURL。
+    // DBの original_song_path を優先し、無ければ Song.song_path を使う。
+    const remoteUrl = prefetchedPaths?.originalPath || song.song_path;
 
     if (localPath) {
       // 再生直前に実ファイルが存在するか最終チェック
@@ -44,7 +65,7 @@ export async function convertSongToTrack(song: Song): Promise<MediaItem> {
 
     const track: MediaItem = {
       mediaId: song.id,
-      url: localPath || song.song_path, // ローカルパスがあればそれを使用、なければリモートURL
+      url: localPath || remoteUrl, // ローカルパスがあればそれを使用、なければリモートURL
       title: song.title,
       artist: song.author,
       artworkUrl: song.image_path,
@@ -67,15 +88,25 @@ export async function convertSongToTrack(song: Song): Promise<MediaItem> {
 
 /**
  * 複数の曲をトラック形式に変換
+ *
+ * 曲ごとに getSongLocalPath を呼ぶとN+1クエリになるため、
+ * 先に getSongPathsBatch でパス情報を一括取得してから変換する。
  */
 export async function convertToTracks(songs: Song[]): Promise<MediaItem[]> {
   if (!songs || songs.length === 0) {
     return [];
   }
 
+  const storage = getOfflineStorageService();
+
+  // 全曲のパス情報を1回のクエリでまとめて取得（N+1回避）
+  const pathMap = await storage.getSongPathsBatch(
+    songs.map((song) => song.id),
+  );
+
   // Promise.allを使用して並列処理
   const tracks = await Promise.all(
-    songs.map((song) => convertSongToTrack(song)),
+    songs.map((song) => convertSongToTrack(song, pathMap.get(song.id))),
   );
   return tracks;
 }

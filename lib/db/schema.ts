@@ -47,6 +47,8 @@ export const songs = sqliteTable(
     genreIdx: index("songs_genre_idx").on(table.genre),
     playCountIdx: index("songs_play_count_idx").on(table.playCount),
     likeCountIdx: index("songs_like_count_idx").on(table.likeCount),
+    // ホーム/最新順の並び替え・範囲検索を高速化
+    createdAtIdx: index("songs_created_at_idx").on(table.createdAt),
   })
 );
 

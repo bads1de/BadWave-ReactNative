@@ -6,14 +6,25 @@ import {
 } from "@/hooks/audio/TrackPlayer/utils";
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
+import * as FileSystem from "expo-file-system/legacy";
+
+// expo-file-system のモック（自己修復時のファイル存在チェック用）
+jest.mock("expo-file-system/legacy", () => ({
+  getInfoAsync: jest.fn(),
+}));
 
 // OfflineStorageServiceのモック
 jest.mock("@/services/OfflineStorageService", () => {
+  // convertToTracks 内部の getOfflineStorageService で生成される singleton と、
+  // beforeEach で設定する mock を同一インスタンスにするため単一インスタンスを返す
+  const instance = {
+    getSongLocalPath: jest.fn(),
+    isSongDownloaded: jest.fn(),
+    getSongPathsBatch: jest.fn(),
+    deleteSong: jest.fn(),
+  };
   return {
-    OfflineStorageService: jest.fn().mockImplementation(() => ({
-      getSongLocalPath: jest.fn(),
-      isSongDownloaded: jest.fn(),
-    })),
+    OfflineStorageService: jest.fn(() => instance),
   };
 });
 
@@ -64,6 +75,10 @@ describe("TrackPlayer utils - Edge Cases", () => {
         return null;
       }
     );
+
+    // バッチ取得・削除のデフォルトモック
+    mockOfflineStorageService.getSongPathsBatch.mockResolvedValue(new Map());
+    mockOfflineStorageService.deleteSong.mockResolvedValue({ success: true });
   });
 
   describe("convertSongToTrack - Edge Cases", () => {
@@ -193,6 +208,85 @@ describe("TrackPlayer utils - Edge Cases", () => {
         expect(error).toBeInstanceOf(Error);
         expect(error).toHaveProperty("message");
       }
+    });
+  });
+
+  describe("convertToTracks - バッチパス取得によるN+1回避", () => {
+    // @jest/globals の jest.Mock は戻り値が unknown 扱いのため、
+    // mockResolvedValue を使えるように戻り値型を付してキャストする
+    const mockGetInfoAsync = FileSystem.getInfoAsync as unknown as jest.Mock<
+      (path: string) => Promise<{ exists: boolean }>
+    >;
+
+    it("should fetch all paths once via getSongPathsBatch (no per-song query)", async () => {
+      const songs = [mockSong, { ...mockSong, id: "song-2" }];
+      mockOfflineStorageService.getSongPathsBatch.mockResolvedValue(
+        new Map([
+          ["song-1", { localPath: null, originalPath: "https://remote/1.mp3" }],
+          ["song-2", { localPath: null, originalPath: "https://remote/2.mp3" }],
+        ]),
+      );
+
+      const tracks = await convertToTracks(songs);
+
+      expect(
+        mockOfflineStorageService.getSongPathsBatch,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockOfflineStorageService.getSongPathsBatch).toHaveBeenCalledWith([
+        "song-1",
+        "song-2",
+      ]);
+      // バッチ取得済みなので個別クエリ(getSongLocalPath)は走らない
+      expect(
+        mockOfflineStorageService.getSongLocalPath,
+      ).not.toHaveBeenCalled();
+      expect(tracks[0].url).toBe("https://remote/1.mp3");
+      expect(tracks[1].url).toBe("https://remote/2.mp3");
+    });
+
+    it("should use the local path when the downloaded file exists", async () => {
+      mockOfflineStorageService.getSongPathsBatch.mockResolvedValue(
+        new Map([
+          [
+            "song-1",
+            {
+              localPath: "/local/song-1.mp3",
+              originalPath: "https://remote/1.mp3",
+            },
+          ],
+        ]),
+      );
+      mockGetInfoAsync.mockResolvedValue({ exists: true });
+
+      const tracks = await convertToTracks([mockSong]);
+
+      expect(tracks[0].url).toBe("/local/song-1.mp3");
+      expect(mockOfflineStorageService.deleteSong).not.toHaveBeenCalled();
+    });
+
+    it("should fall back to the remote URL and self-heal when the local file is missing", async () => {
+      mockOfflineStorageService.getSongPathsBatch.mockResolvedValue(
+        new Map([
+          [
+            "song-1",
+            {
+              localPath: "/local/song-1.mp3",
+              originalPath: "https://remote/1.mp3",
+            },
+          ],
+        ]),
+      );
+      // 実ファイルが存在しない
+      mockGetInfoAsync.mockResolvedValue({ exists: false });
+
+      const tracks = await convertToTracks([mockSong]);
+
+      // ローカルパスではなくDBのリモートURLへフォールバックする
+      expect(tracks[0].url).toBe("https://remote/1.mp3");
+      // DBの記録を自己修復（削除）する
+      expect(mockOfflineStorageService.deleteSong).toHaveBeenCalledWith(
+        "song-1",
+      );
     });
   });
 

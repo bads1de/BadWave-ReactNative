@@ -94,6 +94,7 @@ function PlaylistItem({ playlist, onPress, testID }: PlaylistItemProps) {
             cachePolicy="memory-disk"
             onLoad={() => setIsImageLoaded(true)}
             transition={300}
+            recyclingKey={playlist.id} // リスト再利用時に前アイテムの画像が残らないようにする
           />
         </View>
 

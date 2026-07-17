@@ -10,6 +10,8 @@ jest.mock("@/services/OfflineStorageService", () => {
     OfflineStorageService: jest.fn().mockImplementation(() => ({
       getSongLocalPath: jest.fn(),
       isSongDownloaded: jest.fn(),
+      // convertToTracks 内部の singleton も getSongPathsBatch を持つ必要がある
+      getSongPathsBatch: jest.fn(async () => new Map()),
     })),
   };
 });
@@ -35,6 +37,7 @@ describe("TrackPlayer utils", () => {
       isSongDownloaded: jest.fn(),
       getSongLocalPath: jest.fn(),
       getDownloadedSongs: jest.fn(),
+      getSongPathsBatch: jest.fn(async () => new Map()),
     } as unknown as jest.Mocked<OfflineStorageService>;
 
     // getOfflineStorageService関数をモック化

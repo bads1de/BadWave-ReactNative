@@ -1,0 +1,1 @@
+CREATE INDEX `songs_created_at_idx` ON `songs` (`created_at`);

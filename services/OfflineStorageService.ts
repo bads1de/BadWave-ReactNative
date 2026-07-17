@@ -1,5 +1,5 @@
 import * as FileSystem from "expo-file-system/legacy";
-import { eq, isNotNull } from "drizzle-orm";
+import { eq, inArray, isNotNull } from "drizzle-orm";
 import Song from "@/types";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
@@ -338,6 +338,54 @@ export class OfflineStorageService {
       console.error("Error getting song local path:", error);
       return null;
     }
+  }
+
+  /**
+   * 複数曲のパス情報を一括取得する（N+1クエリの回避）
+   *
+   * 再生キュー構築時に曲ごとの getSongLocalPath を呼ぶと曲数分のクエリが
+   * 発生するため、IN句を用いて1回のクエリにまとめる。
+   * @param songIds 取得対象の曲ID配列
+   * @returns songId をキーに { localPath, originalPath } を持つMap
+   *          （DBに存在する曲のみ格納。localPath は未ダウンロード時 null）
+   */
+  async getSongPathsBatch(
+    songIds: string[],
+  ): Promise<
+    Map<string, { localPath: string | null; originalPath: string | null }>
+  > {
+    const result = new Map<
+      string,
+      { localPath: string | null; originalPath: string | null }
+    >();
+
+    // 無効なIDを除外
+    const validIds = songIds.filter((id): id is string => Boolean(id));
+    if (validIds.length === 0) {
+      return result;
+    }
+
+    try {
+      const rows = await db
+        .select({
+          id: songs.id,
+          songPath: songs.songPath,
+          originalSongPath: songs.originalSongPath,
+        })
+        .from(songs)
+        .where(inArray(songs.id, validIds));
+
+      for (const row of rows) {
+        result.set(row.id, {
+          localPath: row.songPath ?? null,
+          originalPath: row.originalSongPath ?? null,
+        });
+      }
+    } catch (error) {
+      console.error("Error getting song paths batch:", error);
+    }
+
+    return result;
   }
 
   /**

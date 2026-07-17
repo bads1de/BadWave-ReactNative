@@ -34,6 +34,7 @@ jest.mock("@/lib/db/client", () => {
 // drizzle-orm をモック
 jest.mock("drizzle-orm", () => ({
   eq: jest.fn(),
+  inArray: jest.fn(),
   isNotNull: jest.fn(),
   sql: jest.fn(() => "mock-sql"),
 }));
@@ -261,6 +262,52 @@ describe("OfflineStorageService", () => {
 
       const path = await service.getSongLocalPath("1");
       expect(path).toBeNull();
+    });
+  });
+
+  describe("getSongPathsBatch", () => {
+    it("should return a map of local and original paths for given ids", async () => {
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
+        Promise.resolve([
+          {
+            id: "s1",
+            songPath: "/local/s1.mp3",
+            originalSongPath: "https://remote/s1.mp3",
+          },
+          { id: "s2", songPath: null, originalSongPath: "https://remote/s2.mp3" },
+        ]).then(cb),
+      );
+
+      const map = await service.getSongPathsBatch(["s1", "s2"]);
+
+      expect(map.size).toBe(2);
+      expect(map.get("s1")).toEqual({
+        localPath: "/local/s1.mp3",
+        originalPath: "https://remote/s1.mp3",
+      });
+      expect(map.get("s2")).toEqual({
+        localPath: null,
+        originalPath: "https://remote/s2.mp3",
+      });
+      expect(mockDb.select).toHaveBeenCalled();
+    });
+
+    it("should return an empty map for empty input without querying", async () => {
+      const map = await service.getSongPathsBatch([]);
+
+      expect(map.size).toBe(0);
+      expect(mockDb.select).not.toHaveBeenCalled();
+    });
+
+    it("should filter out invalid ids and skip querying when none remain", async () => {
+      const map = await service.getSongPathsBatch([
+        "",
+        null as unknown as string,
+        undefined as unknown as string,
+      ]);
+
+      expect(map.size).toBe(0);
+      expect(mockDb.select).not.toHaveBeenCalled();
     });
   });
 

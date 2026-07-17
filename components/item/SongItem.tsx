@@ -124,6 +124,7 @@ function SongItem({
             style={styles.image}
             contentFit="cover"
             cachePolicy="memory-disk" // メモリとディスクを併用した高速なキャッシュ
+            recyclingKey={song.id} // リスト再利用時に前アイテムの画像が残らないようにする
           />
           <LinearGradient
             colors={["transparent", "rgba(10, 10, 10, 0.8)", "#0A0A0A"]}
