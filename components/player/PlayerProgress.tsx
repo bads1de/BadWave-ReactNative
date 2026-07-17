@@ -1,5 +1,11 @@
 import React, { memo, useState, useEffect } from "react";
-import { View, Text, StyleSheet, AppState, AppStateStatus } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  AppState,
+  AppStateStatus,
+} from "react-native";
 import Slider from "@react-native-community/slider";
 import { formatTime } from "@/lib/utils/formatTime";
 import { useProgress } from "@rntp/player";
@@ -33,6 +39,11 @@ const PlayerProgress = memo(({ onSeek }: PlayerProgressProps) => {
 
   const colors = useThemeStore((state) => state.colors);
 
+  // duration が未確定の間（prepare 前）は ExoPlayer が TIME_UNSET（負の巨大値）を返すため、
+  // 不正値を 0 に丸めてスライダーと時間表示が壊れないようにする
+  const safeDuration =
+    Number.isFinite(duration) && duration > 0 ? duration : 0;
+
   const handleSeek = (value: number) => {
     onSeek(value);
   };
@@ -42,11 +53,9 @@ const PlayerProgress = memo(({ onSeek }: PlayerProgressProps) => {
       <Slider
         style={styles.slider}
         minimumValue={0}
-        maximumValue={duration * 1000} // durationは秒単位で来る場合があるので確認が必要だが、TrackPlayerのuseProgressは秒単位
-        value={position * 1000} // 秒 -> ミリ秒に変換（Sliderがミリ秒期待なら）
-        // いや、badwave-mobileの慣習を見るとミリ秒で扱っている箇所が多い。
-        // useAudioPlayer.tsを見ると: const progressPosition = position * 1000;
-        // なので、ここでも * 1000 してミリ秒にする
+        // useProgress は秒単位で返すため、ミリ秒に変換して扱う
+        maximumValue={safeDuration * 1000}
+        value={position * 1000}
         onSlidingComplete={handleSeek}
         minimumTrackTintColor={colors.primary}
         maximumTrackTintColor={colors.subText}
@@ -58,7 +67,7 @@ const PlayerProgress = memo(({ onSeek }: PlayerProgressProps) => {
           {formatTime(position * 1000)}
         </Text>
         <Text style={[styles.timeText, { color: colors.subText }]}>
-          {formatTime(duration * 1000)}
+          {formatTime(safeDuration * 1000)}
         </Text>
       </View>
     </>

@@ -194,19 +194,18 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
             return false;
           }
 
-          // キューをクリア
-          TrackPlayer.clear();
-
           // トラックに変換
           const tracks = await convertToTracks(songs);
 
-          // トラックを追加
-          TrackPlayer.addMediaItems(tracks);
+          // 開始インデックスを安全な範囲に丸める
+          const safeStartIndex =
+            startIndex > 0 && startIndex < tracks.length ? startIndex : 0;
 
-          // 指定された曲から再生を開始するよう設定
-          if (startIndex > 0 && startIndex < tracks.length) {
-            TrackPlayer.skipToIndex(startIndex);
-          }
+          // キューを置き換えて指定インデックスから再生準備する。
+          // setMediaItems は「クリア + 追加 + 位置リセット + prepare」を一括で行う。
+          // v4 系の clear() + addMediaItems() では Media3 プレイヤーが IDLE のままとなり、
+          // 続く play() が no-op になる（再生されない・duration 未確定）ため使用しない。
+          TrackPlayer.setMediaItems(tracks, safeStartIndex);
 
           // コンテキスト情報を更新
           updateQueueState(() => ({
@@ -215,7 +214,7 @@ export function useQueueOperations(setIsPlaying: (isPlaying: boolean) => void) {
             currentQueue: tracks.map((track) => ({
               id: track.mediaId as string,
             })),
-            currentSongId: tracks[startIndex]?.mediaId || null,
+            currentSongId: tracks[safeStartIndex]?.mediaId || null,
             isShuffleEnabled: false,
           }));
 

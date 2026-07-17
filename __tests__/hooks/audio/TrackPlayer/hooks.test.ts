@@ -83,6 +83,7 @@ describe("TrackPlayer hooks", () => {
     mockedTrackPlayer.getActiveMediaItem.mockReturnValue(null);
     mockedTrackPlayer.getActiveMediaItemIndex.mockReturnValue(null);
     mockedTrackPlayer.clear.mockReturnValue(undefined);
+    mockedTrackPlayer.setMediaItems.mockReturnValue(undefined);
     mockedTrackPlayer.addMediaItems.mockReturnValue(undefined);
     mockedTrackPlayer.insertMediaItems.mockReturnValue(undefined);
     mockedTrackPlayer.removeMediaItems.mockReturnValue(undefined);
@@ -461,9 +462,8 @@ describe("TrackPlayer hooks", () => {
           );
         });
 
-        expect(TrackPlayer.clear).toHaveBeenCalled();
         expect(utils.convertToTracks).toHaveBeenCalledWith(mockSongs);
-        expect(TrackPlayer.addMediaItems).toHaveBeenCalledWith(mockTracks);
+        expect(TrackPlayer.setMediaItems).toHaveBeenCalledWith(mockTracks, 0);
         expect(TrackPlayer.play).toHaveBeenCalled();
         expect(setIsPlaying).toHaveBeenCalledWith(true);
 
@@ -483,7 +483,7 @@ describe("TrackPlayer hooks", () => {
           );
         });
 
-        expect(TrackPlayer.skipToIndex).toHaveBeenCalledWith(1);
+        expect(TrackPlayer.setMediaItems).toHaveBeenCalledWith(mockTracks, 1);
 
         const state = result.current.getQueueState();
         expect(state.currentSongId).toBe(mockTracks[1].mediaId);
@@ -496,7 +496,7 @@ describe("TrackPlayer hooks", () => {
           await result.current.updateQueueWithContext([], mockContext, 0);
         });
 
-        expect(TrackPlayer.clear).not.toHaveBeenCalled();
+        expect(TrackPlayer.setMediaItems).not.toHaveBeenCalled();
       });
     });
 

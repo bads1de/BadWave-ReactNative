@@ -15,6 +15,8 @@ const mockTrackPlayer = {
   getRepeatMode: jest.fn().mockReturnValue("off"),
   isPlaying: jest.fn().mockReturnValue(false),
   // キュー操作
+  setMediaItem: jest.fn(),
+  setMediaItems: jest.fn(),
   addMediaItems: jest.fn(),
   insertMediaItems: jest.fn(),
   removeMediaItems: jest.fn(),
