@@ -255,11 +255,7 @@ function TrendBoard() {
             snapToInterval={ITEM_WIDTH + 16}
             decelerationRate="fast"
             contentContainerStyle={styles.listContent}
-            estimatedItemSize={ITEM_WIDTH}
             removeClippedSubviews={true}
-            overrideItemLayout={(layout) => {
-              layout.size = ITEM_WIDTH + 16;
-            }}
           />
         </View>
       ) : (

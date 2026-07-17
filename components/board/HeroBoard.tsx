@@ -18,6 +18,7 @@ import Animated, {
   useAnimatedScrollHandler,
   interpolate,
   Extrapolate,
+  type SharedValue,
 } from "react-native-reanimated";
 import { FONTS } from "@/constants/theme";
 
@@ -47,7 +48,7 @@ const backgroundImages = {
 interface GenreCardProps {
   genre: string;
   index: number;
-  scrollX: Animated.SharedValue<number>;
+  scrollX: SharedValue<number>;
   onNavigate: (genre: string) => void;
 }
 
@@ -123,7 +124,7 @@ const GenreCard = memo(function GenreCard({
 
 interface AnimatedDotProps {
   index: number;
-  scrollX: Animated.SharedValue<number>;
+  scrollX: SharedValue<number>;
 }
 
 const AnimatedDot = memo(function AnimatedDot({
@@ -152,7 +153,7 @@ const AnimatedDot = memo(function AnimatedDot({
 });
 
 interface PaginationIndicatorProps {
-  scrollX: Animated.SharedValue<number>;
+  scrollX: SharedValue<number>;
   count: number;
 }
 
@@ -216,7 +217,6 @@ function HeroBoard() {
         decelerationRate="fast"
         onScroll={onScroll}
         scrollEventThrottle={16}
-        estimatedItemSize={SCREEN_WIDTH}
       />
 
       <PaginationIndicator scrollX={scrollX} count={genreCards.length} />

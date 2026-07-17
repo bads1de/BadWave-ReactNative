@@ -292,7 +292,6 @@ export default function PlaylistDetailScreen() {
         renderItem={renderSongs}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
-        estimatedItemSize={120}
         key={"playlist-songs-list"}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>

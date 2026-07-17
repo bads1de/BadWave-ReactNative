@@ -51,7 +51,6 @@ function LibraryPlaylistsSectionInner({
         numColumns={2}
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.listContainer}
-        estimatedItemSize={220}
         showsVerticalScrollIndicator={false}
       />
     </View>

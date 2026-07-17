@@ -146,7 +146,6 @@ export default function HomeScreen() {
                     keyExtractor={keyExtractorRecent}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    estimatedItemSize={200}
                     contentContainerStyle={{
                       ...styles.songsContainer,
                       ...(currentSong && !showPlayer
@@ -185,7 +184,6 @@ export default function HomeScreen() {
         getItemType={getSectionType}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listWrapper}
-        estimatedItemSize={420}
       />
       <ItemOptionsSheet
         song={selectedSong}

@@ -165,7 +165,7 @@ const LyricContent = memo(
     const [lineCoords, setLineCoords] = useState<{ [key: number]: number }>({});
     const [containerHeight, setContainerHeight] = useState(0);
     const isUserScrolling = useRef(false);
-    const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+    const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const colors = useThemeStore((state) => state.colors);
 
     const parsedLyrics = useMemo(() => {

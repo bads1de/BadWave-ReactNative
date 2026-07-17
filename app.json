@@ -24,11 +24,9 @@
       "package": "com.s3xmaxman.badwave"
     },
     "androidStatusBar": {
-      "backgroundColor": "#000000",
       "barStyle": "light-content"
     },
     "androidNavigationBar": {
-      "backgroundColor": "#000000",
       "barStyle": "light-content"
     },
     "web": {

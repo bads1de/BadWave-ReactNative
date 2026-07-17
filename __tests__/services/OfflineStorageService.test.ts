@@ -1,5 +1,5 @@
 import { OfflineStorageService } from "@/services/OfflineStorageService";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import Song from "@/types";
 import { db } from "@/lib/db/client";
 
@@ -7,7 +7,7 @@ import { db } from "@/lib/db/client";
 const mockDb = db as any;
 
 // モックの設定
-jest.mock("expo-file-system", () => ({
+jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "/mock/document/directory/",
   getInfoAsync: jest.fn(),
   makeDirectoryAsync: jest.fn(),

@@ -167,7 +167,7 @@ function SyncProviderInner({ children }: { children: React.ReactNode }) {
 
   // 初回マウント時に同期を開始（オンライン & 認証済みの場合）
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     // 初回同期用の関数。優先度をつけて段階的に同期を行う。
     // ※ manual_sync（ユーザーが手動で更新引っ張る場合）は今まで通り triggerSync() で一括ですが、

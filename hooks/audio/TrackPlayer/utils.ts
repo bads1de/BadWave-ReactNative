@@ -2,7 +2,7 @@
 import type { MediaItem } from "@rntp/player";
 import Song from "@/types";
 import { OfflineStorageService } from "@/services/OfflineStorageService";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { getErrorMessage } from "@/lib/utils/error";
 
 // グローバルインスタンス

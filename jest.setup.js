@@ -54,7 +54,6 @@ jest.mock("react-native/Libraries/Interaction/InteractionManager", () => ({
 
 // Expo のモック
 jest.mock("expo-font");
-jest.mock("expo-asset");
 jest.mock("expo-constants", () => ({
   expoConfig: {
     extra: {
