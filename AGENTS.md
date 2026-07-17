@@ -1,4 +1,4 @@
-のドキュメントは、`badwave-mobile` プロジェクトの概要、アーキテクチャ、および開発プラクティスを、将来の対話のための指示コンテキストとして提供します。
+このドキュメントは、`badwave-mobile` プロジェクトの概要、アーキテクチャ、および開発プラクティスを、将来の対話のための指示コンテキストとして提供します。
 
 ## 1. プロジェクト概要
 
@@ -13,8 +13,8 @@
 - **ナビゲーション**: [Expo Router](https://docs.expo.dev/router/introduction/) (ファイルベースルーティング)
 - **データフェッチ**: データフェッチ、キャッシュ、永続化のための [TanStack Query](https://tanstack.com/query/latest)。
 - **状態管理**: グローバルな状態管理 (例: プレイヤー UI の状態) のための [Zustand](https://github.com/pmndrs/zustand)。
-- **オーディオ再生**: バックグラウンドオーディオのための [React Native Track Player](https://react-native-track-player.js.org/)。
-- **ローカルストレージ**: 高速なキーバリューストレージのための [React Native MMKV](https://github.com/mrousavy/react-native-mmkv) と、Supabase セッション永続化のための `AsyncStorage`。
+- **オーディオ再生**: バックグラウンド再生・ロック画面操作のための [`@rntp/player`](https://www.npmjs.com/package/@rntp/player) (React Native Track Player)。
+- **ローカルストレージ**: 高速なキーバリューストレージのための [React Native MMKV](https://github.com/mrousavy/react-native-mmkv)。Supabase のセッション永続化や TanStack Query のキャッシュ永続化には、MMKV を AsyncStorage 互換インターフェースでラップした独自アダプター (`lib/storage/`) を利用しています。
 - **テスト**: [Jest](https://jestjs.io/) と [React Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/)。
 
 ### アーキテクチャ

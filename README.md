@@ -47,7 +47,7 @@
 
 ### 3. パフォーマンス・チューニング
 
-- **React Native Track Player**: バックグラウンド再生やロック画面操作に対応した、ネイティブレベルのオーディオ制御。
+- **React Native Track Player (`@rntp/player`)**: バックグラウンド再生やロック画面操作に対応した、ネイティブレベルのオーディオ制御。
 - **FlashList**: 大量の楽曲リストも高速にレンダリング。
 - **MMKV**: 頻繁にアクセスされる設定値やキャッシュキーには、AsyncStorage よりも高速な MMKV を採用。
 
@@ -55,7 +55,7 @@
 
 | Category      | Technology                         | Usage                          |
 | :------------ | :--------------------------------- | :----------------------------- |
-| **Framework** | **React Native** / **Expo SDK 52** | クロスプラットフォーム開発基盤 |
+| **Framework** | **React Native** / **Expo SDK 54** | クロスプラットフォーム開発基盤 |
 | **Routing**   | **Expo Router**                    | ファイルベースナビゲーション   |
 | **Local DB**  | **SQLite** (expo-sqlite)           | アプリ内データベース           |
 | **ORM**       | **Drizzle ORM**                    | 型安全な DB 操作、スキーマ管理 |
@@ -71,6 +71,7 @@ badwave-mobile/
 ├── app/                # Expo Router 画面 (タブ、スタック)
 │   ├── (tabs)/         # メインタブ構成
 │   └── ...
+├── actions/            # Supabase との通信処理 (song, playlist...)
 ├── components/         # UIコンポーネント
 ├── hooks/
 │   ├── data/           # ローカルDBからの読み込み (useGetLocalSongs...)
@@ -78,7 +79,9 @@ badwave-mobile/
 │   └── mutations/      # データ書き込み (Optimistic Update -> DB & API)
 ├── lib/
 │   ├── db/             # Drizzle スキーマ定義 (schema.ts)
-│   └── services/       # バックグラウンドサービス (PlaybackService等)
+│   ├── storage/        # MMKV ストレージ・アダプター
+│   └── utils/          # 共通ユーティリティ (retry, songMapper...)
+├── services/           # バックグラウンドサービス (PlayerService, OfflineStorageService)
 └── providers/          # SyncProvider 等のアプリ全体設定
 ```
 
@@ -128,13 +131,6 @@ badwave-mobile/
   npm run android
   # または
   npm run ios
-  ```
-
-- **プロジェクトのリセット:**
-  キャッシュやDBを一掃して再構築する場合：
-
-  ```bash
-  npm run reset-project
   ```
 
 ## 🧪 テスト
