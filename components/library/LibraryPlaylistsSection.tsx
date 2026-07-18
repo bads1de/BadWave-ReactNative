@@ -4,6 +4,7 @@ import { FlashList } from "@shopify/flash-list";
 import { ListMusic } from "lucide-react-native";
 import PlaylistItem from "@/components/item/PlaylistItem";
 import { LibraryEmptyState } from "@/components/library/LibraryEmptyState";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 import { COLORS } from "@/constants/theme";
 import { Playlist } from "@/types";
 
@@ -16,6 +17,7 @@ function LibraryPlaylistsSectionInner({
   playlists,
   onPlaylistPress,
 }: LibraryPlaylistsSectionProps) {
+  const bottomPadding = useContentBottomPadding();
   const keyExtractor = useCallback((item: Playlist) => item.id, []);
 
   const renderPlaylistItem = useCallback(
@@ -50,7 +52,7 @@ function LibraryPlaylistsSectionInner({
         renderItem={renderPlaylistItem}
         numColumns={2}
         keyExtractor={keyExtractor}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -63,7 +65,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 12,
-    paddingBottom: 120,
   },
 });
 

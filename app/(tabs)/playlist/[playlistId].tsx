@@ -32,6 +32,7 @@ import { FONTS } from "@/constants/theme";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
 import { getErrorMessage } from "@/lib/utils/error";
 import { ROUTES } from "@/constants";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 
 const { width } = Dimensions.get("window");
 
@@ -41,6 +42,7 @@ export default function PlaylistDetailScreen() {
   const { session } = useAuth();
   const colors = useThemeStore((state) => state.colors);
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
+  const bottomPadding = useContentBottomPadding();
 
   useFocusEffect(
     useCallback(() => {
@@ -291,7 +293,7 @@ export default function PlaylistDetailScreen() {
         keyExtractor={keyExtractor}
         renderItem={renderSongs}
         ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ paddingBottom: bottomPadding }}
         key={"playlist-songs-list"}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -431,9 +433,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     marginLeft: 8,
     letterSpacing: 1,
-  },
-  listContent: {
-    paddingBottom: 100,
   },
   emptyContainer: {
     paddingTop: 60,

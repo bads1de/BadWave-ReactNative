@@ -32,6 +32,7 @@ import LikeButton from "@/components/common/LikeButton";
 import AddPlaylist from "@/components/playlist/AddPlaylist";
 import Lyric from "@/components/player/lyric";
 import BackButton from "@/components/common/BackButton";
+import { moderateScale } from "react-native-size-matters";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -329,15 +330,15 @@ const styles = StyleSheet.create({
     marginBottom: 60,
   },
   boutiquePlay: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: moderateScale(100),
+    height: moderateScale(100),
+    borderRadius: moderateScale(50),
     backgroundColor: "rgba(255,255,255,0.03)",
     padding: 6,
   },
   playInner: {
     flex: 1,
-    borderRadius: 44,
+    borderRadius: moderateScale(44),
     alignItems: "center",
     justifyContent: "center",
     shadowColor: COLORS.primary,
@@ -351,9 +352,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   utilityIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: moderateScale(60),
+    height: moderateScale(60),
+    borderRadius: moderateScale(30),
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
     alignItems: "center",

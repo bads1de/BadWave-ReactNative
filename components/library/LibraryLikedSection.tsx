@@ -10,6 +10,7 @@ import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { COLORS, FONTS } from "@/constants/theme";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 import Song from "@/types";
 
 interface LibraryLikedSectionProps {
@@ -24,6 +25,7 @@ function LibraryLikedSectionInner({
   onOpenSongOptions,
 }: LibraryLikedSectionProps) {
   const colors = useThemeStore((state) => state.colors);
+  const bottomPadding = useContentBottomPadding();
   const { togglePlayPause } = usePlayControls(songs, "liked");
   const [isScrolling, setIsScrolling] = useState(false);
   const marqueeResumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -118,7 +120,7 @@ function LibraryLikedSectionInner({
         renderItem={renderLikedSong}
         keyExtractor={keyExtractor}
         numColumns={2}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={handleLikedListScrollStart}
         onMomentumScrollBegin={handleLikedListScrollStart}
@@ -151,7 +153,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 12,
-    paddingBottom: 120,
   },
 });
 

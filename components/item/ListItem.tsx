@@ -7,6 +7,7 @@ import Song from "@/types";
 import ItemOptionsMenu from "@/components/item/ItemOptionsMenu";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
+import { moderateScale } from "react-native-size-matters";
 
 interface ListItemProps {
   song: Song;
@@ -30,11 +31,11 @@ function ListItem({
   const getImageSize = () => {
     switch (imageSize) {
       case "small":
-        return 50;
+        return moderateScale(50);
       case "large":
-        return 90;
+        return moderateScale(90);
       default:
-        return 70;
+        return moderateScale(70);
     }
   };
 

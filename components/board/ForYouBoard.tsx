@@ -12,6 +12,7 @@ import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
+import { verticalScale } from "react-native-size-matters";
 
 function ForYouBoard() {
   const { session } = useAuth();
@@ -106,18 +107,18 @@ export default memo(ForYouBoard);
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: 320,
+    height: verticalScale(320),
   },
   listContent: {
     paddingVertical: 8,
   },
   loadingContainer: {
-    height: 320,
+    height: verticalScale(320),
     justifyContent: "center",
     alignItems: "center",
   },
   emptyContainer: {
-    height: 200,
+    height: verticalScale(200),
     justifyContent: "center",
     alignItems: "center",
     padding: 20,

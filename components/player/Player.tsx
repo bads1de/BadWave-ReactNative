@@ -32,6 +32,7 @@ import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { ThemeDefinition } from "@/constants/ThemeColors";
 import PlayerProgress from "@/components/player/PlayerProgress";
 import { FONTS } from "@/constants/theme";
+import { moderateScale } from "react-native-size-matters";
 
 /**
  * @fileoverview 音楽プレーヤーのUIコンポーネント (Badwave Refined)
@@ -429,15 +430,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   controlButton: {
-    width: 48,
-    height: 48,
+    width: moderateScale(48),
+    height: moderateScale(48),
     justifyContent: "center",
     alignItems: "center",
   },
   playButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: moderateScale(72),
+    height: moderateScale(72),
+    borderRadius: moderateScale(36),
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

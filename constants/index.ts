@@ -1,3 +1,5 @@
+import { scale, verticalScale } from "react-native-size-matters";
+
 export const genreCards = [
   { id: 1, name: "Retro Wave" },
   { id: 2, name: "Electro House" },
@@ -72,4 +74,20 @@ export const ROUTES = {
   song: "/song/[songId]",
   playlist: "/playlist/[playlistId]",
   tabsPlaylist: "/(tabs)/playlist/[playlistId]",
+} as const;
+
+// レイアウト寸法の共有定数。
+// tabBarHeight / miniPlayerHeight は画面下部に固定表示されるオーバーレイの実高さで、
+// 各スクロール画面の下部パディング算出（useContentBottomPadding）に用いる。
+export const LAYOUT = {
+  tabBarHeight: 80, // app/(tabs)/_layout.tsx の tabBarStyle.height と一致
+  miniPlayerHeight: 68, // MiniPlayer container height(60) + marginBottom(8)
+  contentGap: 16, // コンテンツ末尾とオーバーレイの間に確保する余白
+} as const;
+
+// 横スクロールの曲カード寸法。端末サイズに追従させ、
+// ホームの songsList 高さ（SONG_CARD.height + 上下マージン）と整合させる。
+export const SONG_CARD = {
+  width: scale(170),
+  height: verticalScale(240),
 } as const;

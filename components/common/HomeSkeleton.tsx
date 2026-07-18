@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import SkeletonBox from "@/components/common/SkeletonBox";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 
 const GAP = 16;
 
@@ -14,11 +15,12 @@ const GAP = 16;
  */
 function HomeSkeleton() {
   const colors = useThemeStore((state) => state.colors);
+  const bottomPadding = useContentBottomPadding();
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
       scrollEnabled={false}
       testID="home-skeleton"
     >
@@ -78,7 +80,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
-    paddingBottom: 120,
   },
   hero: {
     marginBottom: 32,

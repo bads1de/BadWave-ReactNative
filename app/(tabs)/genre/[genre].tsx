@@ -23,12 +23,14 @@ import { COLORS, FONTS } from "@/constants/theme";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import BackButton from "@/components/common/BackButton";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
   const { genre } = useLocalSearchParams<{ genre: string }>();
   const setShowHeader = useHeaderStore((state) => state.setShowHeader);
   const { isOnline } = useNetworkStatus();
+  const bottomPadding = useContentBottomPadding();
 
   const {
     data: genreSongs = [],
@@ -72,7 +74,7 @@ export default function GenreSongsScreen() {
         <View style={styles.header}>
           <BackButton onPress={() => router.back()} />
         </View>
-        <View style={[styles.container, styles.center]}>
+        <View style={[styles.container, styles.center, { paddingBottom: bottomPadding }]}>
           <CloudOff size={64} color={COLORS.subText} strokeWidth={1} />
           <Text style={styles.emptyText}>You are offline</Text>
           <Text style={styles.emptySubText}>
@@ -111,7 +113,7 @@ export default function GenreSongsScreen() {
             data={genreSongs}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
-            contentContainerStyle={styles.listContainer}
+            contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
             ListHeaderComponent={
               <Animated.View
                 entering={FadeInDown.delay(200)}
@@ -174,7 +176,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
   },
   listHeader: {
     marginBottom: 20,
@@ -204,7 +205,6 @@ const styles = StyleSheet.create({
   center: {
     justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 100,
   },
   emptyText: {
     color: COLORS.text,

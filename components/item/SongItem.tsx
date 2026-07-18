@@ -22,7 +22,7 @@ import MarqueeText from "@/components/common/MarqueeText";
 import ItemOptionsMenu, {
   ItemOptionsButton,
 } from "@/components/item/ItemOptionsMenu";
-import { SPRING_CONFIG } from "@/constants";
+import { SPRING_CONFIG, SONG_CARD } from "@/constants";
 import { FONTS } from "@/constants/theme";
 import { ROUTES } from "@/constants";
 
@@ -60,7 +60,7 @@ function SongItem({
       const itemHeight = itemWidth * 1.5; // Slightly taller for elegant proportions
       return { width: itemWidth, height: itemHeight };
     }
-    return { width: 180, height: 300 };
+    return { width: SONG_CARD.width, height: SONG_CARD.height };
   }, [dynamicSize, windowWidth]);
 
   const handlePressIn = useCallback(() => {

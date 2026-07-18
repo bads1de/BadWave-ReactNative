@@ -43,7 +43,7 @@ export default function SpotlightList({
         item={item}
         index={index}
         isParentFocused={isParentFocused}
-        bottomPadding={Math.max(0, tabBarHeight - 20)}
+        bottomPadding={tabBarHeight}
       />
     ),
     [isParentFocused, tabBarHeight],

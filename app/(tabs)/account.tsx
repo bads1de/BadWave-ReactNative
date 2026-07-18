@@ -26,6 +26,8 @@ import { SettingItem } from "@/components/common/SettingItem";
 import { FONTS } from "@/constants/theme";
 import BackButton from "@/components/common/BackButton";
 import { ROUTES } from "@/constants";
+import { moderateScale } from "react-native-size-matters";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 
 /**
  * @file (tabs)/account.tsx
@@ -41,6 +43,7 @@ export default function AccountScreen() {
   const colors = useThemeStore((state) => state.colors);
   const currentTheme = useThemeStore((state) => state.currentTheme);
   const setTheme = useThemeStore((state) => state.setTheme);
+  const bottomPadding = useContentBottomPadding();
 
   // 実データの取得
   const { playlists } = useGetPlaylists(userId);
@@ -82,7 +85,7 @@ export default function AccountScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={{ paddingBottom: bottomPadding }}>
         {/* プロフィールセクション */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
@@ -312,9 +315,6 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
-  scrollContent: {
-    paddingBottom: 100,
-  },
   profileSection: {
     alignItems: "center",
     marginTop: 10,
@@ -329,9 +329,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: moderateScale(120),
+    height: moderateScale(120),
+    borderRadius: moderateScale(60),
     borderWidth: 2,
   },
   userName: {

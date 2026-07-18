@@ -21,6 +21,9 @@ import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
 import { FONTS } from "@/constants/theme";
+import { SONG_CARD } from "@/constants";
+import { verticalScale } from "react-native-size-matters";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 
 /**
  * @file index.tsx
@@ -32,6 +35,7 @@ type HomeSectionKey = "hero" | "trending" | "forYou" | "playlists" | "recent";
 export default function HomeScreen() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const colors = useThemeStore((state) => state.colors);
+  const bottomPadding = useContentBottomPadding();
 
   // SQLite から楽曲を取得（Local-First）
   const { data: songs = [], isLoading, error } = useGetLocalSongs();
@@ -138,7 +142,7 @@ export default function HomeScreen() {
           return (
             <>
               {renderSectionTitle("Recently Discovered", Disc)}
-              <View style={[styles.sectionContent, styles.songsSection]}>
+              <View style={styles.songsSection}>
                 <View style={styles.songsList}>
                   <FlashList
                     data={songs}
@@ -183,7 +187,7 @@ export default function HomeScreen() {
         keyExtractor={keyExtractorSection}
         getItemType={getSectionType}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listWrapper}
+        contentContainerStyle={[styles.listWrapper, { paddingBottom: bottomPadding }]}
       />
       <ItemOptionsSheet
         song={selectedSong}
@@ -200,15 +204,14 @@ const styles = StyleSheet.create({
   },
   listWrapper: {
     padding: 24,
-    paddingBottom: 120,
   },
   heroContainer: {
-    marginTop: 8,
-    marginBottom: 32,
+    marginTop: verticalScale(8),
+    marginBottom: verticalScale(32),
   },
   sectionTitleContainer: {
-    marginBottom: 20,
-    marginTop: 16,
+    marginBottom: verticalScale(20),
+    marginTop: verticalScale(16),
   },
   titleRow: {
     flexDirection: "row",
@@ -227,13 +230,13 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sectionContent: {
-    marginBottom: 40,
+    marginBottom: verticalScale(40),
   },
   songsSection: {
     marginHorizontal: -24,
   },
   songsList: {
-    height: 340,
+    height: SONG_CARD.height + 40,
   },
   songsContainer: {
     paddingHorizontal: 24,

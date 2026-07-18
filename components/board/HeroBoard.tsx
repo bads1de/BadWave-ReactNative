@@ -10,7 +10,7 @@ import { ImageBackground } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { ArrowRight } from "lucide-react-native";
+import { ArrowUpRight, Disc3 } from "lucide-react-native";
 import { genreCards, ROUTES } from "@/constants";
 import Animated, {
   useSharedValue,
@@ -18,6 +18,7 @@ import Animated, {
   useAnimatedScrollHandler,
   interpolate,
   Extrapolate,
+  withSpring,
   type SharedValue,
 } from "react-native-reanimated";
 import { FONTS } from "@/constants/theme";
@@ -30,7 +31,7 @@ interface GenreItem {
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
+const HERO_HEIGHT = SCREEN_HEIGHT * 0.32;
 const CARD_WIDTH = SCREEN_WIDTH * 0.85;
 const SNAP_INTERVAL = SCREEN_WIDTH;
 
@@ -45,6 +46,40 @@ const backgroundImages = {
   "Chill House": require("@/assets/images/ChillHouse.jpg"),
 } as const;
 
+// ジャンルごとのアクセントカラー。カードのグロー・ウォッシュ・アクションボタンに使い、
+// 一様に暗いだけだった旧デザインにジャンルごとの個性を与える。
+const getGenreAccent = (genre: string): string => {
+  switch (genre) {
+    case "Retro Wave":
+      return "#FF2D9B";
+    case "Electro House":
+      return "#00F5A0";
+    case "Nu Disco":
+      return "#FFB800";
+    case "City Pop":
+      return "#A855F7";
+    case "Tropical House":
+      return "#00C2FF";
+    case "Vapor Wave":
+      return "#FF61D2";
+    case "r&b":
+      return "#B388FF";
+    case "Chill House":
+      return "#43E0B0";
+    default:
+      return "#7C3AED";
+  }
+};
+
+// hex カラーを rgba 文字列へ変換（グラデーションの透過指定用）。
+const hexToRgba = (hex: string, alpha: number): string => {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 interface GenreCardProps {
   genre: string;
   index: number;
@@ -58,8 +93,10 @@ const GenreCard = memo(function GenreCard({
   scrollX,
   onNavigate,
 }: GenreCardProps) {
-  const scale = useSharedValue(1);
+  const accent = getGenreAccent(genre);
+  const press = useSharedValue(1);
 
+  // スクロール位置に応じた中央カードの強調 + 押下時の軽い縮小フィードバック。
   const animatedStyle = useAnimatedStyle(() => {
     const cardScale = interpolate(
       scrollX.value,
@@ -68,53 +105,82 @@ const GenreCard = memo(function GenreCard({
         index * SNAP_INTERVAL,
         (index + 1) * SNAP_INTERVAL,
       ],
-      [0.92, 1, 0.92],
+      [0.9, 1, 0.9],
       Extrapolate.CLAMP,
     );
 
     return {
-      transform: [{ scale: cardScale * scale.value }],
+      transform: [{ scale: cardScale * press.value }],
     };
   });
 
   const handlePress = () => onNavigate(genre);
+  const handlePressIn = () => {
+    press.value = withSpring(0.97, { damping: 15, stiffness: 200 });
+  };
+  const handlePressOut = () => {
+    press.value = withSpring(1, { damping: 15, stiffness: 200 });
+  };
+
+  const indexLabel = String(index + 1).padStart(2, "0");
 
   return (
     <TouchableOpacity
-      activeOpacity={1}
+      activeOpacity={0.92}
       onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       style={styles.cardWrapper}
     >
-      <Animated.View style={[styles.card, animatedStyle]}>
-        <View style={styles.imageContainer}>
+      <Animated.View style={[styles.card, { shadowColor: accent }, animatedStyle]}>
+        <View style={styles.cardInner}>
           <View style={StyleSheet.absoluteFill}>
             <ImageBackground
               source={backgroundImages[genre as keyof typeof backgroundImages]}
               style={styles.backgroundImage}
               contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={250}
             />
           </View>
 
+          {/* 下部の可読性グラデーション（タイトル・ボタンを読みやすくする） */}
           <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.8)"]}
-            style={styles.bottomOverlay}
+            colors={[
+              "transparent",
+              "transparent",
+              "rgba(0,0,0,0.6)",
+              "rgba(0,0,0,0.95)",
+            ]}
+            style={StyleSheet.absoluteFill}
           />
 
           <View style={styles.contentContainer}>
-            <View style={styles.textContainer}>
-              <Text style={styles.genreTitle}>{genre}</Text>
-              <Text style={styles.genreSubtitle}>CURATED_COLLECTION</Text>
+            {/* 上段: グラスチップ + インデックス番号 */}
+            <View style={styles.topRow}>
+              <View
+                style={[styles.badge, { borderColor: hexToRgba(accent, 0.55) }]}
+              >
+                <Disc3 size={16} color={accent} strokeWidth={2} />
+              </View>
+              <Text style={styles.indexText}>{indexLabel}</Text>
             </View>
 
-            <TouchableOpacity
-              onPress={handlePress}
-              style={styles.exploreButton}
-            >
-              <View style={styles.blurButton}>
-                <Text style={styles.exploreText}>DISCOVER</Text>
-                <ArrowRight size={14} color="#fff" strokeWidth={1.5} />
+            {/* 下段: アクセントライン + eyebrow + タイトル + DISCOVER */}
+            <View style={styles.bottomCluster}>
+              <View style={[styles.accentLine, { backgroundColor: accent }]} />
+              <Text style={styles.eyebrow}>CURATED COLLECTION</Text>
+              <Text style={styles.genreTitle} numberOfLines={1}>
+                {genre}
+              </Text>
+
+              <View style={styles.discoverButton}>
+                <Text style={styles.discoverText}>DISCOVER</Text>
+                <View style={[styles.discoverIcon, { backgroundColor: accent }]}>
+                  <ArrowUpRight size={16} color="#0b0b0d" strokeWidth={2.5} />
+                </View>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Animated.View>
@@ -127,26 +193,27 @@ interface AnimatedDotProps {
   scrollX: SharedValue<number>;
 }
 
+// アクティブなインジケータが横に伸びる「ワーム」型ページネーション。
 const AnimatedDot = memo(function AnimatedDot({
   index,
   scrollX,
 }: AnimatedDotProps) {
   const dotStyle = useAnimatedStyle(() => {
     const distance = Math.abs(scrollX.value - index * SNAP_INTERVAL);
+    const width = interpolate(
+      distance,
+      [0, SNAP_INTERVAL],
+      [24, 7],
+      Extrapolate.CLAMP,
+    );
     const opacity = interpolate(
       distance,
       [0, SNAP_INTERVAL],
-      [1, 0.3],
-      Extrapolate.CLAMP,
-    );
-    const scale = interpolate(
-      distance,
-      [0, SNAP_INTERVAL],
-      [1, 0.8],
+      [1, 0.32],
       Extrapolate.CLAMP,
     );
 
-    return { opacity, transform: [{ scale }] };
+    return { width, opacity };
   });
 
   return <Animated.View style={[styles.indicator, dotStyle]} />;
@@ -232,89 +299,115 @@ const styles = StyleSheet.create({
   cardWrapper: {
     width: SCREEN_WIDTH,
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   card: {
     width: CARD_WIDTH,
     height: HERO_HEIGHT,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: "#171717",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 10,
+    borderRadius: 26,
+    backgroundColor: "#0c0c0e",
+    // shadowColor はジャンルのアクセント色を各カードでインライン指定（色付きグロー）
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.45,
+    shadowRadius: 22,
+    elevation: 14,
   },
-  imageContainer: {
+  cardInner: {
     flex: 1,
+    borderRadius: 26,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
   backgroundImage: {
     width: "100%",
     height: "100%",
   },
-  bottomOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "100%",
-  },
   contentContainer: {
     flex: 1,
-    padding: 32,
+    padding: 24,
     justifyContent: "space-between",
   },
-  textContainer: {
-    gap: 4,
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  genreTitle: {
-    color: "#fff",
-    fontSize: 36,
+  badge: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.35)",
+    borderWidth: 1,
+  },
+  indexText: {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 34,
+    lineHeight: 34,
     fontFamily: FONTS.title,
-    letterSpacing: -0.5,
+    includeFontPadding: false,
   },
-  genreSubtitle: {
-    color: "rgba(255, 255, 255, 0.6)",
-    fontSize: 10,
+  bottomCluster: {
+    gap: 8,
+  },
+  accentLine: {
+    width: 30,
+    height: 3,
+    borderRadius: 2,
+  },
+  eyebrow: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 11,
     fontFamily: FONTS.body,
     letterSpacing: 3,
   },
-  exploreButton: {
-    alignSelf: "flex-start",
+  genreTitle: {
+    color: "#fff",
+    fontSize: 34,
+    fontFamily: FONTS.title,
+    letterSpacing: -0.5,
   },
-  blurButton: {
+  discoverButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+    alignSelf: "flex-start",
+    gap: 12,
+    paddingLeft: 18,
+    paddingRight: 6,
+    paddingVertical: 6,
+    marginTop: 6,
+    borderRadius: 30,
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    overflow: "hidden",
-    gap: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderColor: "rgba(255,255,255,0.16)",
   },
-  exploreText: {
+  discoverText: {
     color: "#fff",
     fontSize: 12,
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.semibold,
     letterSpacing: 2,
+  },
+  discoverIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
   },
   indicatorContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
-    height: 12,
+    marginTop: 18,
+    height: 8,
   },
   indicator: {
-    height: 4,
-    width: 4,
-    borderRadius: 2,
-    backgroundColor: "#F5F5F5",
-    marginHorizontal: 4,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#ffffff",
+    marginHorizontal: 3,
   },
 });
 

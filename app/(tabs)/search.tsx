@@ -6,6 +6,7 @@ import { Search, CloudOff, Music, ListMusic } from "lucide-react-native";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { useSearchScreen, SearchType } from "@/hooks/common/useSearchScreen";
+import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
 import { SearchBar } from "@/components/search/SearchBar";
 import { SearchHistory } from "@/components/search/SearchHistory";
 import { TabSwitcher, TabOption } from "@/components/common/TabSwitcher";
@@ -35,6 +36,7 @@ const SEARCH_TAB_OPTIONS: TabOption<SearchType>[] = [
 function SearchScreen() {
   const { isOnline } = useNetworkStatus();
   const colors = useThemeStore((state) => state.colors);
+  const bottomPadding = useContentBottomPadding();
 
   const {
     controlledValue,
@@ -143,7 +145,7 @@ function SearchScreen() {
           data={songs}
           keyExtractor={keyExtractor}
           renderItem={renderSongItem}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
         />
       ) : (
         <FlashList
@@ -155,6 +157,7 @@ function SearchScreen() {
           contentContainerStyle={{
             ...styles.listContainer,
             ...styles.playlistContainer,
+            paddingBottom: bottomPadding,
           }}
         />
       )}
@@ -217,7 +220,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 120,
   },
   playlistContainer: {
     paddingTop: 12,
