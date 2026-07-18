@@ -33,8 +33,8 @@ jest.mock("@/components/spotlights/SpotlightItem", () => {
   };
 });
 
-// Mock useBottomTabBarHeight
-jest.mock("@react-navigation/bottom-tabs", () => ({
+// Mock useBottomTabBarHeight (SDK 56 以降は expo-router/js-tabs 経由)
+jest.mock("expo-router/js-tabs", () => ({
   useBottomTabBarHeight: () => 49,
 }));
 

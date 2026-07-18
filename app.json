@@ -7,8 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true
     },
@@ -22,12 +20,6 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.s3xmaxman.badwave"
-    },
-    "androidStatusBar": {
-      "barStyle": "light-content"
-    },
-    "androidNavigationBar": {
-      "barStyle": "light-content"
     },
     "web": {
       "bundler": "metro",
@@ -45,7 +37,10 @@
         }
       ],
       "expo-video",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

@@ -488,7 +488,7 @@ export default function PlaylistOptionsMenu({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   modalRoot: { flex: 1, justifyContent: "flex-end" },
-  overlay: { ...StyleSheet.absoluteFillObject },
+  overlay: { ...StyleSheet.absoluteFill },
   menuButton: {
     padding: 10,
     borderRadius: 14,

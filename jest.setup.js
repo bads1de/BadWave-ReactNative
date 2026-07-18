@@ -194,6 +194,15 @@ jest.mock("expo-video", () => {
 // 各テストファイルで個別にモックを定義するようにします
 // グローバルモックは使用しません
 
+// react-native-worklets mock
+// Reanimated 4 で worklets が外部パッケージ化された。reanimated の mock は
+// 実 index 経由で worklets のネイティブ初期化(loadUnpackers)を呼ぶため、
+// ネイティブ非搭載の jest では読み込み時にクラッシュする。worklets 同梱の
+// mock を先に割り当てることで reanimated index を安全に読み込めるようにする。
+jest.mock("react-native-worklets", () =>
+  require("react-native-worklets/lib/module/mock"),
+);
+
 // Reanimated mock
 jest.mock("react-native-reanimated", () => {
   const Reanimated = require("react-native-reanimated/mock");
@@ -221,11 +230,13 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
-jest.mock("@react-navigation/bottom-tabs", () => ({
+// SDK 56 以降、@react-navigation/* はアプリコードから直接 import できず
+// expo-router のエントリポイント経由になるため、モックも同じ specifier を対象にする
+jest.mock("expo-router/js-tabs", () => ({
   useBottomTabBarHeight: () => 60, // Default mock height
 }));
 
-jest.mock("@react-navigation/native", () => {
+jest.mock("expo-router/react-navigation", () => {
   const actualNav = jest.requireActual("@react-navigation/native");
   return {
     ...actualNav,

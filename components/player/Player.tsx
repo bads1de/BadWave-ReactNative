@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     width,
   },
   backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   backgroundVideo: {},
   closeButton: {

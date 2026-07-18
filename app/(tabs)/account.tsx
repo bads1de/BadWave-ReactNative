@@ -70,7 +70,7 @@ export default function AccountScreen() {
         colors={colors.gradient}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.4 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       {/* ヘッダー */}

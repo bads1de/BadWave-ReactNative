@@ -3,7 +3,8 @@ import { ViewToken, Dimensions } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Spotlight } from "@/types";
 import SpotlightItem from "@/components/spotlights/SpotlightItem";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+// SDK 56 以降、react-navigation は expo-router のエントリポイント経由で import する
+import { useBottomTabBarHeight } from "expo-router/js-tabs";
 import { useSpotlightStore } from "@/hooks/stores/useSpotlightStore";
 
 interface SpotlightListProps {

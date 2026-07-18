@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   darkOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.6)",
   },
   content: {
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   albumArtGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   songInfo: {
     alignItems: "center",

@@ -32,7 +32,8 @@ jest.mock("@/hooks/stores/usePlayerStore", () => ({
 jest.mock("@/hooks/common/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(() => ({ isOnline: true })),
 }));
-jest.mock("@react-navigation/native", () => ({
+// SDK 56 以降、useIsFocused は expo-router/react-navigation 経由で参照する
+jest.mock("expo-router/react-navigation", () => ({
   ...jest.requireActual("@react-navigation/native"),
   useIsFocused: jest.fn(() => true),
 }));

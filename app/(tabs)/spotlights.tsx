@@ -4,7 +4,7 @@
  */
 import React, { useEffect } from "react";
 import { View, StyleSheet, Text } from "react-native";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused } from "expo-router/react-navigation";
 import SpotlightList from "@/components/spotlights/SpotlightList";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";

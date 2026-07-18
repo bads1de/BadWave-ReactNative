@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   backgroundFallback: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   content: {
     // Content sits on top of blur

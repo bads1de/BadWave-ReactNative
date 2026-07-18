@@ -31,6 +31,7 @@ SplashScreen.preventAutoHideAsync();
 
 // TrackPlayerのサービス登録用グローバル変数
 declare global {
+  // eslint-disable-next-line no-var -- declare global でのグローバル変数宣言には var が必須（globalThis への公開に必要）
   var __TRACK_PLAYER_SERVICE_REGISTERED__: boolean | undefined;
 }
 

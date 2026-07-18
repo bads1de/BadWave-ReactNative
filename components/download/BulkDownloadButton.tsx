@@ -164,7 +164,7 @@ export function BulkDownloadButton({
       >
         <View
           style={[
-            StyleSheet.absoluteFillObject,
+            StyleSheet.absoluteFill,
             {
               borderRadius,
               backgroundColor: bgColor,
