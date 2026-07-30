@@ -82,10 +82,37 @@ badwave-mobile/
 │   └── OfflineStorageService.ts
 ├── types/            # TypeScript型定義
 │   └── index.ts
+├── assets/           # 静的アセット (画像、フォント等)
+├── docs/             # プロジェクトドキュメント
 ├── drizzle/          # Drizzle ORMマイグレーション
+├── __mocks__/        # Jestのモック
 └── __tests__/        # Jestによるテスト (ソース構造をミラーリング)
     └── ...
 ```
+
+##### 構成ディレクトリ
+
+- **`app/`**: Expo Router によって管理されるすべての画面とルートが含まれます。
+- **`actions/`**: Supabase バックエンドと対話する非同期関数を保持します。
+- **`components/`**: 再利用可能な React コンポーネント。すべてのリストアイテムは `React.memo` で最適化されています。
+- **`constants/`**: アプリケーション全体の定数。
+- **`hooks/`**: ビジネスロジックをカプセル化するカスタムフック。
+  - `data/`: ローカル SQLite からデータを読み込むフック
+  - `sync/`: Supabase からローカルへの同期フック
+  - `mutations/`: データ変更用フック（楽観的更新対応）
+- **`lib/`**: サードパーティサービスの初期化と共有ユーティリティ関数。
+- **`providers/`**: React コンテキストプロバイダー。
+- **`services/`**: バックグラウンドサービス。
+- **`types/`**: TypeScript型定義。
+- **`assets/`**: 画像やフォントなどの静的リソース。
+- **`docs/`**: プロジェクトドキュメント。
+- **`drizzle/`**: Drizzle ORMマイグレーションファイル。
+
+##### 環境・ツールディレクトリ
+
+- **`.expo/`**: Expoの設定とキャッシュ。自動生成されるため、直接編集することはほとんどありません。
+- **`.github/`**: GitHub ActionsやISSUE_TEMPLATE等のGitHub関連設定。
+- **`__mocks__/`**: テスト用のモックファイル。
 
 #### 各ディレクトリの役割
 

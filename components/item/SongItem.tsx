@@ -10,7 +10,9 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  runOnJS,
 } from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Play, Heart } from "lucide-react-native";
@@ -63,22 +65,27 @@ function SongItem({
     return { width: SONG_CARD.width, height: SONG_CARD.height };
   }, [dynamicSize, windowWidth]);
 
-  const handlePressIn = useCallback(() => {
-    "worklet";
-    if (isDisabled) return;
-    scaleAnim.value = withSpring(0.97, SPRING_CONFIG.default);
-  }, [isDisabled, scaleAnim]);
-
-  const handlePressOut = useCallback(() => {
-    "worklet";
-    if (isDisabled) return;
-    scaleAnim.value = withSpring(1, SPRING_CONFIG.bouncy);
-  }, [isDisabled, scaleAnim]);
-
   const handlePress = useCallback(() => {
     if (isDisabled) return;
     onClick(song.id);
   }, [isDisabled, onClick, song.id]);
+
+  const tapGesture = useMemo(() => {
+    return Gesture.Tap()
+      .enabled(!isDisabled)
+      .onBegin(() => {
+        "worklet";
+        scaleAnim.value = withSpring(0.97, SPRING_CONFIG.default);
+      })
+      .onFinalize(() => {
+        "worklet";
+        scaleAnim.value = withSpring(1, SPRING_CONFIG.bouncy);
+      })
+      .onEnd(() => {
+        "worklet";
+        runOnJS(handlePress)();
+      });
+  }, [isDisabled, scaleAnim, handlePress]);
 
   const handleTitlePress = useCallback(() => {
     router.push({
@@ -106,88 +113,87 @@ function SongItem({
         isDisabled && { opacity: 0.4 },
       ]}
     >
-      <TouchableOpacity
-        style={[
-          styles.container,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={0.9}
-        testID="song-container"
-        disabled={isDisabled}
-      >
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: song.image_path }}
-            style={styles.image}
-            contentFit="cover"
-            cachePolicy="memory-disk" // メモリとディスクを併用した高速なキャッシュ
-            recyclingKey={song.id} // リスト再利用時に前アイテムの画像が残らないようにする
-          />
-          <LinearGradient
-            colors={["transparent", "rgba(10, 10, 10, 0.8)", "#0A0A0A"]}
-            locations={[0.4, 0.8, 1]}
-            style={styles.gradientOverlay}
-          />
-          <View style={styles.menuContainer}>
-            {onOpenMenu ? (
-              <ItemOptionsButton onPress={handleMenuPress} />
-            ) : (
-              <ItemOptionsMenu song={song} />
-            )}
-          </View>
-
-          <TouchableOpacity
-            style={styles.textOverlay}
-            onPress={handleTitlePress}
-            activeOpacity={0.8}
-            testID="song-title-button"
-          >
-            <MarqueeText
-              text={song.title}
-              style={styles.title}
-              speed={0.5}
-              withGesture={false}
-              fontFamily={FONTS.body}
-              fontSize={15}
-              animate={!pauseTitleAnimation}
+      <GestureDetector gesture={tapGesture}>
+        <Animated.View
+          style={[
+            styles.container,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          testID="song-container"
+          accessibilityState={{ disabled: isDisabled }}
+          accessibilityRole="button"
+        >
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: song.image_path }}
+              style={styles.image}
+              contentFit="cover"
+              cachePolicy="memory-disk" // メモリとディスクを併用した高速なキャッシュ
+              recyclingKey={song.id} // リスト再利用時に前アイテムの画像が残らないようにする
             />
-            <Text
-              style={[styles.author, { color: colors.subText }]}
-              numberOfLines={1}
-            >
-              {song.author}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.footer}>
-            <View style={styles.statsRow}>
-              <View style={styles.stat}>
-                <Play size={10} color={colors.primary} fill={colors.primary} />
-                <Text style={[styles.statText, { color: colors.text }]}>
-                  {song.count}
-                </Text>
-              </View>
-              <View style={styles.stat}>
-                <Heart size={10} color={colors.text} />
-                <Text style={[styles.statText, { color: colors.text }]}>
-                  {song.like_count}
-                </Text>
-              </View>
+            <LinearGradient
+              colors={["transparent", "rgba(10, 10, 10, 0.8)", "#0A0A0A"]}
+              locations={[0.4, 0.8, 1]}
+              style={styles.gradientOverlay}
+            />
+            <View style={styles.menuContainer}>
+              {onOpenMenu ? (
+                <ItemOptionsButton onPress={handleMenuPress} />
+              ) : (
+                <ItemOptionsMenu song={song} />
+              )}
             </View>
-            <View style={styles.downloadIconContainer} testID="download-status-icon">
-              <Ionicons
-                name={isDownloaded ? "cloud-done" : "cloud-download-outline"}
-                size={14}
-                color="white"
-                style={{ opacity: downloadIconOpacity }}
+
+            <TouchableOpacity
+              style={styles.textOverlay}
+              onPress={handleTitlePress}
+              activeOpacity={0.8}
+              testID="song-title-button"
+            >
+              <MarqueeText
+                text={song.title}
+                style={styles.title}
+                speed={0.5}
+                withGesture={false}
+                fontFamily={FONTS.body}
+                fontSize={15}
+                animate={!pauseTitleAnimation}
               />
+              <Text
+                style={[styles.author, { color: colors.subText }]}
+                numberOfLines={1}
+              >
+                {song.author}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.footer}>
+              <View style={styles.statsRow}>
+                <View style={styles.stat}>
+                  <Play size={10} color={colors.primary} fill={colors.primary} />
+                  <Text style={[styles.statText, { color: colors.text }]}>
+                    {song.count}
+                  </Text>
+                </View>
+                <View style={styles.stat}>
+                  <Heart size={10} color={colors.text} />
+                  <Text style={[styles.statText, { color: colors.text }]}>
+                    {song.like_count}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.downloadIconContainer} testID="download-status-icon">
+                <Ionicons
+                  name={isDownloaded ? "cloud-done" : "cloud-download-outline"}
+                  size={14}
+                  color="white"
+                  style={{ opacity: downloadIconOpacity }}
+                />
+              </View>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </Animated.View>
+      </GestureDetector>
     </Animated.View>
   );
 }
