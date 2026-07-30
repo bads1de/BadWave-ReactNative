@@ -51,7 +51,7 @@ export function useSearchScreen() {
     queryKey: [CACHED_QUERIES.songs, CACHED_QUERIES.search, debouncedQuery],
     queryFn: () => getSongsByTitle(debouncedQuery),
     enabled: debouncedQuery.length > 0 && searchType === "songs",
-    staleTime: 0, // 常に最新結果を取得（グローバルの 10 分設定を上書き）
+    staleTime: 30_000,
   });
 
   const {
@@ -62,7 +62,7 @@ export function useSearchScreen() {
     queryKey: [CACHED_QUERIES.playlists, CACHED_QUERIES.search, debouncedQuery],
     queryFn: () => getPlaylistsByTitle(debouncedQuery),
     enabled: debouncedQuery.length > 0 && searchType === "playlists",
-    staleTime: 0,
+    staleTime: 30_000,
   });
 
   // キーボードの Search ボタンを押した時に履歴へ追加する
@@ -91,13 +91,17 @@ export function useSearchScreen() {
     setControlledValue(query);
   });
 
+  const stableSetRawQuery = useStableCallback((val: string) => setRawQuery(val));
+  const stableSetDebouncedQuery = useStableCallback((val: string) => setDebouncedQuery(val));
+  const stableSetSearchType = useStableCallback((val: SearchType) => setSearchType(val));
+
   // --- 表示状態の計算 ---
   const isLoading =
     searchType === "songs" ? isSongsLoading : isPlaylistsLoading;
   const error = searchType === "songs" ? songsError : playlistsError;
   const currentData = searchType === "songs" ? songs : playlists;
   const hasResults = currentData.length > 0;
-  const showHistory = rawQuery.length === 0 && history.length > 0;
+  const showHistory = debouncedQuery.length === 0 && history.length > 0;
   const showEmptyState = debouncedQuery.length > 0 && !hasResults && !isLoading;
 
   return {
@@ -116,9 +120,9 @@ export function useSearchScreen() {
     showHistory,
     showEmptyState,
     // ハンドラ
-    setRawQuery,
-    setDebouncedQuery,
-    setSearchType,
+    setRawQuery: stableSetRawQuery,
+    setDebouncedQuery: stableSetDebouncedQuery,
+    setSearchType: stableSetSearchType,
     handleSongPress,
     handlePlaylistPress,
     handleHistorySelect,

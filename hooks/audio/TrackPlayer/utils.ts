@@ -64,11 +64,11 @@ export async function convertSongToTrack(
     }
 
     const track: MediaItem = {
-      mediaId: song.id,
-      url: localPath || remoteUrl, // ローカルパスがあればそれを使用、なければリモートURL
-      title: song.title,
-      artist: song.author,
-      artworkUrl: song.image_path,
+      mediaId: String(song.id || ""),
+      url: localPath || remoteUrl || "", // ローカルパスがあればそれを使用、なければリモートURL
+      title: song.title || "",
+      artist: song.author || "",
+      artworkUrl: song.image_path || "",
       extras: { originalSong: song }, // 元のSongオブジェクトを保持
     };
     return track;
@@ -76,11 +76,11 @@ export async function convertSongToTrack(
     console.error(`Error converting song to track: ${error}`);
     // エラー時はリモートURLを使用
     return {
-      mediaId: song.id,
-      url: song.song_path,
-      title: song.title,
-      artist: song.author,
-      artworkUrl: song.image_path,
+      mediaId: String(song.id || ""),
+      url: song.song_path || "",
+      title: song.title || "",
+      artist: song.author || "",
+      artworkUrl: song.image_path || "",
       extras: { originalSong: song }, // 元のSongオブジェクトを保持
     };
   }

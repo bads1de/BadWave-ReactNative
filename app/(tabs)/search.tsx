@@ -145,6 +145,7 @@ function SearchScreen() {
           data={songs}
           keyExtractor={keyExtractor}
           renderItem={renderSongItem}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
         />
       ) : (
@@ -154,6 +155,7 @@ function SearchScreen() {
           keyExtractor={keyExtractor}
           renderItem={renderPlaylistItem}
           numColumns={2}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             ...styles.listContainer,
             ...styles.playlistContainer,

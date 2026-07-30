@@ -81,7 +81,7 @@ function ListItem({
           contentFit="cover"
           cachePolicy="memory-disk" // キャッシュポリシーをメモリ・ディスク併用に変更
           transition={200} // 表示時のアニメーションを追加
-          recyclingKey={song.id} // リスト再利用時に前アイテムの画像が残らないようにする
+          recyclingKey={String(song.id)} // リスト再利用時に前アイテムの画像が残らないようにする
         />
       </View>
 

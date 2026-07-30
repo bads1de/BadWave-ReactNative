@@ -79,6 +79,7 @@ function SearchHistoryComponent({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.chipsContainer}
       >
         {history.map((query) => (

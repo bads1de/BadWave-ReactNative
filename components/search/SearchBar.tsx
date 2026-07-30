@@ -79,18 +79,7 @@ function SearchBarInner({
   }, [onBlur]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        isFocused
-          ? {
-              ...styles.focused,
-              borderColor: colors.primary,
-              shadowColor: colors.primary,
-            }
-          : styles.normal,
-      ]}
-    >
+    <View style={styles.container}>
       <SearchIcon
         size={20}
         color={isFocused ? colors.primary : colors.subText}
@@ -127,17 +116,8 @@ const styles = StyleSheet.create({
     height: 56,
     marginBottom: 24,
     borderWidth: 1,
-  },
-  focused: {
-    backgroundColor: "rgba(255,255,255,0.08)",
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-  },
-  normal: {
     backgroundColor: "rgba(255,255,255,0.04)",
     borderColor: "transparent",
-    shadowColor: "transparent",
-    shadowOpacity: 0,
   },
   icon: {
     marginRight: 12,
