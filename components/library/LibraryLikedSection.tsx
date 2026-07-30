@@ -141,6 +141,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 24,
     marginBottom: 16,
+    zIndex: 10,
+    elevation: 10,
   },
   countBadge: {
     paddingHorizontal: 12,

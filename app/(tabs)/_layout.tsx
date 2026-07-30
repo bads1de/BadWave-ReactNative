@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Tabs } from "expo-router";
 import { Home, Search, Clapperboard, Library } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Header from "@/components/common/Header";
 import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
@@ -12,6 +13,7 @@ export default function TabLayout() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const showHeader = useHeaderStore((state) => state.showHeader);
   const colors = useThemeStore((state) => state.colors);
+  const insets = useSafeAreaInsets();
 
   return (
     <>
@@ -27,8 +29,8 @@ export default function TabLayout() {
             : {
                 backgroundColor: colors.background,
                 borderTopWidth: 0.5,
-                height: 80,
-                paddingBottom: 24,
+                height: 60 + insets.bottom,
+                paddingBottom: insets.bottom,
                 paddingTop: 12,
                 borderTopColor: colors.border,
               },

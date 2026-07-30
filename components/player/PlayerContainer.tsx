@@ -1,5 +1,6 @@
 import React, { memo, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useActiveMediaItem } from "@rntp/player";
 import MiniPlayer from "@/components/player/MiniPlayer";
 import Player from "@/components/player/Player";
@@ -22,6 +23,7 @@ import { useStableCallback } from "@/hooks/common/useStableCallback";
  * - 適切なzIndex管理による表示順序の制御
  */
 function PlayerContainer() {
+  const insets = useSafeAreaInsets();
   // メインプレイヤーの状態
   const showPlayer = usePlayerStore((state) => state.showPlayer);
   const setShowPlayer = usePlayerStore((state) => state.setShowPlayer);
@@ -108,7 +110,12 @@ function PlayerContainer() {
             </View>
           ) : (
             isMiniPlayerVisible && (
-              <View style={styles.miniPlayerContainer}>
+              <View
+                style={[
+                  styles.miniPlayerContainer,
+                  { bottom: 60 + insets.bottom + 8 },
+                ]}
+              >
                 <MiniPlayer
                   currentSong={currentSong}
                   isPlaying={isPlaying}
@@ -142,7 +149,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 1000, // 最前面に表示
+    zIndex: 1000,
+    elevation: 30,
   },
   swipeablePlayerContainer: {
     position: "absolute",
@@ -161,12 +169,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "#000",
     zIndex: 10,
+    elevation: 20,
   },
   miniPlayerContainer: {
     position: "absolute",
-    bottom: 80,
     left: 0,
     right: 0,
     zIndex: 5,
+    elevation: 15,
   },
 });
