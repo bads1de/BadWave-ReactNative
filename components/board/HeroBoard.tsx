@@ -132,26 +132,30 @@ const GenreCard = memo(function GenreCard({
       onPressOut={handlePressOut}
       style={styles.cardWrapper}
     >
-      <Animated.View style={[styles.card, { shadowColor: accent }, animatedStyle]}>
+      <Animated.View
+        style={[styles.card, { shadowColor: accent }, animatedStyle]}
+      >
         <View style={styles.cardInner}>
           <View style={StyleSheet.absoluteFill}>
             <ImageBackground
               source={backgroundImages[genre as keyof typeof backgroundImages]}
-              style={styles.backgroundImage}
+              style={[styles.backgroundImage, styles.cardImageBorder]}
               contentFit="cover"
               cachePolicy="memory-disk"
               transition={250}
             />
           </View>
 
-          {/* 下部の可読性グラデーション（タイトル・ボタンを読みやすくする） */}
+          {/* 上部ラインのマスク ＆ 下部テキスト可読性用グラデーション */}
           <LinearGradient
             colors={[
+              "rgba(12, 12, 14, 0.9)",
+              "rgba(12, 12, 14, 0.3)",
               "transparent",
-              "transparent",
-              "rgba(0,0,0,0.6)",
+              "rgba(0,0,0,0.65)",
               "rgba(0,0,0,0.95)",
             ]}
+            locations={[0, 0.08, 0.25, 0.7, 1]}
             style={StyleSheet.absoluteFill}
           />
 
@@ -176,7 +180,9 @@ const GenreCard = memo(function GenreCard({
 
               <View style={styles.discoverButton}>
                 <Text style={styles.discoverText}>DISCOVER</Text>
-                <View style={[styles.discoverIcon, { backgroundColor: accent }]}>
+                <View
+                  style={[styles.discoverIcon, { backgroundColor: accent }]}
+                >
                   <ArrowUpRight size={16} color="#0b0b0d" strokeWidth={2.5} />
                 </View>
               </View>
@@ -307,10 +313,10 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     backgroundColor: "#0c0c0e",
     // shadowColor はジャンルのアクセント色を各カードでインライン指定（色付きグロー）
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.45,
-    shadowRadius: 22,
-    elevation: 14,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   cardInner: {
     flex: 1,
@@ -322,6 +328,10 @@ const styles = StyleSheet.create({
   backgroundImage: {
     width: "100%",
     height: "100%",
+  },
+  cardImageBorder: {
+    borderRadius: 25,
+    overflow: "hidden",
   },
   contentContainer: {
     flex: 1,
