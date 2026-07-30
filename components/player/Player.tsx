@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  StyleSheet as RNStyleSheet,
   ScrollView,
 } from "react-native";
 import { ImageBackground } from "expo-image";
@@ -14,6 +13,7 @@ import {
   SkipBack,
   SkipForward,
   Repeat,
+  Repeat1,
   Play,
   Pause,
   ChevronDown,
@@ -35,7 +35,10 @@ import { FONTS } from "@/constants/theme";
 import { moderateScale } from "react-native-size-matters";
 
 /**
- * @fileoverview 音楽プレーヤーのUIコンポーネント (Badwave Refined)
+ * @fileoverview 音楽プレーヤーのUIコンポーネント (Full-bleed Stage & Console)
+ *
+ * イメージ/動画を全画面に敷き、段階的グラデーションの上に
+ * 楽曲情報・シーク・操作を集約したコンソールを配置する没入型構成。
  */
 
 interface PlayerProps {
@@ -76,9 +79,9 @@ interface ControlButtonProps {
   icon: IconComponent;
   isActive?: boolean;
   onPress: () => void;
-  repeatMode?: RepeatMode;
   testID?: string;
   activeColor?: string;
+  inactiveColor?: string;
 }
 
 interface PlayPauseButtonProps {
@@ -94,6 +97,57 @@ interface MediaBackgroundProps {
 
 const { width, height } = Dimensions.get("window");
 
+const PlayerHeader: FC<{ onClose: () => void }> = memo(({ onClose }) => (
+  <View style={styles.header}>
+    <TouchableOpacity
+      style={styles.headerChip}
+      onPress={onClose}
+      testID="close-button"
+      activeOpacity={0.7}
+    >
+      <ChevronDown size={22} color="#fff" strokeWidth={1.8} />
+    </TouchableOpacity>
+    <Text style={styles.headerLabel}>NOW PLAYING</Text>
+    <View style={styles.headerChipSpacer} />
+  </View>
+));
+PlayerHeader.displayName = "PlayerHeader";
+
+const MediaBackground: FC<MediaBackgroundProps> = memo(
+  ({ videoUrl, imageUrl }) => {
+    const player = useVideoPlayer({ uri: videoUrl || undefined }, (player) => {
+      if (videoUrl) {
+        player.muted = true;
+        player.loop = true;
+        player.play();
+      }
+    });
+
+    if (videoUrl) {
+      return (
+        <View style={StyleSheet.absoluteFill} testID="background-video">
+          <VideoView
+            player={player}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            nativeControls={false}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <ImageBackground
+        source={{ uri: imageUrl! }}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+      />
+    );
+  },
+);
+MediaBackground.displayName = "MediaBackground";
+
 const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => {
   const colors = useThemeStore((state) => state.colors);
   return (
@@ -105,6 +159,7 @@ const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => {
           speed={0.5}
           withGesture={false}
           fontSize={24}
+          fontFamily={FONTS.bold}
         />
         <Text
           style={[styles.author, { color: colors.subText }]}
@@ -114,9 +169,9 @@ const SongInfo: FC<SongInfoProps> = memo(({ currentSong }) => {
         </Text>
       </View>
       <View style={styles.actionButtons}>
-        <AddPlaylist songId={currentSong.id} />
-        <View style={{ width: 16 }} />
         <LikeButton songId={currentSong.id} />
+        <View style={{ width: 18 }} />
+        <AddPlaylist songId={currentSong.id} />
       </View>
     </View>
   );
@@ -134,75 +189,91 @@ const Controls: FC<ControlsProps> = memo(
     repeatMode,
     setRepeatMode,
     colors,
-  }) => (
-    <View style={styles.controls}>
-      <ControlButton
-        icon={Shuffle}
-        isActive={shuffle}
-        onPress={() => setShuffle(!shuffle)}
-        testID="shuffle-button"
-        activeColor={colors.primary}
-      />
-      <ControlButton
-        icon={SkipBack}
-        onPress={onPrev}
-        testID="prev-button"
-        activeColor={colors.primary}
-      />
-      <PlayPauseButton
-        isPlaying={isPlaying}
-        onPress={onPlayPause}
-        colors={colors}
-      />
-      <ControlButton
-        icon={SkipForward}
-        onPress={onNext}
-        testID="next-button"
-        activeColor={colors.primary}
-      />
-      <ControlButton
-        icon={Repeat}
-        isActive={repeatMode !== RepeatMode.Off}
-        onPress={() => {
-          switch (repeatMode) {
-            case RepeatMode.Off:
-              setRepeatMode(RepeatMode.One);
-              break;
-            case RepeatMode.One:
-              setRepeatMode(RepeatMode.All);
-              break;
-            case RepeatMode.All:
-              setRepeatMode(RepeatMode.Off);
-              break;
-          }
-        }}
-        repeatMode={repeatMode}
-        testID="repeat-button"
-        activeColor={colors.primary}
-      />
-    </View>
-  ),
+  }) => {
+    const accent = colors.primaryLight ?? colors.primary;
+    const inactive = "rgba(255, 255, 255, 0.65)";
+    return (
+      <View style={styles.controls}>
+        <ControlButton
+          icon={Shuffle}
+          isActive={shuffle}
+          onPress={() => setShuffle(!shuffle)}
+          testID="shuffle-button"
+          activeColor={accent}
+          inactiveColor={inactive}
+        />
+        <TouchableOpacity
+          onPress={onPrev}
+          style={styles.skipButton}
+          testID="prev-button"
+          activeOpacity={0.7}
+        >
+          <SkipBack size={30} color="#fff" strokeWidth={1.5} fill="#fff" />
+        </TouchableOpacity>
+        <PlayPauseButton
+          isPlaying={isPlaying}
+          onPress={onPlayPause}
+          colors={colors}
+        />
+        <TouchableOpacity
+          onPress={onNext}
+          style={styles.skipButton}
+          testID="next-button"
+          activeOpacity={0.7}
+        >
+          <SkipForward
+            size={30}
+            color="#fff"
+            strokeWidth={1.5}
+            fill="#fff"
+          />
+        </TouchableOpacity>
+        <ControlButton
+          icon={repeatMode === RepeatMode.One ? Repeat1 : Repeat}
+          isActive={repeatMode !== RepeatMode.Off}
+          onPress={() => {
+            switch (repeatMode) {
+              case RepeatMode.Off:
+                setRepeatMode(RepeatMode.One);
+                break;
+              case RepeatMode.One:
+                setRepeatMode(RepeatMode.All);
+                break;
+              case RepeatMode.All:
+                setRepeatMode(RepeatMode.Off);
+                break;
+            }
+          }}
+          testID="repeat-button"
+          activeColor={accent}
+          inactiveColor={inactive}
+        />
+      </View>
+    );
+  },
 );
 Controls.displayName = "Controls";
 
 const ControlButton: FC<ControlButtonProps> = memo(
-  ({ icon: Icon, isActive, onPress, repeatMode, testID, activeColor }) => {
+  ({ icon: Icon, isActive, onPress, testID, activeColor, inactiveColor }) => {
     return (
       <TouchableOpacity
         onPress={onPress}
         style={styles.controlButton}
         testID={testID}
+        activeOpacity={0.7}
       >
         <Icon
-          size={24}
-          color={isActive ? activeColor : "#fff"}
-          strokeWidth={1.2}
+          size={22}
+          color={isActive ? activeColor : inactiveColor}
+          strokeWidth={isActive ? 2 : 1.4}
         />
-        {Icon === Repeat && isActive && (
-          <Text style={[styles.repeatModeIndicator, { color: activeColor }]}>
-            {repeatMode === RepeatMode.One ? "1" : ""}
-          </Text>
-        )}
+        <View
+          style={[
+            styles.activeDot,
+            { backgroundColor: activeColor, opacity: isActive ? 1 : 0 },
+          ]}
+        />
       </TouchableOpacity>
     );
   },
@@ -210,100 +281,31 @@ const ControlButton: FC<ControlButtonProps> = memo(
 ControlButton.displayName = "ControlButton";
 
 const PlayPauseButton: FC<PlayPauseButtonProps> = memo(
-  ({ isPlaying, onPress, colors }) => (
-    <TouchableOpacity
-      style={[
-        styles.playButton,
-        {
-          backgroundColor: colors.primary,
-        },
-      ]}
-      onPress={onPress}
-      testID="play-pause-button"
-      activeOpacity={0.8}
-    >
-      {isPlaying ? (
-        <Pause size={32} color="#000" fill="#000" />
-      ) : (
-        <Play size={32} color="#000" fill="#000" style={{ marginLeft: 4 }} />
-      )}
-    </TouchableOpacity>
-  ),
-);
-PlayPauseButton.displayName = "PlayPauseButton";
-
-const MediaBackground: FC<MediaBackgroundProps> = memo(
-  ({ videoUrl, imageUrl }) => {
-    const player = useVideoPlayer({ uri: videoUrl || undefined }, (player) => {
-      if (videoUrl) {
-        player.muted = true;
-        player.loop = true;
-        player.play();
-      }
-    });
-
-    if (videoUrl) {
-      return (
-        <View style={styles.backgroundImage} testID="background-video">
-          <VideoView
-            player={player}
-            style={[RNStyleSheet.absoluteFill, styles.backgroundVideo]}
-            contentFit="cover"
-            nativeControls={false}
-          />
-        </View>
-      );
-    }
-
+  ({ isPlaying, onPress, colors }) => {
+    const accent = colors.primaryLight ?? colors.primary;
     return (
-      <ImageBackground
-        source={{ uri: imageUrl! }}
-        style={styles.backgroundImage}
-        contentFit="cover"
-        cachePolicy="memory-disk"
-      />
+      <TouchableOpacity
+        style={[
+          styles.playButton,
+          {
+            backgroundColor: accent,
+            shadowColor: accent,
+          },
+        ]}
+        onPress={onPress}
+        testID="play-pause-button"
+        activeOpacity={0.85}
+      >
+        {isPlaying ? (
+          <Pause size={34} color="#000" fill="#000" />
+        ) : (
+          <Play size={34} color="#000" fill="#000" style={{ marginLeft: 5 }} />
+        )}
+      </TouchableOpacity>
     );
   },
 );
-MediaBackground.displayName = "MediaBackground";
-
-const PlayerControls: FC<PlayerProps & { colors: ThemeDefinition["colors"] }> =
-  memo(
-    ({
-      isPlaying,
-      onPlayPause,
-      onNext,
-      onPrev,
-      onSeek,
-      shuffle,
-      setShuffle,
-      repeatMode,
-      setRepeatMode,
-      currentSong,
-      colors,
-    }) => (
-      <>
-        <SongInfo currentSong={currentSong} />
-
-        <View style={styles.progressContainer}>
-          <PlayerProgress onSeek={onSeek} />
-        </View>
-
-        <Controls
-          isPlaying={isPlaying}
-          onPlayPause={onPlayPause}
-          onNext={onNext}
-          onPrev={onPrev}
-          shuffle={shuffle}
-          setShuffle={setShuffle}
-          repeatMode={repeatMode}
-          setRepeatMode={setRepeatMode}
-          colors={colors}
-        />
-      </>
-    ),
-  );
-PlayerControls.displayName = "PlayerControls";
+PlayPauseButton.displayName = "PlayPauseButton";
 
 function Player(props: PlayerProps) {
   const { currentSong, onClose } = props;
@@ -321,21 +323,39 @@ function Player(props: PlayerProps) {
           imageUrl={currentSong.image_path}
         />
 
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={onClose}
-          testID="close-button"
-        >
-          <ChevronDown size={32} color="#fff" strokeWidth={1.5} />
-        </TouchableOpacity>
-
         <LinearGradient
-          colors={["transparent", "rgba(10, 10, 10, 0.6)", "#0A0A0A"]}
-          locations={[0, 0.4, 1]}
-          style={styles.bottomContainer}
-        >
-          <PlayerControls {...props} colors={colors} />
-        </LinearGradient>
+          colors={[
+            "rgba(0, 0, 0, 0.35)",
+            "transparent",
+            "rgba(0, 0, 0, 0.45)",
+            "rgba(0, 0, 0, 0.92)",
+          ]}
+          locations={[0, 0.35, 0.68, 1]}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+
+        <PlayerHeader onClose={onClose} />
+
+        <View style={styles.console}>
+          <SongInfo currentSong={currentSong} />
+
+          <View style={styles.progressContainer}>
+            <PlayerProgress onSeek={props.onSeek} />
+          </View>
+
+          <Controls
+            isPlaying={props.isPlaying}
+            onPlayPause={props.onPlayPause}
+            onNext={props.onNext}
+            onPrev={props.onPrev}
+            shuffle={props.shuffle}
+            setShuffle={props.setShuffle}
+            repeatMode={props.repeatMode}
+            setRepeatMode={props.setRepeatMode}
+            colors={colors}
+          />
+        </View>
       </View>
 
       <View style={styles.bottomSectionsContainer}>
@@ -374,31 +394,47 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   playerContainer: {
-    height: height * 0.9,
+    height: height * 0.92,
     width,
   },
-  backgroundImage: {
-    ...StyleSheet.absoluteFill,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 56,
   },
-  backgroundVideo: {},
-  closeButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    zIndex: 10,
+  headerChip: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  bottomContainer: {
+  headerChipSpacer: {
+    width: 38,
+  },
+  headerLabel: {
+    fontSize: 11,
+    fontFamily: FONTS.semibold,
+    letterSpacing: 3,
+    color: "rgba(255, 255, 255, 0.65)",
+  },
+  console: {
     position: "absolute",
     bottom: 0,
-    width: "100%",
-    paddingHorizontal: 32,
-    paddingVertical: 40,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
   },
   infoContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 24,
   },
   textContainer: {
     flex: 1,
@@ -406,58 +442,62 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   titleContainer: {
-    height: 38,
-    marginBottom: 4,
+    height: 32,
+    marginBottom: 2,
   },
   author: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: FONTS.body,
-    opacity: 0.8,
+    opacity: 0.9,
   },
   actionButtons: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
   progressContainer: {
-    marginVertical: 12, // Reduced to tighten layout
+    marginTop: 20,
   },
   controls: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
-    paddingHorizontal: 8,
+    marginTop: 20,
+    paddingHorizontal: 4,
   },
   controlButton: {
-    width: moderateScale(48),
-    height: moderateScale(48),
+    width: moderateScale(46),
+    height: moderateScale(46),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activeDot: {
+    position: "absolute",
+    bottom: 4,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  skipButton: {
+    width: moderateScale(52),
+    height: moderateScale(52),
     justifyContent: "center",
     alignItems: "center",
   },
   playButton: {
-    width: moderateScale(72),
-    height: moderateScale(72),
-    borderRadius: moderateScale(36),
+    width: moderateScale(78),
+    height: moderateScale(78),
+    borderRadius: moderateScale(39),
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  repeatModeIndicator: {
-    position: "absolute",
-    bottom: 2,
-    right: 4,
-    fontSize: 10,
-    fontFamily: FONTS.bold,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 10,
   },
   bottomSectionsContainer: {
-    paddingTop: 16,
+    paddingTop: 8,
     paddingBottom: 64,
-    paddingHorizontal: 16,
-    gap: 24, // Reduces the excessive space between sections
+    paddingHorizontal: 20,
+    gap: 28,
   },
 });

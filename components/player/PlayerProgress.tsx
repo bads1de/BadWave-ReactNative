@@ -10,6 +10,7 @@ import Slider from "@react-native-community/slider";
 import { formatTime } from "@/lib/utils/formatTime";
 import { useProgress } from "@rntp/player";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { FONTS } from "@/constants/theme";
 
 interface PlayerProgressProps {
   onSeek: (millis: number) => void;
@@ -48,6 +49,8 @@ const PlayerProgress = memo(({ onSeek }: PlayerProgressProps) => {
     onSeek(value);
   };
 
+  const accent = colors.primaryLight ?? colors.primary;
+
   return (
     <>
       <Slider
@@ -57,9 +60,9 @@ const PlayerProgress = memo(({ onSeek }: PlayerProgressProps) => {
         maximumValue={safeDuration * 1000}
         value={position * 1000}
         onSlidingComplete={handleSeek}
-        minimumTrackTintColor={colors.primary}
-        maximumTrackTintColor={colors.subText}
-        thumbTintColor={colors.primary}
+        minimumTrackTintColor={accent}
+        maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
+        thumbTintColor={accent}
         testID="seek-slider"
       />
       <View style={styles.timeContainer}>
@@ -79,16 +82,19 @@ PlayerProgress.displayName = "PlayerProgress";
 const styles = StyleSheet.create({
   slider: {
     width: "100%",
-    height: 40,
+    height: 32,
   },
   timeContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: -10,
+    marginTop: -6,
+    paddingHorizontal: 2,
   },
   timeText: {
-    color: "#999",
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: FONTS.semibold,
+    letterSpacing: 0.8,
+    opacity: 0.85,
   },
 });
 

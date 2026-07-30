@@ -18,8 +18,7 @@ import {
   LayoutChangeEvent,
 } from "react-native";
 
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Mic2 } from "lucide-react-native";
+import { Mic2, ChevronDown, ChevronUp } from "lucide-react-native";
 import TrackPlayer, { useProgress } from "@rntp/player";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
@@ -111,21 +110,17 @@ const LyricLineItem = memo(
         onPress={handlePress}
         activeOpacity={0.7}
         onLayout={handleLayout}
-        style={[
-          styles.lineWrapper,
-          isActive && {
-            borderColor: activeColor,
-            borderWidth: 1,
-            shadowColor: activeColor,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.8,
-            shadowRadius: 10,
-            elevation: 5,
-            backgroundColor: "#000000", // 黒固定
-          },
-        ]}
+        style={styles.lineWrapper}
       >
-        <Text style={[styles.lyricText, isActive && styles.activeLyricText]}>
+        <Text
+          style={[
+            styles.lyricText,
+            isActive && [
+              styles.activeLyricText,
+              { textShadowColor: activeColor },
+            ],
+          ]}
+        >
           {line.text === "" ? "♫" : line.text}
         </Text>
       </TouchableOpacity>
@@ -257,7 +252,12 @@ const LyricContent = memo(
                 onPress={toggleExpand}
                 style={styles.showMoreBtn}
               >
-                <Text style={[styles.showMoreText, { color: colors.primary }]}>
+                <Text
+                  style={[
+                    styles.showMoreText,
+                    { color: colors.primaryLight ?? colors.primary },
+                  ]}
+                >
                   {isExpanded ? "Show less" : "Show more"}
                 </Text>
               </TouchableOpacity>
@@ -320,30 +320,28 @@ const Lyric: React.FC<LyricProps> = ({
     return parseLrc(lyrics).length > 0;
   }, [lyrics]);
 
+  const accent = colors.primaryLight ?? colors.primary;
+
   return (
     <View style={styles.container}>
-      <View style={styles.sectionTitleContainer}>
-        <TouchableOpacity
-          style={styles.titleRow}
-          onPress={toggleExpand}
-          activeOpacity={0.8}
-        >
-          <Mic2 size={20} color={colors.primary} strokeWidth={1.5} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Lyrics
-          </Text>
-          <View style={{ flex: 1 }} />
-          <View style={styles.expandBtn}>
-            <MaterialCommunityIcons
-              name={
-                isExpanded ? "arrow-collapse-vertical" : "arrow-expand-vertical"
-              }
-              size={20}
-              color={colors.text}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={styles.titleRow}
+        onPress={toggleExpand}
+        activeOpacity={0.8}
+      >
+        <Mic2 size={17} color={accent} strokeWidth={1.8} />
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Lyrics
+        </Text>
+        <View style={{ flex: 1 }} />
+        <View style={styles.expandBtn}>
+          {isExpanded ? (
+            <ChevronUp size={20} color={colors.subText} strokeWidth={1.8} />
+          ) : (
+            <ChevronDown size={20} color={colors.subText} strokeWidth={1.8} />
+          )}
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.contentContainer}>
         {(!hasLrc || isExpanded) && (
@@ -364,11 +362,11 @@ const Lyric: React.FC<LyricProps> = ({
           >
             <Text
               style={[
-                styles.plainText,
-                { color: colors.subText, fontSize: 13, marginBottom: 0 },
+                styles.previewText,
+                { color: colors.subText },
               ]}
             >
-              Tap to view synced lyrics...
+              Tap to view synced lyrics
             </Text>
           </TouchableOpacity>
         )}
@@ -391,27 +389,19 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
   },
-  sectionTitleContainer: {
-    marginBottom: 16,
-  },
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: FONTS.title,
-    letterSpacing: 0.5,
-  },
-  titleSeparator: {
-    height: 1,
-    width: "100%",
-    opacity: 0.6,
+    letterSpacing: 0.4,
   },
   contentContainer: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
   },
   expandBtn: {
     padding: 4,
@@ -420,25 +410,27 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   previewContainer: {
-    paddingVertical: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 16,
     marginTop: 8,
   },
+  previewText: {
+    fontSize: 14,
+    fontFamily: FONTS.body,
+  },
   plainText: {
-    color: "#E0E0E0", // Solid color instead of rgba
+    color: "rgba(255, 255, 255, 0.75)",
     fontSize: 16,
-    lineHeight: 28,
+    fontFamily: FONTS.body,
+    lineHeight: 30,
     marginBottom: 8,
     textAlign: "center",
-    fontWeight: "500",
-  },
-  moreText: {
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 14,
-    marginTop: 4,
   },
   plainScrollView: {
     maxHeight: 300,
@@ -457,35 +449,32 @@ const styles = StyleSheet.create({
     paddingVertical: "50%",
   },
   lineWrapper: {
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 10,
     marginVertical: 2,
-    borderRadius: 12,
   },
   lyricText: {
     fontSize: 16,
-    color: "#808080", // Solid gray
-    fontWeight: "600",
+    fontFamily: FONTS.semibold,
+    color: "rgba(255, 255, 255, 0.45)",
     textAlign: "center",
-    backgroundColor: "transparent",
   },
   activeLyricText: {
-    fontSize: 24,
+    fontSize: 21,
+    fontFamily: FONTS.bold,
     color: "#FFFFFF",
-    fontWeight: "900", // More bold
-    transform: [{ scale: 1.05 }],
-    textShadowColor: "rgba(255, 255, 255, 1.0)", // Max intensity
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 30, // Wider glow
+    textShadowRadius: 18,
   },
-  // Removed topFade, bottomFade
   footer: {
-    marginTop: 10,
+    marginTop: 12,
     alignItems: "center",
   },
   songInfo: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.3)",
+    fontSize: 11,
+    fontFamily: FONTS.body,
+    letterSpacing: 0.5,
+    color: "rgba(255,255,255,0.35)",
   },
 });
 
