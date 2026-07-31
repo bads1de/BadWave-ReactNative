@@ -1,9 +1,19 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 
 // インポート
 import SongItem from "@/components/item/SongItem";
 import { useRouter } from "expo-router";
+
+// SongItem のタップは GestureDetector(Gesture.Tap) で処理されるため、
+// RNGH 公式の jest-utils を使ってタップジェスチャーを発火させる
+function fireTapGesture() {
+  fireGestureHandler(getByGestureTestId("song-tap-gesture"), []);
+}
 
 // モックの設定
 jest.mock("expo-router", () => ({
@@ -84,12 +94,12 @@ describe("SongItem", () => {
 
   it("曲をクリックすると適切な関数が呼ばれる", () => {
     const mockOnClick = jest.fn();
-    const { getByTestId } = render(
+    render(
       <SongItem song={mockSong} onClick={mockOnClick} isOnline={true} />
     );
 
-    // 曲のコンテナをクリック
-    fireEvent.press(getByTestId("song-container"));
+    // 曲のタップジェスチャーを発火
+    fireTapGesture();
 
     expect(mockOnClick).toHaveBeenCalledWith(mockSong.id);
   });

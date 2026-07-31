@@ -1,7 +1,17 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from "react-native-gesture-handler/jest-utils";
 import SongItem from "@/components/item/SongItem";
 import Song from "@/types";
+
+// SongItem のタップは GestureDetector(Gesture.Tap) で処理されるため、
+// RNGH 公式の jest-utils を使ってタップジェスチャーを発火させる
+function fireTapGesture() {
+  fireGestureHandler(getByGestureTestId("song-tap-gesture"), []);
+}
 
 // モック
 jest.mock("expo-router", () => ({
@@ -48,11 +58,9 @@ describe("SongItem Component", () => {
 
   it("オンライン時: 押下で onClick が呼ばれる", () => {
     const onClickMock = jest.fn();
-    const { getByTestId } = render(
-      <SongItem song={mockSong} onClick={onClickMock} isOnline={true} />,
-    );
+    render(<SongItem song={mockSong} onClick={onClickMock} isOnline={true} />);
 
-    fireEvent.press(getByTestId("song-container"));
+    fireTapGesture();
     expect(onClickMock).toHaveBeenCalledWith(mockSong.id);
   });
 
@@ -67,7 +75,7 @@ describe("SongItem Component", () => {
     );
 
     const container = getByTestId("song-container");
-    fireEvent.press(container);
+    fireTapGesture();
 
     expect(onClickMock).not.toHaveBeenCalled();
     // disabled プロパティが渡されているか
@@ -85,7 +93,7 @@ describe("SongItem Component", () => {
     );
 
     const container = getByTestId("song-container");
-    fireEvent.press(container);
+    fireTapGesture();
 
     expect(onClickMock).toHaveBeenCalled();
     expect(container.props.accessibilityState.disabled).toBeFalsy();

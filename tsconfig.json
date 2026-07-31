@@ -5,6 +5,7 @@
     "ignoreDeprecations": "6.0",
     "strict": true,
     "esModuleInterop": true,
+    "types": ["jest"],
     "paths": {
       "@/*": ["./*"]
     }

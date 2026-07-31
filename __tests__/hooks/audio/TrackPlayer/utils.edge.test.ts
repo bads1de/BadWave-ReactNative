@@ -99,7 +99,7 @@ describe("TrackPlayer utils - Edge Cases", () => {
         mediaId: incompleteSong.id,
         url: incompleteSong.song_path,
         title: incompleteSong.title,
-        artist: undefined, // authorがないのでundefined
+        artist: "", // authorがないので空文字にフォールバック
         artworkUrl: incompleteSong.image_path,
         extras: { originalSong: incompleteSong },
       });
@@ -159,8 +159,9 @@ describe("TrackPlayer utils - Edge Cases", () => {
       const tracks = await convertToTracks(songsWithInvalidIds);
 
       expect(tracks.length).toBe(2);
+      // mediaId は String(song.id || "") で正規化される
       expect(tracks[0].mediaId).toBe("");
-      expect(tracks[1].mediaId).toBe(null as unknown as string);
+      expect(tracks[1].mediaId).toBe("");
     });
 
     it("should handle mixed valid and invalid songs", async () => {
@@ -174,40 +175,22 @@ describe("TrackPlayer utils - Edge Cases", () => {
 
       expect(tracks.length).toBe(3);
       expect(tracks[0].url).toBeDefined();
-      expect(tracks[1].url).toBeUndefined();
+      // プロパティが全て欠落した曲は空文字にフォールバックする
+      expect(tracks[1].url).toBe("");
       expect(tracks[2].url).toBe("");
     });
 
-    it("should handle errors during conversion of individual songs", async () => {
-      // 最初の曲の変換中にエラーが発生するようにモック
-      jest
-        .spyOn(utils, "convertSongToTrack")
-        .mockImplementationOnce(() =>
-          Promise.reject(new Error("Conversion error"))
-        )
-        .mockImplementationOnce((song) =>
-          Promise.resolve({
-            mediaId: song.id,
-            url: song.song_path,
-            title: song.title,
-            artist: song.author,
-            artworkUrl: song.image_path,
-            extras: { originalSong: song },
-          })
-        );
+    it("should propagate errors from batch path retrieval", async () => {
+      // convertSongToTrack は内部でエラーをフォールバック処理するため reject しない。
+      // convertToTracks が実際に reject するのは getSongPathsBatch の失敗時なので、
+      // その経路でエラーが伝播することを検証する。
+      mockOfflineStorageService.getSongPathsBatch.mockRejectedValue(
+        new Error("Batch path error")
+      );
 
       const songs = [mockSong, { ...mockSong, id: "song-2" }];
 
-      // エラーが発生するはずだが、Promise.allが失敗するため、try-catchで囲む
-      try {
-        await convertToTracks(songs);
-        // ここには到達しないはず
-        fail("Expected an error but none was thrown");
-      } catch (error) {
-        expect(error).toBeDefined();
-        expect(error).toBeInstanceOf(Error);
-        expect(error).toHaveProperty("message");
-      }
+      await expect(convertToTracks(songs)).rejects.toThrow("Batch path error");
     });
   });
 

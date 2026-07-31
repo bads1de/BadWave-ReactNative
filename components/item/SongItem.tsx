@@ -72,6 +72,8 @@ function SongItem({
 
   const tapGesture = useMemo(() => {
     return Gesture.Tap()
+      // テストでジェスチャーを特定するための testID（RNGH jest-utils 用）
+      .withTestId("song-tap-gesture")
       .enabled(!isDisabled)
       .onBegin(() => {
         "worklet";
