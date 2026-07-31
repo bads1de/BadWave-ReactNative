@@ -6,6 +6,6 @@
       "powershell"
     ],
     "deny": [],
-    "defaultMode": "default"
+    "defaultMode": "auto-accept"
   }
 }
