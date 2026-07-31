@@ -1,23 +1,12 @@
 import Song from "@/types";
+import { SongRow, SongInsertRow } from "@/lib/db/schema";
 
-export type SongRowLike = {
-  id: string;
-  userId: string;
-  title: string;
-  author: string;
-  songPath?: string | null;
-  originalSongPath?: string | null;
-  imagePath?: string | null;
-  originalImagePath?: string | null;
-  videoPath?: string | null;
-  originalVideoPath?: string | null;
-  duration?: number | null;
-  genre?: string | null;
-  lyrics?: string | null;
-  playCount?: number | null;
-  likeCount?: number | null;
-  createdAt?: string | null;
-};
+/**
+ * SQLite の song 行の入力型。
+ * 必須コア列 + 任意の残り列 (schema の SongRow から派生)。
+ */
+export type SongRowInput = Pick<SongRow, "id" | "userId" | "title" | "author"> &
+  Partial<Omit<SongRow, "id" | "userId" | "title" | "author">>;
 
 export type MappedSong = Song & {
   duration?: number;
@@ -55,7 +44,7 @@ function resolveVideoPath(
  * ローカル再生用に local_* も同時に埋める。
  */
 export function mapSongRowToSong(
-  row: SongRowLike,
+  row: SongRowInput,
   options: MapSongOptions = {},
 ): MappedSong {
   const preferOriginalPaths = options.preferOriginalPaths ?? false;
@@ -89,6 +78,30 @@ export function mapSongRowToSong(
     local_image_path: row.imagePath ?? undefined,
     local_video_path: row.videoPath ?? undefined,
     duration: row.duration ?? undefined,
+  };
+}
+
+/**
+ * UI の Song 型を SQLite の挿入行に変換する (mapSongRowToSong の逆方向)。
+ */
+export function mapSongToRow(song: MappedSong): SongInsertRow {
+  return {
+    id: song.id,
+    userId: song.user_id,
+    title: song.title,
+    author: song.author,
+    songPath: song.local_song_path ?? null,
+    imagePath: song.local_image_path ?? null,
+    videoPath: song.local_video_path ?? null,
+    originalSongPath: song.song_path ?? null,
+    originalImagePath: song.image_path ?? null,
+    originalVideoPath: song.video_path ?? null,
+    duration: typeof song.duration === "number" ? song.duration : null,
+    genre: song.genre ?? null,
+    lyrics: song.lyrics ?? null,
+    createdAt: song.created_at,
+    playCount: parseInt(String(song.count ?? 0), 10) || 0,
+    likeCount: parseInt(String(song.like_count ?? 0), 10) || 0,
   };
 }
 

@@ -1,13 +1,17 @@
+import { THEMES } from "./ThemeColors";
+
+const violetColors = THEMES.violet.colors;
+
 export const COLORS = {
-  primary: "#4c1d95", // Violet Primary
-  secondary: "#18181b", // Zinc 900
-  background: "#000000", // Black
-  text: "#ffffff", // White
-  subText: "#a1a1aa", // Zinc 400
-  error: "#ef4444", // Red 500
-  success: "#22c55e", // Green 500
-  border: "#27272a", // Zinc 800
-  card: "#18181b", // Zinc 900
+  primary: violetColors.primary,
+  secondary: violetColors.card,
+  background: violetColors.background,
+  text: violetColors.text,
+  subText: violetColors.subText,
+  error: violetColors.error,
+  success: violetColors.success,
+  border: violetColors.border,
+  card: violetColors.card,
 };
 
 export const FONTS = {
@@ -18,8 +22,8 @@ export const FONTS = {
 };
 
 export const GRADIENTS = {
-  primary: ["#4c1d95", "#000000"],
-  success: ["#22c55e", "#166534"],
-  error: ["#ef4444", "#991b1b"],
-  pinkBlue: ["#7c3aed", "#ec4899"], // Violet accent transition
+  primary: violetColors.gradient,
+  success: [violetColors.success, "#166534"],
+  error: [violetColors.error, "#991b1b"],
+  pinkBlue: [violetColors.accentFrom, violetColors.accentTo],
 } as const;

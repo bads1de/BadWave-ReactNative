@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
 import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
+import { getErrorMessage } from "@/lib/utils/error";
+import { mapPlaylistToRow } from "@/lib/db/playlistMapper";
 import { useSyncBase } from "./useSyncBase";
 
 /**
@@ -24,7 +26,7 @@ export function useSyncPlaylists(userId?: string) {
         .eq("user_id", userId);
 
       if (playlistError) {
-        throw new Error(playlistError.message);
+        throw new Error(getErrorMessage(playlistError));
       }
 
       if (!remotePlaylists || remotePlaylists.length === 0) {
@@ -32,14 +34,7 @@ export function useSyncPlaylists(userId?: string) {
       }
 
       await db.transaction(async (tx) => {
-        const playlistsToInsert = remotePlaylists.map((playlist) => ({
-          id: playlist.id,
-          userId: playlist.user_id,
-          title: playlist.title,
-          imagePath: playlist.image_path,
-          isPublic: playlist.is_public,
-          createdAt: playlist.created_at,
-        }));
+        const playlistsToInsert = remotePlaylists.map(mapPlaylistToRow);
 
         if (playlistsToInsert.length > 0) {
           await tx

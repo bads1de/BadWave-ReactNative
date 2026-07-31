@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
 import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { getErrorMessage } from "@/lib/utils/error";
+import { mapSongToRow } from "@/lib/utils/songMapper";
 import { useSyncBase } from "./useSyncBase";
 
 /**
@@ -29,21 +30,7 @@ export function useSyncSongs() {
       }
 
       // SQLite に Upsert (Batch)
-      const valuesToInsert = remoteSongs.map((song) => ({
-        id: song.id,
-        userId: song.user_id,
-        title: song.title,
-        author: song.author,
-        originalSongPath: song.song_path,
-        originalImagePath: song.image_path,
-        originalVideoPath: song.video_path ?? null,
-        duration: typeof song.duration === "number" ? song.duration : null,
-        genre: song.genre ?? null,
-        lyrics: song.lyrics ?? null,
-        createdAt: song.created_at,
-        playCount: parseInt(String(song.count ?? 0), 10) || 0,
-        likeCount: parseInt(String(song.like_count ?? 0), 10) || 0,
-      }));
+      const valuesToInsert = remoteSongs.map(mapSongToRow);
 
       if (valuesToInsert.length > 0) {
         await db
