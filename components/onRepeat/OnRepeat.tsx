@@ -9,7 +9,7 @@ import {
 import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
 import getTopPlayedSongs from "@/actions/song/getTopPlayedSongs";
-import { useUser } from "@/actions/user/getUser";
+import { useUser } from "@/hooks/data/useUser";
 import { useIsPlaying } from "@/hooks/audio/useAudioPlayer";
 import TrackPlayer from "@rntp/player";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";

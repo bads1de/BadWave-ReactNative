@@ -13,7 +13,7 @@ import { Palette, RefreshCw, HardDrive, LogOut } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/actions/user/getUser";
+import { useUser } from "@/hooks/data/useUser";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { THEMES, ThemeType } from "@/constants/ThemeColors";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";

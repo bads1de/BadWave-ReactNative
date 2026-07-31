@@ -37,7 +37,7 @@ badwave-mobile/
 │   │   ├── playlist/[playlistId].tsx # プレイリスト詳細 (動的ルート)
 │   │   └── song/[songId].tsx   # 楽曲詳細 (動的ルート)
 │   └── _layout.tsx             # ルートレイアウト
-├── actions/          # Supabaseとのデータ通信処理
+├── actions/          # Supabase/SQLiteへのデータアクセス (React非依存のasync関数)
 │   ├── playlist/
 │   ├── song/
 │   ├── spotlight/
@@ -93,7 +93,7 @@ badwave-mobile/
 ##### 構成ディレクトリ
 
 - **`app/`**: Expo Router によって管理されるすべての画面とルートが含まれます。
-- **`actions/`**: Supabase バックエンドと対話する非同期関数を保持します。
+- **`actions/`**: Supabase / SQLite への I/O（二重書き込み）を担当する React 非依存の async 関数を保持します。
 - **`components/`**: 再利用可能な React コンポーネント。すべてのリストアイテムは `React.memo` で最適化されています。
 - **`constants/`**: アプリケーション全体の定数。
 - **`hooks/`**: ビジネスロジックをカプセル化するカスタムフック。
@@ -117,7 +117,7 @@ badwave-mobile/
 #### 各ディレクトリの役割
 
 - **`app/`**: Expo Router によって管理されるすべての画面とルートが含まれます。
-- **`actions/`**: Supabase バックエンドと対話する非同期関数を保持します。
+- **`actions/`**: Supabase / SQLite への I/O（二重書き込み）を担当する React 非依存の async 関数を保持します。
 - **`components/`**: 再利用可能な React コンポーネント。すべてのリストアイテムは `React.memo` で最適化されています。
 - **`hooks/`**: ビジネスロジックをカプセル化するカスタムフック。
   - `data/`: ローカル SQLite からデータを読み込むフック
@@ -194,6 +194,16 @@ npm test
 - **リトライ**: ネットワーク依存の操作には`withSupabaseRetry`を使用。
 - **楽観的更新**: ユーザー操作に対する即座のフィードバックを実現。
 - **TDD**: テスト駆動開発を推奨。
+
+### actions / hooks の境界
+
+依存方向は `UI → hooks → actions → Supabase + SQLite` の単方向に統一する。
+
+- **`actions/`**: React 非依存の純粋な async 関数のみ。Supabase / SQLite への I/O（二重書き込み）を担当。フック（`use*`）を置かない。
+- **`hooks/`**: actions を呼ぶ薄い React 層。`useQuery` / `useMutation`（楽観的更新）、Zustand、UI 状態のみ。
+- **判定基準**: React（`useState` / `useQuery` 等）を使うなら hooks、使わないなら actions。迷ったらこれに従う。
+- **hooks から生の `supabase` 呼び出しをしない**。必ず actions 経由にする。
+- **例外**: `hooks/sync/` はバックグラウンド同期処理のため、hook 内で Supabase / SQLite を直接操作してよい。
 
 ### コミット規約
 

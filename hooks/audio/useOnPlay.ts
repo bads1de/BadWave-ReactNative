@@ -1,13 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { eq, sql } from "drizzle-orm";
-import { supabase } from "@/lib/supabase";
+import incrementPlayCount from "@/actions/song/incrementPlayCount";
 import usePlayHistory from "@/hooks/audio/usePlayHistory";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
-import { db } from "@/lib/db/client";
-import { songs } from "@/lib/db/schema";
 import { CACHED_QUERIES } from "@/constants";
-import { withSupabaseRetry } from "@/lib/utils/retry";
 
 const PLAYBACK_QUERY_KEYS = [
   [CACHED_QUERIES.songs],
@@ -18,20 +14,6 @@ const PLAYBACK_QUERY_KEYS = [
   [CACHED_QUERIES.topPlayedSongs],
   [CACHED_QUERIES.getRecommendations],
 ] as const;
-
-async function updateLocalPlayStats(songId: string) {
-  try {
-    await db
-      .update(songs)
-      .set({
-        playCount: sql`${songs.playCount} + 1`,
-        lastPlayedAt: new Date(),
-      })
-      .where(eq(songs.id, songId));
-  } catch (error) {
-    console.error("[Play] local play_count update failed:", error);
-  }
-}
 
 /**
  * 曲の再生回数を更新するカスタムフック
@@ -57,21 +39,11 @@ const useOnPlay = () => {
       }
 
       try {
-        // Supabase 側の再生回数をアトミックに更新
-        const { error: rpcError } = await withSupabaseRetry(async () =>
-          supabase.rpc("increment_song_play_count", { song_id: id }),
-        );
+        // Supabase / SQLite の再生回数を action 経由で更新
+        await incrementPlayCount(id);
 
-        if (rpcError) {
-          console.error("RPC Error:", rpcError);
-          return false;
-        }
-
-        // ローカルSQLiteと再生履歴を更新
-        await Promise.allSettled([
-          updateLocalPlayStats(id),
-          playHistory.recordPlay(id),
-        ]);
+        // 再生履歴を更新
+        await playHistory.recordPlay(id);
 
         // 反映中のローカル/リモート query を更新
         await Promise.allSettled(

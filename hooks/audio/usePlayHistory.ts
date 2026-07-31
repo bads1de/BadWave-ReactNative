@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
-import { useUser } from "@/actions/user/getUser";
+import recordPlayAction from "@/actions/user/recordPlay";
+import { useUser } from "@/hooks/data/useUser";
 import { useCallback, useMemo } from "react";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 
@@ -21,13 +21,7 @@ const usePlayHistory = () => {
       // オフライン時またはユーザー/曲IDがない場合はスキップ
       if (!isOnline || !user?.id || !songId) return;
 
-      const { error } = await supabase
-        .from("play_history")
-        .insert({ user_id: user?.id, song_id: songId });
-
-      if (error) {
-        console.error("再生の記録中にエラーが発生しました:", error);
-      }
+      await recordPlayAction(songId, user.id);
     },
     [isOnline, user?.id],
   );

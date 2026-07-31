@@ -1,14 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { eq, and } from "drizzle-orm";
-import { supabase } from "@/lib/supabase";
-import { db } from "@/lib/db/client";
-import { playlistSongs } from "@/lib/db/schema";
 import addPlaylistSong from "@/actions/playlist/addPlaylistSong";
-import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
+import deletePlaylistSong from "@/actions/playlist/deletePlaylistSong";
+import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
-import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
-import { getErrorMessage } from "@/lib/utils/error";
 import Song from "@/types";
 
 /**
@@ -116,31 +111,8 @@ export function useMutatePlaylistSong(userId?: string) {
         throw new Error(PLAYLIST_ERRORS.EDIT_OFFLINE);
       }
 
-      // 1. Supabase から削除（先に実行、リトライ付き）
-      const result = await withSupabaseRetry(async () => {
-        return await supabase
-          .from(SUPABASE_TABLES.playlistSongs)
-          .delete()
-          .eq("playlist_id", playlistId)
-          .eq("user_id", userId)
-          .eq("song_id", songId);
-      });
-
-      if (result.error) {
-        throw new Error(
-          `${PLAYLIST_ERRORS.SUPABASE_DELETE_FAILED}: ${getErrorMessage(result.error)}`
-        );
-      }
-
-      // 2. ローカルDBから削除（Supabase成功後）
-      await db
-        .delete(playlistSongs)
-        .where(
-          and(
-            eq(playlistSongs.playlistId, playlistId),
-            eq(playlistSongs.songId, songId)
-          )
-        );
+      // 削除処理は action に一本化し、Supabase / SQLite を揃える
+      await deletePlaylistSong(playlistId, songId, userId);
 
       return { songId, playlistId };
     },

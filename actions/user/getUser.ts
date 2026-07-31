@@ -1,6 +1,5 @@
-import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
+import { SUPABASE_TABLES } from "@/constants";
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
 import { User } from "@/types";
 import { getErrorMessage } from "@/lib/utils/error";
 
@@ -30,15 +29,4 @@ export const getUser = async (): Promise<User | null> => {
   }
 
   return data || null;
-};
-
-/**
- * ユーザー情報を取得するためのカスタムフック
- * @returns {UseQueryResult<User | null, Error>} ユーザー情報のクエリ結果
- */
-export const useUser = () => {
-  return useQuery({
-    queryKey: [CACHED_QUERIES.user],
-    queryFn: getUser,
-  });
 };

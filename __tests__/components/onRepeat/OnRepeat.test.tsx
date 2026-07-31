@@ -2,14 +2,14 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import OnRepeat from "@/components/onRepeat/OnRepeat";
 import { useQuery } from "@tanstack/react-query";
-import { useUser } from "@/actions/user/getUser";
+import { useUser } from "@/hooks/data/useUser";
 import { useIsPlaying } from "@/hooks/audio/useAudioPlayer";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import TrackPlayer from "@rntp/player";
 
 // モックの設定
 jest.mock("@tanstack/react-query");
-jest.mock("@/actions/user/getUser");
+jest.mock("@/hooks/data/useUser");
 jest.mock("@/hooks/audio/useAudioPlayer", () => ({
   useAudioPlayer: jest.fn(),
   useIsPlaying: jest.fn(),
