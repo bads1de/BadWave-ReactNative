@@ -207,7 +207,8 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     marginTop: verticalScale(8),
-    marginBottom: verticalScale(32),
+    // HeroBoard 内 marginBottom 24 + タイトル marginTop 16 = 56px (他セクション間と同じ)
+    marginBottom: verticalScale(16),
   },
   sectionTitleContainer: {
     marginBottom: verticalScale(20),

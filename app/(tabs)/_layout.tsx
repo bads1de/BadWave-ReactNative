@@ -8,6 +8,7 @@ import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import PlayerContainer from "@/components/player/PlayerContainer";
+import { LAYOUT } from "@/constants";
 
 export default function TabLayout() {
   const showPlayer = usePlayerStore((state) => state.showPlayer);
@@ -29,7 +30,7 @@ export default function TabLayout() {
             : {
                 backgroundColor: colors.background,
                 borderTopWidth: 0.5,
-                height: 60 + insets.bottom,
+                height: LAYOUT.tabBarHeight + insets.bottom,
                 paddingBottom: insets.bottom,
                 paddingTop: 12,
                 borderTopColor: colors.border,

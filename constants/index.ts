@@ -80,7 +80,7 @@ export const ROUTES = {
 // tabBarHeight / miniPlayerHeight は画面下部に固定表示されるオーバーレイの実高さで、
 // 各スクロール画面の下部パディング算出（useContentBottomPadding）に用いる。
 export const LAYOUT = {
-  tabBarHeight: 80, // app/(tabs)/_layout.tsx の tabBarStyle.height と一致
+  tabBarHeight: 60, // app/(tabs)/_layout.tsx の tabBarStyle.height のコンテンツ部分。insets.bottom は useContentBottomPadding 側で加算
   miniPlayerHeight: 68, // MiniPlayer container height(60) + marginBottom(8)
   contentGap: 16, // コンテンツ末尾とオーバーレイの間に確保する余白
 } as const;

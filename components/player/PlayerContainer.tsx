@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useActiveMediaItem } from "@rntp/player";
 import MiniPlayer from "@/components/player/MiniPlayer";
@@ -11,6 +11,7 @@ import { usePlayerStore } from "@/hooks/stores/usePlayerStore";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
 import Song from "@/types";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
+import { LAYOUT } from "@/constants";
 
 /**
  * プレーヤーコンテナコンポーネント
@@ -113,7 +114,7 @@ function PlayerContainer() {
               <View
                 style={[
                   styles.miniPlayerContainer,
-                  { bottom: 60 + insets.bottom + 8 },
+                  { bottom: LAYOUT.tabBarHeight + insets.bottom + 8 },
                 ]}
               >
                 <MiniPlayer

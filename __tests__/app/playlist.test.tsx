@@ -58,6 +58,7 @@ jest.mock("react-native-toast-message", () => ({
 }));
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaView: ({ children }: any) => children,
+  useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
 }));
 jest.mock("expo-router", () => ({
   useRouter: jest.fn(),

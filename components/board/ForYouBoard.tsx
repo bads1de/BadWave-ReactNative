@@ -12,7 +12,7 @@ import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useSongOptionsMenu } from "@/hooks/common/useSongOptionsMenu";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
-import { verticalScale } from "react-native-size-matters";
+import { SONG_CARD } from "@/constants";
 
 function ForYouBoard() {
   const { session } = useAuth();
@@ -107,18 +107,18 @@ export default memo(ForYouBoard);
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: verticalScale(320),
+    height: SONG_CARD.height + 40, // SongItem 実高 (SONG_CARD.height + margin 20 + padding 16) に合わせる
   },
   listContent: {
     paddingVertical: 8,
   },
   loadingContainer: {
-    height: verticalScale(320),
+    height: SONG_CARD.height + 40,
     justifyContent: "center",
     alignItems: "center",
   },
   emptyContainer: {
-    height: verticalScale(200),
+    height: SONG_CARD.height + 40,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,

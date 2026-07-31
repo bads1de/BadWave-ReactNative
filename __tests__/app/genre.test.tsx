@@ -34,6 +34,7 @@ jest.mock("expo-router", () => ({
 }));
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaView: "SafeAreaView",
+  useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
 }));
 jest.mock("@/hooks/data/useGetSongsByGenre", () => ({
   useGetSongsByGenre: jest.fn(() => ({

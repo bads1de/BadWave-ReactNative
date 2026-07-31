@@ -132,7 +132,6 @@ function PlaylistBoard() {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
     height: ITEM_WIDTH, // Fixed height for horizontal FlashList
   },
   scrollContent: {
