@@ -7,9 +7,8 @@ import {
   Dimensions,
 } from "react-native";
 import { Image } from "expo-image";
-import { useQuery } from "@tanstack/react-query";
-import getTopPlayedSongs from "@/actions/song/getTopPlayedSongs";
 import { useUser } from "@/hooks/data/useUser";
+import { useGetTopPlayedSongs } from "@/hooks/data/useGetTopPlayedSongs";
 import { useIsPlaying } from "@/hooks/audio/useAudioPlayer";
 import TrackPlayer from "@rntp/player";
 import { useOnRepeatStore } from "@/hooks/stores/useOnRepeatStore";
@@ -21,7 +20,6 @@ import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useDownloadedSongs } from "@/hooks/downloads/useDownloadedSongs";
-import { CACHED_QUERIES } from "@/constants";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
 
 const { width } = Dimensions.get("window");
@@ -105,11 +103,7 @@ function OnRepeat() {
     [downloadedSongs],
   );
 
-  const { data: topSongs = [] } = useQuery({
-    queryKey: [CACHED_QUERIES.topPlayedSongs, userId],
-    queryFn: () => getTopPlayedSongs(userId),
-    enabled: !!userId,
-  });
+  const { data: topSongs = [] } = useGetTopPlayedSongs(userId);
 
   const handleSongPress = useStableCallback(
     async (songIndex: number) => {

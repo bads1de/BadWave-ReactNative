@@ -23,9 +23,12 @@ jest.mock("@/components/common/Error", () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock("@/actions/playlist/getPublicPlaylists", () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock("@/hooks/data/useGetPublicPlaylists", () => ({
+  useGetPublicPlaylists: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  })),
 }));
 jest.mock("@/hooks/stores/useThemeStore", () => ({
   useThemeStore: jest.fn(() => ({

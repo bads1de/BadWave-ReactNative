@@ -29,11 +29,6 @@ jest.mock("expo-image", () => ({
   Image: "Image",
 }));
 
-jest.mock("@/actions/song/getTopPlayedSongs", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseUser = useUser as jest.MockedFunction<typeof useUser>;
 const mockUseIsPlaying = useIsPlaying as jest.MockedFunction<

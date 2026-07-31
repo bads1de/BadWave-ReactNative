@@ -8,12 +8,11 @@ import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
 import { Playlist, ThemeColors } from "@/types";
-import { CACHED_QUERIES, ROUTES } from "@/constants";
-import getPublicPlaylists from "@/actions/playlist/getPublicPlaylists";
-import { useQuery } from "@tanstack/react-query";
+import { ROUTES } from "@/constants";
 import { memo, useCallback } from "react";
 
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
+import { useGetPublicPlaylists } from "@/hooks/data/useGetPublicPlaylists";
 import Loading from "@/components/common/Loading";
 
 const ITEM_WIDTH = 160;
@@ -78,12 +77,7 @@ function PlaylistBoard() {
     data: playlists = [],
     isLoading,
     error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.getPublicPlaylists],
-    queryFn: () => getPublicPlaylists(10),
-    staleTime: 1000 * 60 * 5, // 5分
-    refetchOnWindowFocus: false,
-  });
+  } = useGetPublicPlaylists(10);
 
   const router = useRouter();
 

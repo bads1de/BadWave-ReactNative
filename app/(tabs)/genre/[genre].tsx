@@ -5,17 +5,14 @@ import {
   Text,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import { CloudOff, Music2 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import getSongsByGenre from "@/actions/song/getSongsByGenre";
 import ListItem from "@/components/item/ListItem";
 import Loading from "@/components/common/Loading";
 import Error from "@/components/common/Error";
 import { usePlayControls } from "@/hooks/audio/useAudioPlayer";
 import { useLocalSearchParams } from "expo-router";
-import { CACHED_QUERIES } from "@/constants";
 import { useHeaderStore } from "@/hooks/stores/useHeaderStore";
 import Song from "@/types";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
@@ -24,6 +21,7 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import BackButton from "@/components/common/BackButton";
 import { useStableCallback } from "@/hooks/common/useStableCallback";
 import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
+import { useGetSongsByGenre } from "@/hooks/data/useGetSongsByGenre";
 
 export default function GenreSongsScreen() {
   const router = useRouter();
@@ -36,11 +34,7 @@ export default function GenreSongsScreen() {
     data: genreSongs = [],
     isLoading,
     error,
-  } = useQuery({
-    queryKey: [CACHED_QUERIES.songsByGenre, genre],
-    queryFn: () => getSongsByGenre(genre),
-    enabled: !!genre && isOnline,
-  });
+  } = useGetSongsByGenre(genre, isOnline);
 
   useFocusEffect(
     useCallback(() => {
