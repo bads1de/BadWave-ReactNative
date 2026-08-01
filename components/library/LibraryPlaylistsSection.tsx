@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { ListMusic } from "lucide-react-native";
@@ -27,6 +27,11 @@ function LibraryPlaylistsSectionInner({
     [onPlaylistPress],
   );
 
+  const listContentStyle = useMemo(
+    () => [styles.listContainer, { paddingBottom: bottomPadding }],
+    [bottomPadding],
+  );
+
   if (playlists.length === 0) {
     return (
       <LibraryEmptyState
@@ -52,7 +57,7 @@ function LibraryPlaylistsSectionInner({
         renderItem={renderPlaylistItem}
         numColumns={2}
         keyExtractor={keyExtractor}
-        contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
+        contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
       />
     </View>

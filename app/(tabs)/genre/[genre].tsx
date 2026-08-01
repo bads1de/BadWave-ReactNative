@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -62,6 +62,24 @@ export default function GenreSongsScreen() {
 
   const keyExtractor = useCallback((item: Song) => item.id, []);
 
+  const listHeader = useMemo(
+    () => (
+      <Animated.View
+        entering={FadeInDown.delay(200)}
+        style={styles.listHeader}
+      >
+        <View style={styles.countBadge}>
+          <Music2 color={COLORS.primary} size={14} />
+          <Text style={styles.countText}>
+            {genreSongs.length} Curated Tracks
+          </Text>
+        </View>
+        <View style={styles.divider} />
+      </Animated.View>
+    ),
+    [genreSongs.length],
+  );
+
   if (!isOnline) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -108,20 +126,7 @@ export default function GenreSongsScreen() {
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
-            ListHeaderComponent={
-              <Animated.View
-                entering={FadeInDown.delay(200)}
-                style={styles.listHeader}
-              >
-                <View style={styles.countBadge}>
-                  <Music2 color={COLORS.primary} size={14} />
-                  <Text style={styles.countText}>
-                    {genreSongs.length} Curated Tracks
-                  </Text>
-                </View>
-                <View style={styles.divider} />
-              </Animated.View>
-            }
+            ListHeaderComponent={listHeader}
           />
         </View>
       </SafeAreaView>

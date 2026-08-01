@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { FlashList } from "@shopify/flash-list";
@@ -81,6 +81,11 @@ function LibraryLikedSectionInner({
 
   const keyExtractor = useCallback((item: Song) => item.id, []);
 
+  const listContentStyle = useMemo(
+    () => [styles.listContainer, { paddingBottom: bottomPadding }],
+    [bottomPadding],
+  );
+
   if (songs.length === 0) {
     return (
       <LibraryEmptyState
@@ -120,7 +125,7 @@ function LibraryLikedSectionInner({
         renderItem={renderLikedSong}
         keyExtractor={keyExtractor}
         numColumns={2}
-        contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
+        contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={handleLikedListScrollStart}
         onMomentumScrollBegin={handleLikedListScrollStart}

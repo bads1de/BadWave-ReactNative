@@ -43,7 +43,6 @@ jest.mock("@/app/(tabs)/library", () => {
             onPress: () => {},
           });
         },
-        estimatedItemSize: 80,
       });
     };
 

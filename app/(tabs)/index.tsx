@@ -92,6 +92,13 @@ export default function HomeScreen() {
   );
 
   const keyExtractorRecent = useCallback((item: Song) => item.id, []);
+  const recentListStyle = useMemo(
+    () => ({
+      ...styles.songsContainer,
+      ...(currentSong && !showPlayer ? { paddingBottom: 10 } : {}),
+    }),
+    [currentSong, showPlayer],
+  );
   const homeSections = useMemo<HomeSectionKey[]>(
     () =>
       songs.length > 0
@@ -150,12 +157,7 @@ export default function HomeScreen() {
                     keyExtractor={keyExtractorRecent}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{
-                      ...styles.songsContainer,
-                      ...(currentSong && !showPlayer
-                        ? { paddingBottom: 10 }
-                        : {}),
-                    }}
+                    contentContainerStyle={recentListStyle}
                   />
                 </View>
               </View>
@@ -166,6 +168,7 @@ export default function HomeScreen() {
     [
       currentSong,
       keyExtractorRecent,
+      recentListStyle,
       renderRecentSongItem,
       renderSectionTitle,
       showPlayer,

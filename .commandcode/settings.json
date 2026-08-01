@@ -7,5 +7,6 @@
     ],
     "deny": [],
     "defaultMode": "auto-accept"
-  }
+  },
+  "tasteLearning": true
 }

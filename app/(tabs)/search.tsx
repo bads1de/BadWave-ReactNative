@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
@@ -79,6 +79,19 @@ function SearchScreen() {
 
   const keyExtractor = useCallback((item: Song | Playlist) => item.id, []);
 
+  const songsListStyle = useMemo(
+    () => [styles.listContainer, { paddingBottom: bottomPadding }],
+    [bottomPadding],
+  );
+  const playlistsListStyle = useMemo(
+    () => ({
+      ...styles.listContainer,
+      ...styles.playlistContainer,
+      paddingBottom: bottomPadding,
+    }),
+    [bottomPadding],
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -146,7 +159,7 @@ function SearchScreen() {
           keyExtractor={keyExtractor}
           renderItem={renderSongItem}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[styles.listContainer, { paddingBottom: bottomPadding }]}
+          contentContainerStyle={songsListStyle}
         />
       ) : (
         <FlashList
@@ -156,11 +169,7 @@ function SearchScreen() {
           renderItem={renderPlaylistItem}
           numColumns={2}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
-            ...styles.listContainer,
-            ...styles.playlistContainer,
-            paddingBottom: bottomPadding,
-          }}
+          contentContainerStyle={playlistsListStyle}
         />
       )}
     </SafeAreaView>

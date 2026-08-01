@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface SyncResult {
@@ -31,6 +31,14 @@ export function useSyncBase({
 }: UseSyncBaseOptions) {
   const queryClient = useQueryClient();
 
+  // 呼び出し側は配列リテラル (毎レンダー新しい参照) を渡すため、
+  // effect の依存配列に直接入れると再レンダー毎に無駄な invalidate が走る。
+  // ref 経由で最新のキーを保持し、effect は data 変化時のみ実行する。
+  const invalidateKeyRef = useRef(invalidateQueryKey);
+  useEffect(() => {
+    invalidateKeyRef.current = invalidateQueryKey;
+  }, [invalidateQueryKey]);
+
   const { data, isFetching, error, refetch } = useQuery({
     queryKey,
     queryFn,
@@ -43,10 +51,10 @@ export function useSyncBase({
   useEffect(() => {
     if (data && data.synced > 0) {
       queryClient.invalidateQueries({
-        queryKey: invalidateQueryKey,
+        queryKey: invalidateKeyRef.current,
       });
     }
-  }, [data, queryClient, invalidateQueryKey]);
+  }, [data, queryClient]);
 
   return {
     syncedCount: data?.synced ?? 0,

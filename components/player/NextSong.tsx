@@ -136,7 +136,7 @@ function NextSong() {
                 speed={0.3}
                 fontSize={16}
                 fontFamily={FONTS.semibold}
-                style={{ marginBottom: 4 }}
+                style={styles.title}
               />
               <Text
                 style={[styles.artist, { color: colors.subText }]}
@@ -186,6 +186,9 @@ const styles = StyleSheet.create({
     marginLeft: 14,
     flex: 1,
     justifyContent: "center",
+  },
+  title: {
+    marginBottom: 4,
   },
   artist: {
     fontSize: 13,

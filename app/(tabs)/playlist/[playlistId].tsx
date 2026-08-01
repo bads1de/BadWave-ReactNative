@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -284,6 +284,29 @@ export default function PlaylistDetailScreen() {
   if (error || playlistError)
     return <Error message={error?.message || playlistError?.message} />;
 
+  const listContentStyle = useMemo(
+    () => ({ paddingBottom: bottomPadding }),
+    [bottomPadding],
+  );
+  const renderEmpty = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name="musical-notes-outline"
+          size={64}
+          color={colors.border}
+        />
+        <Text style={[styles.emptyText, { color: colors.text }]}>
+          Empty Playlist
+        </Text>
+        <Text style={[styles.emptySubText, { color: colors.subText }]}>
+          Add tracks from your discovery
+        </Text>
+      </View>
+    ),
+    [colors],
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -293,23 +316,9 @@ export default function PlaylistDetailScreen() {
         keyExtractor={keyExtractor}
         renderItem={renderSongs}
         ListHeaderComponent={renderHeader}
-        contentContainerStyle={{ paddingBottom: bottomPadding }}
+        contentContainerStyle={listContentStyle}
         key={"playlist-songs-list"}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name="musical-notes-outline"
-              size={64}
-              color={colors.border}
-            />
-            <Text style={[styles.emptyText, { color: colors.text }]}>
-              Empty Playlist
-            </Text>
-            <Text style={[styles.emptySubText, { color: colors.subText }]}>
-              Add tracks from your discovery
-            </Text>
-          </View>
-        }
+        ListEmptyComponent={renderEmpty}
       />
     </SafeAreaView>
   );

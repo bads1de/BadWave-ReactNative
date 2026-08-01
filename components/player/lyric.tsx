@@ -144,12 +144,14 @@ LyricLineItem.displayName = "LyricLineItem";
 const LyricContent = memo(
   ({
     lyrics,
+    parsedLines,
     isExpanded,
     hasLrc,
     toggleExpand,
     initialVisibleLines,
   }: {
     lyrics: string;
+    parsedLines: ParsedLine[];
     isExpanded: boolean;
     hasLrc: boolean;
     toggleExpand: () => void;
@@ -163,12 +165,6 @@ const LyricContent = memo(
     const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const colors = useThemeStore((state) => state.colors);
 
-    const parsedLyrics = useMemo(() => {
-      if (!lyrics) return [];
-      if (!lyrics.includes("[")) return [];
-      return parseLrc(lyrics);
-    }, [lyrics]);
-
     const plainLines = useMemo(() => {
       if (hasLrc || !lyrics) return [];
       return lyrics.split("\n").filter((l) => l.trim() !== "");
@@ -177,15 +173,15 @@ const LyricContent = memo(
     const activeIndex = useMemo(() => {
       if (!hasLrc) return -1;
       let index = -1;
-      for (let i = 0; i < parsedLyrics.length; i++) {
-        if (parsedLyrics[i].time <= position) {
+      for (let i = 0; i < parsedLines.length; i++) {
+        if (parsedLines[i].time <= position) {
           index = i;
         } else {
           break;
         }
       }
       return index;
-    }, [position, parsedLyrics, hasLrc]);
+    }, [position, parsedLines, hasLrc]);
 
     useEffect(() => {
       if (
@@ -275,7 +271,7 @@ const LyricContent = memo(
               onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
               contentContainerStyle={styles.scrollContent}
             >
-              {parsedLyrics.map((line, index) => (
+              {parsedLines.map((line, index) => (
                 <LyricLineItem
                   key={index}
                   line={line}
@@ -314,11 +310,14 @@ const Lyric: React.FC<LyricProps> = ({
     setIsExpanded((prev) => !prev);
   }, []);
 
-  const hasLrc = useMemo(() => {
-    if (!lyrics) return false;
-    if (!lyrics.includes("[")) return false;
-    return parseLrc(lyrics).length > 0;
+  // parseLrc は高コストのため一度だけ実行し、hasLrc 判定と LyricContent で共有する
+  const parsedLines = useMemo(() => {
+    if (!lyrics) return [];
+    if (!lyrics.includes("[")) return [];
+    return parseLrc(lyrics);
   }, [lyrics]);
+
+  const hasLrc = parsedLines.length > 0;
 
   const accent = colors.primaryLight ?? colors.primary;
 
@@ -347,6 +346,7 @@ const Lyric: React.FC<LyricProps> = ({
         {(!hasLrc || isExpanded) && (
           <LyricContent
             lyrics={lyrics}
+            parsedLines={parsedLines}
             isExpanded={isExpanded}
             hasLrc={hasLrc}
             toggleExpand={toggleExpand}
