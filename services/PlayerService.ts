@@ -54,7 +54,8 @@ export async function setupPlayer(): Promise<boolean> {
       },
     });
 
-    // リモートコントロール（ロック画面・通知・カーオーディオ等）はネイティブ処理
+    // リモートコントロール（ロック画面・通知・カーオーディオ等）はネイティブ処理、
+    // フォアグラウンド/バックグラウンドでの JS イベント監視も行うため hybrid を使用
     TrackPlayer.setCommands({
       capabilities: [
         PlayerCommand.PlayPause,
@@ -63,7 +64,7 @@ export async function setupPlayer(): Promise<boolean> {
         PlayerCommand.Seek,
         PlayerCommand.Stop,
       ],
-      handling: "native",
+      handling: "hybrid",
     });
 
     isPlayerSetup = true;
@@ -96,40 +97,47 @@ function isPlayerServiceRunning(): boolean {
 }
 
 /**
- * プレーヤーサービスのイベントハンドラー
+ * プレーヤーサービスのイベントハンドラー登録
  * @description
- * リモートコントロール（再生・一時停止・次へ・前へ・シーク）は
- * setCommands の `handling: "native"` によりネイティブ側で処理されるため、
- * ここでは再生エラーの監視のみを行います。
+ * v5 では `playbackService()` は廃止され、イベントリスナーの登録は
+ * `registerBackgroundEventHandler`（Android バックグラウンド用）と
+ * `addEventListener`（フォアグラウンド用）に分かれています。
+ * リモートコントロール操作は `setCommands` の `handling: "hybrid"` により
+ * ネイティブが優先処理しつつ、JS 側にもイベントが通知されます。
  *
  * @example
  * ```typescript
  * // アプリケーションのエントリーポイントで一度だけ呼び出す
- * void playbackService()();
+ * registerPlaybackService();
  * ```
  */
-// グローバルフラグ：イベントリスナーの二重登録を防ぐ
+// 登録済みフラグ：二重登録を防ぐ
 let isServiceRegistered = false;
 
-export function playbackService() {
-  return async () => {
-    if (isServiceRegistered) {
-      return;
-    }
-    isServiceRegistered = true;
+export function registerPlaybackService() {
+  if (isServiceRegistered) {
+    return;
+  }
+  isServiceRegistered = true;
 
-    try {
-      TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
-        console.error("再生エラーが発生しました:", error);
-      });
-    } catch (error) {
-      console.error(
-        "プレイバックサービスの設定中にエラーが発生しました:",
-        error,
-      );
-      isServiceRegistered = false; // エラー時はリセット
-    }
-  };
+  try {
+    // フォアグラウンドでのイベント監視（再生エラー等）
+    TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
+      console.error("再生エラーが発生しました:", error);
+    });
+    // Android バックグラウンド時のイベントハンドラー
+    TrackPlayer.registerBackgroundEventHandler(() => async (event) => {
+      if (event.type === Event.PlaybackError) {
+        console.error("再生エラーが発生しました(バックグラウンド):", event);
+      }
+    });
+  } catch (error) {
+    console.error(
+      "プレイバックサービスの登録中にエラーが発生しました:",
+      error,
+    );
+    isServiceRegistered = false; // エラー時はリセット
+  }
 }
 
 // テスト用のリセット関数 (内部状態クリア)

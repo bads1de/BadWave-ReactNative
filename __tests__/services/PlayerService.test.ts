@@ -1,7 +1,7 @@
 import TrackPlayer, { Event, PlayerCommand } from "@rntp/player";
 import {
   setupPlayer,
-  playbackService,
+  registerPlaybackService,
   __resetPlaybackService,
 } from "@/services/PlayerService";
 
@@ -16,6 +16,7 @@ jest.mock("@rntp/player", () => ({
   skipToPrevious: jest.fn(),
   seekTo: jest.fn(),
   addEventListener: jest.fn(),
+  registerBackgroundEventHandler: jest.fn(),
   Event: {
     PlaybackState: "playback-state",
     PlaybackError: "playback-error",
@@ -59,7 +60,7 @@ describe("PlayerService", () => {
           PlayerCommand.Seek,
           PlayerCommand.Stop,
         ],
-        handling: "native",
+        handling: "hybrid",
       });
     });
 
@@ -101,30 +102,28 @@ describe("PlayerService", () => {
     });
   });
 
-  describe("playbackService", () => {
-    it("playbackServiceが関数を返すこと", () => {
-      const service = playbackService();
-      expect(typeof service).toBe("function");
-    });
-
-    it("PlaybackErrorイベントリスナーが登録されること", async () => {
-      const service = playbackService();
-      await service();
+  describe("registerPlaybackService", () => {
+    it("PlaybackErrorイベントリスナーが登録されること", () => {
+      registerPlaybackService();
 
       expect(TrackPlayer.addEventListener).toHaveBeenCalledWith(
         Event.PlaybackError,
         expect.any(Function),
       );
+      expect(
+        TrackPlayer.registerBackgroundEventHandler,
+      ).toHaveBeenCalledWith(expect.any(Function));
     });
 
-    it("イベントリスナーが二重登録されないこと", async () => {
-      await playbackService()();
-      await playbackService()();
+    it("イベントリスナーが二重登録されないこと", () => {
+      registerPlaybackService();
+      registerPlaybackService();
 
       expect(TrackPlayer.addEventListener).toHaveBeenCalledTimes(1);
+      expect(TrackPlayer.registerBackgroundEventHandler).toHaveBeenCalledTimes(1);
     });
 
-    it("PlaybackErrorハンドラがエラーをログ出力すること", async () => {
+    it("PlaybackErrorハンドラがエラーをログ出力すること", () => {
       const consoleErrorSpy = jest
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -137,7 +136,7 @@ describe("PlayerService", () => {
         },
       );
 
-      await playbackService()();
+      registerPlaybackService();
 
       expect(errorHandler).toBeDefined();
       errorHandler!(new Error("playback error"));

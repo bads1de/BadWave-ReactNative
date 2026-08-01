@@ -1,7 +1,7 @@
 import AuthModal from "@/components/modal/AuthModal";
 import { ToastComponent } from "@/components/common/CustomToast";
 import NetworkStatusBar from "@/components/common/NetworkStatusBar";
-import { playbackService } from "@/services/PlayerService";
+import { registerPlaybackService } from "@/services/PlayerService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppInitializerProvider } from "@/providers/AppInitializerProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -35,9 +35,10 @@ declare global {
   var __TRACK_PLAYER_SERVICE_REGISTERED__: boolean | undefined;
 }
 
-// TrackPlayerのサービス登録
+// TrackPlayerのサービス登録（イベントリスナー・バックグラウンドハンドラ）
+// 二重登録を防ぐため、モジュール初期化時に一度だけ実行する
 if (!global.__TRACK_PLAYER_SERVICE_REGISTERED__) {
-  void playbackService()();
+  registerPlaybackService();
   global.__TRACK_PLAYER_SERVICE_REGISTERED__ = true;
 }
 

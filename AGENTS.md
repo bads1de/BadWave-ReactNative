@@ -15,6 +15,8 @@
 - **状態管理**: グローバルな状態管理 (例: プレイヤー UI の状態) のための [Zustand](https://github.com/pmndrs/zustand)。
 - **オーディオ再生**: バックグラウンド再生・ロック画面操作のための [`@rntp/player`](https://www.npmjs.com/package/@rntp/player) (React Native Track Player)。
 - **ローカルストレージ**: 高速なキーバリューストレージのための [React Native MMKV](https://github.com/mrousavy/react-native-mmkv)。Supabase のセッション永続化や TanStack Query のキャッシュ永続化には、MMKV を AsyncStorage 互換インターフェースでラップした独自アダプター (`lib/storage/`) を利用しています。
+- **ビルド時最適化**: [React Compiler](https://react.dev/learn/react-compiler) (自動メモ化)。`app.json` の `experiments.reactCompiler: true` で有効化済み。バンドル時にアプリコード全体が自動メモ化される。
+- **アニメーション**: UIスレッド実行のための [Reanimated](https://docs.swmansion.com/react-native-reanimated/) (worklet ベース)。旧 `Animated` API は `useNativeDriver: true` 付きでのみ使用可。
 - **テスト**: [Jest](https://jestjs.io/) と [React Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/)。
 
 ### アーキテクチャ
@@ -188,7 +190,8 @@ npm test
 ## 4. 開発規約
 
 - **スタイル**: `StyleSheet.create()` を使用。
-- **コンポーネント最適化**: リストアイテムは `React.memo` + カスタム比較関数を使用。
+- **コンポーネント最適化**: React Compiler が自動メモ化を行うため、新規コードで `React.memo` / `useMemo` / `useCallback` を過剰に追加しない。必要な場合のみ使用する（例: effect の依存を安定させる、memo 比較関数で制御する）。既存の手動メモ化はそのまま残してよい。
+- **アニメーション**: Reanimated の worklet ベースを使用し、JSスレッドをブロックしない。旧 `Animated` API を使う場合は `useNativeDriver: true` を必須とする。
 - **TypeScript**: 厳密な型付け。`any`の使用は避ける。
 - **エラーハンドリング**: `constants/errorMessages.ts`の定数を使用。
 - **リトライ**: ネットワーク依存の操作には`withSupabaseRetry`を使用。
