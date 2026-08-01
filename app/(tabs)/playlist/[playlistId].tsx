@@ -279,11 +279,6 @@ export default function PlaylistDetailScreen() {
     ],
   );
 
-  if (isLoading || isLoadingPlaylist)
-    return <Loading variant="playlist-detail" />;
-  if (error || playlistError)
-    return <Error message={error?.message || playlistError?.message} />;
-
   const listContentStyle = useMemo(
     () => ({ paddingBottom: bottomPadding }),
     [bottomPadding],
@@ -306,6 +301,11 @@ export default function PlaylistDetailScreen() {
     ),
     [colors],
   );
+
+  if (isLoading || isLoadingPlaylist)
+    return <Loading variant="playlist-detail" />;
+  if (error || playlistError)
+    return <Error message={error?.message || playlistError?.message} />;
 
   return (
     <SafeAreaView

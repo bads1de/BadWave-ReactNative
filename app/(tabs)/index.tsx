@@ -166,12 +166,10 @@ export default function HomeScreen() {
       }
     },
     [
-      currentSong,
       keyExtractorRecent,
       recentListStyle,
       renderRecentSongItem,
       renderSectionTitle,
-      showPlayer,
       songs,
     ],
   );
