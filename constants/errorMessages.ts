@@ -4,6 +4,19 @@
 export const AUTH_ERRORS = {
   USER_ID_REQUIRED: "ユーザーIDが必要です",
   ADMIN_REQUIRED: "管理者権限が必要です",
+  SESSION_REQUIRED: "セッションが存在しません",
+  EMAIL_PASSWORD_REQUIRED: "メールアドレスとパスワードを入力してください",
+  PASSWORD_MISMATCH: "パスワードが一致しません",
+  GOOGLE_SIGNIN_FAILED: "Googleログインに失敗しました",
+  GOOGLE_SIGNIN_IN_PROGRESS: "ログイン処理が既に実行中です",
+  PLAY_SERVICES_UNAVAILABLE: "Google Play Servicesが利用できません",
+} as const;
+
+/**
+ * 認証の成功・案内メッセージ定数
+ */
+export const AUTH_MESSAGES = {
+  SIGNUP_CONFIRM_EMAIL_SENT: "確認メールを送信しました！メールをご確認ください。",
 } as const;
 
 /**
@@ -22,6 +35,8 @@ export const PLAYLIST_ERRORS = {
   OFFLINE: "オフライン時はプレイリストの作成ができません",
   EDIT_OFFLINE: "オフライン時はプレイリストの編集操作ができません",
   SUPABASE_DELETE_FAILED: "プレイリストからの削除に失敗しました",
+  ADD_SONG_FAILED: "プレイリストへの曲の追加に失敗しました",
+  REMOVE_SONG_FAILED: "プレイリストからの曲の削除に失敗しました",
 } as const;
 
 /**

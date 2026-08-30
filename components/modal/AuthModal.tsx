@@ -9,11 +9,11 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import {
-  GoogleSignin,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
-import { supabase } from "@/lib/supabase";
+import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
+import signInWithEmailAction from "@/actions/auth/signInWithEmail";
+import signUpWithEmailAction from "@/actions/auth/signUpWithEmail";
+import signInWithGoogleIdToken from "@/actions/auth/signInWithGoogleIdToken";
+import signOutAction from "@/actions/auth/signOut";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,9 +23,15 @@ import { CACHED_QUERIES } from "@/constants";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { FONTS } from "@/constants/theme";
 import { getErrorMessage } from "@/lib/utils/error";
+import {
+  AUTH_ERRORS,
+  AUTH_MESSAGES,
+} from "@/constants/errorMessages";
 
 GoogleSignin.configure({
+  // 環境変数を優先し、未設定の場合は既定のクライアント ID にフォールバック
   webClientId:
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ??
     "412901923265-4rek27if7dg41i3pl5ap0idho61th752.apps.googleusercontent.com",
 });
 
@@ -45,19 +51,14 @@ function AuthModalInner() {
 
   const signInWithEmail = useCallback(async () => {
     if (!email || !password) {
-      Alert.alert("エラー", "メールアドレスとパスワードを入力してください");
+      Alert.alert("エラー", AUTH_ERRORS.EMAIL_PASSWORD_REQUIRED);
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      await signInWithEmailAction(email, password);
 
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.getRecommendations],
@@ -72,26 +73,21 @@ function AuthModalInner() {
 
   const signUpWithEmail = useCallback(async () => {
     if (!email || !password) {
-      Alert.alert("エラー", "メールアドレスとパスワードを入力してください");
+      Alert.alert("エラー", AUTH_ERRORS.EMAIL_PASSWORD_REQUIRED);
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("エラー", "パスワードが一致しません");
+      Alert.alert("エラー", AUTH_ERRORS.PASSWORD_MISMATCH);
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      await signUpWithEmailAction(email, password);
 
-      if (error) throw error;
-
-      Alert.alert("成功", "確認メールを送信しました！メールをご確認ください。");
+      Alert.alert("成功", AUTH_MESSAGES.SIGNUP_CONFIRM_EMAIL_SENT);
       setIsSignUp(false); // 成功したらログイン画面に戻す
       setPassword("");
       setConfirmPassword("");
@@ -109,17 +105,7 @@ function AuthModalInner() {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
 
-      const { error, data } = await supabase.auth.signInWithIdToken({
-        provider: "google",
-        token: userInfo?.data?.idToken ?? "",
-      });
-
-      if (!data.user) {
-        Alert.alert("エラー", "Googleログインに失敗しました");
-        return;
-      }
-
-      if (error) throw error;
+      await signInWithGoogleIdToken(userInfo?.data?.idToken ?? "");
 
       queryClient.invalidateQueries({
         queryKey: [CACHED_QUERIES.getRecommendations],
@@ -132,9 +118,9 @@ function AuthModalInner() {
         if (authError.code === statusCodes.SIGN_IN_CANCELLED) {
           console.log("Sign in cancelled");
         } else if (authError.code === statusCodes.IN_PROGRESS) {
-          Alert.alert("エラー", "ログイン処理が既に実行中です");
+          Alert.alert("エラー", AUTH_ERRORS.GOOGLE_SIGNIN_IN_PROGRESS);
         } else if (authError.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-          Alert.alert("エラー", "Google Play Servicesが利用できません");
+          Alert.alert("エラー", AUTH_ERRORS.PLAY_SERVICES_UNAVAILABLE);
         } else {
           Alert.alert("エラー", getErrorMessage(error));
         }
@@ -148,9 +134,7 @@ function AuthModalInner() {
 
   const signOut = useCallback(async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) throw error;
+      await signOutAction();
 
       queryClient.resetQueries();
       setShowAuthModal(false);

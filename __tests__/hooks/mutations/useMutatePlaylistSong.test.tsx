@@ -40,6 +40,20 @@ const { useNetworkStatus } = require("@/hooks/common/useNetworkStatus");
 const { withSupabaseRetry } = require("@/lib/utils/retry");
 const mockAddPlaylistSong = addPlaylistSong as jest.Mock;
 
+/**
+ * テスト用の Song オブジェクトを生成する
+ * （playlistSongs キャッシュには Song が格納される）
+ */
+const makeSong = (id: string) => ({
+  id,
+  user_id: "user-1",
+  author: "author",
+  title: `title-${id}`,
+  song_path: "path/to/song",
+  image_path: "path/to/image",
+  created_at: "2024-01-01T00:00:00Z",
+});
+
 describe("useMutatePlaylistSong - Optimistic Update", () => {
   let queryClient: QueryClient;
 
@@ -81,11 +95,12 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
         wrapper: createWrapper(),
       });
 
-      // addSong を呼び出し
+      // addSong を呼び出し（楽観的更新のために実 Song を渡す）
       act(() => {
         result.current.addSong.mutate({
           songId: "song-1",
           playlistId: "playlist-1",
+          song: makeSong("song-1"),
         });
       });
 
@@ -96,7 +111,7 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
           "playlist-1",
         ]);
         expect(cachedSongs?.length).toBe(1);
-        expect(cachedSongs?.[0].songId).toBe("song-1");
+        expect(cachedSongs?.[0].id).toBe("song-1");
       });
     });
 
@@ -134,13 +149,10 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
 
   describe("removeSong - 楽観的更新", () => {
     it("removeSong時に即座にキャッシュから曲が削除される（楽観的更新）", async () => {
-      // 初期状態: プレイリストに曲がある
+      // 初期状態: プレイリストに曲がある（キャッシュは Song[]）
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs, "playlist-1"],
-        [
-          { id: "ps-1", songId: "song-1", playlistId: "playlist-1" },
-          { id: "ps-2", songId: "song-2", playlistId: "playlist-1" },
-        ]
+        [makeSong("song-1"), makeSong("song-2")]
       );
 
       // Supabaseモック
@@ -172,15 +184,13 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
           "playlist-1",
         ]);
         expect(cachedSongs?.length).toBe(1);
-        expect(cachedSongs?.[0].songId).toBe("song-2");
+        expect(cachedSongs?.[0].id).toBe("song-2");
       });
     });
 
     it("removeSongエラー時にキャッシュがロールバックされる", async () => {
       // 初期状態
-      const initialSongs = [
-        { id: "ps-1", songId: "song-1", playlistId: "playlist-1" },
-      ];
+      const initialSongs = [makeSong("song-1")];
       queryClient.setQueryData(
         [CACHED_QUERIES.playlistSongs, "playlist-1"],
         initialSongs
@@ -209,7 +219,7 @@ describe("useMutatePlaylistSong - Optimistic Update", () => {
           "playlist-1",
         ]);
         expect(cachedSongs?.length).toBe(1);
-        expect(cachedSongs?.[0].songId).toBe("song-1");
+        expect(cachedSongs?.[0].id).toBe("song-1");
       });
     });
   });

@@ -2,6 +2,8 @@ import { SUPABASE_TABLES } from "@/constants";
 import { supabase } from "@/lib/supabase";
 import { User } from "@/types";
 import { getErrorMessage } from "@/lib/utils/error";
+import { withSupabaseRetry } from "@/lib/utils/retry";
+import { AUTH_ERRORS } from "@/constants/errorMessages";
 
 /**
  * ユーザー情報を取得する関数
@@ -14,14 +16,16 @@ export const getUser = async (): Promise<User | null> => {
   } = await supabase.auth.getSession();
 
   if (!session) {
-    throw null;
+    throw new Error(AUTH_ERRORS.SESSION_REQUIRED);
   }
 
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.users)
-    .select("*")
-    .eq("id", session.user.id)
-    .single();
+  const { data, error } = await withSupabaseRetry(async () => {
+    return await supabase
+      .from(SUPABASE_TABLES.users)
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+  });
 
   if (error) {
     console.error(getErrorMessage(error));

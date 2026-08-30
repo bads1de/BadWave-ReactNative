@@ -1,5 +1,6 @@
 import { getUser } from "@/actions/user/getUser";
 import { mockFunctions } from "@/__mocks__/supabase";
+import { AUTH_ERRORS } from "@/constants/errorMessages";
 
 // supabaseのモックを設定
 jest.mock("@/lib/supabase", () => require("@/__mocks__/supabase"));
@@ -65,7 +66,7 @@ describe("getUser", () => {
     });
 
     // テスト実行と期待値を確認
-    await expect(getUser()).rejects.toBeNull();
+    await expect(getUser()).rejects.toThrow(AUTH_ERRORS.SESSION_REQUIRED);
     expect(mockFrom).not.toHaveBeenCalled();
   });
 

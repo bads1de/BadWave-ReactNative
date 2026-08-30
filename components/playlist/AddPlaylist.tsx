@@ -25,6 +25,7 @@ import { Playlist } from "@/types";
 import usePlaylistStatus from "@/hooks/data/usePlaylistStatus";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
+import { useGetLocalSongById } from "@/hooks/data/useGetLocalSongById";
 import { useMutatePlaylistSong } from "@/hooks/mutations/useMutatePlaylistSong";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "@/constants/theme";
@@ -166,6 +167,8 @@ function AddPlaylistModal({
 
   const { playlists = DEFAULT_PLAYLISTS } = useGetPlaylists(session?.user.id);
   const { addSong } = useMutatePlaylistSong(session?.user.id);
+  // 楽観的更新のために実 Song オブジェクトをローカル DB から取得
+  const { data: localSong } = useGetLocalSongById(songId);
 
   const { data: playlistStatus = {}, refetch: fetchAddedStatus } =
     usePlaylistStatus({
@@ -216,7 +219,7 @@ function AddPlaylistModal({
       );
 
       addSong.mutate(
-        { songId, playlistId },
+        { songId, playlistId, song: localSong ?? undefined },
         {
           onError: (error) => {
             setOptimisticPlaylistIds((prev) =>
@@ -237,7 +240,7 @@ function AddPlaylistModal({
         },
       );
     },
-    [session, addSong, displayStatus, songId, fetchAddedStatus],
+    [session, addSong, displayStatus, songId, fetchAddedStatus, localSong],
   );
 
   const animatedStyle = useAnimatedStyle(() => ({
