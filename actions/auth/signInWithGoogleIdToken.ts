@@ -15,12 +15,12 @@ export const signInWithGoogleIdToken = async (
     token: idToken,
   });
 
-  if (!data.user) {
-    throw new Error(AUTH_ERRORS.GOOGLE_SIGNIN_FAILED);
-  }
-
   if (error) {
     throw error;
+  }
+
+  if (!data.user) {
+    throw new Error(AUTH_ERRORS.GOOGLE_SIGNIN_FAILED);
   }
 };
 

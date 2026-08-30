@@ -38,6 +38,18 @@ const mockGetSession = jest.fn().mockResolvedValue({
   error: null,
 });
 
+const mockSignInWithPassword = jest
+  .fn()
+  .mockResolvedValue({ data: { user: { id: "test-user-id" } }, error: null });
+
+const mockSignUp = jest
+  .fn()
+  .mockResolvedValue({ data: { user: { id: "test-user-id" } }, error: null });
+
+const mockSignInWithIdToken = jest
+  .fn()
+  .mockResolvedValue({ data: { user: { id: "test-user-id" } }, error: null });
+
 const mockSignOut = jest.fn().mockResolvedValue({ error: null });
 
 export const supabase = {
@@ -45,6 +57,9 @@ export const supabase = {
   rpc: mockRpc,
   auth: {
     getSession: mockGetSession,
+    signInWithPassword: mockSignInWithPassword,
+    signUp: mockSignUp,
+    signInWithIdToken: mockSignInWithIdToken,
     signOut: mockSignOut,
   },
 };
@@ -62,6 +77,9 @@ export const mockFunctions = {
   mockOrder,
   mockOr,
   mockGetSession,
+  mockSignInWithPassword,
+  mockSignUp,
+  mockSignInWithIdToken,
   mockSignOut,
   mockRpc,
   mockLimit,
