@@ -10,6 +10,7 @@ export const AUTH_ERRORS = {
   GOOGLE_SIGNIN_FAILED: "Googleログインに失敗しました",
   GOOGLE_SIGNIN_IN_PROGRESS: "ログイン処理が既に実行中です",
   PLAY_SERVICES_UNAVAILABLE: "Google Play Servicesが利用できません",
+  SIGNOUT_FAILED: "ログアウトに失敗しました",
 } as const;
 
 /**

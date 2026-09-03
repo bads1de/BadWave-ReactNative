@@ -1,5 +1,6 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { Alert } from "react-native";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import AccountScreen from "@/app/(tabs)/account";
 import { useSync } from "@/providers/SyncProvider";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
@@ -7,31 +8,20 @@ import { useUser } from "@/hooks/data/useUser";
 import { useGetPlaylists } from "@/hooks/data/useGetPlaylists";
 import { useGetLikedSongs } from "@/hooks/data/useGetLikedSongs";
 import { useStorageInfo } from "@/hooks/common/useStorageInfo";
+import { useRouter } from "expo-router";
+import signOutAction from "@/actions/auth/signOut";
+import { ROUTES } from "@/constants";
+import { AUTH_ERRORS } from "@/constants/errorMessages";
 import { THEMES } from "@/constants/ThemeColors";
 
 // Mocks
 jest.mock("@/hooks/stores/useThemeStore");
 jest.mock("expo-router", () => ({
-  useRouter: () => ({
-    back: jest.fn(),
-    replace: jest.fn(),
-  }),
+  useRouter: jest.fn(),
 }));
-jest.mock("@expo/vector-icons", () => ({
-  Ionicons: "Ionicons",
-}));
-jest.mock("expo-linear-gradient", () => ({
-  LinearGradient: "LinearGradient",
-}));
-jest.mock("expo-image", () => ({
-  Image: "Image",
-}));
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    auth: {
-      signOut: jest.fn(),
-    },
-  },
+jest.mock("@/actions/auth/signOut", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 jest.mock("@/hooks/data/useUser");
 jest.mock("@/hooks/data/useGetPlaylists");
@@ -51,9 +41,18 @@ jest.mock("@/hooks/common/useStorageInfo", () => ({
 describe("AccountScreen", () => {
   const mockSetTheme = jest.fn();
   const mockTriggerSync = jest.fn();
+  const mockReplace = jest.fn();
+  const mockBack = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue({
+      back: mockBack,
+      replace: mockReplace,
+      push: jest.fn(),
+    });
+    (signOutAction as jest.Mock).mockResolvedValue(undefined);
+    jest.spyOn(Alert, "alert").mockClear().mockImplementation(() => {});
     (useUser as jest.Mock).mockReturnValue({
       data: {
         id: "test-user",
@@ -196,5 +195,35 @@ describe("AccountScreen", () => {
     const { getByText } = render(<AccountScreen />);
     expect(getByText(/0 songs/)).toBeTruthy();
     expect(getByText(/0 B/)).toBeTruthy();
+  });
+
+  it("calls signOutAction and navigates home on logout", async () => {
+    const { getByText } = render(<AccountScreen />);
+
+    fireEvent.press(getByText("Log Out"));
+
+    await waitFor(() => {
+      expect(signOutAction).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith(ROUTES.home);
+    });
+  });
+
+  it("shows an alert and stays on failure of signOutAction", async () => {
+    (signOutAction as jest.Mock).mockRejectedValueOnce(
+      new Error("Sign out failed"),
+    );
+
+    const { getByText } = render(<AccountScreen />);
+
+    fireEvent.press(getByText("Log Out"));
+
+    await waitFor(() => {
+      expect(signOutAction).toHaveBeenCalledTimes(1);
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "エラー",
+        AUTH_ERRORS.SIGNOUT_FAILED,
+      );
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
   });
 });

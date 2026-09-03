@@ -15,6 +15,10 @@ describe("errorMessages", () => {
     it("ADMIN_REQUIREDが定義されている", () => {
       expect(AUTH_ERRORS.ADMIN_REQUIRED).toBe("管理者権限が必要です");
     });
+
+    it("SIGNOUT_FAILEDが定義されている", () => {
+      expect(AUTH_ERRORS.SIGNOUT_FAILED).toBe("ログアウトに失敗しました");
+    });
   });
 
   describe("LIKE_ERRORS", () => {

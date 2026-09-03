@@ -7,12 +7,14 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Palette, RefreshCw, HardDrive, LogOut } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image as ExpoImage } from "expo-image";
-import { supabase } from "@/lib/supabase";
+import Constants from "expo-constants";
+import signOutAction from "@/actions/auth/signOut";
 import { useUser } from "@/hooks/data/useUser";
 import { useThemeStore } from "@/hooks/stores/useThemeStore";
 import { THEMES, ThemeType } from "@/constants/ThemeColors";
@@ -28,6 +30,10 @@ import BackButton from "@/components/common/BackButton";
 import { ROUTES } from "@/constants";
 import { moderateScale } from "react-native-size-matters";
 import { useContentBottomPadding } from "@/hooks/common/useContentBottomPadding";
+import { AUTH_ERRORS } from "@/constants/errorMessages";
+
+/** アバター画像が未設定のユーザー用プレースホルダー */
+const PLACEHOLDER_AVATAR_URL = "https://via.placeholder.com/150";
 
 /**
  * @file (tabs)/account.tsx
@@ -60,8 +66,13 @@ export default function AccountScreen() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace(ROUTES.home);
+    try {
+      await signOutAction();
+      router.replace(ROUTES.home);
+    } catch {
+      // 失敗時は画面遷移せずユーザーに通知する
+      Alert.alert("エラー", AUTH_ERRORS.SIGNOUT_FAILED);
+    }
   };
 
   return (
@@ -91,7 +102,7 @@ export default function AccountScreen() {
           <View style={styles.avatarContainer}>
             <ExpoImage
               source={{
-                uri: user?.avatar_url || "https://via.placeholder.com/150",
+                uri: user?.avatar_url || PLACEHOLDER_AVATAR_URL,
               }}
               style={[styles.avatar, { borderColor: colors.text }]}
               contentFit="cover"
@@ -269,7 +280,7 @@ export default function AccountScreen() {
         </SettingSection>
 
         <Text style={[styles.versionText, { color: colors.subText }]}>
-          Version 1.0.0
+          Version {Constants.expoConfig?.version ?? "1.0.0"}
         </Text>
       </ScrollView>
 
