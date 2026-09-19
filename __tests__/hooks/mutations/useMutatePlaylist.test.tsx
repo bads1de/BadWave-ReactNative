@@ -132,14 +132,14 @@ describe("useMutatePlaylist", () => {
   describe("楽観的更新", () => {
     describe("togglePublic", () => {
       it("mutate呼び出し時に即座にキャッシュが更新される（playlists）", async () => {
-        // 初期状態: プレイリスト一覧にisPublic: falseのプレイリストがある
+        // 初期状態: プレイリスト一覧に is_public: false のプレイリストがある
         queryClient.setQueryData([CACHED_QUERIES.playlists], [
-          { id: "p1", title: "Playlist 1", isPublic: false, userId: "u1" },
+          { id: "p1", title: "Playlist 1", is_public: false, userId: "u1" },
         ]);
         queryClient.setQueryData([CACHED_QUERIES.playlistById, "p1"], {
           id: "p1",
           title: "Playlist 1",
-          isPublic: false,
+          is_public: false,
           userId: "u1",
         });
 
@@ -152,26 +152,26 @@ describe("useMutatePlaylist", () => {
           wrapper: createWrapper(),
         });
 
-        // mutate を呼び出し
+        // mutate に「新しい値（公開にする）」を渡す
         act(() => {
           result.current.togglePublic.mutate({
             playlistId: "p1",
-            isPublic: false,
+            isPublic: true,
           });
         });
 
-        // 楽観的更新: 即座にplaylistsキャッシュのisPublicが反転される
+        // 楽観的更新: is_public フィールドが渡された新しい値 true になる
         await waitFor(() => {
           const playlists = queryClient.getQueryData<any[]>([
             CACHED_QUERIES.playlists,
           ]);
-          expect(playlists?.[0].isPublic).toBe(true);
+          expect(playlists?.[0].is_public).toBe(true);
         });
       });
 
       it("エラー時にキャッシュがロールバックされる", async () => {
         queryClient.setQueryData([CACHED_QUERIES.playlists], [
-          { id: "p1", title: "Playlist 1", isPublic: false, userId: "u1" },
+          { id: "p1", title: "Playlist 1", is_public: false, userId: "u1" },
         ]);
 
         togglePublicPlaylist.mockRejectedValue(new Error("Network error"));
@@ -183,16 +183,16 @@ describe("useMutatePlaylist", () => {
         await act(async () => {
           result.current.togglePublic.mutate({
             playlistId: "p1",
-            isPublic: false,
+            isPublic: true,
           });
         });
 
-        // ロールバック: 元のisPublic: falseに戻る
+        // ロールバック: 元の is_public: false に戻る
         await waitFor(() => {
           const playlists = queryClient.getQueryData<any[]>([
             CACHED_QUERIES.playlists,
           ]);
-          expect(playlists?.[0].isPublic).toBe(false);
+          expect(playlists?.[0].is_public).toBe(false);
         });
       });
     });

@@ -47,9 +47,11 @@ export function useMutatePlaylist(userId?: string) {
         CACHED_QUERIES.playlists,
       ]);
 
+      // 変数 isPublic は呼び出し元で反転済みの「新しい値」を渡す契約のため、
+      // そのまま is_public に書き込む（再反転すると元に戻ってしまう）
       queryClient.setQueryData<Playlist[]>([CACHED_QUERIES.playlists], (old) =>
         (old || []).map((p) =>
-          p.id === playlistId ? { ...p, isPublic: !isPublic } : p,
+          p.id === playlistId ? { ...p, is_public: isPublic } : p,
         ),
       );
 
