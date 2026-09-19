@@ -4,7 +4,7 @@ import { db } from "@/lib/db/client";
 import { likedSongs, songs } from "@/lib/db/schema";
 import { SUPABASE_TABLES } from "@/constants";
 import { withSupabaseRetry } from "@/lib/utils/retry";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 import { LIKE_ERRORS } from "@/constants/errorMessages";
 
 /**
@@ -56,19 +56,15 @@ const toggleLike = async (
   if (isCurrentlyLiked) {
     // いいねを解除
     // 1. Supabase から削除（先に実行、リトライ付き）
-    const result = await withSupabaseRetry(async () => {
-      return await supabase
-        .from(SUPABASE_TABLES.likedSongsRegular)
-        .delete()
-        .eq("user_id", userId)
-        .eq("song_id", songId);
-    });
-
-    if (result.error) {
-      throw new Error(
-        `${LIKE_ERRORS.SUPABASE_DELETE_FAILED}: ${getErrorMessage(result.error)}`
-      );
-    }
+    await runQuery(
+      async () =>
+        supabase
+          .from(SUPABASE_TABLES.likedSongsRegular)
+          .delete()
+          .eq("user_id", userId)
+          .eq("song_id", songId),
+      { errorPrefix: LIKE_ERRORS.SUPABASE_DELETE_FAILED },
+    );
 
     // 2. like_count を更新
     await updateLikeCount(songId, -1);
@@ -82,18 +78,14 @@ const toggleLike = async (
   } else {
     // いいねを追加
     // 1. Supabase に追加（先に実行、リトライ付き）
-    const result = await withSupabaseRetry(async () => {
-      return await supabase.from(SUPABASE_TABLES.likedSongsRegular).insert({
-        user_id: userId,
-        song_id: songId,
-      });
-    });
-
-    if (result.error) {
-      throw new Error(
-        `${LIKE_ERRORS.SUPABASE_INSERT_FAILED}: ${getErrorMessage(result.error)}`
-      );
-    }
+    await runQuery(
+      async () =>
+        supabase.from(SUPABASE_TABLES.likedSongsRegular).insert({
+          user_id: userId,
+          song_id: songId,
+        }),
+      { errorPrefix: LIKE_ERRORS.SUPABASE_INSERT_FAILED },
+    );
 
     // 2. like_count を更新
     await updateLikeCount(songId, 1);

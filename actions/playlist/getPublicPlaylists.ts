@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { SUPABASE_TABLES } from "@/constants";
 import { Playlist } from "@/types";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * 公開されているプレイリストを取得する
@@ -17,17 +17,14 @@ import { getErrorMessage } from "@/lib/utils/error";
  * ```
  */
 const getPublicPlaylists = async (limit: number = 20): Promise<Playlist[]> => {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.playlists)
-    .select("*")
-    .eq("is_public", true)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.error(getErrorMessage(error));
-    return [];
-  }
+  const data = await runQuery(async () =>
+    supabase
+      .from(SUPABASE_TABLES.playlists)
+      .select("*")
+      .eq("is_public", true)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  );
 
   return (data as Playlist[]) || [];
 };

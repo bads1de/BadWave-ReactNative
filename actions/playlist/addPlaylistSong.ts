@@ -4,7 +4,7 @@ import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
 import getSongById from "@/actions/song/getSongById";
 import updatePlaylistImage from "@/actions/playlist/updatePlaylistImage";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * プレイリストに曲を追加する関数
@@ -36,19 +36,15 @@ const addPlaylistSong = async ({
   userId,
   songId,
 }: AddPlaylistSongProps) => {
-  // データベースにプレイリスト曲情報を挿入
-  const { error } = await supabase.from(SUPABASE_TABLES.playlistSongs).insert({
-    playlist_id: playlistId,
-    user_id: userId,
-    song_id: songId,
-    song_type: "regular", // 通常の曲タイプとして登録
-  });
-
-  // エラーハンドリング
-  if (error) {
-    console.error(getErrorMessage(error));
-    throw new Error(getErrorMessage(error));
-  }
+  // データベースにプレイリスト曲情報を挿入（エラー時は共通ヘルパーが throw する）
+  await runQuery(async () =>
+    supabase.from(SUPABASE_TABLES.playlistSongs).insert({
+      playlist_id: playlistId,
+      user_id: userId,
+      song_id: songId,
+      song_type: "regular", // 通常の曲タイプとして登録
+    }),
+  );
 
   // ローカルファーストの表示に使う SQLite にも即時反映する
   await db.insert(playlistSongs).values({

@@ -3,7 +3,7 @@ import { SUPABASE_TABLES } from "@/constants";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * プレイリストの画像パスを更新する関数。
@@ -19,57 +19,30 @@ const updatePlaylistImage = async (
   playlistId: string,
   songImagePath: string
 ): Promise<void> => {
-  try {
-    // ステップ1: プレイリストの現在の画像パス情報を取得する
-    // Supabaseから指定されたIDのプレイリストのimage_path列のみを取得
-    const { data: playlistData, error: playlistError } = await supabase
+  // プレイリストの現在の画像パス情報を取得（image_path 列のみ）
+  const playlistData = await runQuery(async () =>
+    supabase
       .from(SUPABASE_TABLES.playlists)
-      .select("image_path") // 必要な情報のみを取得してパフォーマンスを最適化
-      .eq("id", playlistId) // プレイリストIDで絞り込み
-      .single(); // 単一レコードを取得
+      .select("image_path")
+      .eq("id", playlistId)
+      .single(),
+  );
 
-    // ステップ2: プレイリスト取得時のエラーハンドリング
-    // データベースクエリ実行中にエラーが発生した場合の処理
-    if (playlistError) {
-      console.error(
-        "プレイリストの取得中にエラーが発生しました:",
-        playlistError
-      );
-      throw new Error(getErrorMessage(playlistError)); // エラーを上位の呼び出し元に伝播
-    }
-
-    // ステップ3: プレイリストの画像パスが空の場合のみ更新処理を実行
-    // プレイリストが存在し、かつ画像パスが設定されていない場合のみ更新
-    if (playlistData && !playlistData.image_path) {
-      // ステップ4: プレイリストの画像パスを更新
-      // 指定された曲の画像パスでプレイリストの画像パスを更新
-      const { error: updateError } = await supabase
+  // 画像パスが未設定の場合のみ、指定された曲の画像で更新する
+  if (playlistData && !playlistData.image_path) {
+    await runQuery(async () =>
+      supabase
         .from(SUPABASE_TABLES.playlists)
         .update({ image_path: songImagePath })
-        .eq("id", playlistId);
+        .eq("id", playlistId),
+    );
 
-      // ステップ5: 更新時のエラーハンドリング
-      if (updateError) {
-        console.error(
-          "プレイリスト画像の更新中にエラーが発生しました:",
-          updateError
-        );
-        throw new Error(getErrorMessage(updateError)); // エラーを上位の呼び出し元に伝播
-      }
-
-      await db
-        .update(playlists)
-        .set({ imagePath: songImagePath })
-        .where(eq(playlists.id, playlistId));
-      // 注: 更新が成功した場合は特に何もしない
-    }
-    // 注: 既に画像パスが設定されている場合は何もしない（最初に追加された曲の画像を維持）
-  } catch (error) {
-    // ステップ6: 全体的な例外処理
-    // 予期せぬエラーが発生した場合のフォールバック処理
-    console.error("プレイリスト画像の更新中にエラーが発生しました:", error);
-    throw error; // エラーを上位の呼び出し元に伝播
+    await db
+      .update(playlists)
+      .set({ imagePath: songImagePath })
+      .where(eq(playlists.id, playlistId));
   }
+  // 既に画像パスが設定されている場合は何もしない（最初に追加された曲の画像を維持）
 };
 
 export default updatePlaylistImage;

@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { songs } from "@/lib/db/schema";
 import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 import { mapSongToRow } from "@/lib/utils/songMapper";
 import { useSyncBase } from "./useSyncBase";
 
@@ -15,15 +15,13 @@ export function useSyncSongs() {
   return useSyncBase({
     queryKey: [CACHED_QUERIES.songs, "sync"],
     queryFn: async () => {
-      // Supabase から全楽曲を取得
-      const { data: remoteSongs, error } = await supabase
-        .from(SUPABASE_TABLES.songs)
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        throw new Error(getErrorMessage(error));
-      }
+      // Supabase から全楽曲を取得（リトライ付き）
+      const remoteSongs = await runQuery(async () =>
+        supabase
+          .from(SUPABASE_TABLES.songs)
+          .select("*")
+          .order("created_at", { ascending: false }),
+      );
 
       if (!remoteSongs || remoteSongs.length === 0) {
         return { synced: 0 };

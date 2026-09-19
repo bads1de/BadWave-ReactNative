@@ -3,7 +3,7 @@ import { SUPABASE_TABLES } from "@/constants";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * プレイリストの名前を変更する
@@ -28,15 +28,12 @@ const renamePlaylist = async (
     throw new Error("プレイリスト名を入力してください");
   }
 
-  const { error } = await supabase
-    .from(SUPABASE_TABLES.playlists)
-    .update({ title: newTitle.trim() })
-    .match({ id: playlistId, user_id: userId });
-
-  if (error) {
-    console.error("プレイリストの更新中にエラーが発生しました:", error);
-    throw new Error(getErrorMessage(error));
-  }
+  await runQuery(async () =>
+    supabase
+      .from(SUPABASE_TABLES.playlists)
+      .update({ title: newTitle.trim() })
+      .match({ id: playlistId, user_id: userId }),
+  );
 
   await db
     .update(playlists)

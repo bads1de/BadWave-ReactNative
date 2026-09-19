@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { spotlights } from "@/lib/db/schema";
 import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 import { useSyncBase } from "./useSyncBase";
 
 /**
@@ -13,14 +13,12 @@ export function useSyncSpotlights() {
   return useSyncBase({
     queryKey: [CACHED_QUERIES.spotlights, "sync"],
     queryFn: async () => {
-      const { data: remoteSpotlights, error } = await supabase
-        .from(SUPABASE_TABLES.spotlights)
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        throw new Error(getErrorMessage(error));
-      }
+      const remoteSpotlights = await runQuery(async () =>
+        supabase
+          .from(SUPABASE_TABLES.spotlights)
+          .select("*")
+          .order("created_at", { ascending: false }),
+      );
 
       if (!remoteSpotlights || remoteSpotlights.length === 0) {
         return { synced: 0 };

@@ -1,8 +1,7 @@
 import { SUPABASE_TABLES } from "@/constants";
 import { supabase } from "@/lib/supabase";
 import { User } from "@/types";
-import { getErrorMessage } from "@/lib/utils/error";
-import { withSupabaseRetry } from "@/lib/utils/retry";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 import { AUTH_ERRORS } from "@/constants/errorMessages";
 
 /**
@@ -19,18 +18,13 @@ export const getUser = async (): Promise<User | null> => {
     throw new Error(AUTH_ERRORS.SESSION_REQUIRED);
   }
 
-  const { data, error } = await withSupabaseRetry(async () => {
-    return await supabase
+  const data = await runQuery(async () =>
+    supabase
       .from(SUPABASE_TABLES.users)
       .select("*")
       .eq("id", session.user.id)
-      .single();
-  });
-
-  if (error) {
-    console.error(getErrorMessage(error));
-    throw new Error(getErrorMessage(error));
-  }
+      .single(),
+  );
 
   return data || null;
 };

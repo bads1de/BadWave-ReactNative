@@ -3,6 +3,7 @@ import { SUPABASE_TABLES } from "@/constants";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * プレイリストを削除する
@@ -22,30 +23,22 @@ const deletePlaylist = async (
   userId: string
 ): Promise<void> => {
   // playlist_songs からデータを削除
-  const { error: playlistSongsError } = await supabase
-    .from(SUPABASE_TABLES.playlistSongs)
-    .delete()
-    .eq("playlist_id", playlistId)
-    .eq("user_id", userId);
-
-  if (playlistSongsError) {
-    throw new Error(playlistSongsError.message);
-  }
+  await runQuery(async () =>
+    supabase
+      .from(SUPABASE_TABLES.playlistSongs)
+      .delete()
+      .eq("playlist_id", playlistId)
+      .eq("user_id", userId),
+  );
 
   // playlists からデータを削除
-  const { error: playlistsError } = await supabase
-    .from(SUPABASE_TABLES.playlists)
-    .delete()
-    .eq("id", playlistId)
-    .eq("user_id", userId);
-
-  if (playlistsError) {
-    console.error(
-      "プレイリストの削除中にエラーが発生しました:",
-      playlistsError
-    );
-    throw new Error(playlistsError.message);
-  }
+  await runQuery(async () =>
+    supabase
+      .from(SUPABASE_TABLES.playlists)
+      .delete()
+      .eq("id", playlistId)
+      .eq("user_id", userId),
+  );
 
   await db.delete(playlistSongs).where(eq(playlistSongs.playlistId, playlistId));
   await db.delete(playlists).where(eq(playlists.id, playlistId));

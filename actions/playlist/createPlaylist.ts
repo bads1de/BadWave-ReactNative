@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { SUPABASE_TABLES } from "@/constants";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 interface CreatePlaylistParams {
   userId: string;
@@ -25,20 +25,17 @@ const createPlaylist = async ({
   title,
   isPublic = false,
 }: CreatePlaylistParams) => {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.playlists)
-    .insert({
-      user_id: userId,
-      title: title.trim(),
-      is_public: isPublic,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error(getErrorMessage(error));
-    throw new Error(getErrorMessage(error));
-  }
+  const data = await runQuery(async () =>
+    supabase
+      .from(SUPABASE_TABLES.playlists)
+      .insert({
+        user_id: userId,
+        title: title.trim(),
+        is_public: isPublic,
+      })
+      .select()
+      .single(),
+  );
 
   await db.insert(playlists).values({
     id: data.id,

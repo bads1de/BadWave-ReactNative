@@ -3,8 +3,7 @@ import { SUPABASE_TABLES } from "@/constants";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlistSongs } from "@/lib/db/schema";
-import { withSupabaseRetry } from "@/lib/utils/retry";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 import { PLAYLIST_ERRORS } from "@/constants/errorMessages";
 
 /**
@@ -24,22 +23,17 @@ const deletePlaylistSong = async (
   songType: string = "regular"
 ): Promise<void> => {
   // 1. Supabase から削除（先に実行、リトライ付き）
-  const result = await withSupabaseRetry(async () => {
-    return await supabase
-      .from(SUPABASE_TABLES.playlistSongs)
-      .delete()
-      .eq("playlist_id", playlistId)
-      .eq("user_id", userId)
-      .eq("song_id", songId)
-      .eq("song_type", songType);
-  });
-
-  if (result.error) {
-    console.error(getErrorMessage(result.error));
-    throw new Error(
-      `${PLAYLIST_ERRORS.SUPABASE_DELETE_FAILED}: ${getErrorMessage(result.error)}`
-    );
-  }
+  await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.playlistSongs)
+        .delete()
+        .eq("playlist_id", playlistId)
+        .eq("user_id", userId)
+        .eq("song_id", songId)
+        .eq("song_type", songType),
+    { errorPrefix: PLAYLIST_ERRORS.SUPABASE_DELETE_FAILED },
+  );
 
   // 2. ローカルDBから削除（Supabase成功後）
   await db

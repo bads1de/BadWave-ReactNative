@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { likedSongs } from "@/lib/db/schema";
 import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 import { useSyncBase } from "./useSyncBase";
 
 /**
@@ -19,14 +19,12 @@ export function useSyncLikedSongs(userId?: string) {
         return { synced: 0 };
       }
 
-      const { data: remoteLikes, error } = await supabase
-        .from(SUPABASE_TABLES.likedSongsRegular)
-        .select("song_id, created_at")
-        .eq("user_id", userId);
-
-      if (error) {
-        throw new Error(getErrorMessage(error));
-      }
+      const remoteLikes = await runQuery(async () =>
+        supabase
+          .from(SUPABASE_TABLES.likedSongsRegular)
+          .select("song_id, created_at")
+          .eq("user_id", userId),
+      );
 
       if (!remoteLikes || remoteLikes.length === 0) {
         await db.transaction(async (tx) => {

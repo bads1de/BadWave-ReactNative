@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { SUPABASE_TABLES } from "@/constants";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * 指定された曲がどのプレイリストに含まれているかを取得する
@@ -13,17 +13,18 @@ const getSongPlaylistStatus = async (
   songId: string,
   userId: string
 ): Promise<string[]> => {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.playlistSongs)
-    .select("playlist_id")
-    .eq("song_id", songId)
-    .eq("user_id", userId)
-    .eq("song_type", "regular");
-
-  if (error) {
-    console.error("Error fetching song playlist status:", getErrorMessage(error));
-    return [];
-  }
+  // 状態チェック用途のため、取得失敗時は「どのプレイリストにも未追加」を意味する
+  // 空配列へフォールバックする（throw しない）。
+  const data = await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.playlistSongs)
+        .select("playlist_id")
+        .eq("song_id", songId)
+        .eq("user_id", userId)
+        .eq("song_type", "regular"),
+    { fallback: [] },
+  );
 
   return (data || []).map((item: { playlist_id: string }) => item.playlist_id);
 };

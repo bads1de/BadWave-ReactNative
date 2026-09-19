@@ -3,7 +3,7 @@ import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
 import { useSyncBase } from "./useSyncBase";
 import { upsertSectionCache } from "@/lib/db/sectionCacheUtils";
 import { getTrendDateFilter } from "@/lib/utils/trendFilter";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * トレンド曲のIDリストをSupabaseから取得し、sectionCacheに保存する同期フック
@@ -23,13 +23,9 @@ export function useSyncTrendSongs(
         query = query.gte("created_at", dateFilter);
       }
 
-      const { data: trendData, error } = await query
-        .order("count", { ascending: false })
-        .limit(10);
-
-      if (error) {
-        throw new Error(getErrorMessage(error));
-      }
+      const trendData = await runQuery(async () =>
+        query.order("count", { ascending: false }).limit(10),
+      );
 
       if (!trendData || trendData.length === 0) {
         return { synced: 0 };

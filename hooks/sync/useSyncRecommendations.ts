@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { CACHED_QUERIES } from "@/constants";
 import { useSyncBase } from "./useSyncBase";
 import { upsertSectionCache } from "@/lib/db/sectionCacheUtils";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * おすすめ曲のIDリストをSupabaseから取得し、sectionCacheに保存する同期フック
@@ -19,17 +19,12 @@ export function useSyncRecommendations(userId?: string) {
         return { synced: 0 };
       }
 
-      const { data: recData, error } = await supabase.rpc(
-        "get_recommendations",
-        {
+      const recData = await runQuery(async () =>
+        supabase.rpc("get_recommendations", {
           p_user_id: userId,
           p_limit: 10,
-        },
+        }),
       );
-
-      if (error) {
-        throw new Error(getErrorMessage(error));
-      }
 
       if (!recData || recData.length === 0) {
         return { synced: 0 };

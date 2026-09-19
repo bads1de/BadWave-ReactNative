@@ -1,6 +1,6 @@
 import Song from "@/types";
 import { supabase } from "@/lib/supabase";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * ユーザーの最もよく再生された曲を取得する
@@ -28,15 +28,12 @@ const getTopPlayedSongs = async (userId?: string): Promise<TopPlayedSong[]> => {
     return [];
   }
 
-  const { data, error } = await supabase.rpc("get_top_songs", {
-    p_user_id: userId,
-    p_period: "day",
-  });
-
-  if (error) {
-    console.error(getErrorMessage(error));
-    throw new Error(getErrorMessage(error));
-  }
+  const data = await runQuery(async () =>
+    supabase.rpc("get_top_songs", {
+      p_user_id: userId,
+      p_period: "day",
+    }),
+  );
 
   return (data || []) as TopPlayedSong[];
 };

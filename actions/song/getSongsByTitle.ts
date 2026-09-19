@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { SUPABASE_TABLES } from "@/constants";
 import Song from "@/types";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * タイトルで曲を検索する
@@ -17,16 +17,13 @@ import { getErrorMessage } from "@/lib/utils/error";
  * ```
  */
 const getSongsByTitle = async (title: string): Promise<Song[]> => {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.songs)
-    .select("*")
-    .ilike("title", `%${title}%`)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error(getErrorMessage(error));
-    throw new Error(getErrorMessage(error));
-  }
+  const data = await runQuery(async () =>
+    supabase
+      .from(SUPABASE_TABLES.songs)
+      .select("*")
+      .ilike("title", `%${title}%`)
+      .order("created_at", { ascending: false }),
+  );
 
   return (data as Song[]) || [];
 };

@@ -3,8 +3,7 @@ import { SUPABASE_TABLES } from "@/constants";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { playlists } from "@/lib/db/schema";
-import { withSupabaseRetry } from "@/lib/utils/retry";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * プレイリストの公開設定を切り替える
@@ -25,18 +24,13 @@ const togglePublicPlaylist = async (
   userId: string,
   isPublic: boolean
 ): Promise<void> => {
-  const { error } = await withSupabaseRetry(async () => {
-    return await supabase
+  await runQuery(async () =>
+    supabase
       .from(SUPABASE_TABLES.playlists)
       .update({ is_public: isPublic })
       .eq("id", playlistId)
-      .eq("user_id", userId);
-  });
-
-  if (error) {
-    console.error("プレイリストの更新中にエラーが発生しました:", error);
-    throw new Error(getErrorMessage(error));
-  }
+      .eq("user_id", userId),
+  );
 
   // ローカルファースト表示の整合を保つため SQLite も即時更新する
   await db

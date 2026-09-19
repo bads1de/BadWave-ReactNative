@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { SUPABASE_TABLES } from "@/constants";
 import Song from "@/types";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 
 /**
  * 指定したIDの曲を取得する
@@ -17,16 +17,9 @@ import { getErrorMessage } from "@/lib/utils/error";
  * ```
  */
 const getSongById = async (songId: string): Promise<Song | null> => {
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.songs)
-    .select("*")
-    .eq("id", songId)
-    .single();
-
-  if (error) {
-    console.error(getErrorMessage(error));
-    throw new Error(getErrorMessage(error));
-  }
+  const data = await runQuery(async () =>
+    supabase.from(SUPABASE_TABLES.songs).select("*").eq("id", songId).single(),
+  );
 
   return (data as Song) || null;
 };

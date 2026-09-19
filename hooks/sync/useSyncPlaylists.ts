@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db/client";
 import { playlists, playlistSongs } from "@/lib/db/schema";
 import { CACHED_QUERIES, SUPABASE_TABLES } from "@/constants";
-import { getErrorMessage } from "@/lib/utils/error";
+import { runQuery } from "@/lib/utils/supabaseQuery";
 import { mapPlaylistToRow } from "@/lib/db/playlistMapper";
 import { useSyncBase } from "./useSyncBase";
 
@@ -20,14 +20,12 @@ export function useSyncPlaylists(userId?: string) {
         return { synced: 0 };
       }
 
-      const { data: remotePlaylists, error: playlistError } = await supabase
-        .from(SUPABASE_TABLES.playlists)
-        .select("*, playlist_songs(*)")
-        .eq("user_id", userId);
-
-      if (playlistError) {
-        throw new Error(getErrorMessage(playlistError));
-      }
+      const remotePlaylists = await runQuery(async () =>
+        supabase
+          .from(SUPABASE_TABLES.playlists)
+          .select("*, playlist_songs(*)")
+          .eq("user_id", userId),
+      );
 
       if (!remotePlaylists || remotePlaylists.length === 0) {
         return { synced: 0 };
