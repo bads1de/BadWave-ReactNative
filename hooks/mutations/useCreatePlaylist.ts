@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CACHED_QUERIES } from "@/constants";
 import { useNetworkStatus } from "@/hooks/common/useNetworkStatus";
-import { withSupabaseRetry } from "@/lib/utils/retry";
 import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
 import createPlaylist from "@/actions/playlist/createPlaylist";
 import { Playlist } from "@/types";
@@ -32,10 +31,8 @@ export function useCreatePlaylist(userId?: string) {
         throw new Error(PLAYLIST_ERRORS.OFFLINE);
       }
 
-      // リトライ付きでアクションを呼び出す
-      return withSupabaseRetry(() =>
-        createPlaylist({ userId, title, isPublic })
-      );
+      // createPlaylist 内部の runQuery がリトライを行うため、ここで二重に包まない
+      return createPlaylist({ userId, title, isPublic });
     },
     onMutate: async ({ title }) => {
       await queryClient.cancelQueries({

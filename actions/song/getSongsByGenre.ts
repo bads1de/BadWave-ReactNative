@@ -31,8 +31,15 @@ import { runQuery } from "@/lib/utils/supabaseQuery";
  * ```
  */
 const getSongsByGenre = async (genre: string | string[]): Promise<Song[]> => {
-  const genreArray =
-    typeof genre === "string" ? genre.split(",").map((g) => g.trim()) : genre;
+  // 空要素を除去する（"Pop," のような入力で `genre.ilike.%%`（全件一致）になるのを防ぐ）
+  const genreArray = (
+    typeof genre === "string" ? genre.split(",") : (genre ?? [])
+  )
+    .map((g) => g.trim())
+    .filter(Boolean);
+
+  // ジャンルが未指定の場合は空で返す（`.or("")` は不正なフィルタになるため）
+  if (genreArray.length === 0) return [];
 
   // データベースから曲を検索
   const data = await runQuery(async () =>

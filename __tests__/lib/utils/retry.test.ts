@@ -1,4 +1,4 @@
-import { withRetry } from "@/lib/utils/retry";
+import { withRetry, withSupabaseRetry } from "@/lib/utils/retry";
 
 describe("withRetry", () => {
   beforeEach(() => {
@@ -116,6 +116,86 @@ describe("withRetry", () => {
     const result = await withRetry(mockFn, { maxRetries: 2, delay: 10 });
 
     expect(result).toBe("success");
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("should retry plain timeouts by default", async () => {
+    const mockFn = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("ETIMEDOUT"))
+      .mockResolvedValue("success");
+
+    await expect(
+      withRetry(mockFn, { maxRetries: 2, delay: 10 })
+    ).resolves.toBe("success");
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("withSupabaseRetry", () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("supabase が throw せず返した error を例外化して失敗として扱う", async () => {
+    const mockFn = jest
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: "Invalid input" } });
+
+    await expect(withSupabaseRetry(mockFn)).rejects.toThrow("Invalid input");
+  });
+
+  it("リトライ対象外の error は再試行せず即座に失敗する", async () => {
+    const mockFn = jest
+      .fn()
+      .mockResolvedValue({
+        data: null,
+        error: { message: "permission denied" },
+      });
+
+    await expect(withSupabaseRetry(mockFn)).rejects.toThrow(
+      "permission denied"
+    );
+    expect(mockFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("5xx は二重登録を避けるため再試行しない", async () => {
+    const mockFn = jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Internal Server Error" },
+    });
+
+    await expect(withSupabaseRetry(mockFn)).rejects.toThrow(
+      "Internal Server Error"
+    );
+    expect(mockFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("タイムアウトはリクエスト未達と言い切れないため再試行しない", async () => {
+    const mockFn = jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Request timeout" },
+    });
+
+    await expect(withSupabaseRetry(mockFn)).rejects.toThrow("Request timeout");
+    expect(mockFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("通信エラー（{ error } 形式）はリトライして成功すればその結果を返す", async () => {
+    jest.useFakeTimers();
+
+    const mockFn = jest
+      .fn()
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "TypeError: fetch failed" },
+      })
+      .mockResolvedValueOnce({ data: [{ id: 1 }], error: null });
+
+    const promise = withSupabaseRetry(mockFn);
+    await jest.advanceTimersByTimeAsync(1000);
+
+    await expect(promise).resolves.toEqual({ data: [{ id: 1 }], error: null });
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 });

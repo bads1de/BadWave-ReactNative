@@ -66,7 +66,7 @@ export function useSearchScreen() {
   });
 
   // キーボードの Search ボタンを押した時に履歴へ追加する
-  // デバウンス後に自動追加しないことで「一文字毎に履歴が贰まる」問題を防ぐ
+  // デバウンス後に自動追加しないことで「一文字毎に履歴が貯まる」問題を防ぐ
   const handleSubmit = useStableCallback(() => {
     if (debouncedQuery.length > 0) {
       addQuery(debouncedQuery);

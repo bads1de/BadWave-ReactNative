@@ -1,4 +1,5 @@
 import { NETWORK_ERRORS } from "@/constants/errorMessages";
+import { getErrorMessage } from "@/lib/utils/error";
 
 /**
  * バックオフ戦略の種類
@@ -42,23 +43,56 @@ export interface RetryConfig {
 }
 
 /**
+ * リクエストがサーバーに到達しなかった（＝再送しても安全な）接続レベルの失敗パターン。
+ * supabase-js は通信失敗を throw せず `{ error: { message } }` として返すため、
+ * その message を小文字化してここで判定する。
+ */
+const CONNECTION_ERROR_PATTERNS = [
+  "network", // "Network request failed" など
+  "fetch failed",
+  "failed to fetch",
+  "load failed", // Safari
+  "econnrefused",
+  "econnreset",
+  "enotfound",
+  "eai_again",
+  "err_network",
+  "err_internet_disconnected",
+] as const;
+
+/**
+ * リクエストがサーバーに到達していない（再送しても安全な）接続レベルの失敗かどうか
+ *
+ * タイムアウトはサーバーが処理済みの可能性があり「未達」と言い切れないため、
+ * 書き込みの再送で二重登録になり得る。ここでは含めない。
+ */
+const isConnectionError = (error: Error): boolean => {
+  const message = error.message.toLowerCase();
+  return CONNECTION_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
+};
+
+/**
  * デフォルトのリトライ判定関数
  * ネットワークエラーや一時的なエラーの場合にリトライする
+ *
+ * タイムアウトや 5xx も対象に含むため、書き込みには使わないこと
+ * （supabase-js 経由の書き込みは `withSupabaseRetry` が厳しい判定を使う）。
  */
 const defaultShouldRetry = (error: Error): boolean => {
-  // ネットワークエラーはリトライ
-  if (
-    error.message.includes("Network") ||
-    error.message.includes("network") ||
-    error.message.includes("timeout") ||
-    error.message.includes("ECONNREFUSED") ||
-    error.message.includes("ETIMEDOUT")
-  ) {
+  const message = error.message.toLowerCase();
+
+  // 接続レベルの失敗（リクエストが届いていない）はリトライ
+  if (isConnectionError(error)) {
+    return true;
+  }
+
+  // タイムアウトは一時的な失敗の可能性が高いためリトライ
+  if (message.includes("timeout") || message.includes("etimedout")) {
     return true;
   }
 
   // 一時的なサーバーエラー（5xx）はリトライ
-  if (error.message.includes("500") || error.message.includes("503")) {
+  if (message.includes("500") || message.includes("503")) {
     return true;
   }
 
@@ -170,6 +204,16 @@ export async function withRetry<T>(
 /**
  * Supabase操作用のプリセット設定でリトライを実行
  *
+ * supabase-js はクエリ失敗時に throw せず `{ error }` を resolve するため、
+ * そのままでは withRetry の catch に入らずリトライが機能しない。
+ * ここで `error` を例外に変換してからリトライ判定にかける。
+ *
+ * なお、リトライを使い切った場合は例外を投げるため、失敗を許容したい
+ * 呼び出し側は try/catch すること。
+ *
+ * このヘルパーは insert などの書き込みにも使われるため、再送で二重登録に
+ * なり得る 5xx はリトライ対象にしない（リクエスト未達の接続エラーのみ）。
+ *
  * @example
  * ```typescript
  * const data = await withSupabaseRetry(() =>
@@ -178,14 +222,33 @@ export async function withRetry<T>(
  * ```
  */
 export async function withSupabaseRetry<T>(fn: () => Promise<T>): Promise<T> {
-  return withRetry(fn, {
-    maxRetries: 3,
-    delay: 1000,
-    backoff: "exponential",
-    onRetry: (error, attempt, maxRetries) => {
-      console.warn(
-        `[Supabase] Retry ${attempt}/${maxRetries}: ${error.message}`
-      );
+  return withRetry(
+    async () => {
+      const result = await fn();
+
+      // supabase-js はエラーを throw せず `{ error }` に詰めて resolve する。
+      // リトライ可否を判定できるよう、例外に変換して投げ直す。
+      if (
+        result !== null &&
+        typeof result === "object" &&
+        "error" in result &&
+        (result as { error: unknown }).error
+      ) {
+        throw new Error(getErrorMessage((result as { error: unknown }).error));
+      }
+
+      return result;
     },
-  });
+    {
+      maxRetries: 3,
+      delay: 1000,
+      backoff: "exponential",
+      shouldRetry: isConnectionError,
+      onRetry: (error, attempt, maxRetries) => {
+        console.warn(
+          `[Supabase] Retry ${attempt}/${maxRetries}: ${error.message}`
+        );
+      },
+    }
+  );
 }

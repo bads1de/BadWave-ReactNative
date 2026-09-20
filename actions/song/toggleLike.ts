@@ -13,14 +13,20 @@ import { LIKE_ERRORS } from "@/constants/errorMessages";
  */
 async function updateLikeCount(songId: string, increment: number) {
   // SupabaseのRPCでアトミックに更新（リトライ付き）
-  const { error } = await withSupabaseRetry(async () => {
-    return await supabase.rpc("increment_like_count", {
-      song_id: songId,
-      increment_value: increment,
+  // リトライを使い切ると例外になるため、like_count の更新失敗は
+  // いいね本体の操作を妨げないよう、ここで握りつぶす
+  try {
+    const { error } = await withSupabaseRetry(async () => {
+      return await supabase.rpc("increment_like_count", {
+        song_id: songId,
+        increment_value: increment,
+      });
     });
-  });
 
-  if (error) {
+    if (error) {
+      console.warn("[Like] like_count RPC update failed:", error);
+    }
+  } catch (error) {
     console.warn("[Like] like_count RPC update failed:", error);
   }
 
