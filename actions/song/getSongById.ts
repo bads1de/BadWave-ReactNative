@@ -17,8 +17,10 @@ import { runQuery } from "@/lib/utils/supabaseQuery";
  * ```
  */
 const getSongById = async (songId: string): Promise<Song | null> => {
-  const data = await runQuery(async () =>
-    supabase.from(SUPABASE_TABLES.songs).select("*").eq("id", songId).single(),
+  const data = await runQuery(
+    async () =>
+      supabase.from(SUPABASE_TABLES.songs).select("*").eq("id", songId).single(),
+    { purpose: "read" },
   );
 
   return (data as Song) || null;

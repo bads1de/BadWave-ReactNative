@@ -16,11 +16,13 @@ export function useSyncSongs() {
     queryKey: [CACHED_QUERIES.songs, "sync"],
     queryFn: async () => {
       // Supabase から全楽曲を取得（リトライ付き）
-      const remoteSongs = await runQuery(async () =>
-        supabase
-          .from(SUPABASE_TABLES.songs)
-          .select("*")
-          .order("created_at", { ascending: false }),
+      const remoteSongs = await runQuery(
+        async () =>
+          supabase
+            .from(SUPABASE_TABLES.songs)
+            .select("*")
+            .order("created_at", { ascending: false }),
+        { purpose: "read" },
       );
 
       if (!remoteSongs || remoteSongs.length === 0) {

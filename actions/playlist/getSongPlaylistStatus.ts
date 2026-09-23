@@ -23,7 +23,7 @@ const getSongPlaylistStatus = async (
         .eq("song_id", songId)
         .eq("user_id", userId)
         .eq("song_type", "regular"),
-    { fallback: [] },
+    { fallback: [], purpose: "read" },
   );
 
   return (data || []).map((item: { playlist_id: string }) => item.playlist_id);

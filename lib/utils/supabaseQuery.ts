@@ -1,4 +1,4 @@
-import { withSupabaseRetry } from "@/lib/utils/retry";
+import { QueryPurpose, withSupabaseRetry } from "@/lib/utils/retry";
 import { getErrorMessage } from "@/lib/utils/error";
 
 /**
@@ -20,6 +20,14 @@ export interface RunQueryOptions<T> {
 
   /** ネットワークエラー時のリトライを行うか（デフォルト: true） */
   retry?: boolean;
+
+  /**
+   * クエリ用途（デフォルト: "write"）。
+   * - "read": タイムアウト・5xx・接続エラーをリトライ（再送安全）
+   * - "write": 接続エラーのみリトライ（二重登録防止）
+   * SELECT 系では "read" を指定すること。
+   */
+  purpose?: QueryPurpose;
 
   /** エラーメッセージの接頭辞（例: LIKE_ERRORS.SUPABASE_INSERT_FAILED） */
   errorPrefix?: string;
@@ -44,7 +52,7 @@ export async function runQuery<T>(
   fn: () => PromiseLike<SupabaseResult<T>>,
   options: RunQueryOptions<T> = {},
 ): Promise<T> {
-  const { fallback, retry = true, errorPrefix } = options;
+  const { fallback, retry = true, purpose = "write", errorPrefix } = options;
 
   const toMessage = (error: unknown): string => {
     const message = getErrorMessage(error);
@@ -52,7 +60,7 @@ export async function runQuery<T>(
   };
 
   const execute: () => Promise<SupabaseResult<T>> = retry
-    ? () => withSupabaseRetry(async () => fn())
+    ? () => withSupabaseRetry(async () => fn(), { purpose })
     : async () => fn();
 
   // ログ出力と throw / fallback を一元化する。

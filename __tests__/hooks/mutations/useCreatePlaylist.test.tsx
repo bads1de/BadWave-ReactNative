@@ -34,7 +34,20 @@ jest.mock("@/hooks/common/useNetworkStatus", () => ({
 }));
 
 jest.mock("@/lib/utils/retry", () => ({
-  withSupabaseRetry: jest.fn((fn) => fn()),
+  // 実装と同じく、result.error は例外化する
+  withSupabaseRetry: jest.fn(async (fn: () => Promise<unknown>) => {
+    const result = await fn();
+    if (
+      result !== null &&
+      typeof result === "object" &&
+      "error" in result &&
+      (result as { error: unknown }).error
+    ) {
+      const err = (result as { error: { message?: string } }).error;
+      throw new Error(err?.message ?? String(err));
+    }
+    return result;
+  }),
 }));
 
 const _supabase = require("@/lib/supabase").supabase;
@@ -222,6 +235,53 @@ describe("useCreatePlaylist", () => {
         expect(playlists?.length).toBe(2);
         expect(playlists?.[1].title).toBe("New Playlist");
         expect(playlists?.[1].id).toMatch(/^temp_/);
+      });
+    });
+
+    it("楽観的更新で isPublic を is_public に反映する", async () => {
+      const userId = "user-123";
+
+      queryClient.setQueryData([CACHED_QUERIES.playlists], []);
+
+      const mockSingle = jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  data: {
+                    id: "new-playlist-1",
+                    created_at: "2024-01-01",
+                    image_path: "path/to/img",
+                  },
+                  error: null,
+                }),
+              100,
+            ),
+          ),
+      );
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockInsertSupabase = jest
+        .fn()
+        .mockReturnValue({ select: mockSelect });
+      _supabase.from.mockReturnValue({ insert: mockInsertSupabase });
+
+      const mockValues = jest.fn().mockResolvedValue(undefined);
+      db.insert.mockReturnValue({ values: mockValues });
+
+      const { result } = renderHook(() => useCreatePlaylist(userId), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.mutate({ title: "Public Playlist", isPublic: true });
+      });
+
+      await waitFor(() => {
+        const playlists = queryClient.getQueryData<any[]>([
+          CACHED_QUERIES.playlists,
+        ]);
+        expect(playlists?.[0].is_public).toBe(true);
       });
     });
 

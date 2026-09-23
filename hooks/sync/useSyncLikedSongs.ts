@@ -19,11 +19,13 @@ export function useSyncLikedSongs(userId?: string) {
         return { synced: 0 };
       }
 
-      const remoteLikes = await runQuery(async () =>
-        supabase
-          .from(SUPABASE_TABLES.likedSongsRegular)
-          .select("song_id, created_at")
-          .eq("user_id", userId),
+      const remoteLikes = await runQuery(
+        async () =>
+          supabase
+            .from(SUPABASE_TABLES.likedSongsRegular)
+            .select("song_id, created_at")
+            .eq("user_id", userId),
+        { purpose: "read" },
       );
 
       if (!remoteLikes || remoteLikes.length === 0) {

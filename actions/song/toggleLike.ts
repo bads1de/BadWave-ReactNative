@@ -15,17 +15,14 @@ async function updateLikeCount(songId: string, increment: number) {
   // SupabaseのRPCでアトミックに更新（リトライ付き）
   // リトライを使い切ると例外になるため、like_count の更新失敗は
   // いいね本体の操作を妨げないよう、ここで握りつぶす
+  // （withSupabaseRetry は error を例外化するため、成功時は error なし）
   try {
-    const { error } = await withSupabaseRetry(async () => {
+    await withSupabaseRetry(async () => {
       return await supabase.rpc("increment_like_count", {
         song_id: songId,
         increment_value: increment,
       });
     });
-
-    if (error) {
-      console.warn("[Like] like_count RPC update failed:", error);
-    }
   } catch (error) {
     console.warn("[Like] like_count RPC update failed:", error);
   }

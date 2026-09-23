@@ -34,7 +34,20 @@ jest.mock("@/hooks/common/useNetworkStatus", () => ({
 }));
 
 jest.mock("@/lib/utils/retry", () => ({
-  withSupabaseRetry: jest.fn((fn) => fn()),
+  // 実装と同じく、result.error は例外化する
+  withSupabaseRetry: jest.fn(async (fn: () => Promise<unknown>) => {
+    const result = await fn();
+    if (
+      result !== null &&
+      typeof result === "object" &&
+      "error" in result &&
+      (result as { error: unknown }).error
+    ) {
+      const err = (result as { error: { message?: string } }).error;
+      throw new Error(err?.message ?? String(err));
+    }
+    return result;
+  }),
 }));
 
 const _supabase = require("@/lib/supabase").supabase;
@@ -112,9 +125,9 @@ describe("useLikeMutation - Optimistic Update", () => {
         false
       );
 
-      // Supabaseモック（エラーを返す）
+      // Supabaseモック（エラーを投げる = 実装の withSupabaseRetry と同じ契約）
       withSupabaseRetry.mockImplementation(async () => {
-        return { data: null, error: { message: "Network error" } };
+        throw new Error("Network error");
       });
 
       const { result } = renderHook(() => useLikeMutation("song-1", "user-1"), {

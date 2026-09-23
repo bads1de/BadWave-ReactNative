@@ -7,6 +7,7 @@ import Song from "@/types";
 import { supabase } from "@/lib/supabase";
 import { SUPABASE_TABLES } from "@/constants";
 import { runQuery } from "@/lib/utils/supabaseQuery";
+import { escapePostgrestOrValue } from "@/lib/utils/postgrest";
 
 /**
  * ジャンルに基づいて曲を検索する
@@ -42,12 +43,18 @@ const getSongsByGenre = async (genre: string | string[]): Promise<Song[]> => {
   if (genreArray.length === 0) return [];
 
   // データベースから曲を検索
-  const data = await runQuery(async () =>
-    supabase
-      .from(SUPABASE_TABLES.songs)
-      .select("*")
-      .or(genreArray.map((genre) => `genre.ilike.%${genre}%`).join(","))
-      .order("created_at", { ascending: false }),
+  const data = await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.songs)
+        .select("*")
+        .or(
+          genreArray
+            .map((g) => `genre.ilike.${escapePostgrestOrValue(g)}`)
+            .join(","),
+        )
+        .order("created_at", { ascending: false }),
+    { purpose: "read" },
   );
 
   return (data as Song[]) || [];

@@ -23,8 +23,9 @@ export function useSyncTrendSongs(
         query = query.gte("created_at", dateFilter);
       }
 
-      const trendData = await runQuery(async () =>
-        query.order("count", { ascending: false }).limit(10),
+      const trendData = await runQuery(
+        async () => query.order("count", { ascending: false }).limit(10),
+        { purpose: "read" },
       );
 
       if (!trendData || trendData.length === 0) {

@@ -13,11 +13,13 @@ export function useSyncSpotlights() {
   return useSyncBase({
     queryKey: [CACHED_QUERIES.spotlights, "sync"],
     queryFn: async () => {
-      const remoteSpotlights = await runQuery(async () =>
-        supabase
-          .from(SUPABASE_TABLES.spotlights)
-          .select("*")
-          .order("created_at", { ascending: false }),
+      const remoteSpotlights = await runQuery(
+        async () =>
+          supabase
+            .from(SUPABASE_TABLES.spotlights)
+            .select("*")
+            .order("created_at", { ascending: false }),
+        { purpose: "read" },
       );
 
       if (!remoteSpotlights || remoteSpotlights.length === 0) {

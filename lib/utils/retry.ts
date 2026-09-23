@@ -61,6 +61,12 @@ const CONNECTION_ERROR_PATTERNS = [
 ] as const;
 
 /**
+ * クエリ用途。読み取りは再送が安全なため広くリトライし、
+ * 書き込みは二重登録を避けるため接続エラーのみに絞る。
+ */
+export type QueryPurpose = "read" | "write";
+
+/**
  * リクエストがサーバーに到達していない（再送しても安全な）接続レベルの失敗かどうか
  *
  * タイムアウトはサーバーが処理済みの可能性があり「未達」と言い切れないため、
@@ -72,11 +78,11 @@ const isConnectionError = (error: Error): boolean => {
 };
 
 /**
- * デフォルトのリトライ判定関数
- * ネットワークエラーや一時的なエラーの場合にリトライする
+ * 読み取り用途のリトライ判定関数
+ * ネットワークエラー・タイムアウト・一時的な 5xx をリトライする
  *
  * タイムアウトや 5xx も対象に含むため、書き込みには使わないこと
- * （supabase-js 経由の書き込みは `withSupabaseRetry` が厳しい判定を使う）。
+ * （supabase-js 経由の書き込みは `withSupabaseRetry` の write 側が厳しい判定を使う）。
  */
 const defaultShouldRetry = (error: Error): boolean => {
   const message = error.message.toLowerCase();
@@ -209,19 +215,29 @@ export async function withRetry<T>(
  * ここで `error` を例外に変換してからリトライ判定にかける。
  *
  * なお、リトライを使い切った場合は例外を投げるため、失敗を許容したい
- * 呼び出し側は try/catch すること。
+ * 呼び出し側は try/catch すること。また `error` は常に例外化されるため、
+ * 戻り値の `error` を後段で判定するコードは到達不能になる。
  *
- * このヘルパーは insert などの書き込みにも使われるため、再送で二重登録に
- * なり得る 5xx はリトライ対象にしない（リクエスト未達の接続エラーのみ）。
+ * リトライ方針は用途で分かれる:
+ * - `read`（既定: write 扱いにしないこと。明示的に指定する）:
+ *   タイムアウト・5xx・接続エラーをリトライ（再送安全）
+ * - `write`（既定）: リクエスト未達の接続エラーのみリトライ
+ *   （タイムアウトや 5xx は再送で二重登録になり得るため対象外）
  *
  * @example
  * ```typescript
- * const data = await withSupabaseRetry(() =>
- *   supabase.from('table').insert({...})
+ * const data = await withSupabaseRetry(
+ *   () => supabase.from('table').select(),
+ *   { purpose: "read" },
  * );
  * ```
  */
-export async function withSupabaseRetry<T>(fn: () => Promise<T>): Promise<T> {
+export async function withSupabaseRetry<T>(
+  fn: () => Promise<T>,
+  options: { purpose?: QueryPurpose } = {}
+): Promise<T> {
+  const { purpose = "write" } = options;
+
   return withRetry(
     async () => {
       const result = await fn();
@@ -243,7 +259,7 @@ export async function withSupabaseRetry<T>(fn: () => Promise<T>): Promise<T> {
       maxRetries: 3,
       delay: 1000,
       backoff: "exponential",
-      shouldRetry: isConnectionError,
+      shouldRetry: purpose === "read" ? defaultShouldRetry : isConnectionError,
       onRetry: (error, attempt, maxRetries) => {
         console.warn(
           `[Supabase] Retry ${attempt}/${maxRetries}: ${error.message}`

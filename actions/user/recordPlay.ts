@@ -10,14 +10,11 @@ import { withSupabaseRetry } from "@/lib/utils/retry";
  */
 const recordPlay = async (songId: string, userId: string): Promise<void> => {
   // リトライを使い切ると例外になるため、記録失敗はログのみで握りつぶす
+  // （withSupabaseRetry は error を例外化するため、成功時は error なし）
   try {
-    const { error } = await withSupabaseRetry(async () =>
+    await withSupabaseRetry(async () =>
       supabase.from("play_history").insert({ user_id: userId, song_id: songId })
     );
-
-    if (error) {
-      console.error("再生の記録中にエラーが発生しました:", error);
-    }
   } catch (error) {
     console.error("再生の記録中にエラーが発生しました:", error);
   }

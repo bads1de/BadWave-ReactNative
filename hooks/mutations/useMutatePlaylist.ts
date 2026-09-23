@@ -42,9 +42,16 @@ export function useMutatePlaylist(userId?: string) {
       await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlists],
       });
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlistById, playlistId],
+      });
 
       const previousPlaylists = queryClient.getQueryData<Playlist[]>([
         CACHED_QUERIES.playlists,
+      ]);
+      const previousPlaylist = queryClient.getQueryData<Playlist>([
+        CACHED_QUERIES.playlistById,
+        playlistId,
       ]);
 
       // 変数 isPublic は呼び出し元で反転済みの「新しい値」を渡す契約のため、
@@ -54,8 +61,12 @@ export function useMutatePlaylist(userId?: string) {
           p.id === playlistId ? { ...p, is_public: isPublic } : p,
         ),
       );
+      queryClient.setQueryData<Playlist>(
+        [CACHED_QUERIES.playlistById, playlistId],
+        (old) => (old ? { ...old, is_public: isPublic } : old),
+      );
 
-      return { previousPlaylists };
+      return { previousPlaylists, previousPlaylist };
     },
     onSuccess: ({ playlistId }) => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
@@ -66,12 +77,25 @@ export function useMutatePlaylist(userId?: string) {
         queryKey: [CACHED_QUERIES.getPublicPlaylists],
       });
     },
-    onError: (_error, _variables, context) => {
+    onError: (_error, { playlistId }, context) => {
       if (context?.previousPlaylists) {
         queryClient.setQueryData(
           [CACHED_QUERIES.playlists],
           context.previousPlaylists,
         );
+      }
+      if (context) {
+        if (context.previousPlaylist !== undefined) {
+          queryClient.setQueryData(
+            [CACHED_QUERIES.playlistById, playlistId],
+            context.previousPlaylist,
+          );
+        } else {
+          queryClient.removeQueries({
+            queryKey: [CACHED_QUERIES.playlistById, playlistId],
+            exact: true,
+          });
+        }
       }
     },
   });
@@ -93,16 +117,27 @@ export function useMutatePlaylist(userId?: string) {
       await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlists],
       });
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlistById, playlistId],
+      });
 
       const previousPlaylists = queryClient.getQueryData<Playlist[]>([
         CACHED_QUERIES.playlists,
+      ]);
+      const previousPlaylist = queryClient.getQueryData<Playlist>([
+        CACHED_QUERIES.playlistById,
+        playlistId,
       ]);
 
       queryClient.setQueryData<Playlist[]>([CACHED_QUERIES.playlists], (old) =>
         (old || []).map((p) => (p.id === playlistId ? { ...p, title } : p)),
       );
+      queryClient.setQueryData<Playlist>(
+        [CACHED_QUERIES.playlistById, playlistId],
+        (old) => (old ? { ...old, title } : old),
+      );
 
-      return { previousPlaylists };
+      return { previousPlaylists, previousPlaylist };
     },
     onSuccess: ({ playlistId }) => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
@@ -113,12 +148,25 @@ export function useMutatePlaylist(userId?: string) {
         queryKey: [CACHED_QUERIES.getPublicPlaylists],
       });
     },
-    onError: (_error, _variables, context) => {
+    onError: (_error, { playlistId }, context) => {
       if (context?.previousPlaylists) {
         queryClient.setQueryData(
           [CACHED_QUERIES.playlists],
           context.previousPlaylists,
         );
+      }
+      if (context) {
+        if (context.previousPlaylist !== undefined) {
+          queryClient.setQueryData(
+            [CACHED_QUERIES.playlistById, playlistId],
+            context.previousPlaylist,
+          );
+        } else {
+          queryClient.removeQueries({
+            queryKey: [CACHED_QUERIES.playlistById, playlistId],
+            exact: true,
+          });
+        }
       }
     },
   });
@@ -140,16 +188,27 @@ export function useMutatePlaylist(userId?: string) {
       await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlists],
       });
+      await queryClient.cancelQueries({
+        queryKey: [CACHED_QUERIES.playlistById, playlistId],
+      });
 
       const previousPlaylists = queryClient.getQueryData<Playlist[]>([
         CACHED_QUERIES.playlists,
+      ]);
+      const previousPlaylist = queryClient.getQueryData<Playlist | null>([
+        CACHED_QUERIES.playlistById,
+        playlistId,
       ]);
 
       queryClient.setQueryData<Playlist[]>([CACHED_QUERIES.playlists], (old) =>
         (old || []).filter((p) => p.id !== playlistId),
       );
+      queryClient.setQueryData<Playlist | null>(
+        [CACHED_QUERIES.playlistById, playlistId],
+        null,
+      );
 
-      return { previousPlaylists };
+      return { previousPlaylists, previousPlaylist };
     },
     onSuccess: ({ playlistId }) => {
       queryClient.invalidateQueries({ queryKey: [CACHED_QUERIES.playlists] });
@@ -163,12 +222,25 @@ export function useMutatePlaylist(userId?: string) {
         queryKey: [CACHED_QUERIES.getPublicPlaylists],
       });
     },
-    onError: (_error, _variables, context) => {
+    onError: (_error, { playlistId }, context) => {
       if (context?.previousPlaylists) {
         queryClient.setQueryData(
           [CACHED_QUERIES.playlists],
           context.previousPlaylists,
         );
+      }
+      if (context) {
+        if (context.previousPlaylist !== undefined) {
+          queryClient.setQueryData(
+            [CACHED_QUERIES.playlistById, playlistId],
+            context.previousPlaylist,
+          );
+        } else {
+          queryClient.removeQueries({
+            queryKey: [CACHED_QUERIES.playlistById, playlistId],
+            exact: true,
+          });
+        }
       }
     },
   });

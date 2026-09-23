@@ -18,12 +18,14 @@ export const getUser = async (): Promise<User | null> => {
     throw new Error(AUTH_ERRORS.SESSION_REQUIRED);
   }
 
-  const data = await runQuery(async () =>
-    supabase
-      .from(SUPABASE_TABLES.users)
-      .select("*")
-      .eq("id", session.user.id)
-      .single(),
+  const data = await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.users)
+        .select("*")
+        .eq("id", session.user.id)
+        .single(),
+    { purpose: "read" },
   );
 
   return data || null;

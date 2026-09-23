@@ -17,13 +17,15 @@ import { runQuery } from "@/lib/utils/supabaseQuery";
  * ```
  */
 const getPublicPlaylists = async (limit: number = 20): Promise<Playlist[]> => {
-  const data = await runQuery(async () =>
-    supabase
-      .from(SUPABASE_TABLES.playlists)
-      .select("*")
-      .eq("is_public", true)
-      .order("created_at", { ascending: false })
-      .limit(limit),
+  const data = await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.playlists)
+        .select("*")
+        .eq("is_public", true)
+        .order("created_at", { ascending: false })
+        .limit(limit),
+    { purpose: "read" },
   );
 
   return (data as Playlist[]) || [];

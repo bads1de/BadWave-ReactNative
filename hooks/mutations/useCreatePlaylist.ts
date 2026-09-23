@@ -34,7 +34,7 @@ export function useCreatePlaylist(userId?: string) {
       // createPlaylist 内部の runQuery がリトライを行うため、ここで二重に包まない
       return createPlaylist({ userId, title, isPublic });
     },
-    onMutate: async ({ title }) => {
+    onMutate: async ({ title, isPublic = false }) => {
       await queryClient.cancelQueries({
         queryKey: [CACHED_QUERIES.playlists],
       });
@@ -48,7 +48,7 @@ export function useCreatePlaylist(userId?: string) {
         {
           id: `temp_${Date.now()}`,
           title,
-          is_public: false,
+          is_public: isPublic,
           user_id: userId ?? "",
           created_at: new Date().toISOString(),
         },

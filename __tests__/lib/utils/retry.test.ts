@@ -198,5 +198,41 @@ describe("withSupabaseRetry", () => {
     await expect(promise).resolves.toEqual({ data: [{ id: 1 }], error: null });
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
+
+  it("purpose: read ではタイムアウトもリトライする", async () => {
+    jest.useFakeTimers();
+
+    const mockFn = jest
+      .fn()
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "Request timeout" },
+      })
+      .mockResolvedValueOnce({ data: [{ id: 1 }], error: null });
+
+    const promise = withSupabaseRetry(mockFn, { purpose: "read" });
+    await jest.advanceTimersByTimeAsync(1000);
+
+    await expect(promise).resolves.toEqual({ data: [{ id: 1 }], error: null });
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("purpose: read では 5xx もリトライする", async () => {
+    jest.useFakeTimers();
+
+    const mockFn = jest
+      .fn()
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "500 Internal Server Error" },
+      })
+      .mockResolvedValueOnce({ data: [{ id: 1 }], error: null });
+
+    const promise = withSupabaseRetry(mockFn, { purpose: "read" });
+    await jest.advanceTimersByTimeAsync(1000);
+
+    await expect(promise).resolves.toEqual({ data: [{ id: 1 }], error: null });
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
 });
 

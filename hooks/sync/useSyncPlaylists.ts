@@ -20,11 +20,13 @@ export function useSyncPlaylists(userId?: string) {
         return { synced: 0 };
       }
 
-      const remotePlaylists = await runQuery(async () =>
-        supabase
-          .from(SUPABASE_TABLES.playlists)
-          .select("*, playlist_songs(*)")
-          .eq("user_id", userId),
+      const remotePlaylists = await runQuery(
+        async () =>
+          supabase
+            .from(SUPABASE_TABLES.playlists)
+            .select("*, playlist_songs(*)")
+            .eq("user_id", userId),
+        { purpose: "read" },
       );
 
       if (!remotePlaylists || remotePlaylists.length === 0) {

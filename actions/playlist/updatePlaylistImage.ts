@@ -20,12 +20,14 @@ const updatePlaylistImage = async (
   songImagePath: string
 ): Promise<void> => {
   // プレイリストの現在の画像パス情報を取得（image_path 列のみ）
-  const playlistData = await runQuery(async () =>
-    supabase
-      .from(SUPABASE_TABLES.playlists)
-      .select("image_path")
-      .eq("id", playlistId)
-      .single(),
+  const playlistData = await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.playlists)
+        .select("image_path")
+        .eq("id", playlistId)
+        .single(),
+    { purpose: "read" },
   );
 
   // 画像パスが未設定の場合のみ、指定された曲の画像で更新する

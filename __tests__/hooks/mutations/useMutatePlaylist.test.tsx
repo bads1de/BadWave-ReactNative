@@ -167,6 +167,48 @@ describe("useMutatePlaylist", () => {
           ]);
           expect(playlists?.[0].is_public).toBe(true);
         });
+
+        // 詳細キャッシュ（playlistById）も同時に更新される
+        await waitFor(() => {
+          const detail = queryClient.getQueryData<any>([
+            CACHED_QUERIES.playlistById,
+            "p1",
+          ]);
+          expect(detail?.is_public).toBe(true);
+        });
+      });
+
+      it("エラー時に playlistById もロールバックされる", async () => {
+        queryClient.setQueryData([CACHED_QUERIES.playlists], [
+          { id: "p1", title: "Playlist 1", is_public: false, userId: "u1" },
+        ]);
+        queryClient.setQueryData([CACHED_QUERIES.playlistById, "p1"], {
+          id: "p1",
+          title: "Playlist 1",
+          is_public: false,
+          userId: "u1",
+        });
+
+        togglePublicPlaylist.mockRejectedValue(new Error("Network error"));
+
+        const { result } = renderHook(() => useMutatePlaylist("u1"), {
+          wrapper: createWrapper(),
+        });
+
+        await act(async () => {
+          result.current.togglePublic.mutate({
+            playlistId: "p1",
+            isPublic: true,
+          });
+        });
+
+        await waitFor(() => {
+          const detail = queryClient.getQueryData<any>([
+            CACHED_QUERIES.playlistById,
+            "p1",
+          ]);
+          expect(detail?.is_public).toBe(false);
+        });
       });
 
       it("エラー時にキャッシュがロールバックされる", async () => {

@@ -28,11 +28,13 @@ const getTopPlayedSongs = async (userId?: string): Promise<TopPlayedSong[]> => {
     return [];
   }
 
-  const data = await runQuery(async () =>
-    supabase.rpc("get_top_songs", {
-      p_user_id: userId,
-      p_period: "day",
-    }),
+  const data = await runQuery(
+    async () =>
+      supabase.rpc("get_top_songs", {
+        p_user_id: userId,
+        p_period: "day",
+      }),
+    { purpose: "read" },
   );
 
   return (data || []) as TopPlayedSong[];

@@ -19,11 +19,13 @@ export function useSyncRecommendations(userId?: string) {
         return { synced: 0 };
       }
 
-      const recData = await runQuery(async () =>
-        supabase.rpc("get_recommendations", {
-          p_user_id: userId,
-          p_limit: 10,
-        }),
+      const recData = await runQuery(
+        async () =>
+          supabase.rpc("get_recommendations", {
+            p_user_id: userId,
+            p_limit: 10,
+          }),
+        { purpose: "read" },
       );
 
       if (!recData || recData.length === 0) {

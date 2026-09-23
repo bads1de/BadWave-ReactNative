@@ -17,12 +17,14 @@ import { runQuery } from "@/lib/utils/supabaseQuery";
  * ```
  */
 const getSongsByTitle = async (title: string): Promise<Song[]> => {
-  const data = await runQuery(async () =>
-    supabase
-      .from(SUPABASE_TABLES.songs)
-      .select("*")
-      .ilike("title", `%${title}%`)
-      .order("created_at", { ascending: false }),
+  const data = await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.songs)
+        .select("*")
+        .ilike("title", `%${title}%`)
+        .order("created_at", { ascending: false }),
+    { purpose: "read" },
   );
 
   return (data as Song[]) || [];
