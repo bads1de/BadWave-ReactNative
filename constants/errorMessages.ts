@@ -51,6 +51,13 @@ export const NETWORK_ERRORS = {
 
 /**
  * 汎用エラーメッセージ定数 (badwave-mobile)
+ *
+ * ⚠️ web / desktop にも同名の ERROR_MESSAGES があるが、環境ごとに
+ *    キー名・値・構造が異なる。統合や値変更の際は必ず 3 環境すべてで差分を確認すること。
+ *    - 値が異なる例: TITLE_REQUIRED は本環境では「プレイリスト名を入力してください」
+ *      (web/desktop は「タイトルを入力してください」)
+ *    - キー名が異なる例: LOGOUT_FAILED(web/desktop) と本環境の SIGNOUT_FAILED(AUTH_ERRORS)
+ *    - 構造が異なる例: 本環境は AUTH_ERRORS / LIKE_ERRORS 等のカテゴリ別辞書を持つ
  */
 export const ERROR_MESSAGES = {
   ADMIN_REQUIRED: "管理者権限が必要です",

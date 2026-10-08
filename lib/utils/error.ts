@@ -8,6 +8,9 @@
  * 「message が空だから空文字を返す」とエラーが UI やログに何も残らないため、
  * 必ず空でない文字列を返す。
  *
+ * ※ 本実装は web(libs/utils/error.ts)・desktop(electron/lib/error.ts) と
+ *   完全に同一。変更する際は 3 環境すべてで同じ差分を適用すること。
+ *
  * @param error - catchされたエラー
  * @param fallback - フォールバックメッセージ
  * @returns 空でないエラーメッセージ
