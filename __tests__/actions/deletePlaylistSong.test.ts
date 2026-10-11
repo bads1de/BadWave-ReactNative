@@ -18,15 +18,21 @@ jest.mock("drizzle-orm", () => ({
   eq: jest.fn((field, value) => ({ field, value })),
 }));
 
-const { mockFrom, mockDelete, mockEq } = mockFunctions;
+const { mockFrom, mockDelete, mockSelect, mockEq, mockSingle, mockThen } =
+  mockFunctions;
 const { db } = require("@/lib/db/client");
 const mockWhere = jest.fn();
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSingle.mockResolvedValue({ data: { id: "playlist123" }, error: null });
+  mockEq.mockReturnValue({ eq: mockEq, single: mockSingle, then: mockThen });
+  mockThen.mockImplementation((onFulfilled: (v: unknown) => unknown) =>
+    Promise.resolve({ data: null, error: null }).then(onFulfilled)
+  );
+  mockSelect.mockReturnValue({ eq: mockEq });
   mockDelete.mockReturnValue({ eq: mockEq });
-  mockEq.mockReturnValue({ eq: mockEq });
-  mockFrom.mockReturnValue({ delete: mockDelete });
+  mockFrom.mockReturnValue({ select: mockSelect, delete: mockDelete });
   db.delete.mockReturnValue({ where: mockWhere });
   mockWhere.mockResolvedValue(undefined);
 });
@@ -39,6 +45,7 @@ describe("deletePlaylistSong", () => {
   it("正常に曲を削除できる", async () => {
     await deletePlaylistSong(playlistId, songId, userId);
 
+    expect(mockFrom).toHaveBeenCalledWith("playlists");
     expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
     expect(mockDelete).toHaveBeenCalled();
     expect(mockEq).toHaveBeenCalledWith("user_id", userId);
@@ -46,13 +53,32 @@ describe("deletePlaylistSong", () => {
     expect(mockWhere).toHaveBeenCalled();
   });
 
+  it("他人のプレイリストの曲は削除せずエラーをスローする", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: "0 rows" },
+    });
+
+    await expect(
+      deletePlaylistSong(playlistId, songId, "attacker")
+    ).rejects.toThrow();
+    expect(db.delete).not.toHaveBeenCalled();
+  });
+
+  it("userIdがない場合はエラーをスローする", async () => {
+    await expect(
+      deletePlaylistSong(playlistId, songId, undefined as unknown as string)
+    ).rejects.toThrow("ユーザーIDが必要です");
+    expect(db.delete).not.toHaveBeenCalled();
+  });
+
   it("削除時にエラーが発生した場合", async () => {
-    const mockEqSongType = jest
-      .fn()
-      .mockResolvedValue({ data: null, error: { message: "Delete error" } });
-    mockEq.mockReturnValueOnce({ eq: mockEq });
-    mockEq.mockReturnValueOnce({ eq: mockEq });
-    mockEq.mockReturnValueOnce({ eq: mockEqSongType });
+    mockThen.mockImplementationOnce((onFulfilled: (v: unknown) => unknown) =>
+      Promise.resolve({
+        data: null,
+        error: { message: "Delete error" },
+      }).then(onFulfilled)
+    );
 
     await expect(deletePlaylistSong(playlistId, songId, userId)).rejects.toThrow(
       "Delete error"

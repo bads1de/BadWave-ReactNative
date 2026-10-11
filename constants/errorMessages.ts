@@ -38,6 +38,7 @@ export const PLAYLIST_ERRORS = {
   SUPABASE_DELETE_FAILED: "プレイリストからの削除に失敗しました",
   ADD_SONG_FAILED: "プレイリストへの曲の追加に失敗しました",
   REMOVE_SONG_FAILED: "プレイリストからの曲の削除に失敗しました",
+  FORBIDDEN: "このプレイリストを編集する権限がありません",
 } as const;
 
 /**

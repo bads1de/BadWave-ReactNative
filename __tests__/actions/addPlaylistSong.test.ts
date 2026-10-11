@@ -20,19 +20,21 @@ jest.mock("@/actions/song/getSongById");
 jest.mock("@/actions/playlist/updatePlaylistImage");
 
 // モックのエイリアス
-const { mockFrom, mockInsert } = mockFunctions;
+const { mockFrom, mockInsert, mockSelect, mockEq, mockSingle } = mockFunctions;
 const { db } = require("@/lib/db/client");
 const mockLocalInsert = jest.fn();
-
-// モックの設定
-mockInsert.mockResolvedValue({ data: null, error: null });
-mockFrom.mockReturnValue({ insert: mockInsert });
 
 // テスト前にモックを設定
 beforeEach(() => {
   jest.clearAllMocks();
   db.insert.mockReturnValue({ values: mockLocalInsert });
   mockLocalInsert.mockResolvedValue(undefined);
+  // 所有権チェック (playlists select) は成功させる
+  mockSingle.mockResolvedValue({ data: { id: "playlist123" }, error: null });
+  mockEq.mockReturnValue({ eq: mockEq, single: mockSingle });
+  mockSelect.mockReturnValue({ eq: mockEq });
+  mockInsert.mockResolvedValue({ data: null, error: null });
+  mockFrom.mockReturnValue({ select: mockSelect, insert: mockInsert });
   (getSongById as jest.Mock).mockImplementation(async () => ({
     id: "s1",
     title: "Song1",
@@ -51,6 +53,7 @@ describe("addPlaylistSong", () => {
     await addPlaylistSong({ playlistId, userId, songId });
 
     // 期待値を確認
+    expect(mockFrom).toHaveBeenCalledWith("playlists");
     expect(mockFrom).toHaveBeenCalledWith("playlist_songs");
     expect(mockInsert).toHaveBeenCalledWith({
       playlist_id: playlistId,
@@ -66,7 +69,24 @@ describe("addPlaylistSong", () => {
       }),
     );
     expect(getSongById).toHaveBeenCalledWith(songId);
-    expect(updatePlaylistImage).toHaveBeenCalled();
+    expect(updatePlaylistImage).toHaveBeenCalledWith(
+      playlistId,
+      "/test/image.jpg",
+      userId
+    );
+  });
+
+  it("他人のプレイリストには追加できない", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: "0 rows" },
+    });
+
+    await expect(
+      addPlaylistSong({ playlistId, userId: "attacker", songId })
+    ).rejects.toThrow();
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(db.insert).not.toHaveBeenCalled();
   });
 
   it("曲追加時にエラーが発生した場合", async () => {
@@ -98,4 +118,3 @@ describe("addPlaylistSong", () => {
     expect(updatePlaylistImage).not.toHaveBeenCalled();
   });
 });
-

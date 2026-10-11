@@ -5,6 +5,7 @@ import { playlistSongs } from "@/lib/db/schema";
 import getSongById from "@/actions/song/getSongById";
 import updatePlaylistImage from "@/actions/playlist/updatePlaylistImage";
 import { runQuery } from "@/lib/utils/supabaseQuery";
+import { AUTH_ERRORS, PLAYLIST_ERRORS } from "@/constants/errorMessages";
 
 /**
  * プレイリストに曲を追加する関数
@@ -36,6 +37,24 @@ const addPlaylistSong = async ({
   userId,
   songId,
 }: AddPlaylistSongProps) => {
+  if (!userId) {
+    throw new Error(AUTH_ERRORS.USER_ID_REQUIRED);
+  }
+
+  // 所有権チェック: 自分のプレイリストでなければ何も書き込まない。
+  // 注意: クライアント側チェックはなりすまし改変ビルドを防げないため、
+  // Supabase側でも RLS (auth.uid() = user_id) を必須にすること。
+  await runQuery(
+    async () =>
+      supabase
+        .from(SUPABASE_TABLES.playlists)
+        .select("id")
+        .eq("id", playlistId)
+        .eq("user_id", userId)
+        .single(),
+    { purpose: "read", errorPrefix: PLAYLIST_ERRORS.FORBIDDEN }
+  );
+
   // データベースにプレイリスト曲情報を挿入（エラー時は共通ヘルパーが throw する）
   await runQuery(async () =>
     supabase.from(SUPABASE_TABLES.playlistSongs).insert({
@@ -59,7 +78,7 @@ const addPlaylistSong = async ({
 
   // 曲に画像がある場合、プレイリストの画像を更新
   if (songData?.image_path) {
-    await updatePlaylistImage(playlistId, songData.image_path);
+    await updatePlaylistImage(playlistId, songData.image_path, userId);
   }
 
   // プレイリストIDと曲データを返却

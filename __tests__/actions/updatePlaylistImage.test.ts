@@ -15,6 +15,7 @@ jest.mock("@/lib/db/schema", () => ({
 }));
 jest.mock("drizzle-orm", () => ({
   eq: jest.fn((field, value) => ({ field, value })),
+  and: jest.fn((...conditions) => ({ conditions })),
 }));
 
 // モックのエイリアス
@@ -38,21 +39,43 @@ describe("updatePlaylistImage", () => {
       error: null,
     });
     mockSelect.mockReturnValue({ eq: mockEq });
-    mockEq.mockReturnValue({ single: mockSingle });
+    mockEq.mockReturnValue({ eq: mockEq, single: mockSingle });
     mockUpdate.mockReturnValue({ eq: mockEq });
     mockFrom.mockReturnValue({ select: mockSelect, update: mockUpdate });
 
     // テスト実行
-    await updatePlaylistImage("p1", "img.jpg");
+    await updatePlaylistImage("p1", "img.jpg", "u1");
 
     // 期待値を確認
     expect(mockFrom).toHaveBeenCalledWith("playlists");
     expect(mockSelect).toHaveBeenCalledWith("image_path");
     expect(mockEq).toHaveBeenCalledWith("id", "p1");
+    expect(mockEq).toHaveBeenCalledWith("user_id", "u1");
     expect(mockUpdate).toHaveBeenCalledWith({ image_path: "img.jpg" });
     expect(db.update).toHaveBeenCalled();
     expect(mockSet).toHaveBeenCalledWith({ imagePath: "img.jpg" });
     expect(mockWhere).toHaveBeenCalled();
+  });
+
+  it("userIdがない場合はエラーをスローする", async () => {
+    await expect(
+      updatePlaylistImage("p1", "img.jpg", undefined as unknown as string)
+    ).rejects.toThrow("ユーザーIDが必要です");
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it("他人のプレイリストの場合は更新せずエラーをスローする", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: "0 rows" },
+    });
+    mockSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ eq: mockEq, single: mockSingle });
+    mockFrom.mockReturnValue({ select: mockSelect, update: mockUpdate });
+
+    await expect(updatePlaylistImage("p1", "img.jpg", "attacker")).rejects.toThrow();
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(db.update).not.toHaveBeenCalled();
   });
 
   it("エラーが発生した場合", async () => {
@@ -62,11 +85,11 @@ describe("updatePlaylistImage", () => {
       error: { message: "error" },
     });
     mockSelect.mockReturnValue({ eq: mockEq });
-    mockEq.mockReturnValue({ single: mockSingle });
+    mockEq.mockReturnValue({ eq: mockEq, single: mockSingle });
     mockFrom.mockReturnValue({ select: mockSelect });
 
     // テスト実行と期待値を確認
-    await expect(updatePlaylistImage("p1", "img.jpg")).rejects.toThrow("error");
+    await expect(updatePlaylistImage("p1", "img.jpg", "u1")).rejects.toThrow("error");
     expect(db.update).not.toHaveBeenCalled();
   });
 
@@ -77,16 +100,17 @@ describe("updatePlaylistImage", () => {
       error: null,
     });
     mockSelect.mockReturnValue({ eq: mockEq });
-    mockEq.mockReturnValue({ single: mockSingle });
+    mockEq.mockReturnValue({ eq: mockEq, single: mockSingle });
     mockFrom.mockReturnValue({ select: mockSelect, update: mockUpdate });
 
     // テスト実行
-    await updatePlaylistImage("p1", "img.jpg");
+    await updatePlaylistImage("p1", "img.jpg", "u1");
 
     // 期待値を確認 - updateは呼ばれない
     expect(mockFrom).toHaveBeenCalledWith("playlists");
     expect(mockSelect).toHaveBeenCalledWith("image_path");
     expect(mockEq).toHaveBeenCalledWith("id", "p1");
+    expect(mockEq).toHaveBeenCalledWith("user_id", "u1");
     expect(mockUpdate).not.toHaveBeenCalled();
     expect(db.update).not.toHaveBeenCalled();
   });
