@@ -65,7 +65,8 @@
 
 ## 次の候補（未着手）
 
-- web 側で発見された `PROTECTED_ROUTES` の `"/playlist"`（単数）→ `"/playlists"` 整理（web の宿題）
+- ~~web 側で発見された `PROTECTED_ROUTES` の `"/playlist"`（単数）→ `"/playlists"` 整理~~:
+  2026-10-18 に web 側で対応済み（`"/playlists"` に修正 + proxy/constants テスト追加）
 - web↔desktop のバイト一致ファイルの棚卸し: 件数が計測方法で揺れる（初版 14 個 / 再計測 11 個）。
   スクリプトを固定して再計測し、統合候補リストを確定させる
 - 将来的に `@badwave/shared` パッケージを作り、真実を1箇所に集約する
