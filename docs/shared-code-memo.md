@@ -44,10 +44,30 @@
   3環境すべてで差分を確認すること」という注意喚起コメントを追加（drift の可視化）
 - 検証: tsc PASS、実コード差分ゼロ
 
+### 3. `constants/ThemeColors.ts`（テーマ定義・mobile 側）
+
+- 状態: **mobile は統合対象外** — web/desktop の `constants/colorSchemes.ts` とは
+  テーマ集合（5テーマ vs 6プリセット）・キー構造（`theme300` 等の色キーが無い）が異なる
+  - 参考: web↔desktop の `colorSchemes.ts` は `DEFAULT_COLOR_SCHEME_ID` の1行以外完全一致（相手側の統合候補）
+- 対応: mobile は変更なし（web/desktop 側にのみ drift 防止注記を追加）
+- 検証: 定数テスト mobile 62 / web 25 / desktop 33 件 + 3環境 tsc PASS。実コード差分ゼロ
+
+### 4. `constants/index.ts`（純粋定数）
+
+- 状態: **キー名・構造が web/desktop と異なり、ファイル全体では統合不可**。一致は:
+  - 3環境同一: `CACHE_PREFIX`（"@query-cache"）/ `CACHE_CONFIG.staleTime`（10分）
+  - 意図的な差: `CACHE_CONFIG.gcTime`（mobile=7日 / web/desktop=30分）
+  - 別体系: `CACHED_QUERIES` / `SUPABASE_TABLES`（キー命名が異なる）/ `ROUTES`（Expo Router 形式）
+  - 単位が異なる: `ANIMATION_DURATION`（ミリ秒）vs web/desktop の `DURATIONS`（秒）
+- 対応: `constants/index.ts` 冒頭に「3環境で一致しているのは CACHE_PREFIX / staleTime のみ」の
+  drift マップ注記を追加
+- 検証: 定数テスト mobile 62 / web 25 / desktop 33 件 + 3環境 tsc PASS。実コード差分ゼロ
+
 ## 次の候補（未着手）
 
-- `constants/index.ts` の `CACHE_CONFIG` など、3環境で一致・かつ安全に統合できる純粋定数
-- `constants/colorSchemes.ts`（テーマ定義）— 構造を確認して統合可否を判断
+- web 側で発見された `PROTECTED_ROUTES` の `"/playlist"`（単数）→ `"/playlists"` 整理（web の宿題）
+- web↔desktop のバイト一致ファイルの棚卸し: 件数が計測方法で揺れる（初版 14 個 / 再計測 11 個）。
+  スクリプトを固定して再計測し、統合候補リストを確定させる
 - 将来的に `@badwave/shared` パッケージを作り、真実を1箇所に集約する
 
 ## 原則

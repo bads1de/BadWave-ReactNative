@@ -1,5 +1,11 @@
 import { scale, verticalScale } from "react-native-size-matters";
 
+// ※ 本ファイルは web / desktop（badwave / badwave-desktop の constants/index.ts）と
+//   キー名・構造が異なる（CACHED_QUERIES / SUPABASE_TABLES / ROUTES 等は統一しない）。
+//   3 環境で一致しているのは以下だけ（変更する際は 3 環境すべてで差分を確認すること）:
+//   - CACHE_PREFIX: "@query-cache"
+//   - CACHE_CONFIG.staleTime: 10分（gcTime は mobile=7日・web/desktop=30分 と意図的に異なる）
+
 export const genreCards = [
   { id: 1, name: "Retro Wave" },
   { id: 2, name: "Electro House" },
