@@ -235,6 +235,7 @@ export default memo(SpotlightItem, (prevProps, nextProps) => {
   return (
     prevProps.item.id === nextProps.item.id &&
     prevProps.index === nextProps.index &&
-    prevProps.isParentFocused === nextProps.isParentFocused
+    prevProps.isParentFocused === nextProps.isParentFocused &&
+    prevProps.bottomPadding === nextProps.bottomPadding
   );
 });

@@ -1,5 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
+import { StyleSheet, View } from "react-native";
 import SpotlightItem from "@/components/spotlights/SpotlightItem";
 import { Spotlight } from "@/types";
 
@@ -99,5 +100,34 @@ describe("SpotlightItem - ミュートボタン", () => {
     );
     expect(getAllByText("Test Artist").length).toBeGreaterThan(0);
     expect(getAllByText("Test Song").length).toBeGreaterThan(0);
+  });
+
+  it("bottomPadding が変わると再レンダーされる", () => {
+    const { rerender, UNSAFE_getAllByType } = render(
+      <SpotlightItem
+        item={mockSpotlight}
+        index={0}
+        isParentFocused={true}
+        bottomPadding={0}
+      />,
+    );
+
+    const getPaddingBottom = () =>
+      UNSAFE_getAllByType(View)
+        .map((node) => StyleSheet.flatten(node.props.style))
+        .find((style) => style?.paddingBottom !== undefined)?.paddingBottom;
+
+    expect(getPaddingBottom()).toBe(30);
+
+    rerender(
+      <SpotlightItem
+        item={mockSpotlight}
+        index={0}
+        isParentFocused={true}
+        bottomPadding={100}
+      />,
+    );
+
+    expect(getPaddingBottom()).toBe(130);
   });
 });
