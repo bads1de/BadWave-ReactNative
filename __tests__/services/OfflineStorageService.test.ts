@@ -112,17 +112,34 @@ describe("OfflineStorageService", () => {
       // ダウンロード確認
       expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
         mockSong.song_path,
-        "/mock/document/directory/downloads/Test_Song.mp3",
+        "/mock/document/directory/downloads/test-song-id.mp3",
       );
 
       // DB更新確認
       expect(mockDb.update).toHaveBeenCalled();
       expect(mockDb.set).toHaveBeenCalledWith(
         expect.objectContaining({
-          songPath: "/mock/document/directory/downloads/Test_Song.mp3",
+          songPath: "/mock/document/directory/downloads/test-song-id.mp3",
           imagePath:
             "/mock/document/directory/downloads/images/test-song-id_artwork.jpg",
         }),
+      );
+    });
+
+    it("同じタイトルの曲でも曲IDごとに別ファイルへ保存する", async () => {
+      const songA = { ...mockSong, id: "song-a", title: "Same Title" };
+      const songB = { ...mockSong, id: "song-b", title: "Same Title" };
+
+      await service.downloadSong(songA);
+      await service.downloadSong(songB);
+
+      expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
+        songA.song_path,
+        "/mock/document/directory/downloads/song-a.mp3",
+      );
+      expect(FileSystem.downloadAsync).toHaveBeenCalledWith(
+        songB.song_path,
+        "/mock/document/directory/downloads/song-b.mp3",
       );
     });
 
@@ -138,6 +155,24 @@ describe("OfflineStorageService", () => {
 
       // DB更新は走る
       expect(mockDb.update).toHaveBeenCalled();
+    });
+
+    it("DBに既存のローカルパスがあれば再ダウンロードしない", async () => {
+      // 旧バージョンで保存したタイトル名ベースのパス
+      ((db as any).then as jest.Mock).mockImplementationOnce((cb) =>
+        Promise.resolve([
+          { songPath: "/legacy/Test_Song.mp3", imagePath: null },
+        ]).then(cb),
+      );
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+        exists: true,
+      });
+
+      const result = await service.downloadSong(mockSong);
+
+      expect(result).toEqual({ success: true });
+      expect(FileSystem.downloadAsync).not.toHaveBeenCalled();
+      expect(mockDb.update).not.toHaveBeenCalled();
     });
 
     it("should handle download failure", async () => {
@@ -166,19 +201,12 @@ describe("OfflineStorageService", () => {
 
   describe("deleteSong", () => {
     it("should delete song file and clear DB path", async () => {
-      // 1. getSongLocalPath -> [{ songPath: ... }]
-      // 2. getImageLocalPath -> [{ imagePath: ... }]
-      // 3. update -> []
-      ((db as any).then as jest.Mock)
-        .mockImplementationOnce((cb) =>
-          Promise.resolve([
-            { songPath: "/path/to/song.mp3", imagePath: "/path/to/image.jpg" },
-          ]).then(cb),
-        )
-        .mockImplementationOnce((cb) =>
-          Promise.resolve([{ imagePath: "/path/to/image.jpg" }]).then(cb),
-        )
-        .mockImplementationOnce((cb) => Promise.resolve([]).then(cb));
+      // getLocalPaths -> [{ songPath, imagePath }]
+      ((db as any).then as jest.Mock).mockImplementationOnce((cb) =>
+        Promise.resolve([
+          { songPath: "/path/to/song.mp3", imagePath: "/path/to/image.jpg" },
+        ]).then(cb),
+      );
 
       (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
         exists: true,
@@ -189,12 +217,13 @@ describe("OfflineStorageService", () => {
       expect(result.success).toBe(true);
       expect(FileSystem.deleteAsync).toHaveBeenCalledWith("/path/to/song.mp3");
 
-      // DB更新確認 (songPath: null)
+      // DB更新確認 (songPath/imagePath: null)
       expect(mockDb.update).toHaveBeenCalled();
       expect(mockDb.set).toHaveBeenCalledWith(
         expect.objectContaining({
           songPath: null,
           imagePath: null,
+          downloadedAt: null,
         }),
       );
     });
@@ -309,6 +338,33 @@ describe("OfflineStorageService", () => {
       expect(map.size).toBe(0);
       expect(mockDb.select).not.toHaveBeenCalled();
     });
+
+    it("大量のIDは分割してクエリする（SQLiteのバインド上限対策）", async () => {
+      const ids = Array.from({ length: 501 }, (_, i) => `id-${i}`);
+      ((db as any).then as jest.Mock)
+        .mockImplementationOnce((cb) =>
+          Promise.resolve([
+            { id: "id-0", songPath: "/a.mp3", originalSongPath: null },
+          ]).then(cb),
+        )
+        .mockImplementationOnce((cb) =>
+          Promise.resolve([
+            { id: "id-500", songPath: "/b.mp3", originalSongPath: null },
+          ]).then(cb),
+        );
+
+      const map = await service.getSongPathsBatch(ids);
+
+      expect(mockDb.select).toHaveBeenCalledTimes(2);
+      expect(map.get("id-0")).toEqual({
+        localPath: "/a.mp3",
+        originalPath: null,
+      });
+      expect(map.get("id-500")).toEqual({
+        localPath: "/b.mp3",
+        originalPath: null,
+      });
+    });
   });
 
   describe("getDownloadedSongsSize", () => {
@@ -375,6 +431,66 @@ describe("OfflineStorageService", () => {
 
       const size = await service.getDownloadedSongsSize();
       expect(size).toBe(50000);
+    });
+
+    it("一部のファイル情報取得に失敗しても残りの合計を返す", async () => {
+      const mockRows = [
+        { id: "1", songPath: "/path/1.mp3", imagePath: "/path/1.jpg" },
+      ];
+
+      ((db as any).then as jest.Mock).mockImplementation((cb) =>
+        Promise.resolve(mockRows).then(cb),
+      );
+
+      (FileSystem.getInfoAsync as jest.Mock)
+        .mockRejectedValueOnce(new Error("stat failed"))
+        .mockResolvedValueOnce({ exists: true, size: 50000 });
+
+      const size = await service.getDownloadedSongsSize();
+      expect(size).toBe(50000);
+    });
+  });
+
+  describe("clearAllDownloads", () => {
+    it("全ファイルを削除し、DBパスを一括でクリアする", async () => {
+      const mockRows = [
+        { id: "1", songPath: "/path/1.mp3", imagePath: "/path/1.jpg" },
+        { id: "2", songPath: "/path/2.mp3", imagePath: null },
+      ];
+
+      ((db as any).then as jest.Mock).mockImplementationOnce((cb) =>
+        Promise.resolve(mockRows).then(cb),
+      );
+
+      const result = await service.clearAllDownloads();
+
+      expect(result).toEqual({ success: true });
+      expect(FileSystem.deleteAsync).toHaveBeenCalledWith("/path/1.mp3");
+      expect(FileSystem.deleteAsync).toHaveBeenCalledWith("/path/1.jpg");
+      expect(FileSystem.deleteAsync).toHaveBeenCalledWith("/path/2.mp3");
+      expect(mockDb.update).toHaveBeenCalledTimes(1);
+      expect(mockDb.set).toHaveBeenCalledWith({
+        songPath: null,
+        imagePath: null,
+        downloadedAt: null,
+      });
+    });
+
+    it("大量の曲は分割してUPDATEする（SQLiteのバインド上限対策）", async () => {
+      const mockRows = Array.from({ length: 501 }, (_, i) => ({
+        id: `id-${i}`,
+        songPath: `/path/${i}.mp3`,
+        imagePath: null,
+      }));
+
+      ((db as any).then as jest.Mock).mockImplementationOnce((cb) =>
+        Promise.resolve(mockRows).then(cb),
+      );
+
+      const result = await service.clearAllDownloads();
+
+      expect(result).toEqual({ success: true });
+      expect(mockDb.update).toHaveBeenCalledTimes(2);
     });
   });
 });

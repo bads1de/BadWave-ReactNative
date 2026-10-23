@@ -1,25 +1,48 @@
 import * as FileSystem from "expo-file-system/legacy";
-import { eq, inArray, isNotNull } from "drizzle-orm";
 import Song from "@/types";
-import { db } from "@/lib/db/client";
-import { songs } from "@/lib/db/schema";
-import { mapSongRowToSong } from "@/lib/utils/songMapper";
 import { getErrorMessage } from "@/lib/utils/error";
+import getLocalPaths from "@/actions/download/getLocalPaths";
+import getSongPathsBatch from "@/actions/download/getSongPathsBatch";
+import type { SongPathInfo } from "@/actions/download/getSongPathsBatch";
+import getDownloadedSongsFromDb from "@/actions/download/getDownloadedSongs";
+import getDownloadedFiles from "@/actions/download/getDownloadedFiles";
+import setLocalPaths from "@/actions/download/setLocalPaths";
+import clearLocalPaths from "@/actions/download/clearLocalPaths";
+
+/**
+ * ファイル操作を一度に実行する件数。
+ * ダウンロード済み曲が多い環境で、ネイティブの FileSystem 呼び出しを
+ * 無制限に並列実行しないための上限。
+ */
+const FILE_IO_CONCURRENCY = 20;
+
+async function runInChunks<T, R>(
+  items: T[],
+  task: (item: T) => Promise<R>,
+  concurrency = FILE_IO_CONCURRENCY,
+): Promise<R[]> {
+  const results: R[] = [];
+
+  for (let i = 0; i < items.length; i += concurrency) {
+    const chunk = items.slice(i, i + concurrency);
+    results.push(...(await Promise.all(chunk.map(task))));
+  }
+
+  return results;
+}
 
 /**
  * オフライン再生のためのストレージサービス
- * 曲のダウンロード、削除、メタデータの管理を行う
- * (SQLite Version)
+ * ファイルのダウンロード・削除・容量チェックを担当する。
+ *
+ * DB (SQLite) への読み書きは actions/download/ に委譲し、
+ * このサービスは FileSystem 操作とその組み立てに専念する。
  */
 export class OfflineStorageService {
   private readonly DOWNLOAD_DIR = FileSystem.documentDirectory + "downloads/";
   private readonly IMAGES_DIR =
     FileSystem.documentDirectory + "downloads/images/";
   private readonly MINIMUM_FREE_SPACE = 50 * 1024 * 1024; // 50MB
-
-  constructor() {
-    this.ensureDownloadDirectory();
-  }
 
   /**
    * ダウンロードディレクトリが存在することを確認
@@ -112,20 +135,23 @@ export class OfflineStorageService {
     song: Song,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // ダウンロード前にストレージの空き容量をチェック
-      const freeSpace = await FileSystem.getFreeDiskStorageAsync();
-      if (freeSpace < this.MINIMUM_FREE_SPACE) {
-        return {
-          success: false,
-          error: "Not enough free storage space.",
-        };
+      await this.ensureDownloadDirectory();
+
+      // 旧バージョンでタイトル名から保存した既存ファイルも再利用する
+      const existingPaths = await getLocalPaths(song.id);
+      if (existingPaths.songPath) {
+        const existingInfo = await FileSystem.getInfoAsync(
+          existingPaths.songPath,
+        );
+        if (existingInfo.exists) {
+          console.log(`Song already downloaded: ${song.title}`);
+          return { success: true };
+        }
       }
 
-      // ファイル名にはタイトルを使用（特殊文字を除去）
-      const sanitizedTitle = song.title.replace(/[^a-zA-Z0-9]/g, "_");
-
-      // 保存先のローカルパスを作成
-      const localPath = `${this.DOWNLOAD_DIR}${sanitizedTitle}.mp3`;
+      // ファイル名には曲IDを使用する（同名タイトルの曲が上書きされるのを防ぐ）
+      const sanitizedId = song.id.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const localPath = `${this.DOWNLOAD_DIR}${sanitizedId}.mp3`;
 
       // 既にダウンロード済みかチェック
       const fileInfo = await FileSystem.getInfoAsync(localPath);
@@ -133,8 +159,21 @@ export class OfflineStorageService {
       if (fileInfo.exists) {
         console.log(`Song already downloaded: ${song.title}`);
         // DBの状態も念のため更新
-        await this.updateSongPathInDb(song.id, localPath, null);
+        await setLocalPaths({
+          songId: song.id,
+          songPath: localPath,
+          imagePath: null,
+        });
         return { success: true };
+      }
+
+      // 新規ダウンロードの前にストレージの空き容量をチェック
+      const freeSpace = await FileSystem.getFreeDiskStorageAsync();
+      if (freeSpace < this.MINIMUM_FREE_SPACE) {
+        return {
+          success: false,
+          error: "Not enough free storage space.",
+        };
       }
 
       // ダウンロード実行
@@ -152,7 +191,11 @@ export class OfflineStorageService {
           );
 
           // SQLite にローカルパスを保存
-          await this.updateSongPathInDb(song.id, localPath, imageLocalPath);
+          await setLocalPaths({
+            songId: song.id,
+            songPath: localPath,
+            imagePath: imageLocalPath,
+          });
 
           return { success: true };
         } else {
@@ -184,38 +227,6 @@ export class OfflineStorageService {
   }
 
   /**
-   * SQLite の曲情報を更新するためのヘルパー
-   */
-  private async updateSongPathInDb(
-    songId: string,
-    songPath: string | null,
-    imagePath: string | null,
-  ) {
-    try {
-      const updateData: {
-        songPath: string | null;
-        downloadedAt: Date | null;
-        imagePath?: string | null;
-      } = {
-        songPath: songPath,
-        downloadedAt: songPath ? new Date() : null,
-      };
-
-      if (imagePath) {
-        updateData.imagePath = imagePath;
-      } else if (songPath === null) {
-        // 削除時は画像パスも消す
-        updateData.imagePath = null;
-      }
-
-      await db.update(songs).set(updateData).where(eq(songs.id, songId));
-    } catch (error) {
-      console.error("Failed to update song path in DB:", error);
-      throw error;
-    }
-  }
-
-  /**
    * ダウンロードした曲を削除
    * @param songId 削除する曲のID
    * @returns 削除結果
@@ -224,38 +235,26 @@ export class OfflineStorageService {
     songId: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // SQLite からパスを取得
-      const localPath = await this.getSongLocalPath(songId);
+      const { songPath, imagePath } = await getLocalPaths(songId);
 
-      if (!localPath) {
-        // パスがない（既に削除済みか未ダウンロード）場合は成功とみなすが、
-        // DBの状態整合性のため更新処理は走らせる
-        await this.updateSongPathInDb(songId, null, null);
-        return { success: true };
-      }
+      if (songPath) {
+        const fileInfo = await FileSystem.getInfoAsync(songPath);
 
-      // ファイルが存在するか確認
-      const fileInfo = await FileSystem.getInfoAsync(localPath);
-
-      if (fileInfo.exists) {
-        try {
-          // ファイル削除
-          await FileSystem.deleteAsync(localPath);
-        } catch (unlinkError) {
-          console.error("Error unlinking file:", unlinkError);
-          // ファイル削除に失敗してもDBは更新すべきか？ -> 整合性が取れなくなるのでエラーを返す
-          return {
-            success: false,
-            error:
-              unlinkError instanceof Error
-                ? unlinkError.message
-                : String(unlinkError),
-          };
+        if (fileInfo.exists) {
+          try {
+            await FileSystem.deleteAsync(songPath);
+          } catch (unlinkError) {
+            console.error("Error unlinking file:", unlinkError);
+            // ファイル削除に失敗した場合はDBを更新せずエラーを返す
+            return {
+              success: false,
+              error: getErrorMessage(unlinkError),
+            };
+          }
         }
       }
 
       // 関連する画像ファイルも削除（ベストエフォート）
-      const imagePath = await this.getImageLocalPath(songId);
       if (imagePath) {
         const imageInfo = await FileSystem.getInfoAsync(imagePath);
         if (imageInfo.exists) {
@@ -264,7 +263,7 @@ export class OfflineStorageService {
       }
 
       // SQLite のローカルパス情報をクリア
-      await this.updateSongPathInDb(songId, null, null);
+      await clearLocalPaths([songId]);
 
       return { success: true };
     } catch (error) {
@@ -284,17 +283,10 @@ export class OfflineStorageService {
    */
   async getDownloadedSongs(): Promise<Song[]> {
     try {
-      const sqliteResults = await db
-        .select()
-        .from(songs)
-        .where(isNotNull(songs.songPath));
-
       // パフォーマンス改善（N+1問題の解消）のため、
       // FileSystem.getInfoAsyncによる実ファイルチェックは省略し、
       // SQLiteの情報を「真」として扱う（再生時等の呼び出し元でファイルが無ければ対処する方針）
-      return sqliteResults
-        .filter((row) => row.songPath)
-        .map((row) => mapSongRowToSong(row));
+      return await getDownloadedSongsFromDb();
     } catch (error) {
       console.error("Error getting downloaded songs:", error);
       return [];
@@ -308,8 +300,8 @@ export class OfflineStorageService {
    */
   async isSongDownloaded(songId: string): Promise<boolean> {
     try {
-      const localPath = await this.getSongLocalPath(songId);
-      return localPath !== null;
+      const { songPath } = await getLocalPaths(songId);
+      return songPath !== null;
     } catch (error) {
       console.error("Error checking if song is downloaded:", error);
       return false;
@@ -323,17 +315,8 @@ export class OfflineStorageService {
    */
   async getSongLocalPath(songId: string): Promise<string | null> {
     try {
-      const sqliteResult = await db
-        .select({ songPath: songs.songPath })
-        .from(songs)
-        .where(eq(songs.id, songId))
-        .limit(1);
-
-      if (sqliteResult.length > 0 && sqliteResult[0].songPath) {
-        // パフォーマンス改善のため、実ファイルチェックは省略しDBの値を信頼する
-        return sqliteResult[0].songPath;
-      }
-      return null;
+      const { songPath } = await getLocalPaths(songId);
+      return songPath;
     } catch (error) {
       console.error("Error getting song local path:", error);
       return null;
@@ -342,69 +325,17 @@ export class OfflineStorageService {
 
   /**
    * 複数曲のパス情報を一括取得する（N+1クエリの回避）
-   *
-   * 再生キュー構築時に曲ごとの getSongLocalPath を呼ぶと曲数分のクエリが
-   * 発生するため、IN句を用いて1回のクエリにまとめる。
    * @param songIds 取得対象の曲ID配列
    * @returns songId をキーに { localPath, originalPath } を持つMap
-   *          （DBに存在する曲のみ格納。localPath は未ダウンロード時 null）
    */
   async getSongPathsBatch(
     songIds: string[],
-  ): Promise<
-    Map<string, { localPath: string | null; originalPath: string | null }>
-  > {
-    const result = new Map<
-      string,
-      { localPath: string | null; originalPath: string | null }
-    >();
-
-    // 無効なIDを除外
-    const validIds = songIds.filter((id): id is string => Boolean(id));
-    if (validIds.length === 0) {
-      return result;
-    }
-
+  ): Promise<Map<string, SongPathInfo>> {
     try {
-      const rows = await db
-        .select({
-          id: songs.id,
-          songPath: songs.songPath,
-          originalSongPath: songs.originalSongPath,
-        })
-        .from(songs)
-        .where(inArray(songs.id, validIds));
-
-      for (const row of rows) {
-        result.set(row.id, {
-          localPath: row.songPath ?? null,
-          originalPath: row.originalSongPath ?? null,
-        });
-      }
+      return await getSongPathsBatch(songIds);
     } catch (error) {
       console.error("Error getting song paths batch:", error);
-    }
-
-    return result;
-  }
-
-  /**
-   * 画像のローカルパスを取得（内部用）
-   */
-  private async getImageLocalPath(songId: string): Promise<string | null> {
-    try {
-      const sqliteResult = await db
-        .select({ imagePath: songs.imagePath })
-        .from(songs)
-        .where(eq(songs.id, songId))
-        .limit(1);
-
-      if (sqliteResult.length > 0) {
-        return sqliteResult[0].imagePath;
-      }
-      return null;
-    } catch {
-      return null;
+      return new Map();
     }
   }
 
@@ -414,36 +345,24 @@ export class OfflineStorageService {
    */
   async getDownloadedSongsSize(): Promise<number> {
     try {
-      // SQLiteからsongPathが設定されている曲を取得
-      const sqliteResults = await db
-        .select({
-          songPath: songs.songPath,
-          imagePath: songs.imagePath,
-        })
-        .from(songs)
-        .where(isNotNull(songs.songPath));
+      const files = await getDownloadedFiles();
 
-      let totalSize = 0;
+      const paths = files.flatMap(({ songPath, imagePath }) =>
+        [songPath, imagePath].filter((path): path is string => Boolean(path)),
+      );
 
-      for (const row of sqliteResults) {
-        // 曲ファイルのサイズを取得
-        if (row.songPath) {
-          const songInfo = await FileSystem.getInfoAsync(row.songPath);
-          if (songInfo.exists && "size" in songInfo) {
-            totalSize += songInfo.size;
-          }
+      const sizes = await runInChunks(paths, async (path) => {
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(path);
+          return fileInfo.exists && "size" in fileInfo ? fileInfo.size : 0;
+        } catch (error) {
+          // 1ファイルの情報取得失敗で合計値全体を失わないようにする
+          console.error(`Error getting file info: ${path}`, error);
+          return 0;
         }
+      });
 
-        // 画像ファイルのサイズを取得
-        if (row.imagePath) {
-          const imageInfo = await FileSystem.getInfoAsync(row.imagePath);
-          if (imageInfo.exists && "size" in imageInfo) {
-            totalSize += imageInfo.size;
-          }
-        }
-      }
-
-      return totalSize;
+      return sizes.reduce((total, size) => total + size, 0);
     } catch (error) {
       console.error("Error getting downloaded songs size:", error);
       return 0;
@@ -456,10 +375,35 @@ export class OfflineStorageService {
    */
   async clearAllDownloads(): Promise<{ success: boolean; error?: string }> {
     try {
-      const songsList = await this.getDownloadedSongs();
+      const files = await getDownloadedFiles();
 
-      for (const song of songsList) {
-        await this.deleteSong(song.id);
+      // 曲本体の削除に失敗したものは DB をクリアせず、次回に再試行できるようにする
+      const results = await runInChunks(files, async (file) => {
+        try {
+          if (file.songPath) {
+            await FileSystem.deleteAsync(file.songPath);
+          }
+          if (file.imagePath) {
+            await FileSystem.deleteAsync(file.imagePath).catch(() => {});
+          }
+          return { id: file.id, error: null };
+        } catch (error) {
+          return { id: file.id, error };
+        }
+      });
+
+      const clearedIds = results
+        .filter((result) => result.error === null)
+        .map((result) => result.id);
+
+      await clearLocalPaths(clearedIds);
+
+      const failure = results.find((result) => result.error !== null);
+      if (failure) {
+        return {
+          success: false,
+          error: getErrorMessage(failure.error),
+        };
       }
 
       return { success: true };
